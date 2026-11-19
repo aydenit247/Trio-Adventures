@@ -15,7 +15,7 @@ export default class DialogueBox {
   constructor(scene) {
     this.scene = scene;
     const { width, height } = scene.scale;
-    const boxH = 210, pad = 24;
+    const boxH = 180, pad = 14;
     const y = height - boxH - pad;
 
     this.root = scene.add.container(0, 0).setDepth(1000).setVisible(false);
@@ -30,16 +30,16 @@ export default class DialogueBox {
       this.panel.fillStyle(0xe8b923, 1).fillPoints([
         { x: cx, y: cy - 8 }, { x: cx + 8, y: cy }, { x: cx, y: cy + 8 }, { x: cx - 8, y: cy }], true);
     });
-    this.portrait = scene.add.image(pad + 18 + 84, y + boxH / 2, '__DEFAULT').setDisplaySize(168, 168);
-    this.portraitFrame = scene.add.rectangle(this.portrait.x, this.portrait.y, 172, 172)
+    this.portrait = scene.add.image(pad + 18 + 74, y + boxH / 2, '__DEFAULT').setDisplaySize(148, 148);
+    this.portraitFrame = scene.add.rectangle(this.portrait.x, this.portrait.y, 152, 152)
       .setStrokeStyle(3, 0xe8b923);
     this.nameTag = scene.add.text(pad + 18, y - 40, '', {
       fontFamily: 'Cinzel', fontSize: '26px', fontStyle: '700', color: '#1a1324', backgroundColor: '#e8b923',
       padding: { x: 16, y: 5 },
     });
-    this.textX = pad + 18 + 168 + 28;
+    this.textX = pad + 18 + 148 + 28;
     this.textW = width - pad * 2 - (this.textX - pad) - 30;
-    this.body = scene.add.text(this.textX, y + 26, '', {
+    this.body = scene.add.text(this.textX, y + 22, '', {
       fontFamily: 'Nunito', fontSize: '26px', color: '#f4efff', lineSpacing: 6,
       shadow: { offsetX: 0, offsetY: 2, color: '#000', blur: 4, fill: true },
       wordWrap: { width: this.textW },
@@ -109,10 +109,11 @@ export default class DialogueBox {
     if (!narrator) {
       const moodKey = s.mood ? `portrait_${s.who}_${s.mood}` : null;
       const key = moodKey && this.scene.textures.exists(moodKey) ? moodKey : `portrait_${s.who}`;
-      this.portrait.setTexture(key).setDisplaySize(168, 168);
+      this.portrait.setTexture(key).setDisplaySize(148, 148);
     }
     this.nameTag.setVisible(!narrator && !!c.name).setText(c.name || '');
 
+    if (this.hooks && this.hooks.onLine) this.hooks.onLine(s);
     const x = narrator ? 60 : this.textX;
     this.body.setX(x).setWordWrapWidth(narrator ? this.scene.scale.width - 120 : this.textW);
 

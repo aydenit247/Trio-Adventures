@@ -108,6 +108,11 @@ Mostly the same goofy turn-based combat, plus bonus layers:
 
 ## Art & audio
 
+**Scene 1 art (live):** painted camp backgrounds (unlit + lit), full-body green-screen cutouts of the trio,
+and the map-burning cutscene video (`assets/video/map_burn.mp4`). Scene presentation style: **painted scenes
+with full-body characters** (Darkest Dungeon / Disco Elysium feel); the speaker is highlighted, others dim.
+
+
 - **Art style: realistic**, from Ayden's Grok images.
   - Portraits: chest-up, facing camera, plain solid background, square, same lighting/style.
   - Extra expressions per character (normal, angry, shocked, + Lykor's Mog face).

@@ -29,7 +29,10 @@ export default class BootScene extends Phaser.Scene {
 
     // Backgrounds. Optional ones fall back to drawn scenery if the file isn't there yet.
     this.load.image('bg_title', 'assets/backgrounds/title_trio.jpg');
-    this.load.image('bg_camp_night', 'assets/backgrounds/camp_night.jpg');
+    this.load.image('bg_camp_unlit', 'assets/backgrounds/camp_unlit.jpg');
+    this.load.image('bg_camp_lit', 'assets/backgrounds/camp_lit.jpg');
+    ['skorn', 'lykor', 'xylo'].forEach((c) => this.load.image(`char_${c}`, `assets/characters/${c}.png`));
+    this.load.video('vid_map_burn', 'assets/video/map_burn.mp4', false);
     Sfx.preloadMusic('assets/audio/menu_theme.mp3');
   }
 

@@ -120,6 +120,7 @@ class SfxEngine {
     this.tone({ type: 'triangle', freq: 660, dur: 0.12, vol: 0.12 });
     this.tone({ type: 'triangle', freq: 990, dur: 0.18, vol: 0.12, when: 0.07 });
   }
+  sfx_step()    { this.noise({ dur: 0.07, vol: 0.12, type: 'lowpass', f0: 420, f1: 160, attack: 0.004 }); }
   sfx_pop()     { this.tone({ type: 'sine', freq: 300, freqEnd: 900, dur: 0.09, vol: 0.14 }); }
   sfx_grab() { // item get
     [523, 659, 784, 1046].forEach((f, i) => this.tone({ type: 'square', freq: f, dur: 0.12, vol: 0.05, when: i * 0.07 }));
