@@ -1,5 +1,6 @@
 import { CHARACTERS, PORTRAIT_FILES } from '../data/characters.js';
 import { makeFxTextures } from '../fx.js';
+import Sfx from '../audio/Sfx.js';
 
 // Loads assets, shows the loading screen, and makes placeholder portraits
 // for any image that hasn't been added to assets/portraits/ yet.
@@ -29,6 +30,7 @@ export default class BootScene extends Phaser.Scene {
     // Backgrounds. Optional ones fall back to drawn scenery if the file isn't there yet.
     this.load.image('bg_title', 'assets/backgrounds/title_trio.jpg');
     this.load.image('bg_camp_night', 'assets/backgrounds/camp_night.jpg');
+    Sfx.preloadMusic('assets/audio/menu_theme.mp3');
   }
 
   create() {

@@ -118,7 +118,8 @@ Mostly the same goofy turn-based combat, plus bonus layers:
   - UI clicks/ticks/confirm, label pops, an "item get" jingle, whooshes, fire ignite, a camera-shake boom, a "wait what" sting, and a title chord
   - Ambience loops: night (wind + crickets), campfire (roar + crackles), and birds at dawn
   - **M** or the top-left button toggles mute
-- **Music:** later. Real recorded/licensed sounds can replace any synthesized one later.
+- **Main menu music:** Gregorian chant track (`assets/audio/menu_theme.mp3`), looping on the title screen.
+- **Other music:** later. Real recorded/licensed sounds can replace any synthesized one later.
 - **Platform:** desktop only.
 
 ## How they talk

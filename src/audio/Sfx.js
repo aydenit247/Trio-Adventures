@@ -51,7 +51,9 @@ class SfxEngine {
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
 
     this.ctx.addEventListener('statechange', () => {
-      if (this.ready) this.wanted.forEach((n) => this.startLoop(n));
+      if (!this.ready) return;
+      this.wanted.forEach((n) => this.startLoop(n));
+      if (this.wantedMusic && !this.music) this.playMusic(this.wantedMusic.url, this.wantedMusic.opts);
     });
   }
 
@@ -146,6 +148,58 @@ class SfxEngine {
     chord.forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 3.2, vol: 0.07, attack: 0.6, when: i * 0.12 }));
     this.tone({ type: 'sine', freq: 73.4, dur: 3.5, vol: 0.18, attack: 0.3 });
     this.noise({ dur: 2.5, vol: 0.06, type: 'bandpass', f0: 800, f1: 3000, q: 0.5, attack: 1.2 });
+  }
+
+  // ---------- music (real audio files) ----------
+  // Downloads a track early (e.g. during the loading screen) so it can start instantly later.
+  preloadMusic(url) {
+    this.musicBytes = this.musicBytes || {};
+    if (!this.musicBytes[url]) this.musicBytes[url] = fetch(url).then((r) => r.arrayBuffer()).catch(() => null);
+    return this.musicBytes[url];
+  }
+
+  // opts: { volume, loopStart, loopEnd, fadeIn } in seconds. Starts once audio is unlocked.
+  async playMusic(url, opts = {}) {
+    this.wantedMusic = { url, opts };
+    if (this.music && this.music.url === url) return;
+    this.stopMusic(0.8, true);
+    this.init();
+    if (!this.ready) return; // statechange will retry
+    this.musicBuffers = this.musicBuffers || {};
+    const token = (this.musicToken = (this.musicToken || 0) + 1);
+    try {
+      if (!this.musicBuffers[url]) {
+        const data = await this.preloadMusic(url);
+        if (!data) throw new Error('download failed');
+        this.musicBuffers[url] = await this.ctx.decodeAudioData(data.slice(0));
+      }
+    } catch (e) { console.warn('Music failed to load:', url, e); return; }
+    if (token !== this.musicToken || !this.wantedMusic || this.wantedMusic.url !== url) return;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.musicBuffers[url];
+    src.loop = true;
+    if (opts.loopStart != null) src.loopStart = opts.loopStart;
+    if (opts.loopEnd != null) src.loopEnd = opts.loopEnd;
+    const g = this.ctx.createGain();
+    const t = this.ctx.currentTime;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(opts.volume || 0.5, t + (opts.fadeIn || 2));
+    src.connect(g); g.connect(this.master);
+    src.start(t, opts.loopStart || 0);
+    this.music = { url, src, g };
+  }
+
+  stopMusic(fade = 1.2, keepWanted = false) {
+    if (!keepWanted) this.wantedMusic = null;
+    this.musicToken = (this.musicToken || 0) + 1;
+    if (!this.music) return;
+    const { src, g } = this.music;
+    const t = this.ctx.currentTime;
+    g.gain.cancelScheduledValues(t);
+    g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + fade);
+    try { src.stop(t + fade + 0.05); } catch (e) { /* already stopped */ }
+    this.music = null;
   }
 
   // ---------- loops ----------

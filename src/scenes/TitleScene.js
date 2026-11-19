@@ -8,7 +8,9 @@ export default class TitleScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.cameras.main.fadeIn(1200, 0, 0, 0);
-    this.time.delayedCall(250, () => Sfx.play('titleSting'));
+    // Main menu music (loops; trims the silence at the start/end of the file)
+    Sfx.playMusic('assets/audio/menu_theme.mp3', { volume: 0.55, loopStart: 0.8, loopEnd: 194.2, fadeIn: 3 });
+    this.events.once('shutdown', () => Sfx.stopMusic(1.5));
 
     // Backdrop: the trio, slowly drifting, darkened toward the bottom for the menu
     if (this.textures.exists('bg_title')) {
