@@ -35,9 +35,11 @@ export default class BootScene extends Phaser.Scene {
     [
       'skorn', 'lykor', 'xylo', 'skorn_tweaking', 'lykor_tweaking', 'xylo_tweaking',
       'goblin', 'goblin_kneel', 'goblin_chief', 'dulbers', 'dulbers_demon',
+      'mattias', 'giant_angry', 'giant_sit',
     ].forEach((c) => this.load.image(`char_${c}`, `assets/characters/${c}.png`));
-    ['goblin_village', 'goblin_throne', 'mart_exterior', 'mart_interior', 'mart_interior_trip']
+    ['goblin_village', 'goblin_throne', 'mart_exterior', 'mart_interior', 'mart_interior_trip', 'mountain_path', 'giant_pass']
       .forEach((b) => this.load.image(`bg_${b}`, `assets/backgrounds/${b}.jpg`));
+    ['metocy', 'midtocy'].forEach((i) => this.load.image(`item_${i}`, `assets/items/${i}.png`));
     this.load.video('vid_map_burn', 'assets/video/map_burn.mp4', false);
     this.load.video('vid_dulbers_transform', 'assets/video/dulbers_transform.mp4', false);
     Sfx.preloadMusic('assets/audio/menu_theme.mp3');

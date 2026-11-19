@@ -49,12 +49,13 @@ export default class TitleScene extends Phaser.Scene {
     // Menu
     this.items = [
       { text: 'Continue Story', fn: () => this.go('Goblin') },
-      { text: 'Scene 3: Metocy Mart', fn: () => this.go('Mart') },
+      { text: 'Metocy Mart', fn: () => this.go('Mart') },
+      { text: 'The Pass', fn: () => this.go('Pass') },
       { text: 'Replay Intro', fn: () => this.go('Intro') },
     ];
     this.sel = 0;
     this.menuTexts = this.items.map((it, i) => {
-      const t = this.add.text(width / 2 + (i - 1) * 330, height * 0.88, it.text, {
+      const t = this.add.text(width / 2 + (i - (this.items.length - 1) / 2) * 290, height * 0.88, it.text, {
         fontFamily: 'Nunito', fontSize: '28px', fontStyle: '900', color: '#f4efff',
       }).setOrigin(0.5).setAlpha(0).setDepth(10).setInteractive({ useHandCursor: true });
       t.on('pointerover', () => { if (this.sel !== i) Sfx.play('tick'); this.sel = i; this.renderMenu(); });

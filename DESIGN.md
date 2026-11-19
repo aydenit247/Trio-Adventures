@@ -49,7 +49,8 @@ Later chapters (not in the foundation yet): **Dulbmeethus** and others.
 
 **Build status:** Scenes 1–3 are playable with real art. Scene 2–3 dialogue is mostly Claude DRAFT lines
 (marked `// DRAFT` in `src/data/scenes/`) waiting for Ebain's versions. Fights are placeholders until the
-combat system is built. Title menu: Continue Story (Scene 2), Scene 3, Replay Intro.
+combat system is built. **Scene 4 (The Pass)** is foundation-only: art and staging in place, dialogue slots empty.
+Title menu: Continue Story (Scene 2), Metocy Mart, The Pass, Replay Intro.
 
 
 1. **The Map (camp, night) — play as Skorn.** Lykor warns nobody to touch his bag (the map is in
@@ -102,6 +103,12 @@ Mostly the same goofy turn-based combat, plus bonus layers:
 2. **Lullaby minigame.** Mid-fight, a rhythm/timing minigame to sing him back to sleep for free hits.
 3. **Talk your way out.** A dice check mid-fight (Skorn can only Intimidate). Win the roll and
    the fight can end early with a funny outcome.
+
+## Items
+
+- **Metocy:** glowing blue capsule (`assets/items/metocy.png`), shown floating over the counter as "Metocy (100% Real)"
+- **Midtocy:** cracked, moldy purple capsule (`assets/items/midtocy.png`), revealed big on screen when they realize it's fake
+- Both are ready to use as inventory icons once items/combat exist.
 
 ## Labels (running joke)
 

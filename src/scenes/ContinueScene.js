@@ -18,7 +18,7 @@ export default class ContinueScene extends Phaser.Scene {
     this.add.text(width / 2, height * 0.38, 'To be continued…', {
       fontFamily: 'Cinzel', fontSize: '72px', fontStyle: '900', color: '#f3e3b0', stroke: '#2a1a08', strokeThickness: 8,
     }).setOrigin(0.5).setDepth(10);
-    this.add.text(width / 2, height * 0.52, 'Next time: Metocin Mattias & the Diddy Chud Giant', {
+    this.add.text(width / 2, height * 0.52, 'Next: the rest of Chapter 1 (on some construction shi)', {
       fontFamily: 'Nunito', fontSize: '26px', color: '#e8b923',
     }).setOrigin(0.5).setDepth(10);
     const hint = this.add.text(width / 2, height * 0.8, 'Press Space to return to the title', {

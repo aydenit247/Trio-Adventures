@@ -16,6 +16,7 @@ const LIGHT = {
   day:    [255, 244, 230],
   shop:   [235, 225, 255],
   candle: [255, 226, 196],
+  lava:   [255, 200, 172],
 };
 
 export default class StageScene extends Phaser.Scene {
@@ -198,7 +199,11 @@ export default class StageScene extends Phaser.Scene {
   charLabel(c, text) {
     const l = this.label(c.x, c.y - c.h - 18, text, 16).setAlpha(0);
     l.follow = c;
-    const fn = () => { if (l.active && l.follow) l.setPosition(l.follow.x, l.follow.y - l.follow.h - 18); };
+    const fn = () => {
+      if (!l.active || !l.follow) return;
+      l.setPosition(l.follow.x, l.follow.y - l.follow.h - 18);
+      if (!l.follow.visible) l.setVisible(false); // leaves with its character
+    };
     this.events.on('postupdate', fn);
     this.events.once('shutdown', () => this.events.off('postupdate', fn));
     return l;

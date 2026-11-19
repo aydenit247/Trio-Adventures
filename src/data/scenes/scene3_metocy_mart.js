@@ -14,6 +14,7 @@ export const SCENE3 = [
   { who: 'dulbers', mood: 'grin', line: "Welcome to Metocy Mart! Y'all looking for that good-good? Step inside, step inside!" },
 
   { do: 'enterShop' },
+  { do: 'showPill' },
   { who: 'dulbers', line: 'Freshest metocy in Caelid. Little blue ovals. Hand-picked. By hand. My hand.' },
   { who: 'lykor', line: 'How much?' },
   { who: 'dulbers', mood: 'grin', line: "For y'all? First one's free." },

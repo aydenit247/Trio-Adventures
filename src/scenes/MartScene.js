@@ -7,7 +7,7 @@ export default class MartScene extends StageScene {
   constructor() { super('Mart'); }
 
   create() {
-    this.nextScene = 'Continue';
+    this.nextScene = 'Pass';
     this.setupStage({ light: 'moon' });
     Sfx.startLoop('night');
 
@@ -57,7 +57,11 @@ export default class MartScene extends StageScene {
         await this.showLabel(this.charLabel(this.dulbers, 'Dulbers Frint (Trustworthy)'));
       },
       enterShop: () => this.enterShop(),
+      showPill: () => this.showPill(),
       takeIt: async () => {
+        if (this.pill) {
+          this.tweens.add({ targets: [this.pill, this.pillGlow, this.pillLabel], alpha: 0, scale: 0.2, duration: 400 });
+        }
         for (let i = 0; i < 3; i++) { Sfx.play('gulp'); this.hop([xylo, lykor, skorn][i], 10); await this.wait(450); }
       },
       tripStart: () => this.tripStart(),
@@ -116,7 +120,30 @@ export default class MartScene extends StageScene {
     await this.wait(500);
   }
 
+  async showPill() {
+    Sfx.play('sparkle');
+    const p = at(520, 285);
+    this.pillGlow = this.add.image(p.x, p.y, 'fx_glow').setScale(0.6).setTint(0x7fb2ff)
+      .setBlendMode(Phaser.BlendModes.ADD).setAlpha(0).setDepth(28);
+    this.pill = this.add.image(p.x, p.y, 'item_metocy').setDepth(29).setAlpha(0);
+    this.pill.setScale(170 / this.pill.width);
+    this.pillLabel = this.label(p.x, p.y - 62, 'Metocy (100% Real)', 16).setAlpha(0);
+    this.tweens.add({ targets: [this.pill, this.pillGlow], alpha: 1, duration: 400 });
+    this.tweens.add({ targets: [this.pill, this.pillGlow], y: p.y - 10, yoyo: true, repeat: -1, duration: 1200, ease: 'Sine.inOut' });
+    await this.showLabel(this.pillLabel);
+  }
+
   async revealMidtocy() {
+    // The pill they took, as it really is
+    const fake = this.add.image(640, 230, 'item_midtocy').setDepth(45).setAlpha(0);
+    const s = 300 / fake.width;
+    fake.setScale(s * 0.3);
+    Sfx.play('boom');
+    await this.tweenP({ targets: fake, alpha: 1, scale: s, angle: 8, duration: 450, ease: 'Back.out' });
+    this.tweens.add({ targets: fake, angle: -8, yoyo: true, repeat: -1, duration: 700, ease: 'Sine.inOut' });
+    const fl = this.label(640, 340, 'MIDTOCY', 26).setDepth(46).setAlpha(0);
+    await this.showLabel(fl);
+    this.time.delayedCall(2500, () => this.tweens.add({ targets: [fake, fl], alpha: 0, duration: 500, onComplete: () => { fake.destroy(); fl.destroy(); } }));
     Sfx.play('dramatic');
     const shelf = at(150, 225);
     const l = this.label(shelf.x + 40, shelf.y - 40, 'MIDTOCY (fake, made in a bucket)', 17);
