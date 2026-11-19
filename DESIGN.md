@@ -108,6 +108,14 @@ Mostly the same goofy turn-based combat, plus bonus layers:
 - **Music & SFX:** yes, later.
 - **Platform:** desktop only.
 
+## How they talk
+
+Everyone talks in casual slang, with profanity. Signature phrases so far:
+
+- **Lykor:** "on the absolute", "say you swear to the absolute", "aight bet", "good shit"
+- **Xylo:** "On my Dragon Mama"
+- **Skorn:** calls people "mud" and "jit", has a lot of inner-monologue rage, and his logic is unhinged but delivered with total confidence
+
 ## Voiceline workflow
 
 We walk through each scene beat by beat. Each beat has context and a slot. Ayden writes the

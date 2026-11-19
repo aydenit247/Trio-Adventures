@@ -87,7 +87,8 @@ export default class IntroScene extends Phaser.Scene {
   async skornGrabsMap() {
     this.paper = this.add.rectangle(this.bag.x, this.bag.y - 10, 34, 24, 0xf1e6c8).setStrokeStyle(2, 0x8a7a55);
     this.paperLabel = this.label(this.bag.x, this.bag.y - 44, 'map (very important)').setFontSize(14);
-    await this.tweenP({ targets: [this.paper, this.paperLabel], x: this.skorn.x + 70, y: '+=40', duration: 700, ease: 'Sine.inOut' });
+    this.tweens.add({ targets: this.paperLabel, alpha: 0, delay: 350, duration: 300 });
+    await this.tweenP({ targets: [this.paper, this.paperLabel], x: this.skorn.x + 80, y: '+=40', duration: 700, ease: 'Sine.inOut' });
   }
 
   async burnMap() {

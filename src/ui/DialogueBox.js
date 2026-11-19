@@ -6,6 +6,7 @@ import { CHARACTERS } from '../data/characters.js';
 //   { who: 'lykor', line: 'Text here' }             a spoken line
 //   { who: 'lykor', mood: 'angry', line: '...' }    uses portrait lykor_angry if it exists
 //   { who: 'skorn', line: null, context: '...' }    an empty voiceline slot (shown as a placeholder)
+//   { who: 'skorn', thought: true, line: '...' }    inner monologue (italic, in parentheses)
 //   { who: 'narrator', line: '...' }                no portrait
 //   { do: 'hookName' }                              calls hooks.hookName() and waits if it returns a Promise
 //   { choice: [{ text: '...', steps: [...] }, ...] }
@@ -109,21 +110,25 @@ export default class DialogueBox {
       this.full = `[VOICELINE NEEDED] ${s.context || ''}`;
       this.body.setColor('#ff9f6b').setFontStyle('italic');
     } else {
-      this.full = s.line;
-      this.body.setColor(narrator ? '#cfc6ff' : '#f4efff').setFontStyle(narrator ? 'italic' : 'normal');
+      this.full = s.thought ? `(${s.line})` : s.line;
+      const soft = narrator || s.thought;
+      this.body.setColor(narrator ? '#cfc6ff' : s.thought ? '#c9c2e0' : '#f4efff')
+        .setFontStyle(soft ? 'italic' : 'normal');
     }
     this.shown = 0;
     this.body.setText('');
     this.arrow.setVisible(false);
     if (this.typer) this.typer.remove();
-    this.typer = this.scene.time.addEvent({
+    const typer = this.scene.time.addEvent({
       delay: 22, loop: true,
       callback: () => {
+        if (this.typer !== typer) { typer.remove(); return; } // a newer line took over
         this.shown += 1;
         this.body.setText(this.full.slice(0, this.shown));
-        if (this.shown >= this.full.length) { this.typer.remove(); this.typer = null; this.arrow.setVisible(true); }
+        if (this.shown >= this.full.length) { typer.remove(); this.typer = null; this.arrow.setVisible(true); }
       },
     });
+    this.typer = typer;
   }
 
   advance() {
