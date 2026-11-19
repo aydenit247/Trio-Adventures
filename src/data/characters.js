@@ -52,8 +52,11 @@ export const SIX_SEVEN = {
 // Portrait files the game will try to load. Missing files fall back to placeholders,
 // so you can add images one at a time. Expressions use the pattern <id>_<mood>.png.
 export const PORTRAIT_FILES = [
-  'skorn', 'skorn_angry', 'skorn_shocked',
-  'lykor', 'lykor_angry', 'lykor_shocked', 'lykor_mog',
-  'xylo', 'xylo_angry', 'xylo_shocked',
-  'dulbers', 'dulbers_demon', 'mattias', 'dulbmeethus', 'giant', 'goblin',
+  'skorn', 'skorn_angry', 'skorn_shocked', 'skorn_smug', 'skorn_confused', 'skorn_tweaking',
+  'lykor', 'lykor_angry', 'lykor_shocked', 'lykor_mog', 'lykor_flattered', 'lykor_tweaking',
+  'xylo', 'xylo_shocked', 'xylo_vision', 'xylo_unimpressed', 'xylo_smug', 'xylo_tweaking',
+  'dulbers', 'dulbers_grin', 'dulbers_demon',
+  'mattias', 'dulbmeethus',
+  'giant', 'giant_angry',
+  'goblin', 'goblin_worship', 'goblin_joy',
 ];
