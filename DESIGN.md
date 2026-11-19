@@ -37,6 +37,14 @@ euphoric feelings — all packed into a tiny, oval, blue object.
 
 Later chapters (not in the foundation yet): **Dulbmeethus** and others.
 
+**Looks (from Ebain's Grok images, in `assets/portraits/`):**
+- Lykor: long blond hair, pointed ears, purple and gold high-collar coat
+- Xylo: red dragon head, brown horns, blue eyes, ruffled white cravat, dark vest
+- Skorn: lavender skin, slicked black hair, tusks, goatee, dark and gold armored coat
+- Dulbers Frint: grey-blue skin, blond swept-up hair, big pointed ears, silver armor
+- Metocin Mattias: grinning wizard, long grey beard, pointed hat, staff topped with a purple crystal
+- Dulbmeethus: grey-blue cosmic elf, spiky silver hair, galaxy and lightning aura
+
 ## Chapter 1 — scene list
 
 1. **The Map (camp, night) — play as Skorn.** Lykor warns nobody to touch his bag (the map is in

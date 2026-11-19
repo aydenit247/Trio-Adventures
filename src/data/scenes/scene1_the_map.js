@@ -53,5 +53,5 @@ export const SCENE1 = [
   { do: 'morning' },
   { who: 'narrator', line: 'The next morning…' },
   { who: 'lykor', line: "Aight, new rule: Skorn don't hold nothing. I'm leading." }, // DRAFT
-  { who: 'skorn', line: "Bet. I'ma hold a grudge then." }, // DRAFT
+  { who: 'skorn', line: "Bet, my fault. I'm dumb as hell." },
 ];

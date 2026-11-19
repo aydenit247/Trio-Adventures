@@ -35,6 +35,7 @@ export const CHARACTERS = {
 
   // Supporting cast
   dulbers:  { name: 'Dulbers Frint',    color: 0x6f8fa8 },
+  dulbmeethus: { name: 'Dulbmeethus',   color: 0x4b3f8a }, // later chapters
   mattias:  { name: 'Metocin Mattias',  color: 0x2d6cdf },
   giant:    { name: 'Diddy Chud Giant', color: 0xb08a5a },
   goblin:   { name: 'Goblin',           color: 0x5aa83c },
@@ -54,5 +55,5 @@ export const PORTRAIT_FILES = [
   'skorn', 'skorn_angry', 'skorn_shocked',
   'lykor', 'lykor_angry', 'lykor_shocked', 'lykor_mog',
   'xylo', 'xylo_angry', 'xylo_shocked',
-  'dulbers', 'mattias', 'giant', 'goblin',
+  'dulbers', 'dulbers_demon', 'mattias', 'dulbmeethus', 'giant', 'goblin',
 ];
