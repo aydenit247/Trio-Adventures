@@ -1,4 +1,5 @@
 import { CHARACTERS, PORTRAIT_FILES } from '../data/characters.js';
+import { makeFxTextures } from '../fx.js';
 
 // Loads assets, shows the loading screen, and makes placeholder portraits
 // for any image that hasn't been added to assets/portraits/ yet.
@@ -24,9 +25,14 @@ export default class BootScene extends Phaser.Scene {
     this.load.on('loaderror', (file) => this.missing.add(file.key));
 
     PORTRAIT_FILES.forEach((f) => this.load.image(`portrait_${f}`, `assets/portraits/${f}.png`));
+
+    // Backgrounds. Optional ones fall back to drawn scenery if the file isn't there yet.
+    this.load.image('bg_title', 'assets/backgrounds/title_trio.jpg');
+    this.load.image('bg_camp_night', 'assets/backgrounds/camp_night.jpg');
   }
 
   create() {
+    makeFxTextures(this);
     // Base portrait placeholder for every character without a real image yet.
     Object.entries(CHARACTERS).forEach(([id, c]) => {
       const key = `portrait_${id}`;

@@ -19,19 +19,28 @@ export default class DialogueBox {
 
     this.root = scene.add.container(0, 0).setDepth(1000).setVisible(false);
 
-    this.panel = scene.add.rectangle(pad, y, width - pad * 2, boxH, 0x120e1e, 0.94)
-      .setOrigin(0).setStrokeStyle(3, 0xe8b923);
+    // Panel: dark gradient with a gold double border and corner studs
+    const pw = width - pad * 2;
+    this.panel = scene.add.graphics();
+    this.panel.fillGradientStyle(0x1d1633, 0x1d1633, 0x0b0812, 0x0b0812, 0.95).fillRect(pad, y, pw, boxH);
+    this.panel.lineStyle(3, 0xe8b923, 1).strokeRect(pad, y, pw, boxH);
+    this.panel.lineStyle(1, 0xe8b923, 0.35).strokeRect(pad + 7, y + 7, pw - 14, boxH - 14);
+    [[pad, y], [pad + pw, y], [pad, y + boxH], [pad + pw, y + boxH]].forEach(([cx, cy]) => {
+      this.panel.fillStyle(0xe8b923, 1).fillPoints([
+        { x: cx, y: cy - 8 }, { x: cx + 8, y: cy }, { x: cx, y: cy + 8 }, { x: cx - 8, y: cy }], true);
+    });
     this.portrait = scene.add.image(pad + 18 + 84, y + boxH / 2, '__DEFAULT').setDisplaySize(168, 168);
     this.portraitFrame = scene.add.rectangle(this.portrait.x, this.portrait.y, 172, 172)
       .setStrokeStyle(3, 0xe8b923);
     this.nameTag = scene.add.text(pad + 18, y - 40, '', {
-      fontFamily: 'Cinzel', fontSize: '26px', color: '#1a1324', backgroundColor: '#e8b923',
-      padding: { x: 14, y: 4 },
+      fontFamily: 'Cinzel', fontSize: '26px', fontStyle: '700', color: '#1a1324', backgroundColor: '#e8b923',
+      padding: { x: 16, y: 5 },
     });
     this.textX = pad + 18 + 168 + 28;
     this.textW = width - pad * 2 - (this.textX - pad) - 30;
     this.body = scene.add.text(this.textX, y + 26, '', {
       fontFamily: 'Nunito', fontSize: '26px', color: '#f4efff', lineSpacing: 6,
+      shadow: { offsetX: 0, offsetY: 2, color: '#000', blur: 4, fill: true },
       wordWrap: { width: this.textW },
     });
     this.arrow = scene.add.text(width - pad - 40, y + boxH - 44, '▼', {

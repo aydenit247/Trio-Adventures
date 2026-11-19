@@ -41,6 +41,7 @@ export const SCENE1 = [
   { who: 'skorn', mood: 'confused', line: 'What? What are you talking about, mud?' },
 
   // Beat 6 — the realization
+  { do: 'freakout' },
   { who: 'lykor', mood: 'shocked', line: 'BRO. THAT WAS THE MAP TO THE METOCY. THE ONLY MAP.' }, // DRAFT
   { who: 'xylo',  mood: 'vision', line: "On my Dragon Mama... I seen this in a vision. I just ain't think it'd be this dumb." }, // DRAFT
   { who: 'skorn', mood: 'angry', line: 'Then why the fuck you leave it in a bag?! Bags is for fire starter!' }, // DRAFT
