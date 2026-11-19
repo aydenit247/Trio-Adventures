@@ -1,6 +1,7 @@
 import DialogueBox from '../ui/DialogueBox.js';
 import { SCENE1 } from '../data/scenes/scene1_the_map.js';
 import { coverImage, vignette } from '../fx.js';
+import Sfx from '../audio/Sfx.js';
 
 // Scene 1 — "The Map". A staged cutscene for now; free-roam camp comes once
 // the overworld exists. Press ESC to skip to the title card.
@@ -13,6 +14,8 @@ export default class IntroScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.cameras.main.fadeIn(1200, 0, 0, 0);
+    Sfx.startLoop('night');
+    this.events.once('shutdown', () => { Sfx.stopLoop('night'); Sfx.stopLoop('fire'); });
 
     if (this.textures.exists('bg_camp_night')) {
       coverImage(this, 'bg_camp_night');
@@ -85,11 +88,11 @@ export default class IntroScene extends Phaser.Scene {
 
     this.dialogue = new DialogueBox(this);
     this.dialogue.play(SCENE1, {
-      showBagLabel: () => this.tweenP({ targets: this.bagLabel, alpha: 1, duration: 300 }),
-      showFireLabel: () => this.tweenP({ targets: this.fireLabel, alpha: 1, duration: 300 }),
+      showBagLabel: () => { Sfx.play('pop'); return this.tweenP({ targets: this.bagLabel, alpha: 1, duration: 300 }); },
+      showFireLabel: () => { Sfx.play('pop'); return this.tweenP({ targets: this.fireLabel, alpha: 1, duration: 300 }); },
       skornGrabsMap: () => this.skornGrabsMap(),
       burnMap: () => this.burnMap(),
-      freakout: () => { this.cameras.main.shake(450, 0.012); return this.wait(350); },
+      freakout: () => { Sfx.play('dramatic'); Sfx.play('boom'); this.cameras.main.shake(450, 0.012); return this.wait(350); },
       morning: () => this.morning(),
     }).then(() => this.finish());
   }
@@ -204,15 +207,19 @@ export default class IntroScene extends Phaser.Scene {
   async skornGrabsMap() {
     this.paper = this.add.rectangle(this.bag.x, this.bag.y - 10, 34, 24, 0xf1e6c8).setStrokeStyle(2, 0x8a7a55).setDepth(15);
     this.paperLabel = this.label(this.bag.x, this.bag.y - 44, 'map (very important)').setFontSize(14);
+    Sfx.play('grab');
     this.tweens.add({ targets: this.paperLabel, alpha: 0, delay: 350, duration: 300 });
     await this.tweenP({ targets: [this.paper, this.paperLabel], x: this.skorn.x + 80, y: '+=40', duration: 700, ease: 'Sine.inOut' });
   }
 
   async burnMap() {
     this.paperLabel.destroy();
+    Sfx.play('whoosh');
     await this.tweenP({ targets: this.paper, x: this.fireX, y: this.fireY - 10, angle: 360, duration: 600 });
     this.paper.destroy();
     this.cameras.main.flash(300, 255, 170, 90);
+    Sfx.play('ignite');
+    Sfx.startLoop('fire');
     this.fireLabel.setText('Fire (fed)');
     this.flames.start(); this.embers.start();
     this.tweens.add({ targets: [this.fireGlow], alpha: 0.75, duration: 600 });
@@ -227,6 +234,8 @@ export default class IntroScene extends Phaser.Scene {
   async morning() {
     this.tweens.add({ targets: [this.fireGlow, this.groundGlow], alpha: 0.2, duration: 1600 });
     this.embers.stop();
+    Sfx.stopLoop('night'); Sfx.stopLoop('fire');
+    Sfx.play('birds');
     Object.values(this.chars).forEach((c) => c.img.clearTint());
     await this.tweenP({ targets: this.dawn, alpha: 0.3, duration: 1600 });
   }

@@ -1,4 +1,5 @@
 import { coverImage, vignette } from '../fx.js';
+import Sfx from '../audio/Sfx.js';
 
 // Title card — shown right after the intro: "Trio Adventures" by Ebain.
 export default class TitleScene extends Phaser.Scene {
@@ -7,6 +8,7 @@ export default class TitleScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.cameras.main.fadeIn(1200, 0, 0, 0);
+    this.time.delayedCall(250, () => Sfx.play('titleSting'));
 
     // Backdrop: the trio, slowly drifting, darkened toward the bottom for the menu
     if (this.textures.exists('bg_title')) {
@@ -46,8 +48,8 @@ export default class TitleScene extends Phaser.Scene {
       const t = this.add.text(width / 2 - 140 + i * 280, height * 0.88, it.text, {
         fontFamily: 'Nunito', fontSize: '28px', fontStyle: '900', color: '#f4efff',
       }).setOrigin(0.5).setAlpha(0).setDepth(10).setInteractive({ useHandCursor: true });
-      t.on('pointerover', () => { this.sel = i; this.renderMenu(); });
-      t.on('pointerdown', () => this.items[i].fn());
+      t.on('pointerover', () => { if (this.sel !== i) Sfx.play('tick'); this.sel = i; this.renderMenu(); });
+      t.on('pointerdown', () => this.choose(i));
       this.tweens.add({ targets: t, alpha: 1, duration: 500, delay: 1800 + i * 120 });
       return t;
     });
@@ -56,15 +58,17 @@ export default class TitleScene extends Phaser.Scene {
     const kb = this.input.keyboard;
     ['UP', 'W', 'LEFT', 'A'].forEach((k) => kb.on(`keydown-${k}`, () => this.move(-1)));
     ['DOWN', 'S', 'RIGHT', 'D'].forEach((k) => kb.on(`keydown-${k}`, () => this.move(1)));
-    kb.on('keydown-ENTER', () => this.items[this.sel].fn());
-    kb.on('keydown-SPACE', () => this.items[this.sel].fn());
+    kb.on('keydown-ENTER', () => this.choose(this.sel));
+    kb.on('keydown-SPACE', () => this.choose(this.sel));
 
     this.add.text(width - 16, height - 14, 'v0.2 — foundation build', {
       fontFamily: 'Nunito', fontSize: '14px', color: '#6e6690',
     }).setOrigin(1, 1).setDepth(10);
   }
 
-  move(d) { this.sel = (this.sel + d + this.items.length) % this.items.length; this.renderMenu(); }
+  move(d) { this.sel = (this.sel + d + this.items.length) % this.items.length; Sfx.play('tick'); this.renderMenu(); }
+
+  choose(i) { Sfx.play('confirm'); this.items[i].fn(); }
 
   renderMenu() {
     this.menuTexts.forEach((t, i) => {

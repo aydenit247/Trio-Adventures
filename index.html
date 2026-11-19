@@ -11,11 +11,23 @@
     html, body { margin: 0; height: 100%; background: #07060c; overflow: hidden; }
     #game { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
     #game canvas { display: block; }
+    #mute { position: fixed; top: 10px; left: 10px; z-index: 10; background: rgba(20,16,30,.75); color: #e8b923;
+      border: 1px solid #e8b923; border-radius: 8px; font: 700 14px Nunito, sans-serif; padding: 6px 10px; cursor: pointer; }
+    #mute:hover { background: rgba(40,32,60,.9); }
   </style>
 </head>
 <body>
   <div id="game"></div>
+  <button id="mute" title="Toggle sound (M)">🔊 Sound on (M)</button>
   <script src="lib/phaser.min.js"></script>
   <script type="module" src="src/main.js"></script>
+  <script type="module">
+    import Sfx from './src/audio/Sfx.js';
+    const b = document.getElementById('mute');
+    const show = (m) => { b.textContent = m ? '🔇 Sound off (M)' : '🔊 Sound on (M)'; };
+    show(Sfx.muted);
+    b.addEventListener('click', (e) => { e.stopPropagation(); Sfx.init(); Sfx.ctx && Sfx.ctx.resume(); Sfx.toggleMute(); b.blur(); });
+    document.addEventListener('trio-mute', (e) => show(e.detail));
+  </script>
 </body>
 </html>

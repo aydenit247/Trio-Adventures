@@ -1,4 +1,5 @@
 import { CHARACTERS } from '../data/characters.js';
+import Sfx from '../audio/Sfx.js';
 
 // Reusable dialogue box: portrait, name tag, typewriter text, choices.
 //
@@ -101,6 +102,7 @@ export default class DialogueBox {
   showLine(s) {
     const c = CHARACTERS[s.who] || CHARACTERS.narrator;
     const narrator = !s.who || s.who === 'narrator';
+    this.voice = narrator ? 'narrator' : s.who;
 
     this.portrait.setVisible(!narrator);
     this.portraitFrame.setVisible(!narrator);
@@ -134,6 +136,8 @@ export default class DialogueBox {
         if (this.typer !== typer) { typer.remove(); return; } // a newer line took over
         this.shown += 1;
         this.body.setText(this.full.slice(0, this.shown));
+        const ch = this.full[this.shown - 1];
+        if (this.shown % 2 === 1 && ch && ch.trim()) Sfx.blip(this.voice);
         if (this.shown >= this.full.length) { typer.remove(); this.typer = null; this.arrow.setVisible(true); }
       },
     });
@@ -148,6 +152,7 @@ export default class DialogueBox {
       this.shown = this.full.length; this.body.setText(this.full); this.arrow.setVisible(true);
       return;
     }
+    Sfx.play('click');
     this.next();
   }
 
@@ -179,12 +184,14 @@ export default class DialogueBox {
     if (!this.choosing) return;
     const n = this.choosing.options.length;
     this.choosing.sel = (this.choosing.sel + d + n) % n;
+    Sfx.play('tick');
     this.renderChoices();
   }
 
   pickChoice(i) {
     const opt = this.choosing.options[i];
     this.pickedAt = this.scene.time.now;
+    Sfx.play('confirm');
     this.choiceTexts.forEach((t) => t.destroy());
     this.choiceTexts = [];
     this.choosing = null;

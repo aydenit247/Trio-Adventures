@@ -113,7 +113,12 @@ Mostly the same goofy turn-based combat, plus bonus layers:
   - Extra expressions per character (normal, angry, shocked, + Lykor's Mog face).
   - Drop files in `assets/portraits/` named `skorn.png`, `skorn_angry.png`, etc.
 - **Voice audio:** shelved for now (text dialogue). Can add later.
-- **Music & SFX:** yes, later.
+- **Sound effects:** synthesized live in code (`src/audio/Sfx.js`), so there are no audio files yet.
+  - Each character has a dialogue "voice blip" while their text types out (Skorn low and buzzy, Lykor bright, Xylo low and breathy, and so on)
+  - UI clicks/ticks/confirm, label pops, an "item get" jingle, whooshes, fire ignite, a camera-shake boom, a "wait what" sting, and a title chord
+  - Ambience loops: night (wind + crickets), campfire (roar + crackles), and birds at dawn
+  - **M** or the top-left button toggles mute
+- **Music:** later. Real recorded/licensed sounds can replace any synthesized one later.
 - **Platform:** desktop only.
 
 ## How they talk
