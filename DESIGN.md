@@ -47,11 +47,18 @@ Later chapters (not in the foundation yet): **Dulbmeethus** and others.
 
 ## Chapter 1 — scene list
 
+**Build status:** Scenes 1–3 are playable with real art. Scene 2–3 dialogue is mostly Claude DRAFT lines
+(marked `// DRAFT` in `src/data/scenes/`) waiting for Ebain's versions. Fights are placeholders until the
+combat system is built. Title menu: Continue Story (Scene 2), Scene 3, Replay Intro.
+
+
 1. **The Map (camp, night) — play as Skorn.** Lykor warns nobody to touch his bag (the map is in
    it). Skorn is cold, finds "paper" in the bag, can't read, feeds the map to the campfire.
    → **Title card: "Trio Adventures" by Ebain.**
-2. **Goblin Village — play as Lykor.** The goblins see Lykor and start **worshipping** him.
-   He has to find a way to leave (choices TBD). They point the party east.
+2. **Goblin Village — play as Lykor.** The goblins see Lykor and start **worshipping** him ("the Shiny One"),
+   crown him on a junk throne, then refuse to let him leave. **Player choice:** royal speech / sneak out
+   (the goblins tiptoe right behind him) / let Skorn "negotiate" (Diddy Slap → first fight; the goblins
+   then worship Skorn too). The chief points them to Metocy Mart. Goblin chief's name: **TBD**.
 3. **Metocy Mart — play as Xylo.** Shop sign: **"For all yo metocy needs n shi folk."**
    "Hey guys, it's your boy Dulbers Frint!" The party buys and takes his metocy… it's fake.
    Everyone starts experiencing **disorienting disarray** symptoms. Once they figure out it's

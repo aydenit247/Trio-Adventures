@@ -17,6 +17,9 @@ const VOICES = {
   mattias:  { type: 'triangle', freq: 200, vol: 0.09 },
   giant:    { type: 'square',   freq: 60,  vol: 0.08 },
   goblin:   { type: 'square',   freq: 520, vol: 0.04 },
+  goblins:  { type: 'square',   freq: 470, vol: 0.05 },
+  chief:    { type: 'square',   freq: 380, vol: 0.045 },
+  dulbers_demon: { type: 'sawtooth', freq: 70, vol: 0.07, lowpass: 600 },
   narrator: { type: 'sine',     freq: 640, vol: 0.05 },
 };
 
@@ -145,6 +148,24 @@ class SfxEngine {
       this.tone({ type: 'sine', freq: f * 1.2, freqEnd: f, dur: 0.1, vol: 0.04, when: w + 0.1 });
     }
   }
+  sfx_choir() { // heavenly "ahhh" for the goblins worshipping
+    [261.6, 329.6, 392, 523.3].forEach((f, i) => {
+      this.tone({ type: 'sine', freq: f, dur: 2.2, vol: 0.06, attack: 0.4, when: i * 0.05 });
+      this.tone({ type: 'triangle', freq: f * 1.003, dur: 2.2, vol: 0.03, attack: 0.5, when: i * 0.05 });
+    });
+    this.noise({ dur: 1.8, vol: 0.04, type: 'bandpass', f0: 1200, q: 4, attack: 0.5 });
+  }
+  sfx_gulp() {
+    this.tone({ type: 'sine', freq: 180, freqEnd: 90, dur: 0.18, vol: 0.3 });
+    this.tone({ type: 'sine', freq: 220, freqEnd: 110, dur: 0.16, vol: 0.25, when: 0.25 });
+  }
+  sfx_sparkle() {
+    [1568, 2093, 2637, 3136].forEach((f, i) => this.tone({ type: 'sine', freq: f, dur: 0.25, vol: 0.05, when: i * 0.05 }));
+  }
+  sfx_tiptoe() {
+    for (let i = 0; i < 4; i++) this.tone({ type: 'triangle', freq: 900 + (i % 2) * 200, dur: 0.04, vol: 0.05, when: i * 0.18 });
+  }
+  sfx_door() { this.noise({ dur: 0.5, vol: 0.12, type: 'bandpass', f0: 500, f1: 900, q: 6 }); this.tone({ type: 'square', freq: 1320, dur: 0.12, vol: 0.04, when: 0.05 }); }
   sfx_titleSting() {
     const chord = [146.8, 220, 293.7, 349.2]; // D minor
     chord.forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 3.2, vol: 0.07, attack: 0.6, when: i * 0.12 }));
@@ -263,6 +284,48 @@ class SfxEngine {
       }
     }, 700);
     return () => this.fadeOut(g, [src, lfo], [timer]);
+  }
+
+  loop_village() { // daytime: soft wind and birds
+    const g = this.bed(1);
+    const src = this.ctx.createBufferSource(); src.buffer = this.noiseBuf; src.loop = true;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500;
+    const wind = this.ctx.createGain(); wind.gain.value = 0.03;
+    src.connect(f); f.connect(wind); wind.connect(g); src.start();
+    const timer = setInterval(() => {
+      if (Math.random() < 0.35) {
+        const fr = 2400 + Math.random() * 1800;
+        this.tone({ type: 'sine', freq: fr, freqEnd: fr * 1.25, dur: 0.09, vol: 0.03, out: g });
+        this.tone({ type: 'sine', freq: fr * 1.1, freqEnd: fr * 0.9, dur: 0.1, vol: 0.025, when: 0.12, out: g });
+      }
+    }, 900);
+    return () => this.fadeOut(g, [src], [timer]);
+  }
+
+  loop_shop() { // quiet room tone with the odd creak
+    const g = this.bed(1);
+    const o = this.ctx.createOscillator(); o.type = 'sine'; o.frequency.value = 55;
+    const og = this.ctx.createGain(); og.gain.value = 0.025;
+    o.connect(og); og.connect(g); o.start();
+    const timer = setInterval(() => {
+      if (Math.random() < 0.15) this.noise({ dur: 0.4, vol: 0.05, type: 'bandpass', f0: 350, f1: 600, q: 8, out: g });
+    }, 1500);
+    return () => this.fadeOut(g, [o], [timer]);
+  }
+
+  loop_trip() { // warbly detuned drone for the midtocy
+    const g = this.bed(1);
+    const nodes = [];
+    [110, 110 * 1.5, 110 * 2.01].forEach((fr, i) => {
+      const o = this.ctx.createOscillator(); o.type = i === 1 ? 'triangle' : 'sine'; o.frequency.value = fr;
+      const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.3 + i * 0.17;
+      const amt = this.ctx.createGain(); amt.gain.value = fr * 0.04;
+      lfo.connect(amt); amt.connect(o.frequency);
+      const og = this.ctx.createGain(); og.gain.value = 0.035;
+      o.connect(og); og.connect(g); o.start(); lfo.start();
+      nodes.push(o, lfo);
+    });
+    return () => this.fadeOut(g, nodes, []);
   }
 
   loop_fire() {

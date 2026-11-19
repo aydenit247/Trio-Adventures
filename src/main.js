@@ -1,6 +1,9 @@
 import BootScene from './scenes/BootScene.js';
 import IntroScene from './scenes/IntroScene.js';
 import TitleScene from './scenes/TitleScene.js';
+import GoblinScene from './scenes/GoblinScene.js';
+import MartScene from './scenes/MartScene.js';
+import ContinueScene from './scenes/ContinueScene.js';
 
 export const GAME_W = 1280;
 export const GAME_H = 720;
@@ -15,7 +18,7 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, IntroScene, TitleScene],
+  scene: [BootScene, IntroScene, TitleScene, GoblinScene, MartScene, ContinueScene],
 };
 
 // Wait for web fonts so canvas text doesn't render in a fallback font.

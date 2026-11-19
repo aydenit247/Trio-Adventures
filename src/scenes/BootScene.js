@@ -1,6 +1,7 @@
 import { CHARACTERS, PORTRAIT_FILES } from '../data/characters.js';
 import { makeFxTextures } from '../fx.js';
 import Sfx from '../audio/Sfx.js';
+import ChromaKey from '../fx/ChromaKey.js';
 
 // Loads assets, shows the loading screen, and makes placeholder portraits
 // for any image that hasn't been added to assets/portraits/ yet.
@@ -31,16 +32,24 @@ export default class BootScene extends Phaser.Scene {
     this.load.image('bg_title', 'assets/backgrounds/title_trio.jpg');
     this.load.image('bg_camp_unlit', 'assets/backgrounds/camp_unlit.jpg');
     this.load.image('bg_camp_lit', 'assets/backgrounds/camp_lit.jpg');
-    ['skorn', 'lykor', 'xylo'].forEach((c) => this.load.image(`char_${c}`, `assets/characters/${c}.png`));
+    [
+      'skorn', 'lykor', 'xylo', 'skorn_tweaking', 'lykor_tweaking', 'xylo_tweaking',
+      'goblin', 'goblin_kneel', 'goblin_chief', 'dulbers', 'dulbers_demon',
+    ].forEach((c) => this.load.image(`char_${c}`, `assets/characters/${c}.png`));
+    ['goblin_village', 'goblin_throne', 'mart_exterior', 'mart_interior', 'mart_interior_trip']
+      .forEach((b) => this.load.image(`bg_${b}`, `assets/backgrounds/${b}.jpg`));
     this.load.video('vid_map_burn', 'assets/video/map_burn.mp4', false);
+    this.load.video('vid_dulbers_transform', 'assets/video/dulbers_transform.mp4', false);
     Sfx.preloadMusic('assets/audio/menu_theme.mp3');
   }
 
   create() {
     makeFxTextures(this);
+    if (this.renderer.pipelines) this.renderer.pipelines.addPostPipeline('ChromaKey', ChromaKey);
     // Base portrait placeholder for every character without a real image yet.
     Object.entries(CHARACTERS).forEach(([id, c]) => {
       const key = `portrait_${id}`;
+      if (c.portrait) return; // uses another character's portrait
       if (!this.textures.exists(key) || this.missing.has(key)) {
         if (this.textures.exists(key)) this.textures.remove(key);
         this.makePlaceholder(key, c.name || '?', c.color);

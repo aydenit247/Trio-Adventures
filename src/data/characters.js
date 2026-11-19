@@ -39,6 +39,9 @@ export const CHARACTERS = {
   mattias:  { name: 'Metocin Mattias',  color: 0x2d6cdf },
   giant:    { name: 'Diddy Chud Giant', color: 0xb08a5a },
   goblin:   { name: 'Goblin',           color: 0x5aa83c },
+  goblins:  { name: 'Goblins',          color: 0x5aa83c, portrait: 'goblin' },
+  chief:    { name: 'Goblin Chief',     color: 0x6b8f3c },
+  dulbers_demon: { name: 'Dulbers Frint (Demon)', color: 0x5b3a8a },
   narrator: { name: '',                 color: 0x444444 },
 };
 
@@ -58,5 +61,5 @@ export const PORTRAIT_FILES = [
   'dulbers', 'dulbers_grin', 'dulbers_demon',
   'mattias', 'dulbmeethus',
   'giant', 'giant_angry',
-  'goblin', 'goblin_worship', 'goblin_joy',
+  'goblin', 'goblin_worship', 'goblin_joy', 'chief',
 ];

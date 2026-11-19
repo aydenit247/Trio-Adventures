@@ -6,6 +6,7 @@ export default class TitleScene extends Phaser.Scene {
   constructor() { super('Title'); }
 
   create() {
+    this.leaving = false;
     const { width, height } = this.scale;
     this.cameras.main.fadeIn(1200, 0, 0, 0);
     // Main menu music (loops; trims the silence at the start/end of the file)
@@ -47,12 +48,13 @@ export default class TitleScene extends Phaser.Scene {
 
     // Menu
     this.items = [
-      { text: 'New Game', fn: () => this.toast('Chapter 1: Goblin Village — coming soon\n(on some construction shi)') },
-      { text: 'Replay Intro', fn: () => this.scene.start('Intro') },
+      { text: 'Continue Story', fn: () => this.go('Goblin') },
+      { text: 'Scene 3: Metocy Mart', fn: () => this.go('Mart') },
+      { text: 'Replay Intro', fn: () => this.go('Intro') },
     ];
     this.sel = 0;
     this.menuTexts = this.items.map((it, i) => {
-      const t = this.add.text(width / 2 - 140 + i * 280, height * 0.88, it.text, {
+      const t = this.add.text(width / 2 + (i - 1) * 330, height * 0.88, it.text, {
         fontFamily: 'Nunito', fontSize: '28px', fontStyle: '900', color: '#f4efff',
       }).setOrigin(0.5).setAlpha(0).setDepth(10).setInteractive({ useHandCursor: true });
       t.on('pointerover', () => { if (this.sel !== i) Sfx.play('tick'); this.sel = i; this.renderMenu(); });
@@ -71,6 +73,13 @@ export default class TitleScene extends Phaser.Scene {
     this.add.text(width - 16, height - 14, 'v0.2 — foundation build', {
       fontFamily: 'Nunito', fontSize: '14px', color: '#6e6690',
     }).setOrigin(1, 1).setDepth(10);
+  }
+
+  go(key) {
+    if (this.leaving) return;
+    this.leaving = true;
+    this.cameras.main.fade(700, 0, 0, 0, true);
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(key));
   }
 
   move(d) { this.sel = (this.sel + d + this.items.length) % this.items.length; Sfx.play('tick'); this.renderMenu(); }

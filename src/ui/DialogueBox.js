@@ -107,8 +107,9 @@ export default class DialogueBox {
     this.portrait.setVisible(!narrator);
     this.portraitFrame.setVisible(!narrator);
     if (!narrator) {
-      const moodKey = s.mood ? `portrait_${s.who}_${s.mood}` : null;
-      const key = moodKey && this.scene.textures.exists(moodKey) ? moodKey : `portrait_${s.who}`;
+      const pid = c.portrait || s.who;
+      const moodKey = s.mood ? `portrait_${pid}_${s.mood}` : null;
+      const key = moodKey && this.scene.textures.exists(moodKey) ? moodKey : `portrait_${pid}`;
       this.portrait.setTexture(key).setDisplaySize(148, 148);
     }
     this.nameTag.setVisible(!narrator && !!c.name).setText(c.name || '');
