@@ -30,8 +30,9 @@ class SfxEngine {
     const unlock = () => {
       this.init();
       if (this.ctx && this.ctx.state !== 'running') this.ctx.resume();
+      if (this.musicBlocked && this.retryMusic) this.retryMusic();
     };
-    ['keydown', 'pointerdown', 'touchstart'].forEach((e) => window.addEventListener(e, unlock, { capture: true }));
+    ['keydown', 'pointerdown', 'touchstart', 'touchend', 'click'].forEach((e) => window.addEventListener(e, unlock, { capture: true }));
     window.addEventListener('keydown', (e) => { if (e.key === 'm' || e.key === 'M') this.toggleMute(); });
   }
 
@@ -53,7 +54,6 @@ class SfxEngine {
     this.ctx.addEventListener('statechange', () => {
       if (!this.ready) return;
       this.wanted.forEach((n) => this.startLoop(n));
-      if (this.wantedMusic && !this.music) this.playMusic(this.wantedMusic.url, this.wantedMusic.opts);
     });
   }
 
@@ -63,6 +63,7 @@ class SfxEngine {
     this.muted = !this.muted;
     try { localStorage.setItem('trio_muted', this.muted ? '1' : '0'); } catch (e) { /* storage blocked */ }
     if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : 0.8, this.ctx.currentTime, 0.05);
+    Object.values(this.tracks || {}).forEach((a) => { a.muted = this.muted; });
     document.dispatchEvent(new CustomEvent('trio-mute', { detail: this.muted }));
   }
 
@@ -151,55 +152,63 @@ class SfxEngine {
   }
 
   // ---------- music (real audio files) ----------
-  // Downloads a track early (e.g. during the loading screen) so it can start instantly later.
+  // Music uses an <audio> element instead of Web Audio: it's more reliable across browsers,
+  // and on iPhones it still plays when the ringer switch is on silent.
+  // opts: { volume, loopStart, loopEnd, fadeIn } in seconds.
   preloadMusic(url) {
-    this.musicBytes = this.musicBytes || {};
-    if (!this.musicBytes[url]) this.musicBytes[url] = fetch(url).then((r) => r.arrayBuffer()).catch(() => null);
-    return this.musicBytes[url];
+    this.tracks = this.tracks || {};
+    if (!this.tracks[url]) {
+      const a = new Audio();
+      a.preload = 'auto';
+      a.src = url;
+      a.loop = true;
+      a.load();
+      this.tracks[url] = a;
+    }
+    return this.tracks[url];
   }
 
-  // opts: { volume, loopStart, loopEnd, fadeIn } in seconds. Starts once audio is unlocked.
-  async playMusic(url, opts = {}) {
-    this.wantedMusic = { url, opts };
-    if (this.music && this.music.url === url) return;
-    this.stopMusic(0.8, true);
-    this.init();
-    if (!this.ready) return; // statechange will retry
-    this.musicBuffers = this.musicBuffers || {};
-    const token = (this.musicToken = (this.musicToken || 0) + 1);
-    try {
-      if (!this.musicBuffers[url]) {
-        const data = await this.preloadMusic(url);
-        if (!data) throw new Error('download failed');
-        this.musicBuffers[url] = await this.ctx.decodeAudioData(data.slice(0));
-      }
-    } catch (e) { console.warn('Music failed to load:', url, e); return; }
-    if (token !== this.musicToken || !this.wantedMusic || this.wantedMusic.url !== url) return;
-    const src = this.ctx.createBufferSource();
-    src.buffer = this.musicBuffers[url];
-    src.loop = true;
-    if (opts.loopStart != null) src.loopStart = opts.loopStart;
-    if (opts.loopEnd != null) src.loopEnd = opts.loopEnd;
-    const g = this.ctx.createGain();
-    const t = this.ctx.currentTime;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(opts.volume || 0.5, t + (opts.fadeIn || 2));
-    src.connect(g); g.connect(this.master);
-    src.start(t, opts.loopStart || 0);
-    this.music = { url, src, g };
+  playMusic(url, opts = {}) {
+    const a = this.preloadMusic(url);
+    if (this.music && this.music.a === a && !a.paused) return;
+    this.stopMusic(0.8);
+    const vol = opts.volume ?? 0.5;
+    this.music = { url, a, vol, opts };
+    a.muted = this.muted;
+    a.volume = 0;
+    if (opts.loopStart && a.currentTime < opts.loopStart) { try { a.currentTime = opts.loopStart; } catch (e) { /* not loaded yet */ } }
+    // Trim silence at the end of the file so the loop has no gap
+    a.ontimeupdate = () => {
+      if (opts.loopEnd && a.currentTime >= opts.loopEnd) a.currentTime = opts.loopStart || 0;
+    };
+    const tryPlay = () => a.play().then(() => {
+      this.musicBlocked = false;
+      this.fadeAudio(a, vol, (opts.fadeIn ?? 2) * 1000);
+    }).catch(() => {
+      // Browser wants a click/keypress first — try again on the next one.
+      this.musicBlocked = true;
+    });
+    tryPlay();
+    this.retryMusic = tryPlay;
   }
 
-  stopMusic(fade = 1.2, keepWanted = false) {
-    if (!keepWanted) this.wantedMusic = null;
-    this.musicToken = (this.musicToken || 0) + 1;
+  stopMusic(fade = 1.2) {
     if (!this.music) return;
-    const { src, g } = this.music;
-    const t = this.ctx.currentTime;
-    g.gain.cancelScheduledValues(t);
-    g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + fade);
-    try { src.stop(t + fade + 0.05); } catch (e) { /* already stopped */ }
+    const { a } = this.music;
     this.music = null;
+    this.retryMusic = null;
+    this.fadeAudio(a, 0, fade * 1000, () => { a.pause(); });
+  }
+
+  fadeAudio(a, target, ms, done) {
+    clearInterval(a._fade);
+    const from = a.volume, steps = Math.max(1, Math.round(ms / 50));
+    let i = 0;
+    a._fade = setInterval(() => {
+      i += 1;
+      a.volume = Math.min(1, Math.max(0, from + (target - from) * (i / steps)));
+      if (i >= steps) { clearInterval(a._fade); if (done) done(); }
+    }, 50);
   }
 
   // ---------- loops ----------

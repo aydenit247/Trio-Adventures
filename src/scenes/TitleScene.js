@@ -11,6 +11,11 @@ export default class TitleScene extends Phaser.Scene {
     // Main menu music (loops; trims the silence at the start/end of the file)
     Sfx.playMusic('assets/audio/menu_theme.mp3', { volume: 0.55, loopStart: 0.8, loopEnd: 194.2, fadeIn: 3 });
     this.events.once('shutdown', () => Sfx.stopMusic(1.5));
+    // If the browser blocked the music, tell the player how to turn it on
+    const hint = this.add.text(width / 2, 22, '🔊 Click or press any key to turn on sound', {
+      fontFamily: 'Nunito', fontSize: '18px', color: '#ffdf8a', backgroundColor: '#1a1324cc', padding: { x: 12, y: 6 },
+    }).setOrigin(0.5, 0).setDepth(30).setVisible(false);
+    this.time.addEvent({ delay: 500, loop: true, callback: () => hint.setVisible(!!Sfx.musicBlocked && !Sfx.muted) });
 
     // Backdrop: the trio, slowly drifting, darkened toward the bottom for the menu
     if (this.textures.exists('bg_title')) {
