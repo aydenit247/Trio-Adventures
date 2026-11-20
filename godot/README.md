@@ -22,8 +22,10 @@ with the trio as 2D cutouts (like Octopath Traveler / Paper Mario / Don't Starve
 | Mouse wheel | zoom |
 | V | robot voices on/off |
 
-Things to find: the campfire, the burnt map scrap, Lykor's bag, the tent, Lykor and Xylo, a goblin
-who wants a job, and whatever is waiting at the end of the dark path.
+**It starts as Scene 1, playable:** it's cold, the fire's out. Walk Skorn over to Lykor's bag, grab the
+"fire starter", carry it to the fire pit and light it. (You know how this goes.) After that you can free roam:
+the burnt map scrap, the bag, the tent, Lykor and Xylo, a goblin who wants a job, and whatever is waiting
+at the end of the dark path.
 
 ## What's in here
 

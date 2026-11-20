@@ -6,12 +6,72 @@
 # Ebain's own lines are tagged  # Ebain   and Claude's drafts  # DRAFT.
 extends RefCounted
 
+# ---------------- Scene 1, playable: "The Map" ----------------
+# Same beats as the web game's scene1_the_map.js, but you walk Skorn to the bag and the fire yourself.
 const INTRO := [
 	{ "who": "narrator", "line": "Caelid. Night. The night before the greatest quest of their lives." }, # Ebain
 	{ "who": "narrator", "line": "The quest for the metocy." }, # Ebain
-	{ "who": "narrator", "line": "(2.5D test — WASD to walk, E to talk, Tab to switch who you control.)" },
+	{ "who": "lykor", "mood": "flattered", "line": "Dat metocy gon be gah tomorrow, on the absolute." }, # Ebain
+	{ "who": "xylo", "line": "On my Dragon Mama it is." }, # Ebain
+	{ "who": "skorn", "line": "Man, it's about cold as a motherfucker. We could get the fire going, though." }, # Ebain
+	{ "who": "lykor", "line": "Aight bet. But don't touch my bag, though." }, # Ebain
+	{ "who": "skorn", "line": "Why would I touch yo bag, mud?" }, # DRAFT
+	{ "who": "skorn", "thought": true, "line": "Alright, where the fuck is some fire starter? I'm tryna get this bitch going." }, # Ebain
+	{ "who": "skorn", "thought": true, "line": "Man, fuck this jit Lykor. He probably got some gas fire starter in his bag." }, # Ebain
+	{ "who": "narrator", "line": "(WASD to walk, E to interact. Get the fire going.)" },
 ]
 
+# Before the fire: walking up to the bag
+const BAG_GRAB := [
+	{ "do": "grab_map" },
+	{ "who": "narrator", "line": "Skorn got: Important-Looking Paper." }, # Ebain
+	{ "who": "narrator", "line": "It reads: \"M̷Ꭺ̵Ꮲ̶ ̸Ƭ̷Ө̴ ̵Ƭ̶Ң̸Ɛ̷ ̴M̵Ɛ̶Ƭ̸Ө̷C̴Ɏ̵\" (Skorn cannot read)" }, # Ebain
+	{ "who": "skorn", "thought": true, "line": "Bunch of squiggly ass lines. Yeah, that's fire starter." }, # DRAFT
+]
+
+# Using the paper on the fire pit — the rest of Scene 1
+const BURN := [
+	{ "do": "burn_map" },
+	{ "who": "lykor", "line": "Damn, you started that up quick. Good shit, dude." }, # Ebain
+	{ "who": "skorn", "mood": "smug", "line": "Yeah, I just used the paper that was in your bag. I don't know why you said I couldn't use your bag." }, # Ebain
+	{ "who": "lykor", "line": "Say you swear to the absolute." }, # Ebain
+	{ "who": "skorn", "mood": "confused", "line": "What? What are you talking about, mud?" }, # Ebain
+	{ "do": "freakout" },
+	{ "who": "lykor", "mood": "shocked", "line": "BRO. THAT WAS THE MAP TO THE METOCY. THE ONLY MAP." }, # DRAFT
+	{ "who": "xylo", "mood": "vision", "line": "On my Dragon Mama... I seen this in a vision. I just ain't think it'd be this dumb." }, # DRAFT
+	{ "who": "skorn", "mood": "angry", "line": "Then why the fuck you leave it in a bag?! Bags is for fire starter!" }, # DRAFT
+	{ "who": "lykor", "mood": "angry", "line": "Bags is for MAPS, Skorn!" }, # DRAFT
+	{ "who": "skorn", "line": "Not no more." }, # DRAFT
+	{ "who": "xylo", "line": "Chill. Them goblins up north know every road in Caelid. We just ask them." }, # DRAFT
+	{ "who": "lykor", "line": "Bet. We leave at sunrise. And nobody touch NOTHING." }, # DRAFT
+	{ "do": "party_up" },
+	{ "who": "narrator", "line": "(Explore the camp. Tab switches who you control.)" },
+]
+
+# Before the fire is lit
+const PRE_FIRE := {
+	"pit": [
+		{ "who": "skorn", "thought": true, "line": "Can't start a fire with nothing. Need some fire starter." }, # DRAFT
+	],
+	"pit_with_map": BURN,
+	"bag": BAG_GRAB,
+	"lykor": [
+		{ "who": "lykor", "line": "Aight bet. But don't touch my bag, though." }, # Ebain
+	],
+	"xylo": [
+		{ "who": "xylo", "line": "On my Dragon Mama it is." }, # Ebain
+		{ "who": "skorn", "thought": true, "line": "…He don't got no fire starter. He got a book." }, # DRAFT
+	],
+	"tent": [
+		{ "who": "skorn", "thought": true, "line": "Ain't no fire starter in the tent. Just Xylo's lore books. Too heavy to burn." }, # DRAFT
+	],
+	"goblin": [
+		{ "who": "goblin", "line": "Ayo. Y'all got a light?" }, # DRAFT
+		{ "who": "skorn", "mood": "angry", "line": "Do it LOOK like we got a light?" }, # DRAFT
+	],
+}
+
+# ---------------- After the fire (free roam) ----------------
 # Talking to a party member who isn't the one you're controlling
 const TALK := {
 	"lykor": [

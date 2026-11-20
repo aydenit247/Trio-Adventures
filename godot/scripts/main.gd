@@ -44,6 +44,18 @@ var goblin_goal := GOBLIN_HOME
 var goblin_timer := 0.0
 var rng := RandomNumberGenerator.new()
 var shots_mode := false
+# Scene 1 progress: "start" (no fire) → "has_map" (carrying the paper) → "lit" (free roam)
+var stage := "start"
+var flames: CPUParticles3D
+var embers: CPUParticles3D
+var smoke: CPUParticles3D
+var coal_mat: StandardMaterial3D
+var scrap_mesh: MeshInstance3D
+var amb: Ambience
+var paper: Sprite3D
+var objective_lbl: Label
+var shake := 0.0
+var fire_base := 0.0
 
 func _ready() -> void:
 	rng.seed = 7
@@ -56,9 +68,10 @@ func _ready() -> void:
 	_build_fire()
 	_build_characters()
 	_build_ui()
-	var amb := Ambience.new()
+	amb = Ambience.new()
 	add_child(amb)
 	amb.setup(FIRE_POS)
+	amb.fire_player.volume_db = -80.0
 	cam_target = leader.global_position
 	shots_mode = "--shots" in OS.get_cmdline_user_args()
 	if shots_mode:
@@ -361,7 +374,8 @@ func _build_camp() -> void:
 	sm.emission_enabled = true
 	sm.emission = Color(1.0, 0.35, 0.1)
 	sm.emission_energy_multiplier = 0.6
-	Util.add_mesh(self, scrap, sm, Vector3(1.3, 0.03, 0.9), Vector3(0, 0.7, 0))
+	scrap_mesh = Util.add_mesh(self, scrap, sm, Vector3(1.3, 0.03, 0.9), Vector3(0, 0.7, 0))
+	scrap_mesh.visible = false
 
 	# Sign at the start of the dark path
 	var post := BoxMesh.new()
@@ -443,57 +457,65 @@ func _build_fire() -> void:
 	coal_m.emission = Color(1.0, 0.35, 0.08)
 	coal_m.emission_energy_multiplier = 2.5
 	Util.add_mesh(self, coal, coal_m, FIRE_POS + Vector3(0, 0.06, 0))
+	coal_mat = coal_m
+	coal_m.emission_energy_multiplier = 0.0
 
-	var flames := CPUParticles3D.new()
-	flames.amount = 80
-	flames.lifetime = 0.9
-	flames.mesh = _quad(0.6, Color.WHITE, true)
-	flames.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	flames.emission_sphere_radius = 0.22
-	flames.direction = Vector3.UP
-	flames.spread = 12.0
-	flames.gravity = Vector3(0, 1.8, 0)
-	flames.initial_velocity_min = 0.5
-	flames.initial_velocity_max = 1.2
-	flames.scale_amount_min = 0.6
-	flames.scale_amount_max = 1.25
-	flames.scale_amount_curve = _curve([[0.0, 0.7], [0.25, 1.0], [1.0, 0.1]])
-	flames.color_ramp = _ramp([[0.0, Color(1.0, 0.95, 0.6, 1)], [0.3, Color(1.0, 0.55, 0.12, 0.9)], [0.7, Color(0.8, 0.15, 0.05, 0.5)], [1.0, Color(0.2, 0.05, 0.02, 0)]])
-	flames.position = FIRE_POS + Vector3(0, 0.25, 0)
-	add_child(flames)
+	var flames_p := CPUParticles3D.new()
+	flames_p.amount = 80
+	flames_p.lifetime = 0.9
+	flames_p.mesh = _quad(0.6, Color.WHITE, true)
+	flames_p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	flames_p.emission_sphere_radius = 0.22
+	flames_p.direction = Vector3.UP
+	flames_p.spread = 12.0
+	flames_p.gravity = Vector3(0, 1.8, 0)
+	flames_p.initial_velocity_min = 0.5
+	flames_p.initial_velocity_max = 1.2
+	flames_p.scale_amount_min = 0.6
+	flames_p.scale_amount_max = 1.25
+	flames_p.scale_amount_curve = _curve([[0.0, 0.7], [0.25, 1.0], [1.0, 0.1]])
+	flames_p.color_ramp = _ramp([[0.0, Color(1.0, 0.95, 0.6, 1)], [0.3, Color(1.0, 0.55, 0.12, 0.9)], [0.7, Color(0.8, 0.15, 0.05, 0.5)], [1.0, Color(0.2, 0.05, 0.02, 0)]])
+	flames_p.position = FIRE_POS + Vector3(0, 0.25, 0)
+	flames_p.emitting = false
+	add_child(flames_p)
+	flames = flames_p
 
-	var embers := CPUParticles3D.new()
-	embers.amount = 30
-	embers.lifetime = 2.6
-	embers.mesh = _quad(0.06, Color.WHITE, true)
-	embers.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	embers.emission_sphere_radius = 0.3
-	embers.direction = Vector3.UP
-	embers.spread = 25.0
-	embers.gravity = Vector3(0, 0.4, 0)
-	embers.initial_velocity_min = 1.0
-	embers.initial_velocity_max = 2.4
-	embers.color_ramp = _ramp([[0.0, Color(1, 0.7, 0.3, 1)], [1.0, Color(1, 0.3, 0.1, 0)]])
-	embers.position = FIRE_POS + Vector3(0, 0.4, 0)
-	add_child(embers)
+	var embers_p := CPUParticles3D.new()
+	embers_p.amount = 30
+	embers_p.lifetime = 2.6
+	embers_p.mesh = _quad(0.06, Color.WHITE, true)
+	embers_p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	embers_p.emission_sphere_radius = 0.3
+	embers_p.direction = Vector3.UP
+	embers_p.spread = 25.0
+	embers_p.gravity = Vector3(0, 0.4, 0)
+	embers_p.initial_velocity_min = 1.0
+	embers_p.initial_velocity_max = 2.4
+	embers_p.color_ramp = _ramp([[0.0, Color(1, 0.7, 0.3, 1)], [1.0, Color(1, 0.3, 0.1, 0)]])
+	embers_p.position = FIRE_POS + Vector3(0, 0.4, 0)
+	embers_p.emitting = false
+	add_child(embers_p)
+	embers = embers_p
 
-	var smoke := CPUParticles3D.new()
-	smoke.amount = 18
-	smoke.lifetime = 4.0
-	smoke.mesh = _quad(1.2, Color.WHITE, false)
-	smoke.direction = Vector3.UP
-	smoke.spread = 10.0
-	smoke.gravity = Vector3(0.15, 0.25, 0)
-	smoke.initial_velocity_min = 0.4
-	smoke.initial_velocity_max = 0.7
-	smoke.scale_amount_curve = _curve([[0.0, 0.4], [1.0, 1.6]])
-	smoke.color_ramp = _ramp([[0.0, Color(0.2, 0.2, 0.22, 0)], [0.2, Color(0.2, 0.2, 0.22, 0.22)], [1.0, Color(0.2, 0.2, 0.22, 0)]])
-	smoke.position = FIRE_POS + Vector3(0, 1.3, 0)
-	add_child(smoke)
+	var smoke_p := CPUParticles3D.new()
+	smoke_p.amount = 18
+	smoke_p.lifetime = 4.0
+	smoke_p.mesh = _quad(1.2, Color.WHITE, false)
+	smoke_p.direction = Vector3.UP
+	smoke_p.spread = 10.0
+	smoke_p.gravity = Vector3(0.15, 0.25, 0)
+	smoke_p.initial_velocity_min = 0.4
+	smoke_p.initial_velocity_max = 0.7
+	smoke_p.scale_amount_curve = _curve([[0.0, 0.4], [1.0, 1.6]])
+	smoke_p.color_ramp = _ramp([[0.0, Color(0.45, 0.45, 0.5, 0)], [0.3, Color(0.45, 0.45, 0.5, 0.1)], [1.0, Color(0.45, 0.45, 0.5, 0)]])
+	smoke_p.position = FIRE_POS + Vector3(0, 1.3, 0)
+	smoke_p.emitting = false
+	add_child(smoke_p)
+	smoke = smoke_p
 
 	fire_light = OmniLight3D.new()
 	fire_light.light_color = Color(1.0, 0.55, 0.22)
-	fire_light.light_energy = 3.0
+	fire_light.light_energy = 0.0
 	fire_light.omni_range = 14.0
 	fire_light.omni_attenuation = 1.1
 	fire_light.shadow_enabled = true
@@ -503,7 +525,7 @@ func _build_fire() -> void:
 	Util.static_cyl(self, FIRE_POS, 0.85, 1.0)
 
 func _build_characters() -> void:
-	var defs := [["skorn", "Skorn", 1.95, Vector3(2.4, 0, 3.6)], ["lykor", "Lykor", 1.9, Vector3(3.6, 0, 4.6)], ["xylo", "Xylo", 1.95, Vector3(1.2, 0, 4.8)]]
+	var defs := [["skorn", "Skorn", 1.95, Vector3(1.6, 0, 2.4)], ["lykor", "Lykor", 1.9, Vector3(cos(2.5) * 3.7, 0, sin(2.5) * 3.7)], ["xylo", "Xylo", 1.95, Vector3(cos(0.6) * 3.7, 0, sin(0.6) * 3.7)]]
 	for d in defs:
 		var u := Unit.new()
 		add_child(u)
@@ -594,6 +616,13 @@ func _build_ui() -> void:
 	sub.add_theme_color_override("font_outline_color", Color.BLACK)
 	sub.add_theme_constant_override("outline_size", 5)
 	hud.add_child(sub)
+	objective_lbl = Label.new()
+	objective_lbl.position = Vector2(26, 80)
+	objective_lbl.add_theme_font_size_override("font_size", 19)
+	objective_lbl.add_theme_color_override("font_color", Color("#ffdf8a"))
+	objective_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+	objective_lbl.add_theme_constant_override("outline_size", 6)
+	hud.add_child(objective_lbl)
 
 	var box := HBoxContainer.new()
 	box.anchor_left = 1.0; box.anchor_right = 1.0
@@ -677,7 +706,7 @@ func _toast(msg: String) -> void:
 # ---------------------------------------------------------------- loop
 func _process(delta: float) -> void:
 	t += delta
-	fire_light.light_energy = 3.0 + noise.get_noise_1d(t * 9.0) * 1.0 + noise.get_noise_1d(t * 31.0) * 0.4
+	fire_light.light_energy = fire_base * (1.0 + noise.get_noise_1d(t * 9.0) * 0.33 + noise.get_noise_1d(t * 31.0) * 0.13)
 	_update_camera(delta)
 	var cam_right := cam.global_transform.basis.x
 	cam_right.y = 0.0
@@ -697,6 +726,9 @@ func _process(delta: float) -> void:
 	for u in party:
 		if u == leader:
 			continue
+		if stage != "lit":
+			u.drive(Vector3.ZERO, false, cam_right, delta)
+			continue
 		var tp := u.follow_point(leader, 1.8 * u.follow_slot)
 		var to := tp - u.global_position
 		to.y = 0.0
@@ -708,6 +740,9 @@ func _process(delta: float) -> void:
 	_goblin_ai(delta, cam_right)
 	for u in party + [goblin]:
 		u.sprite.modulate = light_at(u.global_position)
+	if paper and paper.visible and paper.get_parent() == party[0]:
+		paper.position.y = 1.15 + sin(t * 3.0) * 0.04
+		paper.modulate = light_at(party[0].global_position)
 
 	interact_cooldown = max(0.0, interact_cooldown - delta)
 	if busy:
@@ -723,7 +758,9 @@ func _process(delta: float) -> void:
 		if Input.is_action_just_pressed("interact") and interact_cooldown <= 0.0:
 			_start(it)
 			return
-	if Input.is_action_just_pressed("switch"):
+	if Input.is_action_just_pressed("switch") and stage != "lit":
+		_toast("Skorn's on fire duty right now.")
+	elif Input.is_action_just_pressed("switch"):
 		var i := party.find(leader)
 		_set_leader(party[(i + 1) % party.size()])
 		ui_sfx.play()
@@ -731,7 +768,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("tts"):
 		dialogue.tts_on = not dialogue.tts_on
 		_toast("Voices: %s" % ("ON" if dialogue.tts_on else "OFF"))
-	if not mattias_done and leader.global_position.distance_to(MATTIAS_POS) < 6.5:
+	if stage == "lit" and not mattias_done and leader.global_position.distance_to(MATTIAS_POS) < 6.5:
 		mattias_done = true
 		_mattias_event()
 
@@ -765,6 +802,13 @@ func _update_camera(delta: float) -> void:
 	var off := Vector3(0, zoom * 0.6, zoom).rotated(Vector3.UP, yaw)
 	cam.global_position = cam_target + off
 	cam.look_at(cam_target + Vector3(0, 1.1, 0), Vector3.UP)
+	if shake > 0.0:
+		shake = max(0.0, shake - delta)
+		cam.h_offset = rng.randf_range(-1, 1) * shake * 0.25
+		cam.v_offset = rng.randf_range(-1, 1) * shake * 0.25
+	else:
+		cam.h_offset = 0.0
+		cam.v_offset = 0.0
 
 func _goblin_ai(delta: float, cam_right: Vector3) -> void:
 	goblin_timer -= delta
@@ -778,11 +822,27 @@ func _goblin_ai(delta: float, cam_right: Vector3) -> void:
 func _it_pos(it: Dictionary) -> Vector3:
 	return it["node"].global_position if it.has("node") else it["pos"]
 
+func _current_interactables() -> Array:
+	if stage == "lit":
+		var list := interactables.duplicate()
+		for u in party:
+			if u != leader:
+				list.append({ "id": u.id, "label": u.display_name, "verb": "Talk to", "node": u, "h": 2.15, "r": 1.9, "steps": CampScript.TALK[u.id] })
+		return list
+	var pre := CampScript.PRE_FIRE
+	var list2: Array = [
+		{ "id": "pit", "label": "Fire pit", "verb": ("Put the paper in the" if stage == "has_map" else "Look at"), "pos": FIRE_POS, "h": 1.0, "r": 2.3, "steps": pre["pit_with_map"] if stage == "has_map" else pre["pit"] },
+		{ "id": "tent", "label": "Tent", "verb": "Search", "pos": Vector3(-4.6, 0, -3.2), "h": 2.4, "r": 2.6, "steps": pre["tent"] },
+		{ "id": "goblin", "label": "Goblin (Between Jobs)", "verb": "Talk to", "node": goblin, "h": 1.6, "r": 2.2, "steps": pre["goblin"] },
+		{ "id": "lykor", "label": "Lykor", "verb": "Talk to", "node": party[1], "h": 2.15, "r": 1.9, "steps": pre["lykor"] },
+		{ "id": "xylo", "label": "Xylo", "verb": "Talk to", "node": party[2], "h": 2.15, "r": 1.9, "steps": pre["xylo"] },
+	]
+	if stage == "start":
+		list2.append({ "id": "bag", "label": "Lykor's bag", "verb": "Search", "pos": Vector3(-2.7, 0, -1.6), "h": 1.0, "r": 1.6, "steps": pre["bag"] })
+	return list2
+
 func _nearest_interactable() -> Dictionary:
-	var list := interactables.duplicate()
-	for u in party:
-		if u != leader:
-			list.append({ "id": u.id, "label": u.display_name, "verb": "Talk to", "node": u, "h": 2.15, "r": 1.9, "steps": CampScript.TALK[u.id] })
+	var list := _current_interactables()
 	var best := {}
 	var best_d := 999.0
 	var lp := leader.global_position
@@ -815,6 +875,94 @@ func do_action(n: String) -> void:
 			flags["bag_checked"] = true
 		"mattias_vanish":
 			await _mattias_vanish()
+		"grab_map":
+			await _grab_map()
+		"burn_map":
+			await _burn_map()
+		"freakout":
+			await _freakout()
+		"party_up":
+			stage = "lit"
+			_set_leader(party[0])
+			_objective("Explore the camp. (The goblins are up north.)")
+
+func _objective(text: String) -> void:
+	objective_lbl.text = "Objective: " + text
+	objective_lbl.modulate.a = 0.0
+	create_tween().tween_property(objective_lbl, "modulate:a", 1.0, 0.4)
+
+func _paper_tex() -> ImageTexture:
+	var img := Image.create(64, 48, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.86, 0.78, 0.6))
+	for y in [10, 18, 26, 34]:
+		for x in range(8, 56):
+			if (x * 7 + y * 3) % 11 < 7:
+				img.set_pixel(x, y + int(sin(x * 0.7) * 2.0), Color(0.3, 0.2, 0.15))
+	for x in 64:
+		img.set_pixel(x, 0, Color(0.5, 0.4, 0.3)); img.set_pixel(x, 47, Color(0.5, 0.4, 0.3))
+	return ImageTexture.create_from_image(img)
+
+func _grab_map() -> void:
+	var sk := party[0]
+	sk.sprite.flip_h = sk.global_position.x > -2.7
+	var tw := create_tween()
+	tw.tween_property(sk.sprite, "scale", Vector3(1.05, 0.85, 1.0), 0.15)
+	tw.tween_property(sk.sprite, "scale", Vector3.ONE, 0.15)
+	await tw.finished
+	paper = Sprite3D.new()
+	paper.texture = _paper_tex()
+	paper.pixel_size = 0.009
+	paper.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	paper.shaded = false
+	paper.no_depth_test = true
+	paper.position = Vector3(0.45, 1.15, 0.1)
+	sk.add_child(paper)
+	paper.scale = Vector3.ZERO
+	create_tween().tween_property(paper, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	ui_sfx.pitch_scale = 1.3
+	ui_sfx.play()
+	stage = "has_map"
+	_objective("Put the paper in the fire pit.")
+	await get_tree().create_timer(0.3).timeout
+	ui_sfx.pitch_scale = 1.0
+
+func _burn_map() -> void:
+	var sk := party[0]
+	# Paper flies into the pit
+	var start := paper.global_position
+	sk.remove_child(paper)
+	add_child(paper)
+	paper.global_position = start
+	var tw := create_tween()
+	tw.tween_property(paper, "global_position", start.lerp(FIRE_POS, 0.5) + Vector3(0, 1.2, 0), 0.25).set_ease(Tween.EASE_OUT)
+	tw.tween_property(paper, "global_position", FIRE_POS + Vector3(0, 0.2, 0), 0.25).set_ease(Tween.EASE_IN)
+	await tw.finished
+	paper.queue_free()
+	paper = null
+	# IGNITION
+	whoosh_sfx.pitch_scale = 0.6
+	whoosh_sfx.play()
+	shake = 0.6
+	flames.emitting = true
+	embers.emitting = true
+	pass  # smoke disabled (rendered as a dark blob)
+	scrap_mesh.visible = true
+	var lt := create_tween()
+	lt.tween_property(self, "fire_base", 7.0, 0.12)
+	lt.tween_property(self, "fire_base", 3.0, 0.8)
+	create_tween().tween_property(coal_mat, "emission_energy_multiplier", 2.5, 0.6)
+	create_tween().tween_property(amb.fire_player, "volume_db", -4.0, 1.2)
+	objective_lbl.text = ""
+	await get_tree().create_timer(1.3).timeout
+	whoosh_sfx.pitch_scale = 1.0
+
+func _freakout() -> void:
+	shake = 0.35
+	for u in [party[1], party[2]]:
+		var tw := create_tween()
+		tw.tween_property(u.sprite, "position:y", 0.6, 0.15).set_ease(Tween.EASE_OUT)
+		tw.tween_property(u.sprite, "position:y", 0.0, 0.2).set_ease(Tween.EASE_IN)
+	await get_tree().create_timer(0.4).timeout
 
 func _mattias_event() -> void:
 	busy = true
@@ -867,6 +1015,7 @@ func _intro() -> void:
 	create_tween().tween_property(self, "target_yaw", 0.0, 4.5).set_trans(Tween.TRANS_SINE)
 	await get_tree().create_timer(1.6).timeout
 	await dialogue.run(CampScript.INTRO, self)
+	_objective("Get the fire going.")
 	busy = false
 	interact_cooldown = 0.3
 
@@ -889,47 +1038,46 @@ func _place_party(p: Vector3, facing := Vector3(0, 0, 1)) -> void:
 	_set_leader(party[0])
 	cam_target = p
 
+func _advance(n := 1) -> void:
+	for i in n:
+		await _wait(0.5)
+		dialogue._next.emit()
+
 func _shot_tour() -> void:
 	busy = true
-	DisplayServer.tts_stop()
 	dialogue.tts_on = false
-	await _wait(2.0)
-	await _shot("01_camp")
-	target_yaw = 0.8
-	zoom = 6.5
-	_place_party(Vector3(1.8, 0, 2.6))
-	await _wait(2.0)
-	await _shot("02_close")
-	dialogue.run(CampScript.TALK["lykor"], self)
-	await _wait(2.0)
-	await _shot("03_dialogue")
-	dialogue._next.emit()
-	await _wait(1.2)
-	await _shot("04_choice")
-	dialogue._picked.emit(2)
-	await _wait(0.6)
-	target_yaw = -0.5
+	_objective("Get the fire going.")
+	target_yaw = 0.7
 	zoom = 8.0
-	_place_party(GOBLIN_HOME + Vector3(-1.8, 0, 2.2), Vector3(0.6, 0, -0.8).normalized())
-	await _wait(2.2)
-	busy = false
-	await _wait(0.4)
-	await _shot("05_goblin")
-	busy = true
-	target_yaw = 0.0
-	zoom = 9.5
-	_place_party(Vector3(0, 0, -12), Vector3(0, 0, -1))
-	await _wait(2.2)
-	await _shot("06_path")
-	_place_party(Vector3(0, 0, -15.2), Vector3(0, 0, -1))
-	_mattias_event()
-	await _wait(2.4)
-	await _shot("07_mattias")
-	target_yaw = 2.6
-	zoom = 13.0
-	focus_override = Vector3(0, 0, 0)
-	await _wait(2.5)
-	await _shot("08_wide")
+	await _wait(2.0)
+	await _shot("01_unlit")
+	# Walk to the bag and grab the paper
+	party[0].global_position = Vector3(-2.0, 0, -0.6)
+	cam_target = party[0].global_position
+	target_yaw = 0.2
+	await _wait(1.5)
+	_start(_current_interactables().filter(func(i): return i["id"] == "bag")[0])
+	await _wait(1.6)
+	await _shot("02_got_paper")
+	await _advance(3)
+	await _wait(0.8)
+	# Carry it to the fire pit
+	party[0].global_position = Vector3(1.4, 0, 1.6)
+	cam_target = party[0].global_position
+	target_yaw = 0.7
+	await _wait(1.5)
+	await _shot("03_carrying")
+	_start(_current_interactables().filter(func(i): return i["id"] == "pit")[0])
+	await _wait(0.75)
+	await _shot("04_ignite")
+	await _wait(1.6)
+	await _shot("05_lit_dialogue")
+	await _advance(5)
+	await _wait(0.6)
+	await _shot("06_freakout")
+	await _advance(8)
+	await _wait(2.0)
+	await _shot("07_free_roam")
 	get_tree().quit()
 
 const SKY_SHADER := """
