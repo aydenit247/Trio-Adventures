@@ -72,7 +72,7 @@ export default class GoblinScene extends StageScene {
     this.gobLabel.setVisible(false);
     // Kneeling art faces right; they kneel toward Lykor on the left
     this.goblins.forEach((g) => { this.setCharTex(g, 'char_goblin_kneel', 150); g.img.setFlipX(true); });
-    this.lykorLabel = this.charLabel(this.lykor, 'The Shiny One (allegedly)');
+    this.lykorLabel = this.charLabel(this.lykor, 'The Mogging Elf (allegedly)');
     await this.showLabel(this.lykorLabel);
   }
 

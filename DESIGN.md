@@ -56,7 +56,7 @@ Title menu: Continue Story (Scene 2), Metocy Mart, The Pass, Replay Intro.
 1. **The Map (camp, night) — play as Skorn.** Lykor warns nobody to touch his bag (the map is in
    it). Skorn is cold, finds "paper" in the bag, can't read, feeds the map to the campfire.
    → **Title card: "Trio Adventures" by Ebain.**
-2. **Goblin Village — play as Lykor.** The goblins see Lykor and start **worshipping** him ("the Shiny One"),
+2. **Goblin Village — play as Lykor.** The goblins see Lykor and start **worshipping** him ("the Mogging Elf"),
    crown him on a junk throne, then refuse to let him leave. **Player choice:** royal speech / sneak out
    (the goblins tiptoe right behind him) / let Skorn "negotiate" (Diddy Slap → first fight; the goblins
    then worship Skorn too). The chief points them to Metocy Mart. Goblin chief's name: **TBD**.
