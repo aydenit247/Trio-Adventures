@@ -1,5 +1,6 @@
 import { CHARACTERS } from '../data/characters.js';
 import Sfx from '../audio/Sfx.js';
+import Voice from '../audio/Voice.js';
 
 // Reusable dialogue box: portrait, name tag, typewriter text, choices.
 //
@@ -135,6 +136,7 @@ export default class DialogueBox {
       this.body.setColor('#ff9f6b').setFontStyle('italic');
     } else {
       this.full = s.thought ? `(${s.line})` : s.line;
+      Voice.say(this.voice, s.line, { thought: !!s.thought });
       const soft = narrator || s.thought;
       this.body.setColor(narrator ? '#cfc6ff' : s.thought ? '#c9c2e0' : '#f4efff')
         .setFontStyle(soft ? 'italic' : 'normal');
@@ -150,7 +152,7 @@ export default class DialogueBox {
         this.shown += 1;
         this.body.setText(this.full.slice(0, this.shown));
         const ch = this.full[this.shown - 1];
-        if (this.shown % 2 === 1 && ch && ch.trim()) Sfx.blip(this.voice);
+        if (this.shown % 2 === 1 && ch && ch.trim() && !(Voice.on && !Sfx.muted && s.line)) Sfx.blip(this.voice);
         if (this.shown >= this.full.length) { typer.remove(); this.typer = null; this.arrow.setVisible(true); }
       },
     });
@@ -165,6 +167,7 @@ export default class DialogueBox {
       this.shown = this.full.length; this.body.setText(this.full); this.arrow.setVisible(true);
       return;
     }
+    Voice.stop();
     Sfx.play('click');
     this.next();
   }

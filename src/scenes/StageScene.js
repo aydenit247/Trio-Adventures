@@ -1,6 +1,7 @@
 import DialogueBox from '../ui/DialogueBox.js';
 import { vignette } from '../fx.js';
 import Sfx from '../audio/Sfx.js';
+import Voice from '../audio/Voice.js';
 
 // Shared base for story scenes: painted backdrop, full-body characters,
 // speaker highlight, lighting moods, labels, walking, and cutscene videos.
@@ -330,6 +331,7 @@ export default class StageScene extends Phaser.Scene {
 
   finish(next = 'Title', data) {
     if (this.finished) return;
+    Voice.stop();
     this.finished = true;
     this.cameras.main.fade(900, 0, 0, 0, true);
     this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(next, data));

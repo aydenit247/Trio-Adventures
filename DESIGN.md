@@ -226,6 +226,13 @@ Everyone talks in casual slang, with profanity. Signature phrases so far:
 - **Xylo:** "On my Dragon Mama"
 - **Skorn:** calls people "mud" and "jit", has a lot of inner-monologue rage, and his logic is unhinged but delivered with total confidence
 
+## Character voices (text-to-speech)
+
+Every dialogue line is read aloud by the browser's built-in TTS (`src/audio/Voice.js`). Robotic on purpose.
+Each character has their own pitch/speed: Skorn deep and fast, Lykor high and smooth, Xylo low and slow,
+Dulbers squeaky salesman, demon/giant as low as it goes, goblins chipmunk. Toggle with **V** or the 🗣 button.
+Which actual voices you get depends on the browser/OS (Chrome: Google voices; Windows: David/Mark/Zira).
+
 ## Voiceline workflow
 
 We walk through each scene beat by beat. Each beat has context and a slot. Ayden writes the
