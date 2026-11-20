@@ -3,7 +3,7 @@
 // Format notes are at the top of scene1_the_map.js.
 
 const OUTRO = [
-  { who: 'chief', line: 'Go then, Mogging Elf. Seek the metocy. They sell it at the Metocy Mart, east of here.' },
+  { who: 'chief', line: '…Fine. The metocy is sold at the Metocy Mart, east of here.' },
   { who: 'xylo', mood: 'unimpressed', line: 'They… sell it?' },
   { who: 'chief', line: 'For all yo metocy needs.' },
   { do: 'goblinsCry' },
@@ -21,7 +21,7 @@ export const SCENE2 = [
 
   { do: 'goblinsAppear' },
   { who: 'goblin', line: '…' },
-  { who: 'goblin', line: 'Ayo… you allowed to mog that hard?' }, // Ebain
+  { who: 'goblin', line: "Yay.. you are allowed to mog that hard, right? Cool dude, that's fucking fair." }, // Ebain
   { who: 'goblins', line: 'THE MOGGING ELF!!' }, // Ebain
   { do: 'goblinsKneel' },
   { who: 'lykor', mood: 'flattered', line: 'Hell yup… this looksmaxxin shi payin off.' }, // Ebain
@@ -30,18 +30,24 @@ export const SCENE2 = [
 
   { do: 'chiefAppears' },
   { who: 'chief', line: 'For a thousand years we have waited for the Mogging Elf. Golden hair. Pointy ears. Smells like expensive conditioner.' },
-  { who: 'lykor', mood: 'smug', line: 'I mean… it IS the expensive kind.' },
-  { who: 'chief', line: 'Come, Mogging Elf. Your throne awaits.' },
+  { who: 'lykor', mood: 'smug', line: "Aight, if I'm y'all's god or whatever, then answer me this: where the metocy at?" },
+  { who: 'chief', line: '*gasp* The Mogging Elf seeks the metocy… We know where it is.' },
+  { who: 'skorn', mood: 'smug', line: 'Then run it, short stuff.' },
+  { who: 'chief', line: 'We will tell the Mogging Elf… once he is crowned. Come. Your throne awaits.' },
 
   { do: 'toThrone' },
   { who: 'narrator', line: 'The goblins seat Lykor on a throne made of spoons, bones, and one (1) wagon wheel.' },
   { do: 'crown' },
   { who: 'lykor', mood: 'flattered', line: "Y'all had said you got some beezy or some shi?" }, // Ebain
-  { who: 'xylo', line: 'Lykor. The metocy will not find itself.' },
-  { who: 'lykor', line: "Aight, aight. My people! It's been real, but your king gotta dip." },
+  { do: 'beezy' },
+  { who: 'narrator', line: 'The goblins hand the Mogging Elf a mug of goblin beezy.' },
+  { who: 'lykor', mood: 'flattered', line: 'Ayy. Now THIS a kingdom.' },
+  { who: 'xylo', mood: 'unimpressed', line: 'Lykor. Focus. Ask him.' },
+  { who: 'lykor', line: "Aight, I'm crowned. Where the metocy at?" },
   { do: 'goblinsBlock' },
-  { who: 'chief', line: 'Dip? DIP?! The Mogging Elf stays FOREVER.' },
+  { who: 'chief', line: "Oh, we'll tell you… as long as you stay our king. FOREVER." },
   { who: 'goblins', line: 'FOREVER! FOREVER! FOREVER!' },
+  { who: 'lykor', mood: 'angry', line: 'Bro, I just wanted directions.' },
   { who: 'narrator', line: 'How does Lykor get out of this?' },
   {
     choice: [

@@ -46,6 +46,7 @@ export default class GoblinScene extends StageScene {
       toThrone: () => this.toThrone(),
       crown: () => this.crown(),
       goblinsBlock: () => this.goblinsBlock(),
+      beezy: () => this.beezy(),
       sneak: () => this.sneak(),
       sneakCaught: () => { Sfx.play('dramatic'); this.lykor.img.setFlipX(false); this.hop(this.lykor, 20); return this.wait(400); },
       sneakReturn: () => this.sneakReturn(),
@@ -105,6 +106,29 @@ export default class GoblinScene extends StageScene {
     Sfx.play('sparkle');
     const l = this.charLabel(this.lykor, 'King (Temporary)');
     await this.showLabel(l);
+  }
+
+  // A goblin brings Lykor a mug of beer
+  async beezy() {
+    const l = this.lykor;
+    const mug = this.add.container(l.x + 300, l.y - 150).setDepth(40).setAlpha(0);
+    const g = this.add.graphics();
+    g.fillStyle(0x6b4423).fillRoundedRect(-18, -24, 36, 48, 5);          // wooden mug
+    g.fillStyle(0xe8a317, 0.95).fillRect(-14, -16, 28, 36);             // beer
+    g.fillStyle(0xfff6dc).fillEllipse(-6, -24, 22, 14).fillEllipse(8, -26, 22, 16); // foam
+    g.lineStyle(5, 0x6b4423).strokeEllipse(24, 0, 18, 26);              // handle
+    mug.add(g);
+    const tag = this.label(0, -52, 'Beezy (Beer)', 15);
+    mug.add(tag);
+    Sfx.play('pop');
+    await this.tweenP({ targets: mug, alpha: 1, x: l.x + 70, y: l.y - 190, duration: 600, ease: 'Back.out' });
+    Sfx.play('sparkle');
+    this.hop(l, 12);
+    this.beezyMug = mug;
+    const follow = () => { if (mug.active) mug.setPosition(l.x + 70, l.y - 190); };
+    this.events.on('postupdate', follow);
+    this.events.once('shutdown', () => this.events.off('postupdate', follow));
+    await this.wait(300);
   }
 
   async goblinsBlock() {
