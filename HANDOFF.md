@@ -173,39 +173,20 @@ After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crasho
 
 ---
 
-## 6. Combat system (built, in `CombatScene.js` + `data/combat.js`)
+## 6. Combat system (Combat 2.0 — see DESIGN.md → Combat for every number)
 
-Each turn, a character picks **Main / Special (cooldown) / Bonus (cooldown) / Items / Defend**. Damage is a set number, Pokémon-style.
-
-| | HP label | Main | Special | Bonus |
-|---|---|---|---|---|
-| Skorn 90 | HP (Hit Points) | Diddy Slap 14 | Crash Out: d6 roll, cd 3 | Throw Anything 10 (random funny object), cd 2 |
-| Lykor 70 | Aura | Hair Flip 10, 35% charm (enemy skips its turn) | Mog 22 + blind (next enemy attack 60% miss), cd 3 | "on some type shi": party +50% damage for 2 turns, cd 3 |
-| Xylo 75 | Lore Points | Eldritch Blast 13 | Deloye Lore 26, cd 3 | Chud Out 20 + stun (plays the keyed video), cd 4 |
-
-- **Crash Out dice:**
-  - 1: he hits himself for 10.
-  - 2–3: 18 damage.
-  - 4–5: 30 damage.
-  - 6: 40 damage. The first 6 in the whole game also offers **+1**, which triggers **the 6-7 dance**: 67 damage to every enemy. Accepting sets `used67`; declining sets `declined67`.
-- **Defend:** half damage, or a quarter from the giant's sit.
-- **Items:** Beezy heals 30, Chipotle Bowl heals 60. If you have no items you get one free Emergency Beezy.
-- **Enemies (balanced with 4,000 simulated fights per setup):**
-  - **Goblins (×3):** 24 HP each, spoon bonk for 6.
-  - **Dulbers (demon form):** 240 HP. Price Gouge 28 to one person, NO REFUNDS 18 to everyone, and a heal of 15 when he's low. He has 25% less HP if Skorn is absent.
-  - **Diddy Chud Giant:** 420 HP. Stomp 22, Ground Pound 15 to everyone, and every third turn he telegraphs a **SIT** (40 to everyone).
-- **Modifiers from story choices:**
-  - `tripping:'party'|'skorn'`: 22% chance a move misfires with a funny line, 20% chance of a TWEAK CRIT (×2).
-  - `allies`: a goblin backup attack for 6 every round.
-  - `enraged`: +15% HP, ×1.2 damage.
-  - `enemyTripping`: 30% chance the giant hurts himself or forgets to attack.
-  - `party:[...]`: overrides who fights.
-- **XP and levels:** 30, 60 or 100 XP per fight. Levels come at 50, 120, 220 and 350 XP. Each level gives +10% HP and damage.
-- **Win and loss screens:** "VICTORY (on some winning shi)" or "YOU GOT COOKED," where Space retries the fight.
-- **First-fight tutorial:** the "How To Fight (on some combat shi)" card, shown once and remembered in localStorage `trio_tut_combat`.
-- **Not yet human-tested:** the giant fight with the new numbers, and the cooked/retry screen in a real story run.
-
----
+- **Architecture:** `src/combat/engine.js` is pure rules (no Phaser) and returns event lists; `CombatScene.js` animates
+  them. `tools/sim_combat.mjs` runs thousands of fights through the same engine with sloppy/average/good fake players.
+  **Rebalance by editing numbers, then rerun the sim.**
+- **Turn order:** speed timeline bar top-left (FFX-style). **Timed hits/blocks:** shrinking ring, SPACE.
+  **Meters → ultimates** (FULL CRASH OUT, MOG SUPREME, CHUD OUT). **Team-ups** at 50% from two people (trio at 60%).
+- Statuses both ways, boss Locked In after CC, telegraphs with counters, boss phase 2 at 50% (giant "Aight. Bet." +
+  snack; Dulbers shapeshifts into bootleg party members), rare chaos events, banter bubbles + TTS, S–F grade with XP bonus.
+- Settings: Combat difficulty (Chill/Normal/Crashout) and Timed hits (On/Auto).
+- **Testing:** `window.TRIO_QTE='perfect'` auto-resolves timed presses. To script a fight, replace
+  `scene.chooseAction` with an async function that returns actions (see the chat history for `test_script.py`).
+- **Not yet human-tested:** how the timing window feels with a real keyboard (`qte()` in CombatScene: 850ms ring,
+  PERFECT ±8px, GOOD ±22px, scaled by difficulty).
 
 ## 7. Open items / where we left off
 

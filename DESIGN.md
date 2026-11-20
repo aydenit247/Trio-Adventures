@@ -126,26 +126,58 @@ Each character has a **Main**, **Special** and **Bonus** move:
 | **Lykor** | **Hair Flip** | **Mog** — giga chad face blinds enemies with his beauty + damage | **"on some type shi"** — screams it, buffs everyone |
 | **Xylo** | **Eldritch Blast** | **Deloye Lore** — pulls out a huge book and reads at length about a vast universe (there is little to no actual lore); the godly energy damages the enemy | **Chud Out** — gets really big and sits on the enemy |
 
-**Built.** Each turn a character picks Main / Special / Bonus / Items / Defend. Numbers live in `src/data/combat.js`.
+**Built — Combat 2.0.** Rules: `src/combat/engine.js` (pure logic, no Phaser). Numbers: `src/data/combat.js`.
+`CombatScene.js` only animates what the engine decides. Balance sim: `node tools/sim_combat.mjs 3000`.
 
-| | HP label | Main | Special (cooldown) | Bonus (cooldown) |
-|---|---|---|---|---|
-| **Skorn** 90 | HP (Hit Points) | Diddy Slap 14 | Crash Out: dice roll (3) | Throw Anything 10, random object (2) |
-| **Lykor** 70 | Aura | Hair Flip 10, 35% charm (enemy skips) | Mog 22 + blind (3) | "on some type shi": party +50% dmg, 2 turns (3) |
-| **Xylo** 75 | Lore Points | Eldritch Blast 13 | Deloye Lore 26 (3) | Chud Out 20 + enemy loses a turn, plays the video (4) |
+**Turn order:** a speed timeline (FFX-style), shown top-left. Speed: Skorn 9, Lykor 12, Xylo 10, goblins 7,
+Dulbers 16, giant 14 (×1.25 in phase 2), goblin backup 9. Stuns/charms show as SKIP on the bar.
 
-- **Crash Out dice:** 1 = hurts himself (-10), 2–3 = 18, 4–5 = 30, 6 = 40 (or the once-per-game 6-7).
-- **Defend:** half damage; a quarter from the giant's sit.
-- **Items:** Beezy heals 30, Chipotle Bowl heals 60 (from inventory flags). No items → 1 free Emergency Beezy.
-- **Fights:** Skorn vs 3 Goblins at 24 HP (Scene 2E; spoon bonk 6) · Party vs Dulbers Frint 240 HP (Scene 3A/B; Price
-  Gouge 28, NO REFUNDS 18 to all, Customer Service Voice heals 15; 25% less HP if Skorn isn't there) · BOSS Diddy Chud
-  Giant 420 HP (Stomp 22, Ground Pound 15 to all, every 3rd turn he telegraphs a SIT: 40 to everyone, a quarter if you Defend).
-- **Balance (simulated 4,000 fights per setup):** button-mashing main attacks loses the boss most of the time; using
-  specials and defending on the sit warning wins nearly always. Dulbers is the mid fight (mashing wins ~95%).
-- **Choices change fights:** tripping on midtocy (25% misfire / 20% crit), goblin backup (6 dmg every round), giant
-  enraged after a failed sneak (+15% HP, x1.2 dmg), giant tripping after the midtocy throw (30% he hurts himself or forgets).
-- **Leveling:** XP 30/60/100 per fight; levels at 50/120/220/350. Each level = +10% HP and damage.
-- **Lose:** "YOU GOT COOKED" → Space to retry the fight. **Win:** "VICTORY (on some winning shi)" + XP.
+Each turn: **Main / Special (cd) / Bonus (cd) / ★ Ultimate / Team-Up / Items / Defend.**
+
+| | HP label | Main | Special (cd) | Bonus (cd) | Ultimate (100% meter) |
+|---|---|---|---|---|---|
+| **Skorn** 90 | HP (Hit Points) | Diddy Slap 14 | Crash Out: d6 (3) | Throw Anything 10, 40% Down Bad (2) | FULL CRASH OUT: 2 dice, 7 per pip, Humbled; 6+6 = double or the 6-7, 1+1 = hurts himself |
+| **Lykor** 70 | Aura | Hair Flip 10, 30% charm (+15% on PERFECT) | Mog 20 + Mogged (3) | "on some type shi": next 3 attacks ×1.5 (3) | MOG SUPREME: 36 to all + Mogged + Blinded |
+| **Xylo** 75 | Lore Points | Eldritch Blast 13 | Deloye Lore 24, 50% Lore-pilled (100% on PERFECT) (3) | Dragon Breath 10 + Cooked (2) | CHUD OUT: 45 + loses a turn (plays the video) |
+
+- **Timed hits:** a ring shrinks onto a gold circle, press SPACE. PERFECT ×1.5, GOOD ×1.2, MID ×0.9.
+- **Timed blocks:** same ring on enemy attacks. PERFECT ×0.35, BLOCKED ×0.7. AoE = "EVERYONE BRACE".
+- **Meter:** dealing damage (up to 15), PERFECT +8 / GOOD +4, taking damage, blocks (+15/+8), Defend (+12), hype.
+- **Team-ups** (each member spends meter; partners' next turn is pushed back a bit): Elf Toss (Skorn+Lykor, 48 +
+  Mogged), Lore Slap (Skorn+Xylo, 6×8 + Lore-pilled), Mogging Fireball (Lykor+Xylo, 28 to all + Cooked), ON SOME TRIO
+  SHI (all three, 60% each, 85 + everyone heals 15).
+- **Defend:** half damage (a quarter from the sit), enemies aim at you 70% of the time, +12 meter, cooldowns tick 1 extra.
+- **Items:** Beezy heals 30 + Buzzed (25% misfire next move), Chipotle Bowl 60. Both revive a knocked-out ally.
+  Emergency Beezy only when someone is down and you have nothing. Losing a fight and retrying restores your items.
+- **Statuses on enemies:** Mogged (+25% dmg taken), Lore-pilled (50% skip), Down Bad (half dmg), Cooked (6/turn),
+  Blinded (60% miss), Charmed (skip; with other enemies alive he's Glazed and bonks a buddy), Sat On (skip), Humbled (buffs stripped).
+- **Enemy buffs:** Locked In (bosses, after losing a turn to CC: immune to charm/stun/lore-pill for ~2 turns), Hyped Up
+  (goblin "LET'S GOOO": next hit ×2), Copium (Dulbers heals 8/turn, a 25+ hit breaks it), Aura Shield (Dulbers steals
+  Lykor's aura: absorbs 35), Second Wind (Goblin (Between Jobs) gets up once: "I NEED THIS JOB").
+- **Party debuffs:** Price Gouged (heals halved), Flattened (lose a turn), Bricked (special cd +1), Item Stolen.
+- **Enemies:**
+  - **Goblins ×3:** 26 HP, Spoon Bonk 9, hype each other.
+  - **Dulbers:** 300 HP (×0.75 without Skorn). Price Gouge 34 + Price Gouged, NO REFUNDS 21 to all + Bricked, steals a
+    beezy (max 2), Aura Shield. **Phase 2 at 50%:** shapeshifts into bootleg party members (red tint): Bootleg Skorn slap
+    36, Knockoff Lykor hair flip 18 + may Flatten, Generic Xylo blast 20 to all; Copium once.
+  - **Diddy Chud Giant:** 520 HP. Stomp 28 (aims at the healthiest), Ground Pound 17 to all, every 3rd move a telegraph:
+    SIT (44 to all + Flattened unless you defend or block). Charm/stun him during the telegraph = he sits on his own foot
+    (35). **Phase 2 at 50%:** "Aight. Bet." Faster, and alternates the sit with a Chipotle Bowl snack (heals 60 unless
+    you hit him for 30+ or stun him first).
+- **Chaos events** (1.5% per enemy turn, max once per fight): goblin throws a beezy, Dulbmeethus fills a meter,
+  Mattias says "Impressive." (+15 meter), a rock falls on the enemy, or (goblin fight) a job-hunting goblin walks by.
+- **Banter:** speech bubbles + TTS on perfects, ults, low HP, KOs, phase changes, enemy taunts (`BANTER` in combat.js).
+- **Grade:** S–F from damage taken, KOs, items, perfect-press rate and turns vs par. S = ×1.25 XP, A = ×1.1.
+  Best grade per fight saved in localStorage `trio_grades`.
+- **Difficulty (Settings):** Chill (×0.75 enemy dmg, ×0.9 HP, wider timing window), Normal, Crashout (×1.25 dmg,
+  ×1.1 HP, tighter window). **Timed hits & blocks:** On, or Auto (always GOOD).
+- **Choices change fights:** tripping (22% misfire / 20% crit), goblin backup (in the turn order, bonk 10),
+  enraged (+15% HP, ×1.1 dmg), giant tripping (30% he hurts himself or forgets).
+- **Balance (sim, Normal):** average player wins ~95–99% with about half HP left; sloppy players lose the boss about
+  half the time; Crashout is a real challenge; Chill rescues sloppy players (~85%).
+- **Leveling:** XP 30/60/100 per fight (× grade bonus); levels at 50/120/220/350. Each level = +10% HP and damage.
+- **Lose:** "YOU GOT COOKED" + tip → Space to retry. **Win:** "VICTORY (on some winning shi)" + grade + XP.
+- **Tutorial:** "How To Fight" card once (localStorage `trio_tut_combat2`). Test hook: `window.TRIO_QTE = 'perfect'`.
 
 ### Dice — "on some dice shi"
 

@@ -1,6 +1,6 @@
 // Player settings, saved in the browser.
 const KEY = 'trio_settings';
-const DEFAULTS = { textSpeed: 1, music: 1, sfx: 0.8, voice: 1, voiceRate: 1 };
+const DEFAULTS = { textSpeed: 1, music: 1, sfx: 0.8, voice: 1, voiceRate: 1, combatDiff: 1, timedHits: 1 };
 // textSpeed index → ms per character (0 = instant)
 export const TEXT_SPEEDS = [{ name: 'Slow', ms: 40 }, { name: 'Normal', ms: 22 }, { name: 'Fast', ms: 10 }, { name: 'Instant', ms: 0 }];
 

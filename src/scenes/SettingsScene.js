@@ -2,6 +2,7 @@ import OverlayScene from './OverlayScene.js';
 import Settings, { TEXT_SPEEDS } from '../systems/settings.js';
 import Voice from '../audio/Voice.js';
 import Sfx from '../audio/Sfx.js';
+import { DIFFICULTY } from '../data/combat.js';
 
 const ROWS = [
   { k: 'textSpeed', label: 'Text speed', kind: 'list', values: TEXT_SPEEDS.map((t) => t.name) },
@@ -9,6 +10,8 @@ const ROWS = [
   { k: 'sfx', label: 'Sound effects volume', kind: 'pct', max: 1 },
   { k: 'voice', label: 'Voice volume', kind: 'pct', max: 1 },
   { k: 'voiceRate', label: 'Voice speed', kind: 'rate', min: 0.6, max: 1.6 },
+  { k: 'combatDiff', label: 'Combat difficulty', kind: 'list', values: DIFFICULTY.map((d) => d.name) },
+  { k: 'timedHits', label: 'Timed hits & blocks', kind: 'list', values: ['Auto (always GOOD)', 'On'] },
   { k: 'test', label: 'Test voices', kind: 'button' },
   { k: 'close', label: 'Done', kind: 'button' },
 ];
@@ -21,7 +24,7 @@ export default class SettingsScene extends OverlayScene {
     const { width } = this.scale;
     this.sel = 0;
     this.rows = ROWS.map((r, i) => {
-      const y = 170 + i * 62;
+      const y = 150 + i * 52;
       const label = this.add.text(width / 2 - 360, y, r.label, { fontFamily: 'Nunito', fontSize: '26px', fontStyle: '900', color: '#f4efff' }).setOrigin(0, 0.5);
       const value = this.add.text(width / 2 + 360, y, '', { fontFamily: 'Nunito', fontSize: '26px', fontStyle: '900', color: '#e8b923' }).setOrigin(1, 0.5);
       let bar = null;
@@ -34,7 +37,7 @@ export default class SettingsScene extends OverlayScene {
         .on('pointerdown', () => { this.sel = i; this.change(1, true); }));
       return { r, label, value, bar };
     });
-    this.add.text(width / 2, 170 + ROWS.length * 62 + 4, '↑/↓ choose · ←/→ change', { fontFamily: 'Nunito', fontSize: '16px', color: '#a49cc4' }).setOrigin(0.5);
+    this.add.text(width / 2, 150 + ROWS.length * 52 + 2, '↑/↓ choose · ←/→ change', { fontFamily: 'Nunito', fontSize: '16px', color: '#a49cc4' }).setOrigin(0.5);
     const kb = this.input.keyboard;
     ['UP', 'W'].forEach((k) => kb.on(`keydown-${k}`, () => { this.sel = (this.sel + ROWS.length - 1) % ROWS.length; Sfx.play('tick'); this.render(); }));
     ['DOWN', 'S'].forEach((k) => kb.on(`keydown-${k}`, () => { this.sel = (this.sel + 1) % ROWS.length; Sfx.play('tick'); this.render(); }));

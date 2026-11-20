@@ -287,6 +287,34 @@ class SfxEngine {
       this.tone({ type: 'sawtooth', freq: f, freqEnd: i === 3 ? f * 0.94 : f * 0.98, dur: d, vol: 0.12, attack: 0.05, when: w, lowpass: 900 });
     });
   }
+  // ----- combat 2.0 -----
+  sfx_perfect() { // timed hit / block landed perfectly: bright ding
+    [1318, 1976, 2637].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.35 - i * 0.08, vol: 0.09, when: i * 0.03 }));
+  }
+  sfx_good() { this.tone({ type: 'triangle', freq: 988, dur: 0.15, vol: 0.08 }); }
+  sfx_block() { // metallic clank
+    this.noise({ dur: 0.12, vol: 0.3, type: 'bandpass', f0: 2500, q: 3, attack: 0.001 });
+    this.tone({ type: 'square', freq: 520, freqEnd: 480, dur: 0.18, vol: 0.06, lowpass: 2500 });
+  }
+  sfx_ring() { this.tone({ type: 'sine', freq: 660, freqEnd: 990, dur: 0.5, vol: 0.04 }); }
+  sfx_fire() { // dragon breath whoosh + crackle
+    this.noise({ dur: 0.7, vol: 0.35, type: 'lowpass', f0: 2500, f1: 500, attack: 0.05 });
+    for (let i = 0; i < 6; i++) this.noise({ dur: 0.03, vol: 0.12, type: 'highpass', f0: 3000, when: 0.1 + i * 0.09 });
+  }
+  sfx_meterFull() { // ultimate ready
+    [523, 784, 1046, 1568].forEach((f, i) => this.tone({ type: 'square', freq: f, dur: 0.18, vol: 0.05, when: i * 0.06, lowpass: 3500 }));
+    this.noise({ dur: 0.5, vol: 0.12, type: 'bandpass', f0: 800, f1: 5000, q: 1, attack: 0.3 });
+  }
+  sfx_telegraph() { // something big is coming
+    this.tone({ type: 'sawtooth', freq: 110, freqEnd: 220, dur: 0.8, vol: 0.12, lowpass: 800 });
+    this.tone({ type: 'sine', freq: 880, dur: 0.12, vol: 0.06, when: 0.7 });
+    this.tone({ type: 'sine', freq: 880, dur: 0.12, vol: 0.06, when: 0.9 });
+  }
+  sfx_combo() { // team-up stinger
+    this.sfx_buff();
+    [392, 523, 659, 784].forEach((f, i) => this.tone({ type: 'sawtooth', freq: f, dur: 0.25, vol: 0.04, when: 0.6 + i * 0.05, lowpass: 2500 }));
+  }
+
   sfx_dance() { // 6-7 beat: kick + clap
     this.tone({ type: 'sine', freq: 120, freqEnd: 45, dur: 0.18, vol: 0.5 });
     this.noise({ dur: 0.1, vol: 0.25, type: 'bandpass', f0: 1500, q: 1, when: 0.14 });
