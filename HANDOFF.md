@@ -190,6 +190,9 @@ After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crasho
 
 ## 7. Open items / where we left off
 
+0. **Friend's voice lines (in progress).** Ebain's friend is recording Metocin Mattias (3 lines) and the goblins (Chief
+   Bogdrinker 25, regular goblin 3, crowd 9) as one MP3 with line numbers read out. Plan: split it, pitch-shift / voice-change
+   each character, stack crowd lines into a mob, and play them instead of TTS for those characters.
 1. **Pronunciation list (not answered yet).** I gave Ebain 38 words with my guessed pronunciations: names like Lykor ("LIE-kor"), Xylo ("ZY-low"), Caelid, Dulbmeethus, Metocin and Deloye; items like metocy ("meh-TOE-see"); slang like jit, aight, finna, looksmaxxin and Balright; and the abbreviations ts, mf, ngl and fw (spell them out or read them as words?).
    - He hasn't replied. My guesses aren't in the code yet; only "shi" → "shee" and "doe" → "dough" are.
    - When he answers, add respellings to `Voice.clean()` in `src/audio/Voice.js` as word-boundary regex replacements.
