@@ -75,6 +75,24 @@ Title menu: Continue Story (Scene 2), Metocy Mart, The Pass, Replay Intro.
 5. **Boss: Diddy Chud Giant** (see *Boss design*). Cutscene: a purple vial lands on him and the smoke wakes him
    up (idea: Skorn throws his leftover midtocy at him — TBD).
 
+## Choices (rule)
+
+**Every scene has a player choice, and most choices lead to a different outcome.** Each boss/major
+encounter keeps at least one option that leads to a fight.
+
+- **Scene 1:** a choice of what Skorn burns (the map / Xylo's lore book / Lykor's conditioner) — every option
+  still ends with the map in the fire (that's the joke). Lines TBD.
+- **Scene 2:** see the scene list (being reworked).
+- **Scene 3:** TBD (ideas: everyone takes the midtocy / only Skorn / refuse it / goblins taste-test it).
+- **Scene 4 — getting past Diddy Chud Giant:**
+  - **A. Skorn throws something** (leftover midtocy) → wake-up cutscene → fight, but the giant is tripping (chaotic, a bit easier).
+  - **B. Sneak across him** → interactive sneaking with a **snore meter** (don't wake him). Success: skip the fight and
+    steal his snacks (Chipotle Bowls). Fail: he wakes up enraged → harder fight.
+  - **C. Read him Deloye Lore** → an **interactive lore-reading session** (silly mechanic, not mic). Success: he sinks
+    deeper asleep and rolls over, path opens. Fail: he wakes → fight.
+  - **D. Fight him** → the full boss fight (guaranteed combat option).
+  - **E. Secret, only if the goblins came along:** Chief Bogdrinker is his cousin and yells at him to move.
+
 ## Combat
 
 **Simple, Pokémon-style turn-based combat** with set damage. Minor leveling up.
