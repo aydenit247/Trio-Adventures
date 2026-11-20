@@ -137,11 +137,13 @@ Each character has a **Main**, **Special** and **Bonus** move:
 - **Crash Out dice:** 1 = hurts himself (-10), 2–3 = 18, 4–5 = 30, 6 = 40 (or the once-per-game 6-7).
 - **Defend:** half damage; a quarter from the giant's sit.
 - **Items:** Beezy heals 30, Chipotle Bowl heals 60 (from inventory flags). No items → 1 free Emergency Beezy.
-- **Fights:** Skorn vs 3 Goblins (Scene 2E) · Party vs Dulbers Frint (Scene 3A/B; Price Gouge 14, NO REFUNDS 8 to all,
-  Customer Service Voice heals 15) · BOSS Diddy Chud Giant 320 HP (Stomp 18, Ground Pound 12 to all, every 3rd turn he
-  telegraphs a SIT: 34 to everyone unless you Defend).
+- **Fights:** Skorn vs 3 Goblins at 24 HP (Scene 2E; spoon bonk 6) · Party vs Dulbers Frint 240 HP (Scene 3A/B; Price
+  Gouge 28, NO REFUNDS 18 to all, Customer Service Voice heals 15; 25% less HP if Skorn isn't there) · BOSS Diddy Chud
+  Giant 420 HP (Stomp 22, Ground Pound 15 to all, every 3rd turn he telegraphs a SIT: 40 to everyone, a quarter if you Defend).
+- **Balance (simulated 4,000 fights per setup):** button-mashing main attacks loses the boss most of the time; using
+  specials and defending on the sit warning wins nearly always. Dulbers is the mid fight (mashing wins ~95%).
 - **Choices change fights:** tripping on midtocy (25% misfire / 20% crit), goblin backup (6 dmg every round), giant
-  enraged after a failed sneak (+25% HP, x1.35 dmg), giant tripping after the midtocy throw (30% he hurts himself or forgets).
+  enraged after a failed sneak (+15% HP, x1.2 dmg), giant tripping after the midtocy throw (30% he hurts himself or forgets).
 - **Leveling:** XP 30/60/100 per fight; levels at 50/120/220/350. Each level = +10% HP and damage.
 - **Lose:** "YOU GOT COOKED" → Space to retry the fight. **Win:** "VICTORY (on some winning shi)" + XP.
 
@@ -225,6 +227,19 @@ Everyone talks in casual slang, with profanity. Signature phrases so far:
 - **Lykor:** "on the absolute", "say you swear to the absolute", "aight bet", "good shit"
 - **Xylo:** "On my Dragon Mama"
 - **Skorn:** calls people "mud" and "jit", has a lot of inner-monologue rage, and his logic is unhinged but delivered with total confidence
+
+## Systems
+
+- **Autosave** (`src/systems/save.js`): a checkpoint is saved whenever a story scene ends (flags, items, XP, level).
+  Title menu: **Continue (scene name)** · **New Game** (asks to confirm if a save exists) · **Chapters** (jump to any scene
+  with default progress) · **Outcomes x/22** · **Settings** · **Replay Intro**.
+- **Outcome tracker** (`src/systems/outcomes.js`): 22 outcomes (every choice, minigame win/loss, and combat moments like
+  the 6-7 and getting cooked). Found ones persist across playthroughs; unfound ones show a hint. A "📜 Outcome found" popup
+  appears when you unlock one.
+- **Settings** (⚙ button or **O**, works anywhere): text speed (Slow/Normal/Fast/Instant), music, sound effects and voice
+  volume, voice speed, voice test.
+- **Combat tutorial:** a "How To Fight" card before your first fight ever.
+- **Credits:** after "End of Chapter 1", a credit roll with joke roles and your outcome count, then back to the title.
 
 ## Character voices (text-to-speech)
 

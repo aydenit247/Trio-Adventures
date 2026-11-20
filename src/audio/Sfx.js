@@ -23,6 +23,8 @@ const VOICES = {
   narrator: { type: 'sine',     freq: 640, vol: 0.05 },
 };
 
+import Settings from '../systems/settings.js';
+
 class SfxEngine {
   constructor() {
     this.ctx = null;
@@ -37,6 +39,10 @@ class SfxEngine {
     };
     ['keydown', 'pointerdown', 'touchstart', 'touchend', 'click'].forEach((e) => window.addEventListener(e, unlock, { capture: true }));
     window.addEventListener('keydown', (e) => { if (e.key === 'm' || e.key === 'M') this.toggleMute(); });
+    document.addEventListener('trio-settings', (e) => {
+      if (e.detail.k === 'sfx' && this.master && !this.muted) this.master.gain.setTargetAtTime(Settings.sfx, this.ctx.currentTime, 0.05);
+      if (e.detail.k === 'music' && this.music) { clearInterval(this.music.a._fade); this.music.a.volume = Math.min(1, this.music.vol * Settings.music); }
+    });
   }
 
   init() {
@@ -45,7 +51,7 @@ class SfxEngine {
     if (!AC) return;
     this.ctx = new AC();
     this.master = this.ctx.createGain();
-    this.master.gain.value = this.muted ? 0 : 0.8;
+    this.master.gain.value = this.muted ? 0 : Settings.sfx;
     this.master.connect(this.ctx.destination);
 
     // 2 seconds of white noise, reused by every noisy sound
@@ -65,7 +71,7 @@ class SfxEngine {
   toggleMute() {
     this.muted = !this.muted;
     try { localStorage.setItem('trio_muted', this.muted ? '1' : '0'); } catch (e) { /* storage blocked */ }
-    if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : 0.8, this.ctx.currentTime, 0.05);
+    if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : Settings.sfx, this.ctx.currentTime, 0.05);
     Object.values(this.tracks || {}).forEach((a) => { a.muted = this.muted; });
     document.dispatchEvent(new CustomEvent('trio-mute', { detail: this.muted }));
   }
@@ -318,7 +324,7 @@ class SfxEngine {
     };
     const tryPlay = () => a.play().then(() => {
       this.musicBlocked = false;
-      this.fadeAudio(a, vol, (opts.fadeIn ?? 2) * 1000);
+      this.fadeAudio(a, Math.min(1, vol * Settings.music), (opts.fadeIn ?? 2) * 1000);
     }).catch(() => {
       // Browser wants a click/keypress first — try again on the next one.
       this.musicBlocked = true;

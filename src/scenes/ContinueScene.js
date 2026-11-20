@@ -21,14 +21,14 @@ export default class ContinueScene extends Phaser.Scene {
     this.add.text(width / 2, height * 0.52, 'Chapter 2: coming soon (on some construction shi)', {
       fontFamily: 'Nunito', fontSize: '26px', color: '#e8b923',
     }).setOrigin(0.5).setDepth(10);
-    const hint = this.add.text(width / 2, height * 0.8, 'Press Space to return to the title', {
+    const hint = this.add.text(width / 2, height * 0.8, 'Press Space for the credits', {
       fontFamily: 'Nunito', fontSize: '20px', color: '#a49cc4',
     }).setOrigin(0.5).setDepth(10);
     this.tweens.add({ targets: hint, alpha: 0.3, yoyo: true, repeat: -1, duration: 900 });
     const go = () => {
       Sfx.play('confirm');
       this.cameras.main.fade(600, 0, 0, 0, true);
-      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Title'));
+      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Credits'));
     };
     this.time.delayedCall(800, () => {
       this.input.keyboard.once('keydown-SPACE', go);

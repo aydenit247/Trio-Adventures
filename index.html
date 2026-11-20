@@ -11,33 +11,41 @@
     html, body { margin: 0; height: 100%; background: #07060c; overflow: hidden; }
     #game { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
     #game canvas { display: block; }
-    #mute { position: fixed; top: 10px; left: 10px; z-index: 10; background: rgba(20,16,30,.75); color: #e8b923;
-      border: 1px solid #e8b923; border-radius: 8px; font: 700 14px Nunito, sans-serif; padding: 6px 10px; cursor: pointer; }
-    #voices { position: fixed; top: 10px; left: 160px; z-index: 10; background: rgba(20,16,30,.75); color: #e8b923;
-      border: 1px solid #e8b923; border-radius: 8px; font: 700 14px Nunito, sans-serif; padding: 6px 10px; cursor: pointer; }
-    #mute:hover, #voices:hover { background: rgba(40,32,60,.9); }
+    #mute, #voices, #settings { position: fixed; top: 10px; z-index: 10; width: 36px; height: 32px; background: rgba(20,16,30,.75); color: #e8b923;
+      border: 1px solid #e8b923; border-radius: 8px; font: 700 16px Nunito, sans-serif; padding: 0; cursor: pointer; }
+    #mute { left: 10px; } #voices { left: 52px; } #settings { left: 94px; }
+    #mute:hover, #voices:hover, #settings:hover { background: rgba(40,32,60,.9); }
   </style>
 </head>
 <body>
   <div id="game"></div>
-  <button id="mute" title="Toggle sound (M)">🔊 Sound on (M)</button>
-  <button id="voices" title="Toggle character voices (V)">🗣 Voices on (V)</button>
+  <button id="mute" title="Toggle sound (M)">🔊</button>
+  <button id="settings" title="Settings (O)">⚙</button>
+  <button id="voices" title="Toggle character voices (V)">🗣</button>
   <script src="lib/phaser.min.js"></script>
   <script type="module" src="src/main.js"></script>
   <script type="module">
     import Sfx from './src/audio/Sfx.js';
     import Voice from './src/audio/Voice.js';
     const b = document.getElementById('mute');
-    const show = (m) => { b.textContent = m ? '🔇 Sound off (M)' : '🔊 Sound on (M)'; };
+    const show = (m) => { b.textContent = m ? '🔇' : '🔊'; b.title = m ? 'Sound off (M)' : 'Sound on (M)'; };
     show(Sfx.muted);
     b.addEventListener('click', (e) => { e.stopPropagation(); Sfx.init(); Sfx.ctx && Sfx.ctx.resume(); Sfx.toggleMute(); b.blur(); });
     document.addEventListener('trio-mute', (e) => { show(e.detail); if (e.detail) Voice.stop(); });
     const v = document.getElementById('voices');
-    const showV = (on) => { v.textContent = Voice.unsupported ? '🗣 No voices in this browser' : on ? '🗣 Voices on (V)' : '🤐 Voices off (V)'; };
+    const showV = (on) => { v.textContent = on && !Voice.unsupported ? '🗣' : '🤐'; v.title = Voice.unsupported ? 'No voices in this browser' : on ? 'Voices on (V)' : 'Voices off (V)'; };
     showV(Voice.on);
     v.addEventListener('click', (e) => { e.stopPropagation(); Voice.toggle(); v.blur(); });
     document.addEventListener('keydown', (e) => { if (e.code === 'KeyV' && !e.repeat) Voice.toggle(); });
     document.addEventListener('trio-voices', (e) => showV(e.detail));
+    const openSettings = () => {
+      const g = window.game; if (!g) return;
+      const sm = g.scene;
+      if (sm.isActive('Settings') || sm.isActive('Outcomes') || sm.isActive('Boot')) return;
+      sm.start('Settings');
+    };
+    document.getElementById('settings').addEventListener('click', (e) => { e.stopPropagation(); openSettings(); e.currentTarget.blur(); });
+    document.addEventListener('keydown', (e) => { if (e.code === 'KeyO' && !e.repeat) openSettings(); });
   </script>
 </body>
 </html>

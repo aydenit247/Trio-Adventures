@@ -1,6 +1,7 @@
 import { PARTY, ITEMS, THROWABLES, TRIP_MISFIRES, FIGHTS, LEVELS } from '../data/combat.js';
 import { vignette } from '../fx.js';
 import Sfx from '../audio/Sfx.js';
+import Outcomes from '../systems/outcomes.js';
 
 // Turn-based combat, launched on top of a story scene (which pauses until the fight ends).
 //
@@ -52,7 +53,7 @@ export default class CombatScene extends Phaser.Scene {
     // ---------- Enemies ----------
     const exs = { 1: [960], 2: [870, 1080], 3: [800, 985, 1165] }[this.def.enemies.length];
     this.enemies = this.def.enemies.map((E, i) => {
-      const hpMul = mods.enraged ? 1.25 : 1;
+      const hpMul = (mods.enraged ? 1.15 : 1) * (partyIds.length < this.def.party.length ? 0.75 : 1);
       const e = { ...E, maxHp: Math.round(E.hp * hpMul), hp: Math.round(E.hp * hpMul), turn: 0,
         status: { charm: 0, blind: 0, stun: 0 } };
       if (mods.enraged) e.tag = '(ENRAGED)';
@@ -304,6 +305,8 @@ export default class CombatScene extends Phaser.Scene {
     if (this.mods.tripping === 'skorn') await this.say('Skorn is still tweaking. He might misfire… or CRIT.', 1500);
     if (this.mods.allies) await this.say('Goblin backup is here! (They attack every round.)', 1400);
 
+    await this.tutorial();
+
     for (;;) {
       for (const m of this.party) {
         if (m.hp <= 0 || !this.alive(this.enemies).length) continue;
@@ -327,6 +330,45 @@ export default class CombatScene extends Phaser.Scene {
       if (this.buff > 0) this.buff -= 1;
       this.refresh();
     }
+  }
+
+  // How-to-fight card, shown before the first fight ever
+  tutorial() {
+    let seen = false;
+    try { seen = localStorage.getItem('trio_tut_combat') === '1'; } catch (e) { /* blocked */ }
+    if (seen) return Promise.resolve();
+    return new Promise((resolve) => {
+      const ui = [];
+      const add = (o) => { ui.push(o.setDepth(97)); return o; };
+      add(this.add.rectangle(0, 0, W, H, 0x000000, 0.7).setOrigin(0));
+      add(this.add.rectangle(W / 2, 300, 860, 440, 0x120e1e, 0.97).setStrokeStyle(3, 0xe8b923));
+      add(this.add.text(W / 2, 112, 'How To Fight (on some combat shi)', { fontFamily: 'Cinzel', fontSize: '32px', fontStyle: '900', color: '#e8b923' }).setOrigin(0.5));
+      const lines = [
+        ['Main', 'Your basic attack. Always available.'],
+        ['Special', 'Big move. Has a cooldown, so it greys out for a few turns after you use it.'],
+        ['Bonus', 'A side move: buffs, throws, sitting on people. Also has a cooldown.'],
+        ['Items', 'Beezy heals 30. Chipotle Bowl heals 60.'],
+        ['Defend', 'Take half damage until your next turn. Use it when a big attack is coming.'],
+        ['Dice', "Skorn's Crash Out rolls a d6. Roll a 6 and something special might happen…"],
+      ];
+      lines.forEach(([k, v], i) => {
+        add(this.add.text(W / 2 - 390, 168 + i * 50, k, { fontFamily: 'Cinzel', fontSize: '22px', fontStyle: '900', color: '#f3e3b0' }));
+        add(this.add.text(W / 2 - 250, 170 + i * 50, v, { fontFamily: 'Nunito', fontSize: '19px', color: '#f4efff', wordWrap: { width: 630 } }));
+      });
+      const go = add(this.add.text(W / 2, 486, '↑/↓ pick · ENTER confirm · ←/→ pick a target  —  press ENTER to fight', { fontFamily: 'Nunito', fontSize: '18px', fontStyle: '900', color: '#a49cc4' }).setOrigin(0.5));
+      this.tweens.add({ targets: go, alpha: 0.4, yoyo: true, repeat: -1, duration: 700 });
+      const done = () => {
+        this.handler = null;
+        try { localStorage.setItem('trio_tut_combat', '1'); } catch (e) { /* blocked */ }
+        Sfx.play('confirm');
+        ui.forEach((o) => o.destroy());
+        resolve();
+      };
+      this.time.delayedCall(600, () => {
+        this.handler = (ev) => { if (ev.key === 'ok') done(); };
+        this.input.once('pointerdown', () => { if (this.handler) done(); });
+      });
+    });
   }
 
   async chooseAction(m) {
@@ -612,8 +654,8 @@ export default class CombatScene extends Phaser.Scene {
           const choice = await this.menu('+1?', opts, false);
           [this.menuTitle, ...this.menuTexts].forEach((t) => t.setDepth(82));
           this.clearMenu();
-          if (choice === 0) { result = 7; num.setText('7'); Sfx.play('choir'); this.registry.set('used67', true); await this.wait(500); }
-          else this.registry.set('declined67', true);
+          if (choice === 0) { result = 7; num.setText('7'); Sfx.play('choir'); this.registry.set('used67', true); Outcomes.unlock('c_67'); await this.wait(500); }
+          else { this.registry.set('declined67', true); Outcomes.unlock('c_no67'); }
         }
         ui.forEach((o) => o.destroy());
         resolve(result);
@@ -656,7 +698,7 @@ export default class CombatScene extends Phaser.Scene {
       else await this.say(`${e.name} yells "WHY IS THE SKY SO LOUD" and forgets to attack.`, 1500);
       return;
     }
-    const mult = this.mods.enraged ? 1.35 : 1;
+    const mult = this.mods.enraged ? 1.2 : 1;
     const targets = this.alive(this.party);
     const pick = () => Phaser.Utils.Array.GetRandom(targets);
 
@@ -672,7 +714,7 @@ export default class CombatScene extends Phaser.Scene {
       if (blindMiss()) { Sfx.play('miss'); await this.say(`${e.name} swings his spoon at nothing. Blinded.`, 1100); return; }
       const t = pick();
       Sfx.play('bonk');
-      await this.hurtParty(t, Math.round(5 * mult), `${e.name} bonks ${t.P.name} with a spoon!`);
+      await this.hurtParty(t, Math.round(6 * mult), `${e.name} bonks ${t.P.name} with a spoon!`);
       return;
     }
 
@@ -687,11 +729,11 @@ export default class CombatScene extends Phaser.Scene {
       if (blindMiss()) { Sfx.play('miss'); await this.say('Dulbers tries to price-gouge someone but can\'t see who. Blinded.', 1300); return; }
       if (r < 0.62) {
         const t = pick(); Sfx.play('slap');
-        await this.hurtParty(t, Math.round(14 * mult), `Dulbers price-gouges ${t.P.name}! "That'll be 14 HP, plus tax."`);
+        await this.hurtParty(t, Math.round(28 * mult), `Dulbers price-gouges ${t.P.name}! "That'll be 28 HP, plus tax."`);
       } else {
         Sfx.play('roar');
         await this.say('Dulbers screams "NO REFUNDS!" It hurts everyone\'s ears.', 900);
-        for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(8 * mult), null);
+        for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(18 * mult), null);
       }
       return;
     }
@@ -702,7 +744,7 @@ export default class CombatScene extends Phaser.Scene {
         e.sitPending = false;
         Sfx.play('sitImpact'); this.cameras.main.shake(1100, 0.03);
         await this.say('DIDDY CHUD SITS ON EVERYONE!', 900);
-        for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(34 * mult), null, true);
+        for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(40 * mult), null, true);
         this.setTex(e.sprite, e.tex);
         this.refresh();
         return;
@@ -719,11 +761,11 @@ export default class CombatScene extends Phaser.Scene {
       if (e.turn % 2) {
         const t = pick();
         Sfx.play('stomp'); this.cameras.main.shake(400, 0.014);
-        await this.hurtParty(t, Math.round(18 * mult), `Diddy Chud stomps on ${t.P.name}!`);
+        await this.hurtParty(t, Math.round(22 * mult), `Diddy Chud stomps on ${t.P.name}!`);
       } else {
         Sfx.play('stomp'); this.time.delayedCall(250, () => Sfx.play('stomp')); this.cameras.main.shake(700, 0.018);
         await this.say('Diddy Chud pounds the ground!', 800);
-        for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(12 * mult), null);
+        for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(15 * mult), null);
       }
     }
   }
@@ -774,6 +816,7 @@ export default class CombatScene extends Phaser.Scene {
   async defeat() {
     this.clearMenu();
     Sfx.play('defeat');
+    Outcomes.unlock('c_cooked');
     [
       this.add.rectangle(0, 0, W, H, 0x000000, 0.7).setOrigin(0),
       this.add.text(W / 2, 260, 'YOU GOT COOKED', { fontFamily: 'Cinzel', fontSize: '76px', fontStyle: '900', color: '#ff6a4a', stroke: '#000', strokeThickness: 10 }).setOrigin(0.5),

@@ -2,6 +2,8 @@ import DialogueBox from '../ui/DialogueBox.js';
 import { vignette } from '../fx.js';
 import Sfx from '../audio/Sfx.js';
 import Voice from '../audio/Voice.js';
+import Save from '../systems/save.js';
+import Outcomes from '../systems/outcomes.js';
 
 // Shared base for story scenes: painted backdrop, full-body characters,
 // speaker highlight, lighting moods, labels, walking, and cutscene videos.
@@ -27,6 +29,11 @@ export default class StageScene extends Phaser.Scene {
     this.speaker = null;
     this.light = light;
     this.finished = false;
+    this.picked = [];
+    // "New outcome" popup
+    const onOutcome = (e) => this.outcomeToast(e.detail);
+    document.addEventListener('trio-outcome', onOutcome);
+    this.events.once('shutdown', () => document.removeEventListener('trio-outcome', onOutcome));
     this.cameras.main.setBackgroundColor('#05040a').fadeIn(fadeMs, 0, 0, 0);
     this.events.once('shutdown', () => { Sfx.stopAll(); this.tripOff(true); });
   }
@@ -329,10 +336,22 @@ export default class StageScene extends Phaser.Scene {
     });
   }
 
+  outcomeToast(o) {
+    const { width } = this.scale;
+    const t = this.add.text(width - 20, 50, `📜 Outcome found: ${o.title}`, {
+      fontFamily: 'Nunito', fontSize: '18px', fontStyle: '900', color: '#1a1324', backgroundColor: '#f3e3b0', padding: { x: 12, y: 6 },
+    }).setOrigin(1, 0).setDepth(990).setAlpha(0).setScrollFactor(0);
+    Sfx.play('grab');
+    this.tweens.add({ targets: t, alpha: 1, x: width - 16, duration: 300 });
+    this.time.delayedCall(2600, () => this.tweens.add({ targets: t, alpha: 0, duration: 400, onComplete: () => t.destroy() }));
+  }
+
   finish(next = 'Title', data) {
     if (this.finished) return;
     Voice.stop();
     this.finished = true;
+    Outcomes.onSceneEnd(this.scene.key, this.registry, this.picked);
+    if (['Mart', 'Pass', 'Continue'].includes(next)) Save.write(this.registry, next);
     this.cameras.main.fade(900, 0, 0, 0, true);
     this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(next, data));
   }

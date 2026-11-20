@@ -5,6 +5,7 @@
 //
 //   Voice.say('skorn', 'Bet, my fault.')   Voice.stop()   Voice.toggle()   (V key / button)
 import Sfx from './Sfx.js';
+import Settings from '../systems/settings.js';
 
 // pitch 0–2, rate 0.1–10. `prefer` = voice-name fragments to look for, in order.
 const PROFILES = {
@@ -71,8 +72,9 @@ const Voice = {
     if (v) { u.voice = v; u.lang = v.lang; }
     u.pitch = prof.pitch;
     // Shouting (ALL CAPS) goes faster; thoughts are quieter
-    u.rate = prof.rate * (line === line.toUpperCase() && /[A-Z]{3}/.test(line) ? 1.15 : 1);
-    u.volume = thought ? 0.55 : 1;
+    u.rate = Settings.voiceRate * prof.rate * (line === line.toUpperCase() && /[A-Z]{3}/.test(line) ? 1.15 : 1);
+    u.volume = Settings.voice * (thought ? 0.55 : 1);
+    if (u.volume <= 0.01) return;
     // Chrome sometimes leaves the engine paused after a cancel
     if (speechSynthesis.paused) speechSynthesis.resume();
     speechSynthesis.speak(u);

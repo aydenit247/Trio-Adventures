@@ -51,23 +51,23 @@ export const FIGHTS = {
     party: ['skorn'],
     xp: 30,
     enemies: [
-      { name: 'Goblin', tag: '(Unemployed)', hp: 20, tex: 'char_goblin_fight', h: 205, ai: 'goblin' },
-      { name: 'Goblin', tag: '(Also Unemployed)', hp: 20, tex: 'char_goblin_fight', h: 190, ai: 'goblin' },
-      { name: 'Goblin', tag: '(Between Jobs)', hp: 20, tex: 'char_goblin_fight', h: 215, ai: 'goblin' },
+      { name: 'Goblin', tag: '(Unemployed)', hp: 24, tex: 'char_goblin_fight', h: 205, ai: 'goblin' },
+      { name: 'Goblin', tag: '(Also Unemployed)', hp: 24, tex: 'char_goblin_fight', h: 190, ai: 'goblin' },
+      { name: 'Goblin', tag: '(Between Jobs)', hp: 24, tex: 'char_goblin_fight', h: 215, ai: 'goblin' },
     ],
   },
   dulbers: {
     title: 'The Party vs. Dulbers Frint',
     party: ['skorn', 'lykor', 'xylo'],
     xp: 60,
-    enemies: [{ name: 'Dulbers Frint', tag: '(Not Trustworthy)', hp: 170, tex: 'char_dulbers_demon', h: 410, ai: 'dulbers' }],
+    enemies: [{ name: 'Dulbers Frint', tag: '(Not Trustworthy)', hp: 240, tex: 'char_dulbers_demon', h: 410, ai: 'dulbers' }],
   },
   giant: {
     title: 'BOSS: Diddy Chud Giant',
     party: ['skorn', 'lykor', 'xylo'],
     xp: 100,
     boss: true,
-    enemies: [{ name: 'Diddy Chud Giant', tag: '(Awake, Disturbed)', hp: 320, tex: 'char_giant_angry', sitTex: 'char_giant_sit', h: 520, ai: 'giant' }],
+    enemies: [{ name: 'Diddy Chud Giant', tag: '(Awake, Disturbed)', hp: 420, tex: 'char_giant_angry', sitTex: 'char_giant_sit', h: 520, ai: 'giant' }],
   },
 };
 

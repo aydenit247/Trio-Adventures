@@ -1,6 +1,8 @@
 import { CHARACTERS } from '../data/characters.js';
 import Sfx from '../audio/Sfx.js';
 import Voice from '../audio/Voice.js';
+import Settings from '../systems/settings.js';
+import Outcomes from '../systems/outcomes.js';
 
 // Reusable dialogue box: portrait, name tag, typewriter text, choices.
 //
@@ -145,8 +147,10 @@ export default class DialogueBox {
     this.body.setText('');
     this.arrow.setVisible(false);
     if (this.typer) this.typer.remove();
+    this.typer = null;
+    if (!Settings.textMs()) { this.shown = this.full.length; this.body.setText(this.full); this.arrow.setVisible(true); return; }
     const typer = this.scene.time.addEvent({
-      delay: 22, loop: true,
+      delay: Settings.textMs(), loop: true,
       callback: () => {
         if (this.typer !== typer) { typer.remove(); return; } // a newer line took over
         this.shown += 1;
@@ -208,6 +212,8 @@ export default class DialogueBox {
   pickChoice(i) {
     const opt = this.choosing.options[i];
     this.pickedAt = this.scene.time.now;
+    (this.scene.picked = this.scene.picked || []).push(opt.text);
+    Outcomes.onChoice(this.scene.scene.key, opt.text);
     Sfx.play('confirm');
     this.choiceTexts.forEach((t) => t.destroy());
     this.choiceTexts = [];
