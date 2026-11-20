@@ -9,8 +9,8 @@ export const SCENE3 = [
     steps: [
       { who: 'goblin', line: 'Ooooh. A STORE.' },
       { who: 'chief', line: 'Bogdrinker has heard of this place. Very legit.' },
-      { who: 'skorn', mood: 'angry', line: 'Why y\'all STILL following us?' },
-      { who: 'goblins', line: 'FIELD TRIP!' },
+      { who: 'skorn', mood: 'angry', line: "Y'all OD as hell for following us still." }, // Ebain
+      { who: 'goblins', line: 'On some field trip shiiiiii.' }, // Ebain
     ],
   },
   { do: 'showSign' },
@@ -21,7 +21,7 @@ export const SCENE3 = [
 
   { do: 'dulbersAppears' },
   { who: 'dulbers', mood: 'grin', line: "Hey guys, it's your boy Dulbers Frint!" },
-  { who: 'dulbers', mood: 'grin', line: "Welcome to Metocy Mart! Y'all looking for that good-good? Step inside, step inside!" },
+  { who: 'dulbers', mood: 'grin', line: "Y'all could pull up before the Diddy Chud Giant smells you?" }, // Ebain
   {
     if: 'foreheadLoser', // lost the chugging contest in Scene 2
     steps: [
@@ -32,28 +32,28 @@ export const SCENE3 = [
   {
     if: 'lykorDethroned', // Skorn took the goblins' worship in Scene 2
     steps: [
-      { who: 'skorn', mood: 'smug', line: 'Make way. Purple god of the goblins, coming through.' },
-      { who: 'lykor', mood: 'angry', line: 'You was a god for five minutes, bro.' },
+      { who: 'skorn', mood: 'smug', line: 'Make way. Purple god of the goblins, coming through. No big deal.' }, // Ebain
+      { who: 'lykor', mood: 'angry', line: 'You was a god for five minutes, bro. Pipe down.' }, // Ebain
     ],
   },
 
   { do: 'enterShop' },
   { do: 'showPill' },
-  { who: 'dulbers', line: 'Freshest metocy in Caelid. Little blue ovals. Hand-picked. By hand. My hand.' },
+  { who: 'dulbers', line: "Finest metocy in Caelid. This shit'll have u geekin, folk. Hand-made." }, // Ebain
   {
     if: 'skornKing', // Skorn was left behind as the goblins' Purple King
     steps: [
       { do: 'skornBurstsIn' },
-      { who: 'skorn', mood: 'angry', line: 'THEY KICKED ME OUT.' },
+      { who: 'skorn', mood: 'angry', line: 'THEY HAD KICKED ME OUT.' }, // Ebain
       { who: 'lykor', mood: 'shocked', line: 'Already??' },
-      { who: 'skorn', mood: 'angry', line: 'Apparently a king ain\'t supposed to eat the throne.' },
-      { who: 'xylo', mood: 'unimpressed', line: 'You ate the throne.' },
-      { who: 'skorn', mood: 'smug', line: 'Some of it.' },
+      { who: 'skorn', mood: 'angry', line: 'I drank too much beezy and cracked on too many goblin biddies. They got pissed.' }, // Ebain
+      { who: 'xylo', mood: 'unimpressed', line: '…Goblin biddies.' },
+      { who: 'skorn', mood: 'smug', line: "Don't judge me." },
     ],
   },
-  { who: 'lykor', line: 'How much?' },
+  { who: 'lykor', line: 'Aight, so what the word? What we owe ya for some metocy, mud?' }, // Ebain
   { who: 'dulbers', mood: 'grin', line: "For y'all? First one's free." },
-  { who: 'xylo', mood: 'unimpressed', line: 'Nothing is free. Except prophecy. And even that got a subscription now.' },
+  { who: 'lykor', mood: 'smug', line: 'On some type shit.' }, // Ebain
   { who: 'skorn', mood: 'smug', line: 'Free?? Say less.' },
   { do: 'takeIt' },
   { who: 'narrator', line: 'The trio takes the metocy.' },
