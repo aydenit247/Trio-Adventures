@@ -96,7 +96,11 @@ export default class DialogueBox {
         if (s.if ? on : !on) this.queue = (s.steps || []).concat(this.queue);
         continue;
       }
-      if (s.choice) { this.root.setVisible(true); this.showChoice(s.choice); return; }
+      if (s.choice) {
+        // Options can be hidden behind a story flag: { text, if: 'goblinAllies', steps }
+        const opts = s.choice.filter((o) => !o.if || (this.hooks.check && this.hooks.check(o.if)));
+        this.root.setVisible(true); this.showChoice(opts); return;
+      }
       this.root.setVisible(true);
       this.showLine(s);
       return;

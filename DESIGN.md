@@ -88,7 +88,17 @@ encounter keeps at least one option that leads to a fight.
 - **Scene 1:** a choice of what Skorn burns (the map / Xylo's lore book / Lykor's conditioner) — every option
   still ends with the map in the fire (that's the joke). Lines TBD.
 - **Scene 2:** see the scene list (being reworked).
-- **Scene 3:** TBD (ideas: everyone takes the midtocy / only Skorn / refuse it / goblins taste-test it).
+- **Scene 3 — the metocy (built):**
+  - **A. Everyone takes it** → the whole party trips → demon fight (party tripping).
+  - **B. Skorn tries it first** → only Skorn trips → demon fight (Skorn as a chaotic wildcard).
+  - **C. Refuse it** → "Y'all could get the fuck out my store doe? Fo' I call up Dulbmeethus." → kicked out, the
+    "GIANT'S PASS →" sign was there the whole time → Dulbers escapes (villain later). Skorn gets no midtocy.
+  - **D. Xylo inspects it** (Deloye Lore, chapter 8,784, section B12: true metocy is NEVER moist) → Dulbers cuts a
+    deal, hands over midtocy, flashes demon-red and escapes (villain later).
+  - **E. Secret (goblins came along): the goblins taste-test it** → "BOGDRINKER KNOWS HIS DRUGS" → cartoon chase and
+    dust-cloud brawl → Dulbers is never seen again (dead, off-screen) → the goblins go home.
+  - Skorn pockets midtocy in every path except C (flag `hasMidtocy`, used for the Scene 4 throw option).
+  - Flags: `hasMidtocy`, `dulbersEscaped`, `dulbersDead`.
 - **Scene 4 — getting past Diddy Chud Giant:**
   - **A. Skorn throws something** (leftover midtocy) → wake-up cutscene → fight, but the giant is tripping (chaotic, a bit easier).
   - **B. Sneak across him** → interactive sneaking with a **snore meter** (don't wake him). Success: skip the fight and

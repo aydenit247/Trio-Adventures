@@ -1,5 +1,30 @@
 // Scene 3 — Metocy Mart. Play as Xylo.
-// "Hey guys, it's your boy Dulbers Frint!" is Ebain's line; everything else is a Claude DRAFT.
+// Lines marked // Ebain are Ebain's; the rest are Claude DRAFTS.
+// Choice outcomes: A/B = demon fight · C/D = Dulbers escapes (villain later) · E (secret) = goblins take him out.
+// Skorn pockets midtocy (for the giant in Scene 4) in every path except C.
+
+// Reveal + demon fight (choices A and B)
+const REVEAL_AND_FIGHT = [
+  { do: 'revealMidtocy' },
+  { who: 'dulbers', mood: 'grin', line: "Heh… yeah, so that's actually midtocy. Off-brand. Similar vibes." },
+  { who: 'skorn', mood: 'angry', line: 'YOU LACED US WITH MIDTOCY?!' },
+  { who: 'dulbers', mood: 'grin', line: '…And now that you know…' },
+  { do: 'transform' },
+  { who: 'dulbers_demon', line: 'NOBODY LEAVES METOCY MART. NO REFUNDS. NO EXCHANGES.' },
+  { who: 'skorn', mood: 'tweaking', line: "Balright. I ain't ever pop metocy and have a jit turn into a got damn demon. This some white people shit." }, // Ebain
+  { who: 'xylo', line: 'Real enough to fight.' },
+  { do: 'fightDulbers' },
+  { if: 'goblinAllies', steps: [{ who: 'chief', line: 'Goblins: one. Demon: zero.' }] },
+  { do: 'tripEnd' },
+  { who: 'dulbers_demon', line: 'Ugh… fine… the REAL metocy… is past the mountain pass…' },
+  { who: 'dulbers_demon', line: '…but nobody gets past the giant.' },
+  { do: 'dulbersVanish' },
+  { do: 'skornPockets' },
+  { who: 'skorn', mood: 'smug', line: "I'm keeping one of these." },
+  { who: 'skorn', mood: 'confused', line: '…I still kinda see colors.' },
+  { who: 'lykor', line: 'Mountain pass it is.' },
+  { do: 'leaveRight' },
+];
 
 export const SCENE3 = [
   { who: 'narrator', line: 'East of the goblin village…' },
@@ -54,35 +79,108 @@ export const SCENE3 = [
   { who: 'lykor', line: 'Aight, so what the word? What we owe ya for some metocy, mud?' }, // Ebain
   { who: 'dulbers', mood: 'grin', line: "For y'all? First one's free." },
   { who: 'lykor', mood: 'smug', line: 'On some type shit.' }, // Ebain
-  { who: 'skorn', mood: 'smug', line: 'Free?? Say less.' },
-  { do: 'takeIt' },
-  { who: 'narrator', line: 'The trio takes the metocy.' },
-  { who: 'lykor', line: "…I don't feel nothing." },
-  { who: 'skorn', line: 'Me neith—' },
-
-  { do: 'tripStart' },
-  { who: 'skorn', mood: 'tweaking', line: 'Yo. YO. Why the floor breathing?' },
-  { who: 'lykor', mood: 'tweaking', line: "My hair is talking to me. It says I'm doing great. I KNEW it." },
-  { who: 'xylo', mood: 'tweaking', line: 'On my Dragon Mama… I can see sounds. The sounds are purple.' },
-  { who: 'skorn', mood: 'tweaking', line: "This ain't godlike. I don't feel insight. I feel like a dumbass. More than usual." },
-  { who: 'xylo', mood: 'tweaking', line: 'The metocy gives profound insight. This gives… profound disarray.' },
-  { who: 'lykor', mood: 'angry', line: 'Dulbers. What did you give us.' },
-  { do: 'revealMidtocy' },
-  { who: 'dulbers', mood: 'grin', line: "Heh… yeah so that's actually midtocy. Off-brand. Similar vibes." },
-  { who: 'skorn', mood: 'angry', line: 'YOU LACED US WITH MIDTOCY?!' },
-  { who: 'dulbers', mood: 'grin', line: '…And now that you know…' },
-
-  { do: 'transform' },
-  { who: 'dulbers_demon', line: "NOBODY LEAVES METOCY MART. NO REFUNDS. NO EXCHANGES." },
-  { who: 'skorn', mood: 'tweaking', line: "Bro turned into a demon and I'm still tripping. Is this real??" },
-  { who: 'xylo', mood: 'tweaking', line: 'Real enough to fight.' },
-  { do: 'fightDulbers' },
-  { if: 'goblinAllies', steps: [{ who: 'chief', line: 'Goblins: one. Demon: zero.' }] },
-
-  { do: 'tripEnd' },
-  { who: 'dulbers_demon', line: 'Ugh… fine… the REAL metocy… is past the mountain pass…' },
-  { who: 'dulbers_demon', line: '…but nobody gets past the giant.' },
-  { do: 'dulbersVanish' },
-  { who: 'skorn', mood: 'confused', line: '…I still kinda see colors.' },
-  { who: 'lykor', line: 'Mountain pass it is.' },
+  { who: 'narrator', line: 'Do you take the metocy?' },
+  {
+    choice: [
+      // A — everyone takes it → the whole party trips → demon fight
+      {
+        text: 'Everyone takes it',
+        steps: [
+          { who: 'skorn', mood: 'smug', line: 'Free?? Say less.' },
+          { do: 'takeIt' },
+          { who: 'narrator', line: 'The trio takes the metocy.' },
+          { who: 'lykor', line: "…I don't feel nothing." },
+          { who: 'skorn', line: 'Me neith—' },
+          { do: 'tripStart' },
+          { who: 'skorn', mood: 'tweaking', line: 'Yo. YO. Why the floor breathing?' },
+          { who: 'lykor', mood: 'tweaking', line: "Nah, I'm real life tweaking." }, // Ebain
+          { who: 'xylo', mood: 'tweaking', line: 'On my Dragon Mama… I can see sounds. The sounds are purple.' },
+          { who: 'skorn', mood: 'tweaking', line: "Nah, this don't feel like metocy. This feel like some bullshit, on my dead orcs." }, // Ebain
+          { who: 'lykor', mood: 'angry', line: 'Dulbers. What did you give us?' },
+          ...REVEAL_AND_FIGHT,
+        ],
+      },
+      // B — Skorn tries it first → only Skorn trips → demon fight
+      {
+        text: 'Let Skorn try it first',
+        steps: [
+          { who: 'lykor', line: 'Skorn. You first.' },
+          { who: 'skorn', mood: 'smug', line: 'Bet, let me peep ts.' }, // Ebain
+          { do: 'skornTakes' },
+          { do: 'skornTrip' },
+          { who: 'skorn', mood: 'tweaking', line: '…Yo, why Lykor got three heads? Which one I talk to?' },
+          { who: 'xylo', mood: 'unimpressed', line: 'That is not profound insight. That is a man malfunctioning.' },
+          { who: 'lykor', mood: 'angry', line: 'Dulbers. What did you just give my guy?' },
+          ...REVEAL_AND_FIGHT,
+        ],
+      },
+      // C — refuse it → kicked out, Dulbers escapes (villain later). Skorn gets no midtocy.
+      {
+        text: 'Refuse it',
+        steps: [
+          { who: 'lykor', line: 'Nah, we good. Sum off about you, folk.' },
+          { who: 'dulbers', line: '…Sum OFF? About ME? Your boy Dulbers?' },
+          { who: 'dulbers', mood: 'demon', line: "Aight, y'all could get the fuck out my store doe? Fo' I call up Dulbmeethus." }, // Ebain
+          { who: 'lykor', mood: 'smug', line: "Dulbmeethus fw my ahh, I ain't trippin' bout him." }, // Ebain
+          { do: 'kickedOut' },
+          { who: 'skorn', mood: 'angry', line: 'Bro really just kicked us out of a store.' },
+          { who: 'xylo', mood: 'unimpressed', line: 'And we still do not know where the metocy is.' },
+          { do: 'showPassSign' },
+          { who: 'narrator', line: 'There is a sign. It was there the whole time.' },
+          { who: 'skorn', mood: 'confused', line: "…Aight, that's lowkey convenient." },
+          { who: 'dulbers', line: '*muffled, from inside* You\'ll regret this, trio…' },
+          { do: 'leaveRight' },
+        ],
+      },
+      // D — Xylo reads Deloye Lore about it → Dulbers cuts a deal, gives them midtocy, escapes (villain later)
+      {
+        text: 'Have Xylo inspect it',
+        steps: [
+          { who: 'xylo', mood: 'vision', line: 'Allow me.' },
+          { do: 'xyloLore' },
+          { who: 'xylo', mood: 'vision', line: 'It is written, in chapter 8,784, section B12, that true metocy glows from within — its shell dry as desert bone, smooth as a sage\'s forehead. True metocy is NEVER moist.' }, // Ebain's idea
+          { who: 'xylo', mood: 'unimpressed', line: 'This one is… moist.' },
+          { who: 'dulbers', mood: 'grin', line: "It's NOT moist—" },
+          { who: 'xylo', mood: 'unimpressed', line: 'It is cracked, purple, and growing a small civilization.' },
+          { do: 'xyloLoreEnd' },
+          { do: 'revealMidtocy' },
+          { who: 'lykor', mood: 'angry', line: 'You was finna lace us with MIDTOCY?' },
+          { who: 'dulbers', line: "Aight aight aight, keep your voice down! Let's make a deal." },
+          { who: 'dulbers', line: "The real metocy is past the mountain pass. Past the giant. Here — take some midtocy on the house. Don't tell nobody." }, // Ebain
+          { do: 'giveMidtocy' },
+          { who: 'narrator', line: 'Got: Midtocy (throwable)' },
+          { who: 'skorn', mood: 'smug', line: "Bet. I'm keeping this." },
+          { who: 'dulbers', mood: 'grin', line: 'Pleasure doing business!' },
+          { do: 'dulbersEscape' },
+          { who: 'lykor', line: 'Mountain pass it is.' },
+          { do: 'leaveRight' },
+        ],
+      },
+      // E — secret (only if the goblins came along): the goblins taste-test it, then chase Dulbers down
+      {
+        text: 'Let the goblins taste-test it',
+        if: 'goblinAllies',
+        steps: [
+          { who: 'lykor', line: 'Bogdrinker. Y\'all try it first.' },
+          { who: 'skorn', mood: 'smug', line: "Hold up. I'm keeping one before y'all eat 'em all." },
+          { do: 'skornPockets' },
+          { who: 'chief', line: 'An honor.' },
+          { do: 'goblinsTaste' },
+          { who: 'goblins', line: '…' },
+          { who: 'chief', line: 'THIS AIN\'T METOCY. THIS MIDTOCY. BOGDRINKER KNOWS HIS DRUGS.' },
+          { who: 'dulbers', mood: 'grin', line: '…Uh oh.' },
+          { who: 'goblins', line: 'GET HIMMMM!' },
+          { do: 'goblinChase' },
+          { who: 'narrator', line: 'When the dust clears, only goblins remain.' },
+          { who: 'chief', line: 'Bogdrinker handled it. Do not ask questions.' },
+          { who: 'narrator', line: 'Dulbers Frint was never seen again.' },
+          { who: 'chief', line: 'The real metocy is past the giant. Field trip is over. Goblins — HOME.' },
+          { do: 'goblinsGoHome' },
+          { who: 'xylo', mood: 'unimpressed', line: 'On my Dragon Mama… our entourage has left us.' },
+          { who: 'skorn', line: 'Good riddance. …I kinda miss \'em.' },
+          { do: 'leaveRight' },
+        ],
+      },
+    ],
+  },
 ];
