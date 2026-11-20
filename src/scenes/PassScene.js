@@ -1,6 +1,6 @@
 import StageScene, { at } from './StageScene.js';
 import { SCENE4 } from '../data/scenes/scene4_the_pass.js';
-import { LORE_PAGE, LORE_LINES } from '../data/deloyeLore.js';
+import { LORE_PASSAGES } from '../data/deloyeLore.js';
 import Sfx from '../audio/Sfx.js';
 
 // Scene 4 — The Mountain Pass. Mattias appears, then the party has to get past Diddy Chud Giant.
@@ -301,8 +301,9 @@ export default class PassScene extends StageScene {
   }
 
   // ---------------- Minigame: Lore Session ----------------
-  // Read the lore page, then pick the ACCURATE continuation of each line.
-  // Diddy Chud is a lore nerd: accurate lore soothes him, wrong lore wakes him up.
+  // Xylo reads pages from different chapters of Deloye Lore. Each page tells a short epic story and stops
+  // mid-sentence; pick the continuation that stays true to the lore. Diddy Chud is a lore nerd:
+  // true lore soothes him, wrong lore wakes him up.
   loreGame() {
     return new Promise((resolve) => {
       const { width } = this.scale;
@@ -315,72 +316,83 @@ export default class PassScene extends StageScene {
 
       add(this.add.rectangle(0, 0, width, 720, 0x000000, 0.8).setOrigin(0));
       // Sleep meter
-      add(this.add.text(width / 2, 26, "Diddy Chud's Sleep", { fontFamily: 'Nunito', fontSize: '18px', fontStyle: '900', color: '#ffffff', stroke: '#000', strokeThickness: 4 }).setOrigin(0.5));
-      add(this.add.rectangle(width / 2 - 200, 56, 400, 22, 0x1a1324).setOrigin(0, 0.5).setStrokeStyle(2, 0xe8b923));
-      const sleepBar = add(this.add.rectangle(width / 2 - 198, 56, 0, 18, 0x7fb2ff).setOrigin(0, 0.5));
+      add(this.add.text(width / 2, 18, "Diddy Chud's Sleep", { fontFamily: 'Nunito', fontSize: '16px', fontStyle: '900', color: '#ffffff', stroke: '#000', strokeThickness: 4 }).setOrigin(0.5));
+      add(this.add.rectangle(width / 2 - 200, 42, 400, 18, 0x1a1324).setOrigin(0, 0.5).setStrokeStyle(2, 0xe8b923));
+      const sleepBar = add(this.add.rectangle(width / 2 - 198, 42, 0, 14, 0x7fb2ff).setOrigin(0, 0.5));
       // The book page
-      add(this.add.rectangle(width / 2, 380, 900, 520, 0xe9d8a6).setStrokeStyle(6, 0x6b4423));
-      const title = add(this.add.text(width / 2, 150, LORE_PAGE.title, { fontFamily: 'Cinzel', fontSize: '24px', fontStyle: '900', color: '#3a2412' }).setOrigin(0.5));
-      const body = add(this.add.text(width / 2, 380, '', {
-        fontFamily: 'Cinzel', fontSize: '24px', color: '#2a1a0a', align: 'center', lineSpacing: 12, wordWrap: { width: 780 },
-      }).setOrigin(0.5));
-      const foot = add(this.add.text(width / 2, 610, '', { fontFamily: 'Nunito', fontSize: '18px', fontStyle: '900', color: '#6b4423' }).setOrigin(0.5));
-      const flash = add(this.add.text(width / 2, 120, '', { fontFamily: 'Cinzel', fontSize: '30px', fontStyle: '900', color: '#7dff8a', stroke: '#000', strokeThickness: 6 }).setOrigin(0.5));
+      add(this.add.rectangle(width / 2, 385, 1000, 640, 0xe9d8a6).setStrokeStyle(6, 0x6b4423));
+      const where = add(this.add.text(width / 2, 88, '', { fontFamily: 'Nunito', fontSize: '15px', fontStyle: '900', color: '#8a6a3a' }).setOrigin(0.5));
+      const title = add(this.add.text(width / 2, 116, '', { fontFamily: 'Cinzel', fontSize: '28px', fontStyle: '900', color: '#3a2412' }).setOrigin(0.5));
+      const body = add(this.add.text(width / 2, 148, '', {
+        fontFamily: 'Cinzel', fontSize: '19px', color: '#2a1a0a', align: 'left', lineSpacing: 7, wordWrap: { width: 900 },
+      }).setOrigin(0.5, 0));
+      const foot = add(this.add.text(width / 2, 690, '', { fontFamily: 'Nunito', fontSize: '15px', fontStyle: '900', color: '#6b4423' }).setOrigin(0.5));
+      const flash = add(this.add.text(width / 2, 72, '', { fontFamily: 'Cinzel', fontSize: '24px', fontStyle: '900', color: '#7dff8a', stroke: '#000', strokeThickness: 6 }).setOrigin(0.5).setAlpha(0));
 
-      let sleep = 40, round = -1, opts = [], sel = 0, optTexts = [], state = 'page';
+      let sleep = 40, round = -1, opts = [], sel = 0, optTexts = [], state = 'intro';
       const setSleep = () => { sleepBar.width = 3.96 * Math.max(0, Math.min(100, sleep)); };
       setSleep();
 
-      body.setText(LORE_PAGE.facts.map((f) => `• ${f}`).join('\n'));
-      foot.setText('Study the sacred lore. Press SPACE (or click) when ready.');
+      // Intro page
+      where.setText('DELOYE LORE · Vol. 1 of ∞');
+      title.setText('Xylo opens the sacred book…');
+      body.setText('Read each page aloud to Diddy Chud Giant. Every page stops mid-sentence — choose how the story '
+        + 'truly continues. Stay true to the lore and he sinks deeper into sleep. Get it wrong, and he will know.');
+      foot.setText('Press SPACE (or click) to begin');
 
       const clearOpts = () => { optTexts.forEach((t) => t.destroy()); optTexts = []; };
-      const render = () => optTexts.forEach((t, i) => t.setText(`${i === sel ? '▶ ' : '   '}${i + 1}. ${opts[i]}`).setColor(i === sel ? '#7a2a0a' : '#2a1a0a'));
+      const render = () => optTexts.forEach((t, i) => t.setText(`${i === sel ? '▶ ' : '   '}${opts[i]}`).setColor(i === sel ? '#7a2a0a' : '#2a1a0a'));
 
       const nextRound = () => {
         round += 1;
         clearOpts();
-        if (round >= LORE_LINES.length) return finish(sleep >= 80);
+        if (round >= LORE_PASSAGES.length) return finish(sleep >= 80);
         state = 'question';
-        const L = LORE_LINES[round];
-        title.setText(`Deloye Lore — Vol. 1 of ∞, page ${round + 1}`);
-        body.setY(260).setText(L.stem);
+        const L = LORE_PASSAGES[round];
+        where.setText(L.where);
+        title.setText(L.title);
+        body.setText(L.text);
         opts = Phaser.Utils.Array.Shuffle([L.right, ...L.wrong]);
         sel = 0;
+        const top = body.y + body.height + 26;
         opts.forEach((o, i) => {
-          const t = add(this.add.text(width / 2 - 260, 400 + i * 54, '', { fontFamily: 'Cinzel', fontSize: '26px', fontStyle: '900', color: '#2a1a0a' }))
-            .setInteractive({ useHandCursor: true });
+          const t = add(this.add.text(176, top + i * 44, '', {
+            fontFamily: 'Cinzel', fontSize: '20px', fontStyle: '900', color: '#2a1a0a', wordWrap: { width: 960 },
+          })).setInteractive({ useHandCursor: true });
           t.on('pointerover', () => { sel = i; render(); });
           t.on('pointerdown', () => pick(i));
           optTexts.push(t);
         });
-        foot.setText('↑/↓ + ENTER, 1/2/3, or click — pick the ACCURATE lore');
+        foot.setText(`Page ${round + 1} of ${LORE_PASSAGES.length} — ↑/↓ + ENTER, 1/2/3, or click: how does the story continue?`);
         render();
+        Sfx.play('pop');
       };
 
       const pick = (i) => {
         if (state !== 'question') return;
         state = 'wait';
-        const right = opts[i] === LORE_LINES[round].right;
+        const right = opts[i] === LORE_PASSAGES[round].right;
         if (right) {
           sleep += 15; Sfx.play('sparkle');
-          flash.setText('CANON ✓  (he snuggles deeper)').setColor('#7dff8a');
+          flash.setText('TRUE LORE ✓  (he snuggles deeper)').setColor('#7dff8a');
         } else {
           sleep -= 20; Sfx.play('dramatic'); this.cameras.main.shake(250, 0.008);
           flash.setText('"…that ain\'t canon…" (he stirs)').setColor('#ff6a5a');
         }
+        optTexts.forEach((t, j) => { if (opts[j] === LORE_PASSAGES[round].right) t.setColor('#2a7a2a'); });
         setSleep();
-        this.tweens.add({ targets: flash, alpha: { from: 1, to: 0 }, delay: 900, duration: 400 });
-        if (sleep <= 0) { this.time.delayedCall(900, () => finish(false)); return; }
-        this.time.delayedCall(1100, nextRound);
+        this.tweens.add({ targets: flash, alpha: { from: 1, to: 0 }, duration: 1500 });
+        if (sleep <= 0) { this.time.delayedCall(1200, () => finish(false)); return; }
+        this.time.delayedCall(1500, nextRound);
       };
 
       const finish = (won) => {
         state = 'done';
         clearOpts();
         kb.off('keydown', onKey); this.input.off('pointerdown', onClick);
+        where.setText('');
         title.setText(won ? 'THE LORE HAS SPOKEN' : 'THE LORE HAS FAILED');
-        body.setY(380).setText(won ? 'Diddy Chud Giant sleeps like a baby.' : 'Diddy Chud Giant is waking up… and he is a lore purist.');
+        body.setText(won ? 'Diddy Chud Giant sleeps like a baby.' : 'Diddy Chud Giant is waking up… and he is a lore purist.');
         foot.setText('');
         Sfx.play(won ? 'confirm' : 'boom');
         this.time.delayedCall(1600, () => {
@@ -392,14 +404,14 @@ export default class PassScene extends StageScene {
 
       const kb = this.input.keyboard;
       const onKey = (e) => {
-        if (state === 'page' && (e.code === 'Space' || e.code === 'Enter')) { nextRound(); return; }
+        if (state === 'intro' && (e.code === 'Space' || e.code === 'Enter')) { nextRound(); return; }
         if (state !== 'question') return;
         if (e.code === 'ArrowUp' || e.code === 'KeyW') { sel = (sel + opts.length - 1) % opts.length; Sfx.play('tick'); render(); }
         else if (e.code === 'ArrowDown' || e.code === 'KeyS') { sel = (sel + 1) % opts.length; Sfx.play('tick'); render(); }
         else if (e.code === 'Enter' || e.code === 'Space') pick(sel);
         else if (['Digit1', 'Digit2', 'Digit3'].includes(e.code)) pick(Number(e.code.slice(-1)) - 1);
       };
-      const onClick = () => { if (state === 'page') nextRound(); };
+      const onClick = () => { if (state === 'intro') nextRound(); };
       this.time.delayedCall(400, () => { kb.on('keydown', onKey); this.input.on('pointerdown', onClick); });
     });
   }

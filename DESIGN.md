@@ -104,8 +104,9 @@ encounter keeps at least one option that leads to a fight.
   - **B. Sneak across him** → **Snore Sneak** minigame: hold → / Space to move only while he snores (yellow warning
     before he stops, short grace window); moving during the quiet inhale fills the snore meter. Win: no fight +
     Chipotle Bowls ×2. Lose: enraged fight.
-  - **C. Xylo reads him Deloye Lore** → **Lore Session** minigame: study the lore page (`src/data/deloyeLore.js`), then
-    pick the **accurate** continuation of each line. Diddy Chud is secretly a lore nerd — accurate lore soothes him,
+  - **C. Xylo reads him Deloye Lore** → **Lore Session** minigame: five pages from different chapters of Deloye Lore
+    (`src/data/deloyeLore.js`), each a short mystical-epic story that stops mid-sentence; pick the continuation that
+    stays true to the lore. Diddy Chud is secretly a lore nerd — accurate lore soothes him,
     wrong lore wakes him ("THAT AIN'T CANON."). Win: he rolls over. Lose: fight.
   - **D. Fight him** → "Aight, fuck allat. WAKE UP, CHUD!" → full boss fight.
   - **E. Secret (goblins still with you):** Chief Bogdrinker is his cousin and makes him move.
@@ -146,6 +147,18 @@ Mostly the same goofy turn-based combat, plus bonus layers:
 2. **Lullaby minigame.** Mid-fight, a rhythm/timing minigame to sing him back to sleep for free hits.
 3. **Talk your way out.** A dice check mid-fight (Skorn can only Intimidate). Win the roll and
    the fight can end early with a funny outcome.
+
+## Deloye Lore (the "canon")
+
+- **The First Metocy** (Ch. 8,784 · Sec. B12 · Pg. 3): fell from the sky like a tear from a bored star; true metocy
+  is dry as bone, blue as heaven, never moist.
+- **The Sneeze of the Dragon Mama** (Ch. 112 · Sec. A7 · Pg. 9): the first dragon was sneezed out; why dragons swear
+  "On my Dragon Mama."
+- **The Throne Beyond the Smoke** (Ch. 6,006 · Sec. Z1 · Pg. 44): **Dulbmeethus** is a god in a dimension behind the
+  smoke. You reach him by smoking a **"Dulber's Frint Pack"** and astral projecting. His greeting: **"Y'all could hear me doe?"**
+- **The Spoon That Became** (Ch. 4,040 · Sec. C3 · Pg. 12): a bored Dulbmeethus made the first goblin from a spoon.
+- **The Prophecy of the Three** (Ch. 9,999 · Sec. Q2 · Pg. 1): the purple one who cannot read will feed the only map
+  to the fire.
 
 ## Items
 
