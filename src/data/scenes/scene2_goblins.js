@@ -2,8 +2,8 @@
 // Every line here is a Claude DRAFT in Ebain's style — keep, edit or replace any of them.
 // Format notes are at the top of scene1_the_map.js.
 
-const OUTRO = [
-  { who: 'chief', line: '…Fine. The metocy is sold at the Metocy Mart, east of here.' },
+// Shared ending once the goblins give up the directions (choices A and C)
+const OUTRO_TAIL = [
   { who: 'xylo', mood: 'unimpressed', line: 'They… sell it?' },
   { who: 'chief', line: 'For all yo metocy needs.' },
   { do: 'goblinsCry' },
@@ -51,16 +51,18 @@ export const SCENE2 = [
   { who: 'narrator', line: 'How does Lykor get out of this?' },
   {
     choice: [
+      // A — just get the directions
       {
         text: 'Give a royal speech',
         steps: [
-          { who: 'lykor', line: 'My people. My loyal, crusty people.' },
-          { who: 'lykor', mood: 'smug', line: 'A king is like a hair flip. You gotta let it go… so it can come back even harder.' },
-          { who: 'goblins', line: '…' },
-          { who: 'chief', line: "…That's the most beautiful thing I've ever heard." },
-          ...OUTRO,
+          { who: 'lykor', mood: 'smug', line: 'My chopped goblins. My loyal chopped goblins.' }, // Ebain
+          { who: 'lykor', mood: 'smug', line: "Y'all need to quit being OD and let me dip on a mf, and that's on some type shi. I'll spin the block on y'all and bring u some metocy n shi, trust. Y'all type coo?" }, // Ebain
+          { who: 'chief', line: 'Bet dat.' }, // Ebain
+          { who: 'chief', line: 'The metocy is sold at the Metocy Mart, east of here. Bring us back some, Mogging Elf.' },
+          ...OUTRO_TAIL,
         ],
       },
+      // B — the goblins come along to Metocy Mart
       {
         text: 'Sneak out',
         steps: [
@@ -69,11 +71,15 @@ export const SCENE2 = [
           { do: 'sneakCaught' },
           { who: 'lykor', mood: 'shocked', line: "WHY Y'ALL RIGHT BEHIND ME." },
           { who: 'goblin', line: 'We go where the Mogging Elf goes.' },
-          { who: 'chief', line: '…Fine. A king needs his quests. But you WILL come back.' },
-          { do: 'sneakReturn' },
-          ...OUTRO,
+          { who: 'chief', line: 'The Mogging Elf seeks the metocy? Then the goblins will take him there OURSELVES. To the Metocy Mart!' },
+          { who: 'goblins', line: 'FIELD TRIP! FIELD TRIP! FIELD TRIP!' },
+          { who: 'skorn', mood: 'angry', line: 'Hell nah.' },
+          { do: 'goblinsJoin' },
+          { who: 'xylo', mood: 'unimpressed', line: 'On my Dragon Mama… we got an entourage now.' },
+          { do: 'leave' },
         ],
       },
+      // C — the first fight, then the directions
       {
         text: 'Let Skorn "negotiate"',
         steps: [
@@ -86,7 +92,8 @@ export const SCENE2 = [
           { who: 'goblins', line: 'WE WORSHIP THE PURPLE ONE TOO!' },
           { do: 'skornRespect' },
           { who: 'skorn', mood: 'smug', line: 'Finally. Somebody in this forest got taste.' },
-          ...OUTRO,
+          { who: 'chief', line: '…Fine. The metocy is sold at the Metocy Mart, east of here.' },
+          ...OUTRO_TAIL,
         ],
       },
     ],

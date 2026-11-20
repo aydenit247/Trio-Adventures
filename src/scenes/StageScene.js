@@ -45,6 +45,7 @@ export default class StageScene extends Phaser.Scene {
   baseHooks(extra = {}) {
     return {
       onLine: (s) => this.setSpeaker(!s.who || s.who === 'narrator' ? null : s.who),
+      check: (flag) => !!this.registry.get(flag),
       shake: () => { this.cameras.main.shake(400, 0.01); Sfx.play('boom'); return this.wait(350); },
       freakout: () => {
         Sfx.play('dramatic'); Sfx.play('boom');

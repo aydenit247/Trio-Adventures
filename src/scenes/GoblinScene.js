@@ -8,6 +8,7 @@ export default class GoblinScene extends StageScene {
 
   create() {
     this.nextScene = 'Mart';
+    this.registry.set('goblinAllies', false); // set again if the goblins tag along
     this.setupStage({ light: 'day' });
     Sfx.startLoop('village');
 
@@ -42,7 +43,7 @@ export default class GoblinScene extends StageScene {
         .then(() => [xylo, skorn, lykor].forEach((c) => c.img.setFlipX(false))),
       goblinsAppear: () => this.goblinsAppear(),
       goblinsKneel: () => this.goblinsKneel(),
-      chiefAppears: () => { Sfx.play('pop'); return this.showChar(this.chief, 500).then(() => this.showLabel(this.charLabel(this.chief, 'Goblin Chief (Name Pending)'))); },
+      chiefAppears: () => { Sfx.play('pop'); return this.showChar(this.chief, 500).then(() => this.showLabel(this.charLabel(this.chief, 'Chief Bogdrinker'))); },
       toThrone: () => this.toThrone(),
       crown: () => this.crown(),
       goblinsBlock: () => this.goblinsBlock(),
@@ -53,6 +54,12 @@ export default class GoblinScene extends StageScene {
       skornSlap: () => this.skornSlap(),
       fightGoblins: () => this.fightPlaceholder('Skorn vs. The Goblins'),
       skornRespect: () => this.showLabel(this.charLabel(this.chars.skorn, 'Skorn (Respected now)')),
+      goblinsJoin: () => {
+        this.registry.set('goblinAllies', true);
+        Sfx.play('choir');
+        [...this.goblins, this.chief].forEach((g) => this.hop(g, 16));
+        return this.showLabel(this.charLabel(this.goblins[1], 'Goblins (Coming Along, Unfortunately)'));
+      },
       goblinsCry: () => { Sfx.play('choir'); this.goblins.forEach((g) => this.hop(g, 14)); return this.wait(300); },
       leave: () => this.leave(),
     })).then(() => this.finish(this.nextScene));
@@ -173,6 +180,7 @@ export default class GoblinScene extends StageScene {
 
   async leave() {
     const party = [this.chars.xylo, this.lykor, this.chars.skorn];
+    if (this.registry.get('goblinAllies')) party.push(...this.goblins, this.chief);
     party.forEach((c, i) => this.time.delayedCall(i * 250, () => this.walk(c, 1450, 2)));
     await this.wait(1500);
   }

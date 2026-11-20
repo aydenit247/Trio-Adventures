@@ -33,7 +33,8 @@ euphoric feelings — all packed into a tiny, oval, blue object.
 | **Dulbers Frint** | Metocy Mart owner — actually a **shapeshifting demon** | "Hey guys, it's your boy Dulbers Frint!" |
 | **Metocin Mattias** | Mysterious figure tied to the metocy | Appears abruptly: *"You had called?"* |
 | **Diddy Chud Giant** | Giant asleep across the path | Chapter 1 boss |
-| **Goblins** | Village to the north | Worship Lykor |
+| **Goblins** | Village to the north | Worship Lykor ("the Mogging Elf") |
+| **Chief Bogdrinker** | Goblin chief | Spoon crown, curtain cape |
 
 Later chapters (not in the foundation yet): **Dulbmeethus** and others.
 
@@ -58,10 +59,12 @@ Title menu: Continue Story (Scene 2), Metocy Mart, The Pass, Replay Intro.
    → **Title card: "Trio Adventures" by Ebain.**
 2. **Goblin Village — play as Lykor.** The goblins see Lykor and start **worshipping** him ("the Mogging Elf"),
    and the party asks them where the metocy is. The chief will only tell him once he's crowned. On the junk
-   throne the goblins bring him beer ("beezy"), then reveal the catch: they'll only tell if he stays king forever. **Player choice:** royal speech / sneak out
-   (the goblins tiptoe right behind him) / let Skorn "negotiate" (Diddy Slap → first fight; the goblins
-   then worship Skorn too). The chief points them to Metocy Mart. Goblin chief's name: **TBD**.
-   **Idea for later:** one of the three choices could lead to a different result (Ebain wants to revisit).
+   throne the goblins bring him beer ("beezy"), then reveal the catch: they'll only tell if he stays king forever. **Player choice, three different results:**
+   - **Royal speech** ("My chopped goblins…" / "Bet dat.") → the chief just gives the directions.
+   - **Sneak out** → the goblins tiptoe right behind him, then come along to Metocy Mart as an entourage
+     (story flag `goblinAllies`; they show up and help in Scene 3).
+   - **Let Skorn "negotiate"** → Diddy Slap → first fight → the goblins worship Skorn too → directions.
+   The goblin chief is **Chief Bogdrinker**.
 3. **Metocy Mart — play as Xylo.** Shop sign: **"For all yo metocy needs n shi folk."**
    "Hey guys, it's your boy Dulbers Frint!" The party buys and takes his metocy… it's fake.
    Everyone starts experiencing **disorienting disarray** symptoms. Once they figure out it's

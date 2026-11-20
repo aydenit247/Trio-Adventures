@@ -11,6 +11,7 @@ import Sfx from '../audio/Sfx.js';
 //   { who: 'narrator', line: '...' }                no portrait
 //   { do: 'hookName' }                              calls hooks.hookName() and waits if it returns a Promise
 //   { choice: [{ text: '...', steps: [...] }, ...] }
+//   { if: 'goblinAllies', steps: [...] }          only plays if that story flag is set
 export default class DialogueBox {
   constructor(scene) {
     this.scene = scene;
@@ -87,6 +88,10 @@ export default class DialogueBox {
         const fn = this.hooks[s.do];
         const r = fn ? fn() : null;
         if (r && typeof r.then === 'function') await r;
+        continue;
+      }
+      if (s.if) { // conditional block: { if: 'flag', steps: [...] }
+        if (this.hooks.check && this.hooks.check(s.if)) this.queue = (s.steps || []).concat(this.queue);
         continue;
       }
       if (s.choice) { this.root.setVisible(true); this.showChoice(s.choice); return; }

@@ -4,6 +4,15 @@
 export const SCENE3 = [
   { who: 'narrator', line: 'East of the goblin village…' },
   { do: 'enterParty' },
+  {
+    if: 'goblinAllies', // only if the goblins came along (Scene 2, "Sneak out")
+    steps: [
+      { who: 'goblin', line: 'Ooooh. A STORE.' },
+      { who: 'chief', line: 'Bogdrinker has heard of this place. Very legit.' },
+      { who: 'skorn', mood: 'angry', line: 'Why y\'all STILL following us?' },
+      { who: 'goblins', line: 'FIELD TRIP!' },
+    ],
+  },
   { do: 'showSign' },
   { who: 'xylo', mood: 'vision', line: 'There. I can feel it. The metocy is near.' },
   { who: 'skorn', mood: 'confused', line: 'Bro, it\'s a store. You feel a store?' },
@@ -42,6 +51,7 @@ export const SCENE3 = [
   { who: 'skorn', mood: 'tweaking', line: "Bro turned into a demon and I'm still tripping. Is this real??" },
   { who: 'xylo', mood: 'tweaking', line: 'Real enough to fight.' },
   { do: 'fightDulbers' },
+  { if: 'goblinAllies', steps: [{ who: 'chief', line: 'Goblins: one. Demon: zero.' }] },
 
   { do: 'tripEnd' },
   { who: 'dulbers_demon', line: 'Ugh… fine… the REAL metocy… is past the mountain pass…' },

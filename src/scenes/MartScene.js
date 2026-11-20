@@ -24,6 +24,15 @@ export default class MartScene extends StageScene {
     const xylo = this.makeChar('xylo', 1450, 566, { h: 330 });
     const lykor = this.makeChar('lykor', 1450, 560, { h: 325 });
     const skorn = this.makeChar('skorn', 1450, 580, { h: 350 });
+    // Goblin entourage (only if they came along in Scene 2)
+    this.allies = [];
+    if (this.registry.get('goblinAllies')) {
+      this.allies = [
+        this.makeChar('gob1', 1500, 612, { tex: 'char_goblin', voice: 'goblin', h: 165 }),
+        this.makeChar('gob2', 1500, 618, { tex: 'char_goblin', voice: 'goblin', h: 155 }),
+        this.makeChar('chief', 1500, 606, { tex: 'char_goblin_chief', voice: 'chief', h: 195 }),
+      ];
+    }
     this.dulbers = this.makeChar('dulbers', 470, 560, { h: 235 });
     this.dulbers.setVisible(false);
     this.demon = this.makeChar('demon', 520, 590, { tex: 'char_dulbers_demon', voice: 'dulbers_demon', h: 430 });
@@ -41,7 +50,8 @@ export default class MartScene extends StageScene {
     this.dialogue.play(SCENE3, this.baseHooks({
       enterParty: () => Promise.all([
         this.walk(xylo, 720, 2), this.walk(lykor, 900, 2.1), this.walk(skorn, 1090, 2.2),
-      ]).then(() => [xylo, lykor, skorn].forEach((c) => c.img.setFlipX(true))),
+        ...this.allies.map((g, i) => this.walk(g, [1190, 1250, 1130][i], 2.4)),
+      ]).then(() => [xylo, lykor, skorn, ...this.allies].forEach((c) => c.img.setFlipX(true))),
       showSign: async () => {
         Sfx.play('sparkle');
         await this.tweenP({ targets: this.sign, alpha: 1, duration: 500 });
@@ -67,7 +77,7 @@ export default class MartScene extends StageScene {
       tripStart: () => this.tripStart(),
       revealMidtocy: () => this.revealMidtocy(),
       transform: () => this.transform(),
-      fightDulbers: () => this.fightPlaceholder('The Party vs. Dulbers Frint'),
+      fightDulbers: () => this.fightPlaceholder(this.allies.length ? 'The Party (+ Goblins) vs. Dulbers Frint' : 'The Party vs. Dulbers Frint'),
       tripEnd: () => this.tripEnd(),
       dulbersVanish: async () => {
         Sfx.play('boom'); this.cameras.main.flash(300, 160, 90, 255);
@@ -93,6 +103,7 @@ export default class MartScene extends StageScene {
     this.chars.xylo.setPosition(860, 570);
     this.chars.lykor.setPosition(1010, 562);
     this.chars.skorn.setPosition(1165, 585);
+    this.allies.forEach((g, i) => g.setPosition([745, 805, 680][i], [622, 628, 618][i]));
     Object.values(this.chars).forEach((c) => { if (c !== this.dulbers) c.img.setFlipX(true); });
     // Candle glows
     [[330, 320], [495, 300], [740, 300], [1000, 330]].forEach(([x, y]) => {

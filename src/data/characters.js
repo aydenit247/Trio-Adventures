@@ -40,7 +40,7 @@ export const CHARACTERS = {
   giant:    { name: 'Diddy Chud Giant', color: 0xb08a5a },
   goblin:   { name: 'Goblin',           color: 0x5aa83c },
   goblins:  { name: 'Goblins',          color: 0x5aa83c, portrait: 'goblin' },
-  chief:    { name: 'Goblin Chief',     color: 0x6b8f3c },
+  chief:    { name: 'Chief Bogdrinker',     color: 0x6b8f3c },
   dulbers_demon: { name: 'Dulbers Frint (Demon)', color: 0x5b3a8a },
   narrator: { name: '',                 color: 0x444444 },
 };
