@@ -177,6 +177,115 @@ class SfxEngine {
     this.noise({ dur: 2.5, vol: 0.06, type: 'bandpass', f0: 800, f1: 3000, q: 0.5, attack: 1.2 });
   }
 
+  // ---------- combat ----------
+  sfx_slap() { // sharp crack + a little skin thud
+    this.noise({ dur: 0.09, vol: 0.7, type: 'highpass', f0: 1800, attack: 0.001 });
+    this.noise({ dur: 0.14, vol: 0.35, type: 'bandpass', f0: 1200, f1: 500, q: 1.5, attack: 0.001 });
+    this.tone({ type: 'sine', freq: 180, freqEnd: 70, dur: 0.12, vol: 0.3 });
+  }
+  sfx_roar() { // Crash Out: growling rage
+    this.tone({ type: 'sawtooth', freq: 95, freqEnd: 70, dur: 1.3, vol: 0.22, attack: 0.08, lowpass: 900 });
+    this.tone({ type: 'sawtooth', freq: 98, freqEnd: 60, dur: 1.3, vol: 0.18, attack: 0.1, lowpass: 700 });
+    this.tone({ type: 'square', freq: 47, freqEnd: 38, dur: 1.2, vol: 0.12, attack: 0.1, lowpass: 400 });
+    this.noise({ dur: 1.3, vol: 0.35, type: 'bandpass', f0: 500, f1: 260, q: 1.2, attack: 0.08 });
+  }
+  sfx_hairflip() { // swish + sparkle
+    this.noise({ dur: 0.35, vol: 0.25, type: 'bandpass', f0: 800, f1: 4000, q: 1, attack: 0.08 });
+    [2093, 2637, 3136, 3951, 4699].forEach((f, i) => this.tone({ type: 'sine', freq: f, dur: 0.3, vol: 0.05, when: 0.18 + i * 0.045 }));
+  }
+  sfx_mog() { // "dun dun DUNNN" + heavenly chord
+    [[110, 0], [104, 0.28], [82.4, 0.56]].forEach(([f, w], i) => {
+      const d = i === 2 ? 1.6 : 0.22;
+      this.tone({ type: 'sawtooth', freq: f, dur: d, vol: 0.18, when: w, lowpass: 1400 });
+      this.tone({ type: 'sawtooth', freq: f * 2, dur: d, vol: 0.1, when: w, lowpass: 1800 });
+      this.tone({ type: 'sine', freq: f / 2, dur: d, vol: 0.3, when: w });
+    });
+    [329.6, 415.3, 493.9, 659.3].forEach((f) => this.tone({ type: 'triangle', freq: f, dur: 1.6, vol: 0.05, attack: 0.2, when: 0.56 }));
+    this.noise({ dur: 0.6, vol: 0.2, type: 'lowpass', f0: 1500, f1: 200, when: 0.56 });
+  }
+  sfx_zap() { // Eldritch Blast charge + fire
+    this.tone({ type: 'sawtooth', freq: 200, freqEnd: 1600, dur: 0.25, vol: 0.08, lowpass: 3000 });
+    this.tone({ type: 'square', freq: 1400, freqEnd: 120, dur: 0.4, vol: 0.1, when: 0.22, lowpass: 2500 });
+    this.noise({ dur: 0.4, vol: 0.2, type: 'bandpass', f0: 3000, f1: 600, q: 2, when: 0.22 });
+  }
+  sfx_impactMagic() { // blast lands
+    this.tone({ type: 'sine', freq: 300, freqEnd: 60, dur: 0.4, vol: 0.35 });
+    this.noise({ dur: 0.3, vol: 0.3, type: 'lowpass', f0: 4000, f1: 300 });
+  }
+  sfx_pages() { // big book flipping
+    for (let i = 0; i < 7; i++) this.noise({ dur: 0.09, vol: 0.18, type: 'highpass', f0: 2500 + Math.random() * 1500, attack: 0.01, when: i * 0.085 });
+    this.noise({ dur: 0.2, vol: 0.2, type: 'lowpass', f0: 500, when: 0.65 }); // book thump
+  }
+  sfx_chudThud() { // Chud Out lands: earth-shaking
+    this.tone({ type: 'sine', freq: 70, freqEnd: 22, dur: 1.4, vol: 0.7 });
+    this.tone({ type: 'triangle', freq: 120, freqEnd: 35, dur: 0.6, vol: 0.3 });
+    this.noise({ dur: 0.9, vol: 0.45, type: 'lowpass', f0: 900, f1: 60, attack: 0.002 });
+    for (let i = 0; i < 5; i++) this.noise({ dur: 0.05, vol: 0.08, type: 'highpass', f0: 2000, when: 0.3 + Math.random() * 0.6 }); // debris
+  }
+  sfx_stomp() { // giant footstep
+    this.tone({ type: 'sine', freq: 55, freqEnd: 25, dur: 0.9, vol: 0.65 });
+    this.noise({ dur: 0.5, vol: 0.35, type: 'lowpass', f0: 500, f1: 70, attack: 0.003 });
+  }
+  sfx_sitWarn() { // giant rising up: ominous slide
+    this.tone({ type: 'sawtooth', freq: 40, freqEnd: 90, dur: 1.2, vol: 0.15, attack: 0.3, lowpass: 400 });
+    this.noise({ dur: 1.2, vol: 0.15, type: 'lowpass', f0: 200, f1: 600, attack: 0.4 });
+  }
+  sfx_sitImpact() { // the giant sits on everyone
+    this.tone({ type: 'sine', freq: 48, freqEnd: 18, dur: 2.0, vol: 0.85 });
+    this.tone({ type: 'sawtooth', freq: 60, freqEnd: 25, dur: 0.8, vol: 0.15, lowpass: 300 });
+    this.noise({ dur: 1.4, vol: 0.55, type: 'lowpass', f0: 1200, f1: 50, attack: 0.002 });
+    this.tone({ type: 'sawtooth', freq: 300, freqEnd: 80, dur: 0.5, vol: 0.06, when: 0.15, lowpass: 900 }); // the "pfffft"
+  }
+  sfx_bonk() { // spoon on head: metallic, comedic
+    [1180, 1770, 2650].forEach((f, i) => this.tone({ type: 'sine', freq: f, freqEnd: f * 0.97, dur: 0.5 - i * 0.1, vol: 0.12 - i * 0.03 }));
+    this.tone({ type: 'triangle', freq: 400, freqEnd: 200, dur: 0.08, vol: 0.2 });
+  }
+  sfx_throw() { this.noise({ dur: 0.5, vol: 0.3, type: 'bandpass', f0: 400, f1: 1800, q: 2, attack: 0.15 }); }
+  sfx_hit() { // generic body hit
+    this.tone({ type: 'sine', freq: 150, freqEnd: 50, dur: 0.2, vol: 0.45 });
+    this.noise({ dur: 0.12, vol: 0.35, type: 'lowpass', f0: 2500, f1: 400, attack: 0.001 });
+  }
+  sfx_hurt() { // party member takes a hit: lower thump + "oof"
+    this.tone({ type: 'sine', freq: 110, freqEnd: 45, dur: 0.25, vol: 0.4 });
+    this.tone({ type: 'triangle', freq: 260, freqEnd: 150, dur: 0.18, vol: 0.12, when: 0.03, lowpass: 900 });
+  }
+  sfx_heal() {
+    [523, 659, 784, 1046, 1318].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.35, vol: 0.06, when: i * 0.06 }));
+  }
+  sfx_buff() { // "on some type shi": hype riser + hit
+    this.noise({ dur: 0.6, vol: 0.2, type: 'bandpass', f0: 300, f1: 4000, q: 1, attack: 0.5 });
+    [261.6, 329.6, 392, 523.3].forEach((f) => this.tone({ type: 'square', freq: f, dur: 0.7, vol: 0.05, when: 0.55, lowpass: 2500 }));
+    this.tone({ type: 'sine', freq: 80, freqEnd: 40, dur: 0.5, vol: 0.4, when: 0.55 });
+  }
+  sfx_diceRoll() { // wooden die clattering
+    for (let i = 0; i < 9; i++) {
+      const w = i * 0.1 + i * i * 0.006;
+      this.noise({ dur: 0.04, vol: 0.25 * (1 - i / 11), type: 'bandpass', f0: 1800 + Math.random() * 800, q: 4, when: w });
+      this.tone({ type: 'triangle', freq: 600 + Math.random() * 300, dur: 0.03, vol: 0.06, when: w });
+    }
+  }
+  sfx_crit() { this.tone({ type: 'square', freq: 1046, dur: 0.08, vol: 0.06 }); this.tone({ type: 'square', freq: 1568, dur: 0.2, vol: 0.06, when: 0.08 }); }
+  sfx_miss() { this.noise({ dur: 0.3, vol: 0.15, type: 'bandpass', f0: 1500, f1: 600, q: 1, attack: 0.05 }); this.tone({ type: 'sine', freq: 500, freqEnd: 250, dur: 0.3, vol: 0.05, when: 0.1 }); }
+  sfx_enemyDown() {
+    this.tone({ type: 'square', freq: 392, freqEnd: 98, dur: 0.6, vol: 0.06, lowpass: 1500 });
+    this.noise({ dur: 0.4, vol: 0.25, type: 'lowpass', f0: 600, f1: 100, when: 0.35 });
+  }
+  sfx_victory() { // short fanfare
+    [[523, 0, 0.15], [523, 0.16, 0.15], [523, 0.32, 0.15], [659, 0.48, 0.5], [587, 0.98, 0.2], [659, 1.18, 0.2], [784, 1.38, 0.9]].forEach(([f, w, d]) => {
+      this.tone({ type: 'square', freq: f, dur: d, vol: 0.07, when: w, lowpass: 3000 });
+      this.tone({ type: 'triangle', freq: f / 2, dur: d, vol: 0.08, when: w });
+    });
+  }
+  sfx_defeat() { // sad trombone: wah wah wah wahhhh
+    [[311, 0, 0.45], [294, 0.5, 0.45], [277, 1.0, 0.45], [262, 1.5, 1.4]].forEach(([f, w, d], i) => {
+      this.tone({ type: 'sawtooth', freq: f, freqEnd: i === 3 ? f * 0.94 : f * 0.98, dur: d, vol: 0.12, attack: 0.05, when: w, lowpass: 900 });
+    });
+  }
+  sfx_dance() { // 6-7 beat: kick + clap
+    this.tone({ type: 'sine', freq: 120, freqEnd: 45, dur: 0.18, vol: 0.5 });
+    this.noise({ dur: 0.1, vol: 0.25, type: 'bandpass', f0: 1500, q: 1, when: 0.14 });
+  }
+
   // ---------- music (real audio files) ----------
   // Music uses an <audio> element instead of Web Audio: it's more reliable across browsers,
   // and on iPhones it still plays when the ringer switch is on silent.

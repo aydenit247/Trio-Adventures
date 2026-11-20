@@ -383,7 +383,7 @@ export default class CombatScene extends Phaser.Scene {
   async doAction(m, a) {
     if (a.type === 'defend') {
       m.defending = true;
-      Sfx.play('pop');
+      Sfx.play('throw');
       this.tweens.add({ targets: m.sprite, x: m.sprite.x - 12, yoyo: true, duration: 120 });
       await this.say(`${m.P.name} braces. (Defending)`, 900);
       return;
@@ -397,7 +397,7 @@ export default class CombatScene extends Phaser.Scene {
       icon.setScale(70 / icon.width);
       await this.tweenP({ targets: icon, x: t.sprite.x, y: t.sprite.y - t.P.h * 0.6, duration: 400 });
       icon.destroy();
-      Sfx.play(a.item === 'beer' ? 'gulp' : 'sparkle');
+      Sfx.play(a.item === 'beer' ? 'gulp' : 'sparkle'); Sfx.play('heal');
       const healed = Math.min(it.heal, t.maxHp - t.hp);
       t.hp += healed;
       this.floatText(t.sprite.x, t.sprite.y - t.P.h * 0.7, `+${healed}`, '#7dff8a');
@@ -415,18 +415,18 @@ export default class CombatScene extends Phaser.Scene {
     if (m.tripping) {
       const r = Math.random();
       if (r < 0.22) {
-        Sfx.play('dramatic');
+        Sfx.play('miss');
         this.tweens.add({ targets: m.sprite, angle: { from: -8, to: 8 }, yoyo: true, repeat: 2, duration: 120, onComplete: () => m.sprite.setAngle(0) });
         await this.say(Phaser.Utils.Array.GetRandom(TRIP_MISFIRES[m.id]), 1600);
         return;
       }
-      if (r < 0.42) { crit = 2; this.floatText(m.sprite.x, m.sprite.y - m.P.h - 20, 'TWEAK CRIT!', '#ff6bd5', 26); }
+      if (r < 0.42) { crit = 2; Sfx.play('crit'); this.floatText(m.sprite.x, m.sprite.y - m.P.h - 20, 'TWEAK CRIT!', '#ff6bd5', 26); }
     }
     const dmgOf = (power) => Math.round(power * this.lvlMult * (this.buff > 0 ? 1.5 : 1) * crit);
 
     if (move.kind === 'buff') {
       await this.pose(m, move.pose);
-      Sfx.play('choir'); Sfx.play('boom');
+      Sfx.play('buff');
       this.cameras.main.flash(300, 255, 210, 90);
       this.floatText(W / 2, 250, 'ON SOME TYPE SHI', '#ffdf4a', 54);
       this.party.forEach((p) => p.hp > 0 && this.burst(p.sprite.x, p.sprite.y - p.P.h * 0.5, [0xffdf4a, 0xfff2b0], 25, 160));
@@ -439,7 +439,7 @@ export default class CombatScene extends Phaser.Scene {
 
     if (move.kind === 'crashout') {
       await this.pose(m, move.pose);
-      Sfx.play('boom'); this.cameras.main.shake(500, 0.012);
+      Sfx.play('roar'); this.cameras.main.shake(900, 0.012);
       this.burst(m.sprite.x, m.sprite.y - m.P.h * 0.5, [0xff3a2a, 0xff8a2a], 40, 260);
       await this.say(`${m.P.name} is CRASHING OUT. Rolling the dice…`, 900);
       const roll = await this.rollDie();
@@ -460,7 +460,7 @@ export default class CombatScene extends Phaser.Scene {
     if (move.kind === 'throw') {
       const thing = Phaser.Utils.Array.GetRandom(THROWABLES);
       await this.pose(m, move.pose);
-      Sfx.play('whoosh');
+      Sfx.play('throw');
       const t = this.add.text(m.sprite.x, m.sprite.y - m.P.h, thing, {
         fontFamily: 'Nunito', fontSize: '18px', fontStyle: '900', color: '#1a1324', backgroundColor: '#f3e3b0', padding: { x: 6, y: 2 },
       }).setOrigin(0.5).setDepth(95);
@@ -474,7 +474,7 @@ export default class CombatScene extends Phaser.Scene {
 
     if (move.kind === 'chudout') {
       await this.playChudOut();
-      Sfx.play('boom'); this.cameras.main.shake(600, 0.02);
+      Sfx.play('chudThud'); this.cameras.main.shake(900, 0.025);
       this.burst(target.sprite.x, target.sprite.y - 40, [0xb8a890, 0xffffff], 50, 300);
       await this.hitEnemy(target, dmgOf(move.power), `${m.P.name} CHUDS OUT and sits on ${target.name}!`);
       if (target.hp > 0) { target.status.stun = 1; this.refresh(); }
@@ -483,10 +483,10 @@ export default class CombatScene extends Phaser.Scene {
 
     // Standard hit with effects
     await this.pose(m, move.pose, m.id === 'xylo' && move.fx === 'blast');
-    if (move.fx === 'slap') { await this.lunge(m); Sfx.play('whoosh'); }
+    if (move.fx === 'slap') { await this.lunge(m); }
     if (move.fx === 'blast') await this.projectile(m, target, [0xb06bff, 0x7f5bff]);
     if (move.fx === 'lore') {
-      Sfx.play('choir');
+      Sfx.play('pages'); this.time.delayedCall(500, () => Sfx.play('choir'));
       const runes = this.add.particles(target.sprite.x, target.sprite.y - target.h * 0.5, 'fx_soft', {
         x: { min: -120, max: 120 }, y: { min: -160, max: 120 }, speedY: { min: -60, max: -20 },
         scale: { start: 0.35, end: 0 }, lifespan: 1000, frequency: 25, tint: [0xffd27a, 0xfff2b0], blendMode: 'ADD',
@@ -495,17 +495,17 @@ export default class CombatScene extends Phaser.Scene {
       runes.stop(); this.time.delayedCall(1000, () => runes.destroy());
     }
     if (move.fx === 'sparkle') {
-      Sfx.play('sparkle');
+      Sfx.play('hairflip');
       this.burst(m.sprite.x + 40, m.sprite.y - m.P.h * 0.85, [0xfff2b0, 0xffffff], 25, 180);
     }
     if (move.fx === 'mog') {
-      Sfx.play('choir');
+      Sfx.play('mog');
       this.cameras.main.flash(350, 255, 230, 160);
       this.floatText(W / 2, 240, 'MOG', '#ffdf4a', 80);
       await this.wait(500);
     }
     this.unpose(m);
-    await this.hitEnemy(target, dmgOf(move.power), `${m.P.name} uses ${move.name} on ${target.name}!`);
+    await this.hitEnemy(target, dmgOf(move.power), `${m.P.name} uses ${move.name} on ${target.name}!`, { slap: 'slap', blast: 'impactMagic', lore: 'impactMagic' }[move.fx]);
     if (target.hp > 0 && move.charm && Math.random() < move.charm) {
       target.status.charm = 1; this.refresh();
       await this.say(`${target.name} is charmed by the hair. They might just… stand there.`, 1200);
@@ -529,7 +529,7 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async projectile(m, target, tint) {
-    Sfx.play('whoosh');
+    Sfx.play('zap');
     const orb = this.add.image(m.sprite.x + 60, m.sprite.y - m.P.h * 0.65, 'fx_soft').setTint(tint[0]).setScale(1.2)
       .setBlendMode(Phaser.BlendModes.ADD).setDepth(60);
     const trail = this.add.particles(0, 0, 'fx_soft', { follow: orb, scale: { start: 0.5, end: 0 }, lifespan: 300, frequency: 15, tint, blendMode: 'ADD' }).setDepth(59);
@@ -538,9 +538,9 @@ export default class CombatScene extends Phaser.Scene {
     orb.destroy(); trail.stop(); this.time.delayedCall(400, () => trail.destroy());
   }
 
-  async hitEnemy(e, dmg, line) {
+  async hitEnemy(e, dmg, line, sound = 'hit') {
     e.hp = Math.max(0, e.hp - dmg);
-    Sfx.play('boom');
+    Sfx.play(sound);
     e.sprite.img.setTintFill(0xffffff);
     this.time.delayedCall(90, () => e.sprite.img.clearTint());
     this.tweens.add({ targets: e.sprite, x: e.sprite.x + 14, yoyo: true, repeat: 2, duration: 50 });
@@ -551,7 +551,7 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async enemyDown(e) {
-    Sfx.play('dramatic');
+    Sfx.play('enemyDown');
     e.nameText.setText(`${e.name} (Defeated)`);
     e.statusText.setText('');
     await this.tweenP({ targets: e.sprite, alpha: 0.15, angle: 12, y: e.sprite.y + 20, duration: 500 });
@@ -592,13 +592,14 @@ export default class CombatScene extends Phaser.Scene {
       die.setScale(200 / die.width);
       const num = add(this.add.text(W / 2, 470, '', { fontFamily: 'Cinzel', fontSize: '64px', fontStyle: '900', color: '#ffffff', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5));
       this.tweens.add({ targets: die, angle: 720, duration: 1100, ease: 'Cubic.out' });
+      Sfx.play('diceRoll');
       let ticks = 0;
-      const flick = this.time.addEvent({ delay: 70, repeat: 14, callback: () => { num.setText(String(Phaser.Math.Between(1, 6))); Sfx.play('tick'); ticks += 1; } });
+      const flick = this.time.addEvent({ delay: 70, repeat: 14, callback: () => { num.setText(String(Phaser.Math.Between(1, 6))); ticks += 1; } });
       this.time.delayedCall(1150, async () => {
         flick.remove();
         const n = Phaser.Math.Between(1, 6);
         num.setText(String(n));
-        Sfx.play(n === 6 ? 'sparkle' : 'pop');
+        Sfx.play(n === 6 ? 'sparkle' : n === 1 ? 'miss' : 'pop');
         this.tweens.add({ targets: num, scale: { from: 1.6, to: 1 }, duration: 250, ease: 'Back.out' });
         const outcome = { 1: 'Crashed out on himself…', 2: 'Mild crash out.', 3: 'Mild crash out.', 4: 'Big crash out!', 5: 'Big crash out!', 6: 'MAXIMUM CRASH OUT!' }[n];
         const sub = add(this.add.text(W / 2, 530, outcome, { fontFamily: 'Nunito', fontSize: '24px', fontStyle: '900', color: '#f3e3b0', stroke: '#000', strokeThickness: 5 }).setOrigin(0.5));
@@ -627,7 +628,7 @@ export default class CombatScene extends Phaser.Scene {
     this.tweens.add({ targets: big, scale: { from: 0.9, to: 1.15 }, yoyo: true, repeat: 5, duration: 220 });
     for (let beat = 0; beat < 8; beat++) {
       this.party.forEach((p, i) => { if (p.hp > 0) this.tweens.add({ targets: p.sprite.img, y: -26, angle: (beat + i) % 2 ? 10 : -10, yoyo: true, duration: 140 }); });
-      Sfx.play(beat % 2 ? 'boom' : 'tick');
+      Sfx.play('dance');
       this.cameras.main.shake(120, 0.008);
       await this.wait(280);
     }
@@ -644,14 +645,14 @@ export default class CombatScene extends Phaser.Scene {
     const g = Phaser.Utils.Array.GetRandom(this.allies);
     const t = Phaser.Utils.Array.GetRandom(targets);
     await this.tweenP({ targets: g, x: g.x + 50, yoyo: true, duration: 140 });
-    await this.hitEnemy(t, 6, `Goblin backup bonks ${t.name} with a spoon!`);
+    await this.hitEnemy(t, 6, `Goblin backup bonks ${t.name} with a spoon!`, 'bonk');
   }
 
   async enemyTurn(e) {
-    if (e.status.stun > 0) { e.status.stun -= 1; this.refresh(); await this.say(`${e.name} is being sat on and can't move.`, 1100); return; }
-    if (e.status.charm > 0) { e.status.charm -= 1; this.refresh(); await this.say(`${e.name} is too busy staring at Lykor's hair.`, 1100); return; }
+    if (e.status.stun > 0) { Sfx.play('miss'); e.status.stun -= 1; this.refresh(); await this.say(`${e.name} is being sat on and can't move.`, 1100); return; }
+    if (e.status.charm > 0) { Sfx.play('sparkle'); e.status.charm -= 1; this.refresh(); await this.say(`${e.name} is too busy staring at Lykor's hair.`, 1100); return; }
     if (this.mods.enemyTripping && Math.random() < 0.3) {
-      if (Math.random() < 0.5) { await this.hitEnemy(e, 10, `${e.name} punches a rock that insulted him.`); }
+      if (Math.random() < 0.5) { await this.hitEnemy(e, 10, `${e.name} punches a rock that insulted him.`, 'stomp'); }
       else await this.say(`${e.name} yells "WHY IS THE SKY SO LOUD" and forgets to attack.`, 1500);
       return;
     }
@@ -668,8 +669,9 @@ export default class CombatScene extends Phaser.Scene {
     await this.tweenP({ targets: e.sprite, x: e.sprite.x - 40, yoyo: true, duration: 150 });
 
     if (e.ai === 'goblin') {
-      if (blindMiss()) { await this.say(`${e.name} swings his spoon at nothing. Blinded.`, 1100); return; }
+      if (blindMiss()) { Sfx.play('miss'); await this.say(`${e.name} swings his spoon at nothing. Blinded.`, 1100); return; }
       const t = pick();
+      Sfx.play('bonk');
       await this.hurtParty(t, Math.round(5 * mult), `${e.name} bonks ${t.P.name} with a spoon!`);
       return;
     }
@@ -678,16 +680,16 @@ export default class CombatScene extends Phaser.Scene {
       const r = Math.random();
       if (e.hp < e.maxHp * 0.55 && r < 0.3) {
         const heal = 15; e.hp = Math.min(e.maxHp, e.hp + heal);
-        this.floatText(e.sprite.x, e.sprite.y - e.h * 0.7, `+${heal}`, '#7dff8a'); this.refresh();
+        this.floatText(e.sprite.x, e.sprite.y - e.h * 0.7, `+${heal}`, '#7dff8a'); this.refresh(); Sfx.play('heal');
         await this.say('Dulbers uses his customer service voice: "Thank you for shopping at Metocy Mart!" (+15)', 1600);
         return;
       }
-      if (blindMiss()) { await this.say('Dulbers tries to price-gouge someone but can\'t see who. Blinded.', 1300); return; }
+      if (blindMiss()) { Sfx.play('miss'); await this.say('Dulbers tries to price-gouge someone but can\'t see who. Blinded.', 1300); return; }
       if (r < 0.62) {
-        const t = pick();
+        const t = pick(); Sfx.play('slap');
         await this.hurtParty(t, Math.round(14 * mult), `Dulbers price-gouges ${t.P.name}! "That'll be 14 HP, plus tax."`);
       } else {
-        Sfx.play('dramatic');
+        Sfx.play('roar');
         await this.say('Dulbers screams "NO REFUNDS!" It hurts everyone\'s ears.', 900);
         for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(8 * mult), null);
       }
@@ -698,7 +700,7 @@ export default class CombatScene extends Phaser.Scene {
       e.turn += 1;
       if (e.sitPending) {
         e.sitPending = false;
-        Sfx.play('boom'); this.cameras.main.shake(700, 0.025);
+        Sfx.play('sitImpact'); this.cameras.main.shake(1100, 0.03);
         await this.say('DIDDY CHUD SITS ON EVERYONE!', 900);
         for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(34 * mult), null, true);
         this.setTex(e.sprite, e.tex);
@@ -708,18 +710,18 @@ export default class CombatScene extends Phaser.Scene {
       if (e.turn % 3 === 0) {
         e.sitPending = true;
         this.setTex(e.sprite, e.sitTex);
-        Sfx.play('dramatic');
+        Sfx.play('sitWarn');
         this.refresh();
         await this.say('Diddy Chud Giant is getting ready to SIT. (Defend!)', 1500);
         return;
       }
-      if (blindMiss()) { await this.say('Diddy Chud stomps… the wrong spot. Blinded.', 1200); return; }
+      if (blindMiss()) { Sfx.play('stomp'); await this.say('Diddy Chud stomps… the wrong spot. Blinded.', 1200); return; }
       if (e.turn % 2) {
         const t = pick();
-        Sfx.play('boom'); this.cameras.main.shake(300, 0.012);
+        Sfx.play('stomp'); this.cameras.main.shake(400, 0.014);
         await this.hurtParty(t, Math.round(18 * mult), `Diddy Chud stomps on ${t.P.name}!`);
       } else {
-        Sfx.play('boom'); this.cameras.main.shake(400, 0.015);
+        Sfx.play('stomp'); this.time.delayedCall(250, () => Sfx.play('stomp')); this.cameras.main.shake(700, 0.018);
         await this.say('Diddy Chud pounds the ground!', 800);
         for (const t of this.alive(this.party)) await this.hurtParty(t, Math.round(12 * mult), null);
       }
@@ -729,7 +731,7 @@ export default class CombatScene extends Phaser.Scene {
   async hurtParty(m, dmg, line, isSit = false) {
     if (m.defending) dmg = Math.round(dmg * (isSit ? 0.25 : 0.5));
     m.hp = Math.max(0, m.hp - dmg);
-    Sfx.play('boom');
+    Sfx.play('hurt');
     this.setTex(m.sprite, m.P.hurt);
     this.tweens.add({ targets: m.sprite, x: m.sprite.x - 12, yoyo: true, repeat: 2, duration: 50 });
     this.floatText(m.sprite.x, m.sprite.y - m.P.h * 0.7, `-${dmg}`, '#ff6a5a');
@@ -747,7 +749,7 @@ export default class CombatScene extends Phaser.Scene {
   // ======================= Endings =======================
   async victory() {
     this.clearMenu();
-    Sfx.play('choir');
+    Sfx.play('victory');
     const xp = this.def.xp;
     const total = (this.registry.get('xp') || 0) + xp;
     this.registry.set('xp', total);
@@ -771,7 +773,7 @@ export default class CombatScene extends Phaser.Scene {
 
   async defeat() {
     this.clearMenu();
-    Sfx.play('boom');
+    Sfx.play('defeat');
     [
       this.add.rectangle(0, 0, W, H, 0x000000, 0.7).setOrigin(0),
       this.add.text(W / 2, 260, 'YOU GOT COOKED', { fontFamily: 'Cinzel', fontSize: '76px', fontStyle: '900', color: '#ff6a4a', stroke: '#000', strokeThickness: 10 }).setOrigin(0.5),
