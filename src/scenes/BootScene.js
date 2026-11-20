@@ -39,7 +39,7 @@ export default class BootScene extends Phaser.Scene {
     ].forEach((c) => this.load.image(`char_${c}`, `assets/characters/${c}.png`));
     ['goblin_village', 'goblin_throne', 'mart_exterior', 'mart_interior', 'mart_interior_trip', 'mountain_path', 'giant_pass']
       .forEach((b) => this.load.image(`bg_${b}`, `assets/backgrounds/${b}.jpg`));
-    ['metocy', 'midtocy'].forEach((i) => this.load.image(`item_${i}`, `assets/items/${i}.png`));
+    ['metocy', 'midtocy', 'beer', 'chipotle_bowl', 'dice'].forEach((i) => this.load.image(`item_${i}`, `assets/items/${i}.png`));
     this.load.video('vid_map_burn', 'assets/video/map_burn.mp4', false);
     this.load.video('vid_dulbers_transform', 'assets/video/dulbers_transform.mp4', false);
     this.load.video('vid_mattias_appear', 'assets/video/mattias_appear.mp4', false);

@@ -15,16 +15,42 @@ export const SCENE3 = [
   },
   { do: 'showSign' },
   { who: 'xylo', mood: 'vision', line: 'There. I can feel it. The metocy is near.' },
-  { who: 'skorn', mood: 'confused', line: 'Bro, it\'s a store. You feel a store?' },
+  { ifNot: 'skornKing', steps: [{ who: 'skorn', mood: 'confused', line: 'Bro, it\'s a store. You feel a store?' }] },
+  { if: 'skornKing', steps: [{ who: 'lykor', line: "It's weird without Skorn. …Peaceful, but weird." }] },
   { who: 'lykor', mood: 'smug', line: '"For all yo metocy needs n shi folk." …Very professional.' },
 
   { do: 'dulbersAppears' },
   { who: 'dulbers', mood: 'grin', line: "Hey guys, it's your boy Dulbers Frint!" },
   { who: 'dulbers', mood: 'grin', line: "Welcome to Metocy Mart! Y'all looking for that good-good? Step inside, step inside!" },
+  {
+    if: 'foreheadLoser', // lost the chugging contest in Scene 2
+    steps: [
+      { who: 'dulbers', mood: 'grin', line: '…"Loser"? Says so right on your forehead, my boy.' },
+      { who: 'lykor', mood: 'angry', line: "Don't." },
+    ],
+  },
+  {
+    if: 'lykorDethroned', // Skorn took the goblins' worship in Scene 2
+    steps: [
+      { who: 'skorn', mood: 'smug', line: 'Make way. Purple god of the goblins, coming through.' },
+      { who: 'lykor', mood: 'angry', line: 'You was a god for five minutes, bro.' },
+    ],
+  },
 
   { do: 'enterShop' },
   { do: 'showPill' },
   { who: 'dulbers', line: 'Freshest metocy in Caelid. Little blue ovals. Hand-picked. By hand. My hand.' },
+  {
+    if: 'skornKing', // Skorn was left behind as the goblins' Purple King
+    steps: [
+      { do: 'skornBurstsIn' },
+      { who: 'skorn', mood: 'angry', line: 'THEY KICKED ME OUT.' },
+      { who: 'lykor', mood: 'shocked', line: 'Already??' },
+      { who: 'skorn', mood: 'angry', line: 'Apparently a king ain\'t supposed to eat the throne.' },
+      { who: 'xylo', mood: 'unimpressed', line: 'You ate the throne.' },
+      { who: 'skorn', mood: 'smug', line: 'Some of it.' },
+    ],
+  },
   { who: 'lykor', line: 'How much?' },
   { who: 'dulbers', mood: 'grin', line: "For y'all? First one's free." },
   { who: 'xylo', mood: 'unimpressed', line: 'Nothing is free. Except prophecy. And even that got a subscription now.' },

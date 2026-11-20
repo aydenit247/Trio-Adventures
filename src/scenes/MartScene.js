@@ -24,6 +24,7 @@ export default class MartScene extends StageScene {
     const xylo = this.makeChar('xylo', 1450, 566, { h: 330 });
     const lykor = this.makeChar('lykor', 1450, 560, { h: 325 });
     const skorn = this.makeChar('skorn', 1450, 580, { h: 350 });
+    if (this.registry.get('skornKing')) skorn.setVisible(false); // still with the goblins, for now
     // Goblin entourage (only if they came along in Scene 2)
     this.allies = [];
     if (this.registry.get('goblinAllies')) {
@@ -49,9 +50,14 @@ export default class MartScene extends StageScene {
     this.finishStage();
     this.dialogue.play(SCENE3, this.baseHooks({
       enterParty: () => Promise.all([
-        this.walk(xylo, 720, 2), this.walk(lykor, 900, 2.1), this.walk(skorn, 1090, 2.2),
+        this.walk(xylo, 720, 2), this.walk(lykor, 900, 2.1),
+        this.registry.get('skornKing') ? Promise.resolve() : this.walk(skorn, 1090, 2.2),
         ...this.allies.map((g, i) => this.walk(g, [1190, 1250, 1130][i], 2.4)),
-      ]).then(() => [xylo, lykor, skorn, ...this.allies].forEach((c) => c.img.setFlipX(true))),
+      ]).then(() => {
+        [xylo, lykor, skorn, ...this.allies].forEach((c) => c.img.setFlipX(true));
+        // Still has the goblins' writing on his forehead
+        if (this.registry.get('foreheadLoser')) this.charLabel(lykor, 'METOCY MART, EAST. LOSER.').setAlpha(1);
+      }),
       showSign: async () => {
         Sfx.play('sparkle');
         await this.tweenP({ targets: this.sign, alpha: 1, duration: 500 });
@@ -68,6 +74,14 @@ export default class MartScene extends StageScene {
       },
       enterShop: () => this.enterShop(),
       showPill: () => this.showPill(),
+      skornBurstsIn: async () => {
+        Sfx.play('door'); Sfx.play('boom');
+        this.cameras.main.shake(300, 0.01);
+        skorn.setPosition(1400, 585).setVisible(true).setAlpha(1);
+        await this.walk(skorn, 1165, 1.4);
+        skorn.img.setFlipX(true);
+        await this.showLabel(this.charLabel(skorn, 'The Purple King (Former)'));
+      },
       takeIt: async () => {
         if (this.pill) {
           this.tweens.add({ targets: [this.pill, this.pillGlow, this.pillLabel], alpha: 0, scale: 0.2, duration: 400 });
@@ -102,7 +116,7 @@ export default class MartScene extends StageScene {
     this.dulbers.setPosition(470, 565).img.setFlipX(false);
     this.chars.xylo.setPosition(860, 570);
     this.chars.lykor.setPosition(1010, 562);
-    this.chars.skorn.setPosition(1165, 585);
+    if (!this.registry.get('skornKing')) this.chars.skorn.setPosition(1165, 585);
     this.allies.forEach((g, i) => g.setPosition([745, 805, 680][i], [622, 628, 618][i]));
     Object.values(this.chars).forEach((c) => { if (c !== this.dulbers) c.img.setFlipX(true); });
     // Candle glows

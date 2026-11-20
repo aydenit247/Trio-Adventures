@@ -8,7 +8,9 @@ export default class GoblinScene extends StageScene {
 
   create() {
     this.nextScene = 'Mart';
-    this.registry.set('goblinAllies', false); // set again if the goblins tag along
+    // Story flags this scene can set (they change later scenes)
+    ['goblinAllies', 'skornKing', 'chugWon', 'lykorDethroned', 'foreheadLoser'].forEach((f) => this.registry.set(f, false));
+    this.registry.set('inv_beer', 0);
     this.setupStage({ light: 'day' });
     Sfx.startLoop('village');
 
@@ -48,6 +50,19 @@ export default class GoblinScene extends StageScene {
       crown: () => this.crown(),
       goblinsBlock: () => this.goblinsBlock(),
       beezy: () => this.beezy(),
+      giftBeezy: () => this.giftBeezy(),
+      chugGame: async () => {
+        const won = await this.mashGame({
+          title: 'BEEZY CHUG-OFF', hint: 'Mash SPACE (or click) to chug!',
+          you: { portrait: 'lykor', label: 'Lykor' },
+          rival: { portrait: 'chief', label: 'Chief Bogdrinker (400-year champ)' },
+        });
+        this.registry.set('chugWon', won);
+      },
+      passOut: () => this.passOut(),
+      wakeOutside: () => this.wakeOutside(),
+      crownSkorn: () => this.crownSkorn(),
+      dethrone: () => this.dethrone(),
       sneak: () => this.sneak(),
       sneakCaught: () => { Sfx.play('dramatic'); this.lykor.img.setFlipX(false); this.hop(this.lykor, 20); return this.wait(400); },
       sneakReturn: () => this.sneakReturn(),
@@ -111,28 +126,77 @@ export default class GoblinScene extends StageScene {
 
   async crown() {
     Sfx.play('sparkle');
-    const l = this.charLabel(this.lykor, 'King (Temporary)');
-    await this.showLabel(l);
+    this.kingLabel = this.charLabel(this.lykor, 'King (Temporary)');
+    await this.showLabel(this.kingLabel);
+  }
+
+  async giftBeezy() {
+    Sfx.play('grab');
+    const mugs = [0, 1, 2].map((i) => {
+      const m = this.add.image(900 + i * 70, 260, 'item_beer').setDepth(45).setAlpha(0);
+      m.setScale(70 / m.width);
+      return m;
+    });
+    await Promise.all(mugs.map((m, i) => this.tweenP({ targets: m, alpha: 1, y: 230, duration: 300, delay: i * 120, ease: 'Back.out' })));
+    await this.wait(400);
+    await Promise.all(mugs.map((m) => this.tweenP({ targets: m, x: this.lykor.x, y: this.lykor.y - 200, scale: m.scale * 0.4, alpha: 0, duration: 450 })));
+    mugs.forEach((m) => m.destroy());
+    this.registry.set('inv_beer', (this.registry.get('inv_beer') || 0) + 3);
+  }
+
+  async passOut() {
+    Sfx.play('boom');
+    if (this.beezyMug) this.beezyMug.setVisible(false);
+    await this.tweenP({ targets: this.lykor, angle: -88, y: this.lykor.y + 40, duration: 500, ease: 'Bounce.out' });
+    this.cameras.main.fade(700, 0, 0, 0, true);
+    await this.wait(900);
+  }
+
+  async wakeOutside() {
+    this.registry.set('foreheadLoser', true);
+    this.bg.destroy();
+    this.bg = this.placeBg('bg_goblin_village');
+    this.goblins.forEach((g) => g.setVisible(false));
+    this.chief.setVisible(false);
+    if (this.kingLabel) this.kingLabel.destroy();
+    this.chars.xylo.setPosition(260, 570); this.chars.skorn.setPosition(1000, 585);
+    this.lykor.setAngle(0).setPosition(640, 565);
+    this.cameras.main.fadeIn(800, 0, 0, 0);
+    await this.wait(800);
+    await this.showLabel(this.charLabel(this.lykor, 'METOCY MART, EAST. LOSER.'));
+  }
+
+  async crownSkorn() {
+    this.registry.set('skornKing', true);
+    Sfx.play('choir');
+    const skorn = this.chars.skorn;
+    await this.showLabel(this.charLabel(skorn, 'The Purple King (Downgrade)'));
+    if (this.kingLabel) this.kingLabel.setText('King (Former)');
+    this.goblins.forEach((g) => { this.setCharTex(g, 'char_goblin_kneel', 150); g.img.setFlipX(g.x > skorn.x); });
+  }
+
+  async dethrone() {
+    this.registry.set('lykorDethroned', true);
+    Sfx.play('dramatic');
+    if (this.kingLabel) this.kingLabel.setText('Lykor (Dethroned)');
+    this.mugOwner = this.chars.skorn; // the beezy goes to Skorn
+    this.hop(this.chars.skorn, 14);
+    await this.wait(400);
   }
 
   // A goblin brings Lykor a mug of beer
   async beezy() {
-    const l = this.lykor;
-    const mug = this.add.container(l.x + 300, l.y - 150).setDepth(40).setAlpha(0);
-    const g = this.add.graphics();
-    g.fillStyle(0x6b4423).fillRoundedRect(-18, -24, 36, 48, 5);          // wooden mug
-    g.fillStyle(0xe8a317, 0.95).fillRect(-14, -16, 28, 36);             // beer
-    g.fillStyle(0xfff6dc).fillEllipse(-6, -24, 22, 14).fillEllipse(8, -26, 22, 16); // foam
-    g.lineStyle(5, 0x6b4423).strokeEllipse(24, 0, 18, 26);              // handle
-    mug.add(g);
-    const tag = this.label(0, -52, 'Beezy (Beer)', 15);
-    mug.add(tag);
+    const mug = this.add.container(this.lykor.x + 300, this.lykor.y - 150).setDepth(40).setAlpha(0);
+    const img = this.add.image(0, 0, 'item_beer');
+    img.setScale(64 / img.width);
+    mug.add([img, this.label(0, -48, 'Beezy (Beer)', 15)]);
+    this.mugOwner = this.lykor;
     Sfx.play('pop');
-    await this.tweenP({ targets: mug, alpha: 1, x: l.x + 70, y: l.y - 190, duration: 600, ease: 'Back.out' });
+    await this.tweenP({ targets: mug, alpha: 1, x: this.lykor.x + 70, y: this.lykor.y - 190, duration: 600, ease: 'Back.out' });
     Sfx.play('sparkle');
-    this.hop(l, 12);
+    this.hop(this.lykor, 12);
     this.beezyMug = mug;
-    const follow = () => { if (mug.active) mug.setPosition(l.x + 70, l.y - 190); };
+    const follow = () => { if (mug.active && this.mugOwner) mug.setPosition(this.mugOwner.x + 70, this.mugOwner.y - 190); };
     this.events.on('postupdate', follow);
     this.events.once('shutdown', () => this.events.off('postupdate', follow));
     await this.wait(300);
@@ -179,7 +243,8 @@ export default class GoblinScene extends StageScene {
   }
 
   async leave() {
-    const party = [this.chars.xylo, this.lykor, this.chars.skorn];
+    const party = [this.chars.xylo, this.lykor];
+    if (!this.registry.get('skornKing')) party.push(this.chars.skorn); // the Purple King stays behind
     if (this.registry.get('goblinAllies')) party.push(...this.goblins, this.chief);
     party.forEach((c, i) => this.time.delayedCall(i * 250, () => this.walk(c, 1450, 2)));
     await this.wait(1500);

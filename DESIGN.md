@@ -59,11 +59,16 @@ Title menu: Continue Story (Scene 2), Metocy Mart, The Pass, Replay Intro.
    → **Title card: "Trio Adventures" by Ebain.**
 2. **Goblin Village — play as Lykor.** The goblins see Lykor and start **worshipping** him ("the Mogging Elf"),
    and the party asks them where the metocy is. The chief will only tell him once he's crowned. On the junk
-   throne the goblins bring him beer ("beezy"), then reveal the catch: they'll only tell if he stays king forever. **Player choice, three different results:**
-   - **Royal speech** ("My chopped goblins…" / "Bet dat.") → the chief just gives the directions.
-   - **Sneak out** → the goblins tiptoe right behind him, then come along to Metocy Mart as an entourage
-     (story flag `goblinAllies`; they show up and help in Scene 3).
-   - **Let Skorn "negotiate"** → Diddy Slap → first fight → the goblins worship Skorn too → directions.
+   throne the goblins bring him beer ("beezy"), then reveal the catch: they'll only tell if he stays king forever. **Player choice, five different results:**
+   - **Royal speech** ("My chopped goblins…" / "Bet dat.") → directions + **Beezy ×3** (healing item).
+   - **Chugging contest** vs. Chief Bogdrinker (button-mash minigame). Win → directions, the goblins call him a
+     legend. Lose → he passes out and wakes up outside with "METOCY MART, EAST. LOSER." on his forehead
+     (it's still there in Scene 3, and Dulbers clowns him for it). Flags: `chugWon`, `foreheadLoser`.
+   - **Offer Skorn as king** → the goblins crown "The Purple King," the party leaves without him, and he bursts
+     into Metocy Mart mid-scene: "THEY KICKED ME OUT." Flag: `skornKing`.
+   - **Sneak out** → the goblins tag along to Metocy Mart as an entourage and help in the fight. Flag: `goblinAllies`.
+   - **Let Skorn "negotiate"** → real fight → the goblins worship Skorn, Lykor is dethroned and loses his beezy
+     to Skorn (callback in Scene 3). Flag: `lykorDethroned`.
    The goblin chief is **Chief Bogdrinker**.
 3. **Metocy Mart — play as Xylo.** Shop sign: **"For all yo metocy needs n shi folk."**
    "Hey guys, it's your boy Dulbers Frint!" The party buys and takes his metocy… it's fake.

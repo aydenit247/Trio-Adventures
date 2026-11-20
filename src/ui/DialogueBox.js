@@ -12,6 +12,7 @@ import Sfx from '../audio/Sfx.js';
 //   { do: 'hookName' }                              calls hooks.hookName() and waits if it returns a Promise
 //   { choice: [{ text: '...', steps: [...] }, ...] }
 //   { if: 'goblinAllies', steps: [...] }          only plays if that story flag is set
+//   { ifNot: 'skornKing', steps: [...] }          only plays if that flag is NOT set
 export default class DialogueBox {
   constructor(scene) {
     this.scene = scene;
@@ -90,8 +91,9 @@ export default class DialogueBox {
         if (r && typeof r.then === 'function') await r;
         continue;
       }
-      if (s.if) { // conditional block: { if: 'flag', steps: [...] }
-        if (this.hooks.check && this.hooks.check(s.if)) this.queue = (s.steps || []).concat(this.queue);
+      if (s.if || s.ifNot) { // conditional block: { if: 'flag', steps } or { ifNot: 'flag', steps }
+        const on = !!(this.hooks.check && this.hooks.check(s.if || s.ifNot));
+        if (s.if ? on : !on) this.queue = (s.steps || []).concat(this.queue);
         continue;
       }
       if (s.choice) { this.root.setVisible(true); this.showChoice(s.choice); return; }
@@ -168,9 +170,10 @@ export default class DialogueBox {
     this.nameTag.setVisible(false); this.arrow.setVisible(false);
     this.body.setText('');
     this.choosing = { options, sel: 0 };
+    const many = options.length > 4; // tighter list so five options fit the box
     options.forEach((o, i) => {
-      const t = this.scene.add.text(80, this.boxY + 28 + i * 42, '', {
-        fontFamily: 'Nunito', fontSize: '28px', color: '#f4efff',
+      const t = this.scene.add.text(80, this.boxY + (many ? 14 : 28) + i * (many ? 31 : 42), '', {
+        fontFamily: 'Nunito', fontSize: many ? '24px' : '28px', color: '#f4efff',
       }).setInteractive({ useHandCursor: true });
       t.on('pointerover', () => { this.choosing.sel = i; this.renderChoices(); });
       t.on('pointerdown', () => this.pickChoice(i));

@@ -260,6 +260,56 @@ export default class StageScene extends Phaser.Scene {
     });
   }
 
+  // Button-mash race: player mashes Space/click to fill their bar before the rival's fills on its own.
+  // Resolves true if the player wins.
+  mashGame({ title, hint, you, rival, perPress = 4.5, rivalRate = 24 }) {
+    return new Promise((resolve) => {
+      const { width, height } = this.scale;
+      const D = 980;
+      const ui = [];
+      const add = (o) => { ui.push(o.setDepth(D)); return o; };
+      add(this.add.rectangle(0, 0, width, height, 0x000000, 0.72).setOrigin(0));
+      add(this.add.text(width / 2, 120, title, { fontFamily: 'Cinzel', fontSize: '50px', fontStyle: '900', color: '#ffcf4a', stroke: '#000', strokeThickness: 6 }).setOrigin(0.5));
+      add(this.add.text(width / 2, 178, hint, { fontFamily: 'Nunito', fontSize: '22px', color: '#f3e3b0' }).setOrigin(0.5));
+      const bar = (y, who, label, color) => {
+        add(this.add.image(250, y, `portrait_${who}`).setDisplaySize(96, 96));
+        add(this.add.text(320, y - 44, label, { fontFamily: 'Nunito', fontSize: '22px', fontStyle: '900', color: '#f4efff' }));
+        add(this.add.rectangle(320, y + 6, 700, 34, 0x1a1324).setOrigin(0, 0.5).setStrokeStyle(2, 0xe8b923));
+        return add(this.add.rectangle(322, y + 6, 0, 30, color).setOrigin(0, 0.5));
+      };
+      const youBar = bar(300, you.portrait, you.label, 0xe8a317);
+      const rivBar = bar(440, rival.portrait, rival.label, 0x6aa84f);
+      const count = add(this.add.text(width / 2, 560, '3', { fontFamily: 'Cinzel', fontSize: '64px', fontStyle: '900', color: '#ffffff' }).setOrigin(0.5));
+      let youP = 0, rivP = 0, live = false, over = false;
+      const press = () => {
+        if (!live || over) return;
+        youP = Math.min(100, youP + perPress);
+        if (Math.random() < 0.35) Sfx.play('gulp');
+        this.tweens.add({ targets: youBar, scaleY: 1.25, yoyo: true, duration: 60 });
+      };
+      this.input.keyboard.on('keydown-SPACE', press);
+      this.input.on('pointerdown', press);
+      const end = (won) => {
+        over = true; live = false;
+        this.input.keyboard.off('keydown-SPACE', press);
+        this.input.off('pointerdown', press);
+        Sfx.play(won ? 'confirm' : 'boom');
+        count.setText(won ? 'YOU WIN' : 'YOU LOSE').setColor(won ? '#ffcf4a' : '#ff6a4a');
+        this.time.delayedCall(1300, () => { ui.forEach((o) => o.destroy()); resolve(won); });
+      };
+      [['3', 0], ['2', 700], ['1', 1400], ['CHUG!', 2100]].forEach(([t, ms]) => this.time.delayedCall(ms, () => {
+        count.setText(t); Sfx.play(t === 'CHUG!' ? 'sparkle' : 'tick');
+        if (t === 'CHUG!') live = true;
+      }));
+      const tick = this.time.addEvent({ delay: 50, loop: true, callback: () => {
+        if (!live || over) return;
+        rivP = Math.min(100, rivP + (rivalRate / 20) * (0.6 + Math.random() * 0.8));
+        youBar.width = 6.96 * youP; rivBar.width = 6.96 * rivP;
+        if (youP >= 100) { tick.remove(); end(true); } else if (rivP >= 100) { tick.remove(); end(false); }
+      } });
+    });
+  }
+
   // Placeholder until the combat system exists
   fightPlaceholder(title) {
     return new Promise((resolve) => {

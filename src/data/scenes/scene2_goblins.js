@@ -2,13 +2,13 @@
 // Every line here is a Claude DRAFT in Ebain's style — keep, edit or replace any of them.
 // Format notes are at the top of scene1_the_map.js.
 
-// Shared ending once the goblins give up the directions (choices A and C)
-const OUTRO_TAIL = [
+// Shared goodbye (choices A, B-win and E)
+const GOODBYE = [
   { who: 'xylo', mood: 'unimpressed', line: 'They… sell it?' },
   { who: 'chief', line: 'For all yo metocy needs.' },
   { do: 'goblinsCry' },
-  { who: 'goblins', line: '*sobbing* BYE MOGGING ELF!! COME BACK HARDER!!' },
-  { who: 'xylo', mood: 'smug', line: "On my Dragon Mama, I'm leading from here. Lykor too famous now." },
+  { who: 'goblins', line: '*sobbing* BYE!! COME BACK HARDER!!' },
+  { who: 'xylo', mood: 'smug', line: "On my Dragon Mama, I'm leading from here." },
   { do: 'leave' },
 ];
 
@@ -51,25 +51,80 @@ export const SCENE2 = [
   { who: 'narrator', line: 'How does Lykor get out of this?' },
   {
     choice: [
-      // A — just get the directions
+      // A — royal speech → directions + beezy for the road (healing item)
       {
         text: 'Give a royal speech',
         steps: [
           { who: 'lykor', mood: 'smug', line: 'My chopped goblins. My loyal chopped goblins.' }, // Ebain
-          { who: 'lykor', mood: 'smug', line: "Y'all need to quit being OD and let me dip on a mf, and that's on some type shi. I'll spin the block on y'all and bring u some metocy n shi, trust. Y'all type coo?" }, // Ebain
+          { who: 'lykor', mood: 'smug', line: "Y'all need to quit being OD and let me dip on a mf, and that's on some type shi. I'll spin the block on y'all and bring u some metocy n shi, trust. Y'all type coo." }, // Ebain
           { who: 'chief', line: 'Bet dat.' }, // Ebain
-          { who: 'chief', line: 'The metocy is sold at the Metocy Mart, east of here. Bring us back some, Mogging Elf.' },
-          ...OUTRO_TAIL,
+          { who: 'chief', line: "Aight, so if you could keep walking doe, over there, on some east shit. As far as I know, that's the best metocy a goblin like me could get his hands on." }, // Ebain
+          { who: 'chief', line: 'Here go some beezy, folk. Take it for the road.' }, // Ebain
+          { do: 'giftBeezy' },
+          { who: 'narrator', line: 'Lykor got: Beezy ×3 (heals)' },
+          { who: 'lykor', mood: 'flattered', line: "Y'all real for this. Real ones." },
+          { who: 'skorn', mood: 'angry', line: 'Why HE get the beezy?' },
+          ...GOODBYE,
         ],
       },
-      // B — the goblins come along to Metocy Mart
+      // B — chugging contest (button-mash minigame)
+      {
+        text: 'Challenge the chief to a chugging contest',
+        steps: [
+          { who: 'lykor', mood: 'smug', line: "I bet your ass can't beat me in a beezy contest." }, // Ebain
+          { who: 'chief', line: '*gasp* Nobody has out-drunk Bogdrinker in 400 years.' },
+          { who: 'skorn', mood: 'unimpressed', line: "Bro literally chugs bogs and swamps. It's in his NAME, dumbass." }, // Ebain's idea
+          { do: 'chugGame' },
+          {
+            if: 'chugWon',
+            steps: [
+              { who: 'chief', line: '…The Mogging Elf… out-drank… BOGDRINKER?' },
+              { who: 'goblins', line: 'LEGEND! LEGEND! LEGEND!' },
+              { who: 'chief', line: '*hic* The Metocy Mart. East. Go before I cry.' },
+              ...GOODBYE,
+            ],
+          },
+          {
+            ifNot: 'chugWon',
+            steps: [
+              { do: 'passOut' },
+              { who: 'narrator', line: 'Lykor passes out.' },
+              { do: 'wakeOutside' },
+              { who: 'narrator', line: 'Lykor wakes up outside the village. Something is written on his forehead.' },
+              { who: 'xylo', mood: 'unimpressed', line: 'On my Dragon Mama… it says "METOCY MART, EAST. LOSER."' },
+              { who: 'lykor', mood: 'angry', line: "…They ain't have to add the last part." },
+              { who: 'xylo', mood: 'smug', line: "I'm leading from here." },
+              { do: 'leave' },
+            ],
+          },
+        ],
+      },
+      // C — offer Skorn as king → Skorn gets left behind (bursts into Metocy Mart later)
+      {
+        text: 'Offer Skorn as the new king',
+        steps: [
+          { who: 'lykor', mood: 'smug', line: "Aight, real talk. Take HIM instead. He's purple. That's basically royal." },
+          { who: 'skorn', mood: 'confused', line: 'Say what now?' },
+          { who: 'chief', line: '…A purple king…' },
+          { who: 'goblins', line: 'PURPLE KING! PURPLE KING!' },
+          { do: 'crownSkorn' },
+          { who: 'narrator', line: 'The goblins crown Skorn.' },
+          { who: 'skorn', mood: 'smug', line: 'Wait, dis bih tuff lowkey. I could fw this.' }, // Ebain
+          { who: 'chief', line: 'The Metocy Mart is east. Now leave, Mogging Elf. We have a new god.' },
+          { who: 'lykor', line: 'Damn. That was easy. Too easy.' },
+          { who: 'xylo', mood: 'unimpressed', line: "We are leaving him here, aren't we." },
+          { who: 'lykor', mood: 'smug', line: 'Yup.' },
+          { do: 'leave' },
+        ],
+      },
+      // D — sneak out → the goblins tag along to Metocy Mart
       {
         text: 'Sneak out',
         steps: [
           { do: 'sneak' },
-          { who: 'lykor', thought: true, line: "Slow… quiet… they ain't even notice—" },
+          { who: 'lykor', thought: true, line: 'Slow… quiet…' }, // Ebain
           { do: 'sneakCaught' },
-          { who: 'lykor', mood: 'shocked', line: "WHY Y'ALL RIGHT BEHIND ME." },
+          { who: 'lykor', mood: 'shocked', line: "What the fuck is y'all doing?" }, // Ebain
           { who: 'goblin', line: 'We go where the Mogging Elf goes.' },
           { who: 'chief', line: 'The Mogging Elf seeks the metocy? Then the goblins will take him there OURSELVES. To the Metocy Mart!' },
           { who: 'goblins', line: 'FIELD TRIP! FIELD TRIP! FIELD TRIP!' },
@@ -79,7 +134,7 @@ export const SCENE2 = [
           { do: 'leave' },
         ],
       },
-      // C — the first fight, then the directions
+      // E — Skorn "negotiates" → real fight → the goblins worship Skorn, Lykor gets dethroned
       {
         text: 'Let Skorn "negotiate"',
         steps: [
@@ -89,11 +144,13 @@ export const SCENE2 = [
           { who: 'narrator', line: 'Skorn Diddy Slaps the nearest goblin.' },
           { do: 'fightGoblins' },
           { who: 'chief', line: '…The purple one hits so hard. So beautifully.' },
-          { who: 'goblins', line: 'WE WORSHIP THE PURPLE ONE TOO!' },
-          { do: 'skornRespect' },
+          { who: 'goblins', line: 'WE WORSHIP THE PURPLE ONE NOW!' },
+          { who: 'chief', line: 'The Mogging Elf is… dethroned. Give the beezy to the purple one.' },
+          { do: 'dethrone' },
+          { who: 'lykor', mood: 'angry', line: "Y'all DEADASS?" },
           { who: 'skorn', mood: 'smug', line: 'Finally. Somebody in this forest got taste.' },
-          { who: 'chief', line: '…Fine. The metocy is sold at the Metocy Mart, east of here.' },
-          ...OUTRO_TAIL,
+          { who: 'chief', line: "The Metocy Mart is east. Purple one, come back anytime. Elf… don't." },
+          ...GOODBYE,
         ],
       },
     ],
