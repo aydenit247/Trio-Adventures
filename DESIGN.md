@@ -99,14 +99,18 @@ encounter keeps at least one option that leads to a fight.
     dust-cloud brawl → Dulbers is never seen again (dead, off-screen) → the goblins go home.
   - Skorn pockets midtocy in every path except C (flag `hasMidtocy`, used for the Scene 4 throw option).
   - Flags: `hasMidtocy`, `dulbersEscaped`, `dulbersDead`.
-- **Scene 4 — getting past Diddy Chud Giant:**
-  - **A. Skorn throws something** (leftover midtocy) → wake-up cutscene → fight, but the giant is tripping (chaotic, a bit easier).
-  - **B. Sneak across him** → interactive sneaking with a **snore meter** (don't wake him). Success: skip the fight and
-    steal his snacks (Chipotle Bowls). Fail: he wakes up enraged → harder fight.
-  - **C. Read him Deloye Lore** → an **interactive lore-reading session** (silly mechanic, not mic). Success: he sinks
-    deeper asleep and rolls over, path opens. Fail: he wakes → fight.
-  - **D. Fight him** → the full boss fight (guaranteed combat option).
-  - **E. Secret, only if the goblins came along:** Chief Bogdrinker is his cousin and yells at him to move.
+- **Scene 4 — getting past Diddy Chud Giant (built):**
+  - **A. Skorn throws the midtocy** (only if he has it) → wake cutscene → fight, giant tripping.
+  - **B. Sneak across him** → **Snore Sneak** minigame: hold → / Space to move only while he snores (yellow warning
+    before he stops, short grace window); moving during the quiet inhale fills the snore meter. Win: no fight +
+    Chipotle Bowls ×2. Lose: enraged fight.
+  - **C. Xylo reads him Deloye Lore** → **Lore Session** minigame: study the lore page (`src/data/deloyeLore.js`), then
+    pick the **accurate** continuation of each line. Diddy Chud is secretly a lore nerd — accurate lore soothes him,
+    wrong lore wakes him ("THAT AIN'T CANON."). Win: he rolls over. Lose: fight.
+  - **D. Fight him** → "Aight, fuck allat. WAKE UP, CHUD!" → full boss fight.
+  - **E. Secret (goblins still with you):** Chief Bogdrinker is his cousin and makes him move.
+  - After any fight: "Okay, okay, okay, my fault. I ain't know y'all was some crashouts." / Lykor: "Foolish.."
+  - Chapter ends with Mattias's voice, then the **End of Chapter 1** card.
 
 ## Combat
 

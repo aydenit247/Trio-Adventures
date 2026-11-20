@@ -165,6 +165,10 @@ class SfxEngine {
   sfx_tiptoe() {
     for (let i = 0; i < 4; i++) this.tone({ type: 'triangle', freq: 900 + (i % 2) * 200, dur: 0.04, vol: 0.05, when: i * 0.18 });
   }
+  sfx_snore() { // big rumbling giant snore
+    this.noise({ dur: 1.4, vol: 0.35, type: 'lowpass', f0: 260, f1: 140, q: 3, attack: 0.5 });
+    this.tone({ type: 'sawtooth', freq: 55, freqEnd: 48, dur: 1.4, vol: 0.12, attack: 0.5, lowpass: 300 });
+  }
   sfx_door() { this.noise({ dur: 0.5, vol: 0.12, type: 'bandpass', f0: 500, f1: 900, q: 6 }); this.tone({ type: 'square', freq: 1320, dur: 0.12, vol: 0.04, when: 0.05 }); }
   sfx_titleSting() {
     const chord = [146.8, 220, 293.7, 349.2]; // D minor

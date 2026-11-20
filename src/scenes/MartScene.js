@@ -9,7 +9,7 @@ export default class MartScene extends StageScene {
   create() {
     this.nextScene = 'Pass';
     // Story flags this scene can set
-    ['hasMidtocy', 'dulbersEscaped', 'dulbersDead'].forEach((f) => this.registry.set(f, false));
+    ['hasMidtocy', 'dulbersEscaped', 'dulbersDead', 'skornTripped'].forEach((f) => this.registry.set(f, false));
     this.setupStage({ light: 'moon' });
     Sfx.startLoop('night');
 
@@ -161,6 +161,7 @@ export default class MartScene extends StageScene {
   }
 
   async tripStart() {
+    this.registry.set('skornTripped', true);
     Sfx.play('dramatic');
     this.cameras.main.flash(500, 180, 80, 255);
     await this.swapBg('bg_mart_interior_trip', 900);
@@ -200,6 +201,7 @@ export default class MartScene extends StageScene {
 
   // Only Skorn trips: he wobbles in a purple haze, the rest of the screen stays sober
   async skornTrip() {
+    this.registry.set('skornTripped', true);
     const skorn = this.chars.skorn;
     Sfx.play('dramatic');
     this.setCharTex(skorn, 'char_skorn_tweaking'); skorn.img.setFlipX(true);
