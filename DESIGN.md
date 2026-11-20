@@ -114,6 +114,8 @@ Mostly the same goofy turn-based combat, plus bonus layers:
 - **Metocy:** glowing blue capsule (`assets/items/metocy.png`), shown floating over the counter as "Metocy (100% Real)"
 - **Midtocy:** cracked, moldy purple capsule (`assets/items/midtocy.png`), revealed big on screen when they realize it's fake
 - Both are ready to use as inventory icons once items/combat exist.
+- **Healing items:** **Beer** ("beezy") and **Chipotle Bowls** (replacing bread/soup).
+- **Dice:** wooden d6 with gold pips (`assets/items/dice.png`) for the "on some dice shi" overlay.
 
 ## Labels (running joke)
 
