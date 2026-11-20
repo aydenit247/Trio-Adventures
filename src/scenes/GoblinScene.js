@@ -67,7 +67,7 @@ export default class GoblinScene extends StageScene {
       sneakCaught: () => { Sfx.play('dramatic'); this.lykor.img.setFlipX(false); this.hop(this.lykor, 20); return this.wait(400); },
       sneakReturn: () => this.sneakReturn(),
       skornSlap: () => this.skornSlap(),
-      fightGoblins: () => this.fightPlaceholder('Skorn vs. The Goblins'),
+      fightGoblins: () => this.fight('goblins'),
       skornRespect: () => this.showLabel(this.charLabel(this.chars.skorn, 'Skorn (Respected now)')),
       goblinsJoin: () => {
         this.registry.set('goblinAllies', true);

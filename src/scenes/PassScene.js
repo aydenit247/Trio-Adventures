@@ -68,9 +68,9 @@ export default class PassScene extends StageScene {
       stealBowls: () => this.stealBowls(),
       sneakGame: async () => this.registry.set('sneakWon', await this.sneakGame()),
       loreGame: async () => this.registry.set('loreWon', await this.loreGame()),
-      fightGiant: () => this.fightPlaceholder('BOSS: Diddy Chud Giant'),
-      fightGiantEnraged: () => this.fightPlaceholder('BOSS: Diddy Chud Giant (ENRAGED)'),
-      fightGiantTripping: () => this.fightPlaceholder('BOSS: Diddy Chud Giant (Tripping)'),
+      fightGiant: () => this.fight('giant', { allies: this.allies.length > 0 }),
+      fightGiantEnraged: () => this.fight('giant', { enraged: true, allies: this.allies.length > 0 }),
+      fightGiantTripping: () => this.fight('giant', { enemyTripping: true, allies: this.allies.length > 0 }),
       leaveRight: async () => {
         [...this.party, ...this.allies].forEach((c, i) => this.time.delayedCall(i * 180, () => this.walk(c, 1500, 1.8)));
         await this.wait(1800);

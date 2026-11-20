@@ -310,29 +310,21 @@ export default class StageScene extends Phaser.Scene {
     });
   }
 
-  // Placeholder until the combat system exists
-  fightPlaceholder(title) {
+  // Real turn-based combat: pauses this scene, runs CombatScene on top, resolves when the party wins
+  fight(key, mods = {}) {
     return new Promise((resolve) => {
-      const { width, height } = this.scale;
       Sfx.play('boom');
       this.cameras.main.flash(300, 255, 80, 60);
-      const shade = this.add.rectangle(0, 0, width, height, 0x000000, 0.75).setOrigin(0).setDepth(970);
-      const t1 = this.add.text(width / 2, height / 2 - 60, `⚔  ${title}  ⚔`, {
-        fontFamily: 'Cinzel', fontSize: '46px', fontStyle: '900', color: '#ff6a4a', stroke: '#000', strokeThickness: 6,
-      }).setOrigin(0.5).setDepth(971);
-      const t2 = this.add.text(width / 2, height / 2 + 10, '[ COMBAT GOES HERE ]\n(on some combat shi — coming soon)', {
-        fontFamily: 'Nunito', fontSize: '24px', color: '#f3e3b0', align: 'center',
-      }).setOrigin(0.5).setDepth(971);
-      const t3 = this.add.text(width / 2, height / 2 + 110, 'Press Space — the party wins (for now)', {
-        fontFamily: 'Nunito', fontSize: '18px', color: '#a49cc4',
-      }).setOrigin(0.5).setDepth(971);
-      const done = () => {
-        this.input.keyboard.off('keydown-SPACE', done); this.input.off('pointerdown', done);
-        Sfx.play('confirm');
-        [shade, t1, t2, t3].forEach((o) => o.destroy());
-        resolve();
-      };
-      this.time.delayedCall(500, () => { this.input.keyboard.on('keydown-SPACE', done); this.input.on('pointerdown', done); });
+      this.time.delayedCall(350, () => {
+        const bg = this.bg && this.bg.texture ? this.bg.texture.key : null;
+        this.scene.launch('Combat', { fight: key, mods, bg, onDone: () => {
+          this.scene.resume();
+          this.cameras.main.fadeIn(400, 0, 0, 0);
+          resolve();
+        } });
+        this.scene.bringToTop('Combat');
+        this.scene.pause();
+      });
     });
   }
 

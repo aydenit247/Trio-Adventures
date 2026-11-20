@@ -122,7 +122,11 @@ export default class MartScene extends StageScene {
       },
       revealMidtocy: () => this.revealMidtocy(),
       transform: () => this.transform(),
-      fightDulbers: () => this.fightPlaceholder(this.allies.length ? 'The Party (+ Goblins) vs. Dulbers Frint' : 'The Party vs. Dulbers Frint'),
+      fightDulbers: () => this.fight('dulbers', {
+        tripping: this.swirl ? 'party' : this.skornWobble ? 'skorn' : null,
+        allies: this.allies.length > 0,
+        party: this.chars.skorn.visible ? undefined : ['lykor', 'xylo'],
+      }),
       tripEnd: () => this.tripEnd(),
       dulbersVanish: async () => {
         Sfx.play('boom'); this.cameras.main.flash(300, 160, 90, 255);

@@ -49,8 +49,8 @@ Later chapters (not in the foundation yet): **Dulbmeethus** and others.
 ## Chapter 1 — scene list
 
 **Build status:** Scenes 1–3 are playable with real art. Scene 2–3 dialogue is mostly Claude DRAFT lines
-(marked `// DRAFT` in `src/data/scenes/`) waiting for Ebain's versions. Fights are placeholders until the
-combat system is built. **Scene 4 (The Pass)** is foundation-only: art and staging in place, dialogue slots empty.
+(marked `// DRAFT` in `src/data/scenes/`) waiting for Ebain's versions. All three fights use the real combat system
+(`src/scenes/CombatScene.js`, data in `src/data/combat.js`). **Scene 4 (The Pass)** is foundation-only: art and staging in place, dialogue slots empty.
 Title menu: Continue Story (Scene 2), Metocy Mart, The Pass, Replay Intro.
 
 
@@ -126,7 +126,24 @@ Each character has a **Main**, **Special** and **Bonus** move:
 | **Lykor** | **Hair Flip** | **Mog** — giga chad face blinds enemies with his beauty + damage | **"on some type shi"** — screams it, buffs everyone |
 | **Xylo** | **Eldritch Blast** | **Deloye Lore** — pulls out a huge book and reads at length about a vast universe (there is little to no actual lore); the godly energy damages the enemy | **Chud Out** — gets really big and sits on the enemy |
 
-Damage numbers, cooldowns and leveling curve: **TBD** (placeholders in `src/data/characters.js`).
+**Built.** Each turn a character picks Main / Special / Bonus / Items / Defend. Numbers live in `src/data/combat.js`.
+
+| | HP label | Main | Special (cooldown) | Bonus (cooldown) |
+|---|---|---|---|---|
+| **Skorn** 90 | HP (Hit Points) | Diddy Slap 14 | Crash Out: dice roll (3) | Throw Anything 10, random object (2) |
+| **Lykor** 70 | Aura | Hair Flip 10, 35% charm (enemy skips) | Mog 22 + blind (3) | "on some type shi": party +50% dmg, 2 turns (3) |
+| **Xylo** 75 | Lore Points | Eldritch Blast 13 | Deloye Lore 26 (3) | Chud Out 20 + enemy loses a turn, plays the video (4) |
+
+- **Crash Out dice:** 1 = hurts himself (-10), 2–3 = 18, 4–5 = 30, 6 = 40 (or the once-per-game 6-7).
+- **Defend:** half damage; a quarter from the giant's sit.
+- **Items:** Beezy heals 30, Chipotle Bowl heals 60 (from inventory flags). No items → 1 free Emergency Beezy.
+- **Fights:** Skorn vs 3 Goblins (Scene 2E) · Party vs Dulbers Frint (Scene 3A/B; Price Gouge 14, NO REFUNDS 8 to all,
+  Customer Service Voice heals 15) · BOSS Diddy Chud Giant 320 HP (Stomp 18, Ground Pound 12 to all, every 3rd turn he
+  telegraphs a SIT: 34 to everyone unless you Defend).
+- **Choices change fights:** tripping on midtocy (25% misfire / 20% crit), goblin backup (6 dmg every round), giant
+  enraged after a failed sneak (+25% HP, x1.35 dmg), giant tripping after the midtocy throw (30% he hurts himself or forgets).
+- **Leveling:** XP 30/60/100 per fight; levels at 50/120/220/350. Each level = +10% HP and damage.
+- **Lose:** "YOU GOT COOKED" → Space to retry the fight. **Win:** "VICTORY (on some winning shi)" + XP.
 
 ### Dice — "on some dice shi"
 
@@ -164,7 +181,6 @@ Mostly the same goofy turn-based combat, plus bonus layers:
 
 - **Metocy:** glowing blue capsule (`assets/items/metocy.png`), shown floating over the counter as "Metocy (100% Real)"
 - **Midtocy:** cracked, moldy purple capsule (`assets/items/midtocy.png`), revealed big on screen when they realize it's fake
-- Both are ready to use as inventory icons once items/combat exist.
 - **Healing items:** **Beer** ("beezy") and **Chipotle Bowls** (replacing bread/soup).
 - **Dice:** wooden d6 with gold pips (`assets/items/dice.png`) for the "on some dice shi" overlay.
 
@@ -181,7 +197,7 @@ Mostly the same goofy turn-based combat, plus bonus layers:
 ## Art & audio
 
 **Videos in the game:** map burn (Scene 1), Dulbers's demon transformation (green screen, Scene 3), Mattias
-appearing (green screen, Scene 4), the giant waking (Scene 4). Saved for combat: Xylo's Chud Out (green screen).
+appearing (green screen, Scene 4), the giant waking (Scene 4). Xylo's Chud Out (green screen) plays in combat (trimmed `xylo_chudout_short.mp4`).
 
 **Scene 1 art (live):** painted camp backgrounds (unlit + lit), full-body green-screen cutouts of the trio,
 and the map-burning cutscene video (`assets/video/map_burn.mp4`). Scene presentation style: **painted scenes

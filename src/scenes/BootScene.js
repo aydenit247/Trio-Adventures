@@ -35,7 +35,10 @@ export default class BootScene extends Phaser.Scene {
     [
       'skorn', 'lykor', 'xylo', 'skorn_tweaking', 'lykor_tweaking', 'xylo_tweaking',
       'goblin', 'goblin_kneel', 'goblin_chief', 'dulbers', 'dulbers_demon',
-      'mattias', 'giant_angry', 'giant_sit',
+      'mattias', 'giant_angry', 'giant_sit', 'goblin_fight',
+      'skorn_slap', 'skorn_crashout', 'skorn_throw', 'skorn_hurt',
+      'lykor_hairflip', 'lykor_mog', 'lykor_scream', 'lykor_hurt',
+      'xylo_blast', 'xylo_lore', 'xylo_chudout', 'xylo_hurt',
     ].forEach((c) => this.load.image(`char_${c}`, `assets/characters/${c}.png`));
     ['goblin_village', 'goblin_throne', 'mart_exterior', 'mart_interior', 'mart_interior_trip', 'mountain_path', 'giant_pass']
       .forEach((b) => this.load.image(`bg_${b}`, `assets/backgrounds/${b}.jpg`));
@@ -45,6 +48,7 @@ export default class BootScene extends Phaser.Scene {
     this.load.video('vid_mattias_appear', 'assets/video/mattias_appear.mp4', false);
     this.load.video('vid_giant_wake', 'assets/video/giant_wake.mp4', false);
     this.load.video('vid_xylo_chudout', 'assets/video/xylo_chudout.mp4', false);
+    this.load.video('vid_xylo_chudout_short', 'assets/video/xylo_chudout_short.mp4', false);
     Sfx.preloadMusic('assets/audio/menu_theme.mp3');
   }
 
