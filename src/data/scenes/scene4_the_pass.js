@@ -19,7 +19,7 @@ export const SCENE4 = [
   // The giant
   { do: 'toGiant' },
   { who: 'lykor', line: null, context: 'They see Diddy Chud Giant asleep across the path.' },
-  { who: 'skorn', line: null, context: "Skorn's plan (probably a bad one)." },
+  { who: 'skorn', line: null, context: "Skorn's plan: toss something at the giant to wake him up (the cutscene shows a purple vial — leftover midtocy?)." },
   { do: 'giantWakes' },
   { who: 'giant', mood: 'angry', line: null, context: 'Diddy Chud Giant wakes up furious.' },
   { do: 'fightGiant' },

@@ -214,16 +214,19 @@ export default class StageScene extends Phaser.Scene {
   tweenP(cfg) { return new Promise((res) => this.tweens.add({ ...cfg, onComplete: res })); }
   wait(ms) { return new Promise((res) => this.time.delayedCall(ms, res)); }
 
-  // Full-screen video; Space/Enter/click skips. opts.keyed = remove green screen and keep the backdrop.
+  // Full-screen video; Space/Enter/click skips. opts.keyed = remove green screen and keep the backdrop;
+  // opts.keepChars = leave the characters on screen; opts.x/y/scale = place it inside the scene.
   playCutscene(key, opts = {}) {
     return new Promise((resolve) => {
       const { width, height } = this.scale;
-      const hidden = [...Object.values(this.chars).filter((c) => c.visible), ...(opts.alsoHide || [])];
+      const hidden = [...(opts.keepChars ? [] : Object.values(this.chars).filter((c) => c.visible)), ...(opts.alsoHide || [])];
       if (this.skipHint) hidden.push(this.skipHint);
       hidden.forEach((o) => o.setVisible(false));
 
       let done = false;
-      const vid = this.add.video(width / 2, height / 2, key).setDepth(opts.keyed ? 15 : 800);
+      // opts.x / opts.y / opts.scale place a keyed video inside the scene (default: full screen)
+      const sc = opts.scale || 1;
+      const vid = this.add.video(opts.x ?? width / 2, opts.y ?? height / 2, key).setDepth(opts.keyed ? 15 : 800);
       if (opts.keyed && this.renderer.pipelines) vid.setPostPipeline('ChromaKey');
       const skipTxt = this.add.text(width - 16, height - 14, 'Space: skip', {
         fontFamily: 'Nunito', fontSize: '16px', color: '#ffffffaa',
@@ -243,7 +246,7 @@ export default class StageScene extends Phaser.Scene {
       };
 
       vid.setMute(Sfx.muted);
-      vid.on('created', () => vid.setDisplaySize(width, height));
+      vid.on('created', () => vid.setDisplaySize(width * sc, height * sc));
       vid.on('complete', finish);
       vid.on('error', finish);
       vid.play(false);

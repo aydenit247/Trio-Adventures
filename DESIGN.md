@@ -72,7 +72,8 @@ Title menu: Continue Story (Scene 2), Metocy Mart, The Pass, Replay Intro.
    → fight.
 4. **Metocin Mattias interrupts** — abrupt dialogue: *"You had called?"* He tells them to come
    find him by getting past the path that the giant is inconveniently sleeping on.
-5. **Boss: Diddy Chud Giant** (see *Boss design*).
+5. **Boss: Diddy Chud Giant** (see *Boss design*). Cutscene: a purple vial lands on him and the smoke wakes him
+   up (idea: Skorn throws his leftover midtocy at him — TBD).
 
 ## Combat
 
@@ -128,6 +129,9 @@ Mostly the same goofy turn-based combat, plus bonus layers:
   Lykor's HP bar labeled "Aura".
 
 ## Art & audio
+
+**Videos in the game:** map burn (Scene 1), Dulbers's demon transformation (green screen, Scene 3), Mattias
+appearing (green screen, Scene 4), the giant waking (Scene 4). Saved for combat: Xylo's Chud Out (green screen).
 
 **Scene 1 art (live):** painted camp backgrounds (unlit + lit), full-body green-screen cutouts of the trio,
 and the map-burning cutscene video (`assets/video/map_burn.mp4`). Scene presentation style: **painted scenes

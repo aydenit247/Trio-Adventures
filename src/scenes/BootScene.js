@@ -42,6 +42,9 @@ export default class BootScene extends Phaser.Scene {
     ['metocy', 'midtocy'].forEach((i) => this.load.image(`item_${i}`, `assets/items/${i}.png`));
     this.load.video('vid_map_burn', 'assets/video/map_burn.mp4', false);
     this.load.video('vid_dulbers_transform', 'assets/video/dulbers_transform.mp4', false);
+    this.load.video('vid_mattias_appear', 'assets/video/mattias_appear.mp4', false);
+    this.load.video('vid_giant_wake', 'assets/video/giant_wake.mp4', false);
+    this.load.video('vid_xylo_chudout', 'assets/video/xylo_chudout.mp4', false);
     Sfx.preloadMusic('assets/audio/menu_theme.mp3');
   }
 

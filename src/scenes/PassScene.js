@@ -28,9 +28,11 @@ export default class PassScene extends StageScene {
         .then(() => [xylo, lykor, skorn].forEach((c) => c.img.setFlipX(false))),
       mattiasAppears: async () => {
         Sfx.play('sparkle'); Sfx.play('boom');
-        this.cameras.main.flash(400, 170, 120, 255);
+        this.cameras.main.flash(300, 170, 120, 255);
         this.burst(this.mattias.x, this.mattias.y - 170, [0xb06bff, 0x7fb2ff]);
-        await this.showChar(this.mattias, 150);
+        // His green-screen video, scaled so he finishes exactly where his cutout stands
+        await this.playCutscene('vid_mattias_appear', { keyed: true, keepChars: true, x: 999, y: 392, scale: 0.54 });
+        this.mattias.setAlpha(1).setVisible(true);
         await this.showLabel(this.charLabel(this.mattias, 'Metocin Mattias (Uninvited)'));
       },
       mattiasVanish: async () => {
@@ -89,12 +91,16 @@ export default class PassScene extends StageScene {
   }
 
   async giantWakes() {
-    Sfx.play('boom'); Sfx.play('dramatic');
-    this.cameras.main.shake(700, 0.018);
     this.zzz.destroy();
     this.giantLabel.setVisible(false);
-    await this.swapBg('bg_mountain_path', 500); // he stood up — the path behind him is empty now
-    await this.showChar(this.giant, 250);
+    // Cutscene: a purple vial lands on him, smoke, he wakes up and stands up roaring
+    await this.playCutscene('vid_giant_wake');
+    this.bg.destroy();
+    this.bg = this.placeBg('bg_mountain_path'); // he's standing now — the path behind him is empty
+    this.cameras.main.fadeIn(300, 0, 0, 0);
+    Sfx.play('boom');
+    this.cameras.main.shake(500, 0.014);
+    await this.showChar(this.giant, 150);
     this.cameras.main.shake(400, 0.012);
     await this.showLabel(this.charLabel(this.giant, 'Diddy Chud Giant (Awake, Disturbed)'));
   }
