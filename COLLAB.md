@@ -46,6 +46,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] Asset only: Asar's Metocy Map art → `godot/assets/items/metocy_map.png` (bag id `metocy_map`, shows automatically). No code touched.
 - 2026-11-21 [asar] **Item rework + stats panel + all item art merged (Asar's calls).** New **armor** stat: flat cut
   on every hit the party takes, never below 1 (`battle.hurt()`, party dict `armor`, gear key `armor`). Gear changes:
   Spoon Mail Armor +3 armor (was +25 HP); `can_hat` is now **Beezy Mug Helmet**, +2 armor (id kept for saves); Spoon of
