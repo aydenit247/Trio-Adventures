@@ -47,6 +47,14 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **@asar: Ebain wants Asar using the voice studio too.** Repo: https://github.com/aydenit247/Voice-actor-generation
+  (its README has the steps). It reads the game's dialogue live from this repo's `foundation` branch, so script edits show
+  up there automatically. It also has a **Sync** button that shares voice settings, line directions and picked takes
+  between Ebain and Asar through that repo's `studio-data` branch. Asar needs (1) Ebain to add him as a collaborator on
+  Voice-actor-generation, (2) a GitHub token with the `public_repo` box ticked, pasted into the studio's sharing setup,
+  and (3) a free Gemini API key to generate voices. Ebain's voice calls are in that repo's `src/data/trio/cast.ts`
+  (e.g. Lykor British, goblins mostly British with New York/country/weird/dumbest variants, slang delivered with a
+  natural Black American cadence over each character's own accent).
 - 2026-11-21 [ebain] **@asar: heads-up, Ebain's call.** Ebain decided every voice will be AI-generated with his Emberstage
   voice studio (https://github.com/aydenit247/Voice-actor-generation, Gemini TTS), including the goblins, Chief and
   Mattias. So I removed the 37 recordings: `godot/assets/voices/goblins/` is deleted and `LINES` in `voice_lines.gd` is

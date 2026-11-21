@@ -15,6 +15,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] The target is a **Windows download**. The web build (`play3d/`) is frozen. Don't re-export it.
 - [ebain] **All voices will be AI-generated** with Ebain's Emberstage studio (Gemini TTS, repo aydenit247/Voice-actor-generation).
   Asar's recordings were removed (Ebain's call, 2026-11-21). Robot TTS stays as the fallback for lines without a voice.
+  Voice calls (who sounds like what) live in that repo's `src/data/trio/cast.ts`. Ebain approves every take himself.
 - [ebain] Camp has no choice on purpose. Every other main event needs a 5-way choice with at least one combat option.
 - [ebain] Ebain wants lots of optional open-world stuff between the main events (joke NPCs, side quests, gear).
 - [ebain] Still unanswered: pronunciations (Lykor, Xylo, metocy, Deloye, ts/mf/ngl) and the "Code, Cutouts & Sounds:
