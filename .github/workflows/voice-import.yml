@@ -61,7 +61,8 @@ jobs:
           done
           { echo "## Voice import"; echo '```'; cat /tmp/report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           git rm -q --ignore-unmatch voice-imports/*.zip voice-imports/*.ZIP || true
-          git add godot/assets/voices godot/scripts/voice_index.gd
+          git add godot/scripts/voice_index.gd
+          [ -d godot/assets/voices ] && git add -A godot/assets/voices
           if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
           git commit -q -F - <<MSG
           Voice import: $(ls /tmp/packs | tr '\n' ' ')
