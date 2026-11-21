@@ -16,6 +16,7 @@ var gear_owned: Array = []        # gear ids found so far
 var equipped := {}                # fighter id -> gear id
 var used67 := false               # the 6-7 happens once per game
 var forehead := ""                # funny penalty text written on the leader's forehead
+var quests := {}                  # id -> { title, note, state = "active" | "done" }
 
 # settings
 var difficulty := 1               # 0 Chill · 1 Normal · 2 Crashout
@@ -36,6 +37,7 @@ func reset() -> void:
 	equipped = {}
 	used67 = false
 	forehead = ""
+	quests = {}
 
 # Returns the levels reached (empty if none)
 func add_xp(n: int) -> Array:
@@ -54,6 +56,17 @@ func give_gear(id: String) -> bool:
 		return false
 	gear_owned.append(id)
 	return true
+
+func start_quest(id: String, title: String, note: String) -> void:
+	if not quests.has(id):
+		quests[id] = { "title": title, "note": note, "state": "active" }
+
+func finish_quest(id: String) -> void:
+	if quests.has(id):
+		quests[id]["state"] = "done"
+
+func quest_state(id: String) -> String:
+	return quests[id]["state"] if quests.has(id) else ""
 
 func goto(path: String) -> void:
 	get_tree().change_scene_to_file(path)

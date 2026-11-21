@@ -149,9 +149,9 @@ func say(s: Dictionary) -> void:
 	var c: Dictionary = CHARS.get(who, CHARS["narrator"])
 	var thought: bool = s.get("thought", false)
 	var line: String = s.get("line", "")
-	name_lbl.text = c["name"] + ("  (thinking)" if thought else "")
+	name_lbl.text = s.get("name", c["name"]) + ("  (thinking)" if thought else "")   # "name" = one-off speaker (e.g. a named goblin)
 	name_lbl.add_theme_color_override("font_color", c["color"])
-	var tex := _portrait(c.get("portrait", who), s.get("mood", ""))
+	var tex := _portrait(s.get("portrait", c.get("portrait", who)), s.get("mood", ""))
 	portrait.texture = tex
 	portrait_frame.visible = tex != null
 	_clear_choices()

@@ -1213,7 +1213,7 @@ func _build_party_menu() -> void:
 	if _menu_root:
 		_menu_root.queue_free()
 	var lvn := Game.level
-	var col := _menu_panel("PARTY  ·  Level %d  ·  XP %d%s" % [lvn, Game.xp, ("  (%d to next)" % Game.xp_to_next()) if Game.xp_to_next() > 0 else ""], 860, 520)
+	var col := _menu_panel("PARTY  ·  Level %d  ·  XP %d%s" % [lvn, Game.xp, ("  (%d to next)" % Game.xp_to_next()) if Game.xp_to_next() > 0 else ""], 900, 640 if Game.quests.is_empty() else 680)
 	col.add_child(_label("Beezy ×%d  ·  Chipotle Bowl ×%d  ·  Gear found: %d" % [Game.inv["beer"], Game.inv["bowl"], Game.gear_owned.size()], Vector2.ZERO, 17, Color("#8ad8ff"), 4))
 	var ids := party_ids_for_menu()
 	for i in ids.size():
@@ -1241,6 +1241,15 @@ func _build_party_menu() -> void:
 		info.add_child(d)
 		row.add_child(info)
 		col.add_child(row)
+	if not Game.quests.is_empty():
+		col.add_child(_label("QUESTS", Vector2.ZERO, 18, Color("#e8b923"), 4))
+		var qs := ""
+		for q in Game.quests.values():
+			qs += ("[done] " if q["state"] == "done" else "• ") + q["title"] + ("" if q["state"] == "done" else " — " + q["note"]) + "\n"
+		var ql := _label(qs.strip_edges(), Vector2.ZERO, 13, Color(1, 1, 1, 0.8), 3)
+		ql.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ql.custom_minimum_size = Vector2(840, 0)
+		col.add_child(ql)
 	col.add_child(_label("W/S pick who · A/D swap trinket · I or Esc close", Vector2.ZERO, 14, Color(1, 1, 1, 0.55), 3))
 
 func _cycle_gear(id: String, d: int) -> void:

@@ -78,6 +78,7 @@ const GEAR := {
 	"vol9": { "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. +25% meter gain.", "meter": 1.25 },
 	"weighted_d6": { "name": "Weighted d6", "desc": "On some cheating shi. Crash Out dice can't roll a 1.", "no_ones": true },
 	"can_hat": { "name": "Beezy Can Hat", "desc": "Two cans, two straws, zero shame. +1 speed.", "spd": 1 },
+	"spoon_mail": { "name": "Spoon Mail", "desc": "Armor made of spoons. Goes 'clink.' +25 max HP.", "hp": 25 },
 	"receipt": { "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
 }
 
@@ -143,6 +144,14 @@ const FIGHTS := {
 		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "hp": 520, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
 		"talk": ["feed_giant", "lullaby"],
 	},
+	# ---- village side fights
+	"bouncer": {
+		"title": "Bar Fight: Big Thumbs", "xp": 40, "par": 9, "story": true,
+		"enemies": [
+			{ "name": "Big Thumbs", "tag": "(Bouncer) (Has a Gym Membership)", "hp": 150, "spd": 8, "tex": "goblin_fight", "h": 1.75, "ai": "goblin", "second_wind": true },
+		],
+		"talk": ["bribe_goblin", "kings_decree"],
+	},
 	# ---- roaming (optional) fights
 	"goblin_patrol": {
 		"title": "Goblin Patrol", "xp": 25, "par": 7,
@@ -165,6 +174,8 @@ const TALK := {
 		"try": "Skorn: \"Y'all want a job? Pays in exposure.\"", "win": "The goblins accept. They have jobs now (unpaid). They leave to tell their moms.", "lose": "\"Exposure don't pay rent, bro.\" They keep swinging." },
 	"roast": { "text": "Roast them", "who": "lykor", "chance": 0.35, "bonus": "mogged", "kind": "end",
 		"try": "Lykor looks them up and down. Slowly.", "win": "\"Is that your face or are you holding it for someone?\" They walk off in tears.", "lose": "They don't get the joke. Lykor is offended that they don't get the joke." },
+	"kings_decree": { "text": "\"I'm the KING. The tab is forgiven.\"", "who": "lykor", "chance": 0.4, "kind": "end",
+		"try": "Lykor stands on a chair. \"By royal decree, the tab is FORGIVEN.\"", "win": "Big Thumbs looks at the crown. Looks at Lykor. \"…Long live the king.\" He sits down.", "lose": "\"You were king for ten minutes, man.\"" },
 	"refund": { "text": "Ask for a refund", "who": "", "chance": 0.0, "kind": "backfire",
 		"try": "%s: \"Can we get a refund?\"", "win": "", "lose": "Dulbers laughs for a full minute. \"NO REFUNDS.\" He's HYPED now." },
 	"compliment_store": { "text": "Compliment the store", "who": "lykor", "chance": 0.6, "kind": "cc", "status": "charm",

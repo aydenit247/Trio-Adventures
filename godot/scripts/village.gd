@@ -7,6 +7,7 @@
 extends Level
 
 const VS = preload("res://scripts/village_script.gd")
+const VB = preload("res://scripts/village_buildings.gd")
 const THRONE_POS := Vector3(0, 0, -9)
 const SEAT_POS := Vector3(0, 0, -8.2)
 const FIRE_POS := Vector3(6.5, 0, 2.5)
@@ -17,6 +18,7 @@ const GOBLIN_TAGS := ["(Unemployed)", "(Also Unemployed)", "(Between Jobs)", "(L
 var stage := "enter"
 var goblins: Array[Unit] = []
 var roam_group := {}
+var vb   # the explorable buildings (village_buildings.gd)
 var chief: Unit
 var fire_light: OmniLight3D
 var noise := FastNoiseLite.new()
@@ -50,7 +52,11 @@ func _build_level() -> void:
 	_build_fire()
 	add_glow(FIRE_POS, Color(1.0, 0.75, 0.5), 6.0, func(): return fire_light.light_energy / 2.0)
 	_build_forest()
+	vb = VB.new()
+	vb.lv = self
+	add_child(vb)
 	_build_village()
+	vb.build()
 	_build_throne()
 	for i in 6:
 		var g := spawn_npc("goblin", "Goblin " + GOBLIN_TAGS[i], "goblin", rng.randf_range(1.1, 1.3), Vector3(rng.randf_range(-9, 9), 0, rng.randf_range(-12, 4)))
@@ -127,11 +133,7 @@ func _build_forest() -> void:
 		card("rock_%d" % [1, 2, 4][rng.randi() % 3], rng.randf_range(1.2, 2.4), p, rng.randf() < 0.5, true, 0.45)
 
 func _build_village() -> void:
-	# PLACEHOLDER huts: the canvas tent art, dirtied up, until there's goblin hut art
-	var hut_tint := Color(0.72, 0.6, 0.46)
-	for h in [[Vector3(-10.5, 0, -5), 0.7], [Vector3(10.5, 0, -6.5), -0.7], [Vector3(-11.5, 0, 5.5), 1.2], [Vector3(-5.5, 0, -14), 0.2], [Vector3(6.5, 0, -15), -0.2], [Vector3(12.5, 0, 7.5), -1.2]]:
-		card("tent_green", rng.randf_range(2.4, 2.9), h[0], rng.randf() < 0.5, false, 0.0, "props", hut_tint)
-		Util.static_box(self, h[0] + Vector3(0, 1, 0), Vector3(3.6, 2, 2.4), h[1])
+	# The huts are now real places — see village_buildings.gd (placeholder art until the hut art arrives)
 	# junk & seating
 	card("log", 0.8, Vector3(4.2, 0, 5.2), true)
 	Util.static_box(self, Vector3(4.2, 0.3, 5.2), Vector3(1.6, 0.6, 0.5), 0.3)
@@ -198,6 +200,10 @@ func _build_throne() -> void:
 # ---------------------------------------------------------------- per frame
 func _level_process(_delta: float) -> void:
 	fire_light.light_energy = 2.0 * (1.0 + noise.get_noise_1d(t * 9.0) * 0.3)
+	vb.process(_delta)
+	if not roam_group.is_empty() and roam_group["done"] and not Game.flag("luckySpoonFound"):
+		Game.set_flag("luckySpoonFound")
+		show_toast("The patrol dropped something: Grubnik's Lucky Spoon!", 2.6)
 	if mug and mug.get_meta("owner", null):
 		var o: Unit = mug.get_meta("owner")
 		mug.global_position = o.global_position + Vector3(0.45, 1.05, 0.1)
@@ -206,7 +212,7 @@ func _level_process(_delta: float) -> void:
 	if stage == "enter" and leader.global_position.z < 12.0:
 		stage = "ambushed"
 		_ambush()
-	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.5:
+	elif stage == "after" and vb.room == "" and leader.global_position.distance_to(EXIT_POS) < 3.5:
 		stage = "end"
 		_end_card()
 
@@ -216,7 +222,7 @@ func _level_interactables() -> Array:
 		list.append({ "id": "throne", "label": "the throne", "verb": "Sit on", "pos": THRONE_POS, "h": 2.6, "r": 2.8, "steps": VS.THRONE })
 		list.append({ "id": "chief", "label": "Chief Bogdrinker", "verb": "Talk to", "node": chief, "h": 1.9, "r": 2.0, "steps": VS.CHIEF_WAITING })
 	elif stage == "after":
-		if chief.visible:
+		if chief.visible and not chief.has_meta("at_home"):
 			list.append({ "id": "chief", "label": "Chief Bogdrinker", "verb": "Talk to", "node": chief, "h": 1.9, "r": 2.0, "steps": VS.CHIEF_AFTER })
 		for g in goblins:
 			if g.visible and not g.has_meta("follow"):
@@ -224,6 +230,9 @@ func _level_interactables() -> Array:
 		for u in npcs:
 			if u.id == "skorn":
 				list.append({ "id": "skorn_king", "label": "King Skorn", "verb": "Talk to", "node": u, "h": 2.2, "r": 2.2, "steps": VS.CHIEF_AFTER_SKORN })
+		if vb.room != "":
+			list = []
+		list += vb.interactables()
 	return list
 
 # ---------------------------------------------------------------- story
@@ -327,6 +336,8 @@ func _on_action(n: String) -> void:
 			await wait(0.4)
 		"leave":
 			_leave()
+		_:
+			await vb.on_action(n)
 
 func _member(id: String) -> Unit:
 	for u in party + npcs:
@@ -413,7 +424,7 @@ func _gift_beezy() -> void:
 	await wait(0.9)
 
 # ---- B: chug-off (mash E / Space)
-func _chug_game() -> bool:
+func _chug_game(rival := "Chief Bogdrinker (400-year champ)", rival_speed := 1.0) -> bool:
 	dialogue.hide_box()
 	chug_ui = Control.new()
 	chug_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -440,7 +451,7 @@ func _chug_game() -> bool:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(hint)
 	var bars := []
-	for who in [["Lykor", Color("#ffd86a")], ["Chief Bogdrinker (400-year champ)", Color("#9bc25a")]]:
+	for who in [[leader.display_name, Color("#ffd86a")], [rival, Color("#9bc25a")]]:
 		col.add_child(_label(who[0], Vector2.ZERO, 18, who[1], 5))
 		var pb := ProgressBar.new()
 		pb.custom_minimum_size = Vector2(0, 26)
@@ -463,7 +474,7 @@ func _chug_game() -> bool:
 		await get_tree().process_frame
 		var d := get_process_delta_time()
 		time_left -= d
-		chug_rival += d * rng.randf_range(10.0, 26.0)   # about 18/sec on average → done in ~5.5s
+		chug_rival += d * rng.randf_range(10.0, 26.0) * rival_speed   # about 18/sec on average → done in ~5.5s
 		if shots_mode and fmod(t, 0.12) < d:
 			_chug_press()
 		bars[0].value = chug_you
@@ -472,7 +483,7 @@ func _chug_game() -> bool:
 		if chug_you >= 100.0 or chug_rival >= 100.0 or time_left <= 0.0:
 			chug_running = false
 	var won := chug_you >= 100.0 and chug_you >= chug_rival
-	hint.text = "LEGEND!" if won else "Bogdrinker wins. Lykor is not okay."
+	hint.text = "LEGEND!" if won else "%s wins. %s is not okay." % [rival.get_slice(" (", 0), leader.display_name]
 	hint.add_theme_color_override("font_color", Color("#7dff8a") if won else Color("#ff8a6a"))
 	await wait(1.4)
 	chug_ui.queue_free()
@@ -609,7 +620,7 @@ func _leave() -> void:
 	for g in goblins:
 		if g.visible and not Game.flag("skornKing"):
 			g.set_pose(stand, rng.randf_range(1.1, 1.3))
-	objective("Head east to the Metocy Mart.")
+	objective("Explore the village (I = quests) · or head east to the Metocy Mart.")
 	# optional: a goblin patrol wanders the east road (fight it, sneak past it, or talk your way out)
 	if roam_group.is_empty():
 		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)
@@ -622,6 +633,10 @@ func _end_card() -> void:
 # ---------------------------------------------------------------- automated screenshots
 # Pick a path with env var VILLAGE_CHOICE=0..4 (A..E)
 func _shot_tour() -> void:
+	if OS.get_environment("VILLAGE_TOUR") == "buildings":
+		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)
+		await vb.tour()
+		return
 	var choice := int(OS.get_environment("VILLAGE_CHOICE")) if OS.get_environment("VILLAGE_CHOICE") != "" else 0
 	var tag := "abcde"[choice]
 	fade.color.a = 0.0
