@@ -177,112 +177,99 @@ func _build_ground() -> void:
 	body.add_child(cs)
 	add_child(body)
 
+	# Photo textures blended by a shader: grass everywhere, gravel in the clearing and along the path,
+	# with a noisy edge so there's no hard circle.
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(240, 240)
-	var gm := StandardMaterial3D.new()
-	gm.albedo_texture = _noise_tex(Color(0.09, 0.15, 0.07), Color(0.20, 0.27, 0.12), 0.02)
-	gm.uv1_scale = Vector3(48, 48, 1)
-	gm.roughness = 1.0
-	Util.add_mesh(self, pm, gm, Vector3.ZERO)
+	var mat := ShaderMaterial.new()
+	mat.shader = Shader.new()
+	mat.shader.code = GROUND_SHADER
+	mat.set_shader_parameter("grass_tex", load("res://assets/textures/grass.jpg"))
+	mat.set_shader_parameter("dirt_tex", load("res://assets/textures/gravel.jpg"))
+	var n := FastNoiseLite.new()
+	n.frequency = 0.02
+	n.fractal_octaves = 3
+	var nt := NoiseTexture2D.new()
+	nt.noise = n
+	nt.seamless = true
+	nt.width = 512
+	nt.height = 512
+	mat.set_shader_parameter("noise_tex", nt)
+	Util.add_mesh(self, pm, mat, Vector3.ZERO)
 
-	# Dirt clearing and the path north
-	var dm := StandardMaterial3D.new()
-	dm.albedo_texture = _noise_tex(Color(0.17, 0.12, 0.08), Color(0.30, 0.23, 0.15), 0.05)
-	dm.uv1_scale = Vector3(5, 5, 1)
-	dm.roughness = 1.0
-	var disc := CylinderMesh.new()
-	disc.top_radius = 7.5
-	disc.bottom_radius = 7.5
-	disc.height = 0.02
-	disc.radial_segments = 48
-	Util.add_mesh(self, disc, dm, Vector3(0, 0.01, 0))
-	var patch := CylinderMesh.new()
-	patch.top_radius = 1.5
-	patch.bottom_radius = 1.5
-	patch.height = 0.02
-	patch.radial_segments = 20
-	for i in 16:
-		Util.add_mesh(self, patch, dm, Vector3(sin(i * 0.55) * 1.1, 0.012, -6.5 - i * 1.3))
+# A prop from Ebain's art: a cutout card standing in the world (same trick as the characters).
+# Returns its material so the lighting can tint it.
+var cards: Array = []   # [material, position, near_fire]
+var _tex_cache := {}
 
-	# Grass blades
-	var blade := CylinderMesh.new()
-	blade.top_radius = 0.0
-	blade.bottom_radius = 0.035
-	blade.height = 0.38
-	blade.radial_segments = 3
-	blade.rings = 0
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = true
-	mm.mesh = blade
-	mm.instance_count = 5000
-	var i := 0
-	while i < mm.instance_count:
-		var c := Vector3(rng.randf_range(-40, 40), 0, rng.randf_range(-40, 40))
-		if c.length() < 7.0 or (abs(c.x) < 2.2 and c.z < -6.0):
-			continue
-		for k in 6:
-			if i >= mm.instance_count:
-				break
-			var p := c + Vector3(rng.randf_range(-0.4, 0.4), 0.17, rng.randf_range(-0.4, 0.4))
-			var b := Basis().rotated(Vector3.FORWARD, rng.randf_range(-0.35, 0.35)).rotated(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(0.6, 1.4))
-			mm.set_instance_transform(i, Transform3D(b, p))
-			mm.set_instance_color(i, Color(0.1, 0.2, 0.08).lerp(Color(0.22, 0.32, 0.12), rng.randf()))
-			i += 1
-	var mmi := MultiMeshInstance3D.new()
-	mmi.multimesh = mm
-	var bm := StandardMaterial3D.new()
-	bm.vertex_color_use_as_albedo = true
-	bm.roughness = 1.0
-	mmi.material_override = bm
-	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(mmi)
+func _card(name: String, height: float, pos: Vector3, flip := false, fade_near := false, collide_r := 0.0) -> StandardMaterial3D:
+	if not _tex_cache.has(name):
+		_tex_cache[name] = load("res://assets/props/%s.png" % name)
+	var tex: Texture2D = _tex_cache[name]
+	var w := height * tex.get_width() / float(tex.get_height())
+	var q := QuadMesh.new()
+	q.size = Vector2(w, height)
+	q.center_offset = Vector3(0, height / 2.0 - height * 0.03, 0)   # sink the drawn ground patch a touch
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = tex
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	m.alpha_scissor_threshold = 0.5
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+	m.billboard_keep_scale = true
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	m.uv1_scale = Vector3(-1 if flip else 1, 1, 1)
+	if fade_near:   # dissolve when right in front of the camera
+		m.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_DITHER
+		m.distance_fade_min_distance = 5.5
+		m.distance_fade_max_distance = 10.0
+	var mi := MeshInstance3D.new()
+	mi.mesh = q
+	mi.material_override = m
+	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	add_child(mi)
+	var near := pos.distance_to(FIRE_POS) < 15.0
+	m.albedo_color = Color(0.5, 0.56, 0.8) if near else Color(0.42, 0.47, 0.68)
+	cards.append([m, pos, near])
+	if collide_r > 0.0:
+		Util.static_cyl(self, pos, collide_r)
+	return m
 
 func _build_forest() -> void:
-	var trunk_m := Util.mat(Color(0.17, 0.11, 0.07))
-	var leaf_ms := [Util.mat(Color(0.06, 0.14, 0.08)), Util.mat(Color(0.05, 0.12, 0.09)), Util.mat(Color(0.08, 0.15, 0.07))]
-	for m in [trunk_m] + leaf_ms:   # trees right in front of the camera dissolve so they don't block the view
-		m.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_DITHER
-		m.distance_fade_min_distance = 6.0
-		m.distance_fade_max_distance = 10.5
-	var trunk := CylinderMesh.new()
-	trunk.top_radius = 0.12
-	trunk.bottom_radius = 0.2
-	trunk.height = 1.6
-	trunk.radial_segments = 6
-	var tiers := []
-	for d in [[1.5, 2.2], [1.15, 1.9], [0.8, 1.6]]:
-		var cm := CylinderMesh.new()
-		cm.top_radius = 0.0
-		cm.bottom_radius = d[0]
-		cm.height = d[1]
-		cm.radial_segments = 7
-		tiers.append(cm)
+	# Trees
 	var placed := 0
 	var tries := 0
-	while placed < 200 and tries < 3000:
+	while placed < 170 and tries < 3000:
 		tries += 1
 		var a := rng.randf() * TAU
-		var r := rng.randf_range(9.5, 44.0)
+		var r := rng.randf_range(10.0, 46.0)
 		var p := Vector3(cos(a) * r, 0, sin(a) * r)
-		if abs(p.x) < 3.4 and p.z < -6.0 and p.z > -26.0:
+		if abs(p.x) < 3.6 and p.z < -6.0 and p.z > -26.0:
 			continue
 		if p.distance_to(GOBLIN_HOME) < 3.0 or p.distance_to(MATTIAS_POS) < 4.0:
 			continue
-		var s := rng.randf_range(0.8, 1.7)
-		var tree := Node3D.new()
-		tree.position = p
-		tree.scale = Vector3.ONE * s
-		tree.rotation.y = rng.randf() * TAU
-		add_child(tree)
-		var lm: Material = leaf_ms[rng.randi() % leaf_ms.size()]
-		Util.add_mesh(tree, trunk, trunk_m, Vector3(0, 0.8, 0))
-		Util.add_mesh(tree, tiers[0], lm, Vector3(0, 2.3, 0))
-		Util.add_mesh(tree, tiers[1], lm, Vector3(0, 3.15, 0))
-		Util.add_mesh(tree, tiers[2], lm, Vector3(0, 3.9, 0))
-		if r < 32.0:
-			Util.static_cyl(self, p, 0.35 * s)
+		_card("tree_%d" % (rng.randi() % 4 + 1), rng.randf_range(6.0, 9.5), p, rng.randf() < 0.5, true, 0.5 if r < 32.0 else 0.0)
 		placed += 1
+	# Bushes, between the trees and around the edge of camp
+	for k in 55:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(7.8, 40.0)
+		var p := Vector3(cos(a) * r, 0, sin(a) * r)
+		if abs(p.x) < 2.6 and p.z < -6.0 and p.z > -26.0:
+			continue
+		var big := rng.randf() < 0.25
+		_card("bush_big" if big else "bush_%d" % (rng.randi() % 3 + 1), rng.randf_range(1.6, 2.3) if big else rng.randf_range(1.3, 2.2), p, rng.randf() < 0.5, true)
+	# Standing rocks (the rune stone goes by the dark path)
+	for k in 16:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(8.0, 32.0)
+		var p := Vector3(cos(a) * r, 0, sin(a) * r)
+		if abs(p.x) < 3.0 and p.z < -6.0 and p.z > -26.0:
+			continue
+		_card("rock_%d" % [1, 2, 4][rng.randi() % 3], rng.randf_range(1.2, 2.6), p, rng.randf() < 0.5, true, 0.45)
+	_card("rock_3", 2.4, Vector3(-2.6, 0, -15.0), false, false, 0.45)
 
 	# Distant mountains (silhouettes against the sky)
 	var mtn_m := Util.mat(Color(0.03, 0.035, 0.06))
@@ -295,17 +282,6 @@ func _build_forest() -> void:
 		cm.height = rng.randf_range(22, 42)
 		cm.radial_segments = 6
 		Util.add_mesh(self, cm, mtn_m, Vector3(cos(a) * r, cm.height / 2.0 - 3.0, sin(a) * r), Vector3(0, rng.randf() * TAU, 0))
-
-	# Rocks
-	var rock := SphereMesh.new()
-	rock.radial_segments = 7
-	rock.rings = 4
-	var rock_m := Util.mat(Color(0.27, 0.27, 0.28))
-	for k in 30:
-		var a := rng.randf() * TAU
-		var r := rng.randf_range(6.0, 30.0)
-		var s := rng.randf_range(0.25, 0.8)
-		Util.add_mesh(self, rock, rock_m, Vector3(cos(a) * r, s * 0.25, sin(a) * r), Vector3(rng.randf(), rng.randf() * TAU, 0), Vector3(s * 1.3, s * 0.7, s))
 
 	# Fireflies
 	var ff := CPUParticles3D.new()
@@ -323,86 +299,38 @@ func _build_forest() -> void:
 	ff.position = Vector3(0, 1.4, 0)
 	add_child(ff)
 
+const SKORN_TENT := Vector3(-5.4, 0, -3.6)
+const LYKOR_TENT := Vector3(5.6, 0, -3.9)
+const LANTERN := Vector3(4.9, 1.3, -3.0)
+
 func _build_camp() -> void:
-	# Skorn & Xylo's tent and Lykor's (fancier) tent
-	_tent(Vector3(-4.6, 0, -3.2), 0.5, Color(0.46, 0.36, 0.22))
-	_tent(Vector3(4.9, 0, -3.6), -0.6, Color(0.32, 0.22, 0.46))
-	# Lantern on Lykor's tent
-	var lan := OmniLight3D.new()
+	_card("tent_green", 3.0, SKORN_TENT)
+	Util.static_box(self, SKORN_TENT + Vector3(0, 1, 0), Vector3(4.4, 2, 2.8), 0.6)
+	_card("tent_purple", 3.3, LYKOR_TENT)
+	Util.static_box(self, LYKOR_TENT + Vector3(0, 1, 0), Vector3(4.4, 2, 2.8), -0.6)
+	var lan := OmniLight3D.new()   # the lanterns drawn in Lykor's tent actually glow
 	lan.light_color = Color(1.0, 0.72, 0.4)
 	lan.light_energy = 0.9
 	lan.omni_range = 4.5
-	lan.position = Vector3(3.6, 1.3, -2.4)
+	lan.position = LANTERN
 	add_child(lan)
-	var lm := Util.mat(Color(1, 0.8, 0.5))
-	lm.emission_enabled = true
-	lm.emission = Color(1.0, 0.7, 0.35)
-	lm.emission_energy_multiplier = 3.0
-	var lb := BoxMesh.new()
-	lb.size = Vector3(0.18, 0.26, 0.18)
-	Util.add_mesh(self, lb, lm, lan.position)
 
-	# Logs to sit on around the fire
-	var logm := CylinderMesh.new()
-	logm.top_radius = 0.22
-	logm.bottom_radius = 0.24
-	logm.height = 1.8
-	logm.radial_segments = 8
-	var wood := Util.mat(Color(0.28, 0.18, 0.11))
-	for a in [0.6, 2.5, 4.4]:
-		var p := Vector3(cos(a) * 2.9, 0.22, sin(a) * 2.9)
-		Util.add_mesh(self, logm, wood, p, Vector3(0, -a + PI / 2.0, PI / 2.0))
-		Util.static_box(self, p, Vector3(1.8, 0.5, 0.45), -a + PI / 2.0)
+	_card("campfire", 1.1, FIRE_POS + Vector3(0, 0, 0.05))
+	_card("log", 0.8, Vector3(-3.4, 0, 2.8), false, false)
+	Util.static_box(self, Vector3(-3.4, 0.3, 2.8), Vector3(1.6, 0.6, 0.5), 0.9)
+	_card("bag", 0.55, Vector3(-2.7, 0, -1.6))
+	_card("sign", 2.6, Vector3(2.7, 0, -8.4))
+	Util.static_cyl(self, Vector3(2.4, 0, -8.4), 0.2)
 
-	# Lykor's bag (open)
-	var bag := BoxMesh.new()
-	bag.size = Vector3(0.62, 0.48, 0.42)
-	Util.add_mesh(self, bag, Util.mat(Color(0.42, 0.24, 0.16)), Vector3(-2.7, 0.24, -1.6), Vector3(0, 0.4, 0))
-	var flap := BoxMesh.new()
-	flap.size = Vector3(0.62, 0.04, 0.4)
-	Util.add_mesh(self, flap, Util.mat(Color(0.34, 0.19, 0.12)), Vector3(-2.8, 0.52, -1.95), Vector3(-1.1, 0.4, 0))
-	var bottle := CylinderMesh.new()
-	bottle.top_radius = 0.04
-	bottle.bottom_radius = 0.06
-	bottle.height = 0.24
-	Util.add_mesh(self, bottle, Util.mat(Color(0.95, 0.85, 0.95), 0.3), Vector3(-2.62, 0.55, -1.55))
-
-	# The charred map scrap
+	# The charred map scrap (appears after the fire)
 	var scrap := PlaneMesh.new()
 	scrap.size = Vector2(0.5, 0.36)
 	var sm := Util.mat(Color(0.08, 0.06, 0.05))
 	sm.emission_enabled = true
 	sm.emission = Color(1.0, 0.35, 0.1)
 	sm.emission_energy_multiplier = 0.6
-	scrap_mesh = Util.add_mesh(self, scrap, sm, Vector3(1.3, 0.03, 0.9), Vector3(0, 0.7, 0))
+	scrap_mesh = Util.add_mesh(self, scrap, sm, Vector3(1.5, 0.03, 1.4), Vector3(0, 0.7, 0))
 	scrap_mesh.visible = false
-
-	# Sign at the start of the dark path
-	var post := BoxMesh.new()
-	post.size = Vector3(0.14, 1.6, 0.14)
-	Util.add_mesh(self, post, wood, Vector3(2.4, 0.8, -8.2))
-	var board := BoxMesh.new()
-	board.size = Vector3(1.6, 0.5, 0.08)
-	Util.add_mesh(self, board, Util.mat(Color(0.36, 0.25, 0.15)), Vector3(2.4, 1.45, -8.2), Vector3(0, -0.2, 0))
-	var sign := Label3D.new()
-	sign.text = "DARK PATH\n(do not)"
-	sign.font_size = 42
-	sign.pixel_size = 0.006
-	sign.modulate = Color(0.1, 0.06, 0.03)
-	sign.outline_size = 0
-	sign.position = Vector3(2.4, 1.45, -8.15)
-	sign.rotation.y = -0.2
-	add_child(sign)
-
-func _tent(pos: Vector3, rot: float, color: Color) -> void:
-	var prism := PrismMesh.new()
-	prism.size = Vector3(2.8, 1.9, 3.2)
-	Util.add_mesh(self, prism, Util.mat(color), pos + Vector3(0, 0.95, 0), Vector3(0, rot, 0))
-	var door := PrismMesh.new()
-	door.size = Vector3(1.3, 1.25, 0.04)
-	var front := Vector3(0, 0, 1.61).rotated(Vector3.UP, rot)
-	Util.add_mesh(self, door, Util.mat(Color(0.05, 0.04, 0.03)), pos + front + Vector3(0, 0.62, 0), Vector3(0, rot, 0))
-	Util.static_box(self, pos + Vector3(0, 1, 0), Vector3(2.7, 2, 3.1), rot)
 
 func _quad(size: float, _c: Color, additive: bool) -> QuadMesh:
 	var q := QuadMesh.new()
@@ -431,13 +359,6 @@ func _curve(points: Array) -> Curve:
 	return c
 
 func _build_fire() -> void:
-	var stone := SphereMesh.new()
-	stone.radial_segments = 6
-	stone.rings = 3
-	var stone_m := Util.mat(Color(0.32, 0.31, 0.3))
-	for k in 11:
-		var a := k / 11.0 * TAU
-		Util.add_mesh(self, stone, stone_m, FIRE_POS + Vector3(cos(a) * 0.78, 0.08, sin(a) * 0.78), Vector3(0, a, 0), Vector3(0.32, 0.22, 0.28))
 	var stick := CylinderMesh.new()
 	stick.top_radius = 0.06
 	stick.bottom_radius = 0.09
@@ -522,10 +443,10 @@ func _build_fire() -> void:
 	fire_light.light_volumetric_fog_energy = 2.0
 	fire_light.position = FIRE_POS + Vector3(0, 0.9, 0)
 	add_child(fire_light)
-	Util.static_cyl(self, FIRE_POS, 0.85, 1.0)
+	Util.static_cyl(self, FIRE_POS, 1.5, 1.0)
 
 func _build_characters() -> void:
-	var defs := [["skorn", "Skorn", 1.95, Vector3(1.6, 0, 2.4)], ["lykor", "Lykor", 1.9, Vector3(cos(2.5) * 3.7, 0, sin(2.5) * 3.7)], ["xylo", "Xylo", 1.95, Vector3(cos(0.6) * 3.7, 0, sin(0.6) * 3.7)]]
+	var defs := [["skorn", "Skorn", 1.95, Vector3(2.0, 0, 2.9)], ["lykor", "Lykor", 1.9, Vector3(cos(2.3) * 3.9, 0, sin(2.3) * 3.9)], ["xylo", "Xylo", 1.95, Vector3(cos(0.75) * 3.9, 0, sin(0.75) * 3.9)]]
 	for d in defs:
 		var u := Unit.new()
 		add_child(u)
@@ -561,10 +482,10 @@ func _build_characters() -> void:
 	add_child(mattias_light)
 
 	interactables = [
-		{ "id": "fire", "label": "Campfire", "verb": "Look at", "pos": FIRE_POS, "h": 1.6, "r": 2.4, "steps": CampScript.OBJECTS["fire"] },
-		{ "id": "map", "label": "Charred paper", "verb": "Look at", "pos": Vector3(1.3, 0, 0.9), "h": 0.7, "r": 1.4, "steps": CampScript.OBJECTS["map"] },
+		{ "id": "fire", "label": "Campfire", "verb": "Look at", "pos": FIRE_POS, "h": 1.8, "r": 2.9, "steps": CampScript.OBJECTS["fire"] },
+		{ "id": "map", "label": "Charred paper", "verb": "Look at", "pos": Vector3(1.5, 0, 1.4), "h": 0.7, "r": 1.4, "steps": CampScript.OBJECTS["map"] },
 		{ "id": "bag", "label": "Lykor's bag", "verb": "Look at", "pos": Vector3(-2.7, 0, -1.6), "h": 1.0, "r": 1.6, "steps": CampScript.OBJECTS["bag"] },
-		{ "id": "tent", "label": "Tent", "verb": "Look at", "pos": Vector3(-4.6, 0, -3.2), "h": 2.4, "r": 2.6, "steps": CampScript.OBJECTS["tent"] },
+		{ "id": "tent", "label": "Tent", "verb": "Look at", "pos": SKORN_TENT, "h": 3.2, "r": 3.4, "steps": CampScript.OBJECTS["tent"] },
 		{ "id": "goblin", "label": "Goblin (Between Jobs)", "verb": "Talk to", "node": goblin, "h": 1.6, "r": 2.2, "steps": CampScript.OBJECTS["goblin"] },
 	]
 
@@ -664,6 +585,19 @@ func _build_ui() -> void:
 	toast.modulate.a = 0.0
 	hud.add_child(toast)
 
+	# Film grain + vignette over the 3D view (under the HUD)
+	var post := CanvasLayer.new()
+	post.layer = 4
+	add_child(post)
+	var pr := ColorRect.new()
+	pr.set_anchors_preset(Control.PRESET_FULL_RECT)
+	pr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var psm := ShaderMaterial.new()
+	psm.shader = Shader.new()
+	psm.shader.code = POST_SHADER
+	pr.material = psm
+	post.add_child(pr)
+
 	var top := CanvasLayer.new()
 	top.layer = 20
 	add_child(top)
@@ -740,6 +674,10 @@ func _process(delta: float) -> void:
 	_goblin_ai(delta, cam_right)
 	for u in party + [goblin]:
 		u.sprite.modulate = light_at(u.global_position)
+	for c in cards:
+		if c[2]:
+			var lc := light_at(c[1] + Vector3(0, 0.5, 0))
+			c[0].albedo_color = Color(min(lc.r, 0.92), min(lc.g, 0.8), min(lc.b, 0.78)) * 0.88
 	if paper and paper.visible and paper.get_parent() == party[0]:
 		paper.position.y = 1.15 + sin(t * 3.0) * 0.04
 		paper.modulate = light_at(party[0].global_position)
@@ -779,7 +717,7 @@ func light_at(p: Vector3) -> Color:
 	var f: float = clamp(1.0 - p.distance_to(FIRE_POS) / 11.0, 0.0, 1.0)
 	f = f * f * (fire_light.light_energy / 3.0)
 	col = col.lerp(Color(1.0, 0.72, 0.48), clamp(f * 1.3, 0.0, 1.0)) + Color(0.35, 0.18, 0.05) * f
-	var l: float = clamp(1.0 - p.distance_to(Vector3(3.6, 0, -2.4)) / 4.5, 0.0, 1.0)
+	var l: float = clamp(1.0 - p.distance_to(LANTERN) / 4.5, 0.0, 1.0)
 	col += Color(0.25, 0.16, 0.08) * l * l
 	if mattias_sprite.visible:
 		var m: float = clamp(1.0 - p.distance_to(MATTIAS_POS) / 6.0, 0.0, 1.0)
@@ -797,6 +735,12 @@ func _update_camera(delta: float) -> void:
 		cam.fov = 50.0
 		add_child(cam)
 		cam.current = true
+		var ca := CameraAttributesPractical.new()   # depth of field: soft background (Forward+)
+		ca.dof_blur_far_enabled = true
+		ca.dof_blur_far_distance = 20.0
+		ca.dof_blur_far_transition = 16.0
+		ca.dof_blur_amount = 0.07
+		cam.attributes = ca
 	var focus: Vector3 = focus_override if focus_override != null else leader.global_position
 	cam_target = cam_target.lerp(focus, clamp(delta * 4.0, 0.0, 1.0))
 	var off := Vector3(0, zoom * 0.6, zoom).rotated(Vector3.UP, yaw)
@@ -831,8 +775,8 @@ func _current_interactables() -> Array:
 		return list
 	var pre := CampScript.PRE_FIRE
 	var list2: Array = [
-		{ "id": "pit", "label": "Fire pit", "verb": ("Put the paper in the" if stage == "has_map" else "Look at"), "pos": FIRE_POS, "h": 1.0, "r": 2.3, "steps": pre["pit_with_map"] if stage == "has_map" else pre["pit"] },
-		{ "id": "tent", "label": "Tent", "verb": "Search", "pos": Vector3(-4.6, 0, -3.2), "h": 2.4, "r": 2.6, "steps": pre["tent"] },
+		{ "id": "pit", "label": "Fire pit", "verb": ("Put the paper in the" if stage == "has_map" else "Look at"), "pos": FIRE_POS, "h": 1.4, "r": 2.9, "steps": pre["pit_with_map"] if stage == "has_map" else pre["pit"] },
+		{ "id": "tent", "label": "Tent", "verb": "Search", "pos": SKORN_TENT, "h": 3.2, "r": 3.4, "steps": pre["tent"] },
 		{ "id": "goblin", "label": "Goblin (Between Jobs)", "verb": "Talk to", "node": goblin, "h": 1.6, "r": 2.2, "steps": pre["goblin"] },
 		{ "id": "lykor", "label": "Lykor", "verb": "Talk to", "node": party[1], "h": 2.15, "r": 1.9, "steps": pre["lykor"] },
 		{ "id": "xylo", "label": "Xylo", "verb": "Talk to", "node": party[2], "h": 2.15, "r": 1.9, "steps": pre["xylo"] },
@@ -1062,7 +1006,7 @@ func _shot_tour() -> void:
 	await _advance(3)
 	await _wait(0.8)
 	# Carry it to the fire pit
-	party[0].global_position = Vector3(1.4, 0, 1.6)
+	party[0].global_position = Vector3(1.9, 0, 2.2)
 	cam_target = party[0].global_position
 	target_yaw = 0.7
 	await _wait(1.5)
@@ -1079,6 +1023,57 @@ func _shot_tour() -> void:
 	await _wait(2.0)
 	await _shot("07_free_roam")
 	get_tree().quit()
+
+const GROUND_SHADER := """
+shader_type spatial;
+render_mode cull_disabled;
+uniform sampler2D grass_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D dirt_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D noise_tex : filter_linear, repeat_enable;
+varying vec3 wpos;
+
+void vertex() {
+	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
+float worn(vec2 p) {
+	float clearing = 1.0 - smoothstep(5.0, 8.5, length(p));
+	float wiggle = sin(p.y * 0.42) * 1.1;
+	float path = (1.0 - smoothstep(1.0, 2.3, abs(p.x - wiggle)));
+	path *= smoothstep(-4.0, -6.0, p.y) * smoothstep(-29.0, -24.0, p.y);
+	return max(clearing, path);
+}
+
+void fragment() {
+	vec2 p = wpos.xz;
+	// two scales of each texture so the repeat is hard to spot
+	vec3 g = mix(texture(grass_tex, p * 0.16).rgb, texture(grass_tex, p * 0.047 + vec2(0.37, 0.11)).rgb, 0.4);
+	vec3 d = mix(texture(dirt_tex, p * 0.22).rgb, texture(dirt_tex, p * 0.071 + vec2(0.6, 0.2)).rgb, 0.35);
+	float n = texture(noise_tex, p * 0.035).r;
+	float m = smoothstep(0.38, 0.62, worn(p) + (n - 0.5) * 0.7);
+	float shade = 0.8 + 0.3 * texture(noise_tex, p * 0.012 + vec2(0.5)).r;
+	ALBEDO = mix(g * vec3(0.85, 0.95, 0.85), d, m) * shade * 0.8;
+	ROUGHNESS = 1.0;
+	SPECULAR = 0.1;
+}
+"""
+
+const POST_SHADER := """
+shader_type canvas_item;
+uniform float grain = 0.045;
+uniform float vignette = 0.5;
+
+float rand(vec2 c) { return fract(sin(dot(c, vec2(12.9898, 78.233))) * 43758.5453); }
+
+void fragment() {
+	vec2 uv = SCREEN_UV;
+	float v = smoothstep(0.95, 0.3, length((uv - 0.5) * vec2(1.25, 1.0)));
+	float n = rand(floor(uv * vec2(640.0, 360.0)) + fract(TIME * 7.0) * 100.0) - 0.5;
+	float a = (1.0 - v) * vignette;
+	vec3 col = mix(vec3(0.5 + n), vec3(0.0), clamp(a / max(a + abs(n) * grain, 0.0001), 0.0, 1.0));
+	COLOR = vec4(col, clamp(a + abs(n) * grain, 0.0, 1.0));
+}
+"""
 
 const SKY_SHADER := """
 shader_type sky;
