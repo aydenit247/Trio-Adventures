@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Fight menu box stops jumping when hovering (fixed description height) — files: godot/scripts/combat/battle_view.gd (_menu only) — branch: asar/menu-jump — started 2026-11-21
 - [ebain] Diddy Chud Giant voice lines (taken over from grok: Grok's sandbox can't push audio files; Ebain asked) +
   automatic voice imports (drop a studio zip in voice-imports/ on GitHub → Actions imports it) — files:
   godot/assets/voices/giant/, godot/scripts/voice_index.gd, new .github/workflows/voice-import.yml, new voice-imports/README.md,
@@ -25,6 +24,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Fight menu no longer jumps on hover
 - 2026-11-21 [asar] Crash + freeze reports (crash_reporter.gd + repo folder Crash Reports/)
 - 2026-11-21 [ebain] Voice import pipeline: studio export zip → OGG + voice_index.gd (tools/import_voices.py)
 - 2026-11-21 [asar] Inventory right-click → View (big item picture)
@@ -51,10 +51,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/combat/battle_view.gd (_menu only)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] battle_view.gd `_menu()`: `menu_desc` now reserves the height of the longest description in that menu (+12 px headroom), so the bottom-anchored menu panel stays one size. Before, it resized per option and moved the buttons under the mouse (Asar reported hover flicker). Tested: all 8 options = one height.
 - 2026-11-21 [ebain] Took over grok's Diddy Chud Giant voice lines claim (Ebain asked). Grok ran the import but its sandbox
   can't push binary files (the OGGs). Nothing from it reached GitHub.
 - 2026-11-21 [asar] **Crash + freeze reports merged (Asar's ask).** New `crash_reporter.gd`, started by one line in
