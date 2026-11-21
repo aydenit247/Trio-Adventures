@@ -9,7 +9,6 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Item pictures: Spoon Mail art (renamed "Spoon Mail Armor") + gear icons in the I menu — files: godot/scripts/combat/combat_data.gd, godot/scripts/level.gd (party menu only), godot/scripts/village_buildings.gd (Spoon Mail reward text), godot/assets/items/ — branch: asar/item-pictures — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -20,6 +19,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Spoon Mail Armor art + gear pictures in the I menu
 - 2026-11-21 [ebain] Throne bones look like bones now (were white sticks) · camp crickets are a real recording
 - 2026-11-21 [asar] Fixed the Windows hard freeze during dialogue (Godot TTS deadlock)
 - 2026-11-21 [ebain] Metocy Mart + The Pass are real 3D places now (no painted backdrops), texture sweep, F1 dev/test mode
@@ -35,10 +35,15 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/combat/combat_data.gd, godot/scripts/level.gd (party menu), godot/scripts/village_buildings.gd, godot/assets/items/
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] Item pictures, part 1. Spoon Mail renamed **Spoon Mail Armor** (Asar's call; combat_data.gd +
+  reward toast in village_buildings.gd; Clank's DRAFT line still says "SPOON MAIL."). Asar's armor art →
+  assets/items/spoon_mail.png. level.gd (party menu only): each row now has a trinket slot showing the equipped
+  gear's picture; new `item_icon(id)` = res://assets/items/<id>.png (beer→beer, bowl→chipotle_bowl). **Gear art
+  convention: name the file after the gear id** (spoon, conditioner, vol9, weighted_d6, can_hat, receipt) and it
+  shows up automatically. Asar is making the rest.
 - 2026-11-21 [ebain] Throne "bones" were plain white cylinders that read as sticks. village.gd now has `_bone()` (shaft
   plus knobbed ends, aged texture) and they lie on the ground. Camp crickets: ambience.gd plays
   `assets/sounds/crickets.ogg` (Ebain's recording, cut to a 61 s seamless loop, low hum filtered) instead of the synth.
