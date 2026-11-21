@@ -7,7 +7,7 @@
 #   _begin()                what happens when the area loads (intro)
 #   _shot_tour()            automated screenshot run for testing (godot ... -- --shots)
 #
-# Controls: WASD walk · Shift run · E/Space talk · Tab switch who you control
+# Controls: WASD walk · Shift run · E/Space talk · Q switch who you control · Tab inventory
 #           ←/→ or right-mouse drag turn the camera · mouse wheel zoom · V voices on/off
 extends Node3D
 class_name Level
@@ -165,11 +165,11 @@ func _setup_input() -> void:
 	_key("move_right", [KEY_D])
 	_key("run", [KEY_SHIFT])
 	_key("interact", [KEY_E, KEY_SPACE, KEY_ENTER])
-	_key("switch", [KEY_TAB])
+	_key("switch", [KEY_Q])
 	_key("cam_left", [KEY_LEFT])
 	_key("cam_right", [KEY_RIGHT])
 	_key("tts", [KEY_V])
-	_key("party_menu", [KEY_I])
+	_key("party_menu", [KEY_TAB])
 	_key("pause", [KEY_ESCAPE])
 	_key("dev_menu", [KEY_F1])
 	# controller: left stick / d-pad move, right stick camera, A talk, B run (hold), Y switch, Back party, Start menu
@@ -544,7 +544,7 @@ func _build_ui() -> void:
 	box.add_child(leader_por)
 	set_leader(leader)
 
-	help_lbl = _label("WASD walk · Shift run · E talk · Tab switch · ←/→ or right-drag camera · I party · Esc menu (save/settings) · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
+	help_lbl = _label("WASD walk · Shift run · E talk · Q switch · ←/→ or right-drag camera · Tab inventory · Esc menu (save/settings) · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
 	help_lbl.anchor_top = 1.0; help_lbl.anchor_bottom = 1.0; help_lbl.anchor_right = 1.0
 	help_lbl.offset_top = -30; help_lbl.offset_left = 20; help_lbl.offset_right = -20
 	help_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -997,7 +997,7 @@ func _fight_tour(key: String) -> void:
 	shooting[0] = false
 	if OS.get_environment("MENUS") != "":
 		Game.give_gear("vol9")
-		Game.equipped["xylo"] = "vol9"
+		Game.equip("xylo", "vol9")
 		open_party_menu()
 		await wait(1.0)
 		await shot("menu_party")
@@ -1038,9 +1038,11 @@ func fight(key: String, opts := {}) -> String:
 	var def: Dictionary = CombatD.FIGHTS[key]
 	if Game.dev_autowin:   # F1 test mode: skip the fight, count it as won
 		var ups := Game.add_xp(def["xp"])
+		var g := BattleView.fight_gold(def, "win")
+		Game.add_gold(g)
 		if def.has("loot"):
 			Game.give_gear(def["loot"])
-		show_toast("(dev) auto-won: %s  (+%d XP%s)" % [def["title"], def["xp"], ", LEVEL UP" if not ups.is_empty() else ""], 2.0)
+		show_toast("(dev) auto-won: %s  (+%d XP, +%d Gold%s)" % [def["title"], def["xp"], g, ", LEVEL UP" if not ups.is_empty() else ""], 2.0)
 		await wait(0.6)
 		return "win"
 	var story: bool = def.get("story", false)
@@ -1305,7 +1307,7 @@ func open_pause_menu() -> void:
 	_menu_kind = "pause"
 	var rows := [
 		{ "text": "Resume", "pick": func(): pause_menu.close() },
-		{ "text": "Party & Gear  (I)", "pick": func():
+		{ "text": "Inventory  (Tab)", "pick": func():
 			pause_menu.close()
 			await get_tree().process_frame
 			open_party_menu() },
@@ -1337,108 +1339,29 @@ func _pause_sub(m: MenuUI) -> void:
 		pause_menu.visible = true
 		pause_menu.refresh()
 
-# ---- I: party, level and gear
+# ---- Tab: inventory (gear, bag, gold, quests): see inventory_ui.gd
 func party_ids_for_menu() -> Array:
 	var ids := ["skorn", "lykor", "xylo"]
 	if Game.flag("goblinAllies"):
 		ids.append("chief")
 	return ids
 
-func open_party_menu() -> void:
+func open_party_menu() -> void:   # (name kept: the pause menu and tours call it) opens the Tab inventory
 	busy = true
 	freeze_all(true)
 	_menu_kind = "party"
-	_menu_sel = 0
-	_build_party_menu()
-	await get_tree().process_frame
-	await get_tree().process_frame
-	var ids := party_ids_for_menu()
-	while _menu_kind == "party":
-		await get_tree().process_frame
-		if Input.is_action_just_pressed("move_forward"): _menu_sel = (_menu_sel + ids.size() - 1) % ids.size(); _build_party_menu()
-		elif Input.is_action_just_pressed("move_back"): _menu_sel = (_menu_sel + 1) % ids.size(); _build_party_menu()
-		elif Input.is_action_just_pressed("move_left"): _cycle_gear(ids[_menu_sel], -1)
-		elif Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("interact"): _cycle_gear(ids[_menu_sel], 1)
-		elif Input.is_action_just_pressed("pause") or Input.is_action_just_pressed("party_menu"): _close_menu()
-
-func _build_party_menu() -> void:
-	if _menu_root:
-		_menu_root.queue_free()
-	var lvn := Game.level
-	var col := _menu_panel("PARTY  ·  Level %d  ·  XP %d%s" % [lvn, Game.xp, ("  (%d to next)" % Game.xp_to_next()) if Game.xp_to_next() > 0 else ""], 900, 640 if Game.quests.is_empty() else 680)
-	col.add_child(_label("Beezy ×%d  ·  Chipotle Bowl ×%d  ·  Gear found: %d" % [Game.inv["beer"], Game.inv["bowl"], Game.gear_owned.size()], Vector2.ZERO, 17, Color("#8ad8ff"), 4))
-	var ids := party_ids_for_menu()
-	for i in ids.size():
-		var id: String = ids[i]
-		var P: Dictionary = CombatD.PARTY[id]
-		var g: String = Game.equipped.get(id, "")
-		var G: Dictionary = CombatD.GEAR.get(g, {})
-		var hp := int(round((P["hp"] + G.get("hp", 0)) * (1.0 + 0.1 * (lvn - 1))))
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 12)
-		var por := TextureRect.new()
-		por.texture = load("res://assets/portraits/%s.png" % id)
-		por.custom_minimum_size = Vector2(58, 58)
-		por.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		por.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		row.add_child(por)
-		var info := VBoxContainer.new()
-		info.add_theme_constant_override("separation", 0)
-		var sel := i == _menu_sel
-		info.add_child(_label(("> " if sel else "") + "%s   %s %d · Speed %d" % [P["name"], P["hp_label"], hp, P["spd"] + G.get("spd", 0)], Vector2.ZERO, 19, Color("#e8b923") if sel else Color.WHITE, 4))
-		info.add_child(_label("Trinket:  < %s >" % (G["name"] if g != "" else "(nothing)"), Vector2.ZERO, 16, Color("#ffcf9a"), 3))
-		var d := _label(G.get("desc", "Find gear by winning fights and poking around."), Vector2.ZERO, 13, Color(1, 1, 1, 0.65), 3)
-		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		d.custom_minimum_size = Vector2(700, 0)
-		info.add_child(d)
-		row.add_child(info)
-		var slot := PanelContainer.new()   # trinket slot: shows the equipped gear's picture if it has one
-		var ss := StyleBoxFlat.new()
-		ss.bg_color = Color(0, 0, 0, 0.45); ss.border_color = Color("#e8b923", 0.6); ss.set_border_width_all(2); ss.set_corner_radius_all(8)
-		ss.content_margin_left = 4; ss.content_margin_right = 4; ss.content_margin_top = 4; ss.content_margin_bottom = 4
-		slot.add_theme_stylebox_override("panel", ss)
-		var icon := TextureRect.new()
-		icon.texture = item_icon(g)
-		icon.custom_minimum_size = Vector2(72, 72)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		slot.add_child(icon)
-		row.add_child(slot)
-		col.add_child(row)
-	if not Game.quests.is_empty():
-		col.add_child(_label("QUESTS", Vector2.ZERO, 18, Color("#e8b923"), 4))
-		var qs := ""
-		for q in Game.quests.values():
-			qs += ("[done] " if q["state"] == "done" else "• ") + q["title"] + ("" if q["state"] == "done" else " — " + q["note"]) + "\n"
-		var ql := _label(qs.strip_edges(), Vector2.ZERO, 13, Color(1, 1, 1, 0.8), 3)
-		ql.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		ql.custom_minimum_size = Vector2(840, 0)
-		col.add_child(ql)
-	col.add_child(_label("W/S pick who · A/D swap trinket · I or Esc close", Vector2.ZERO, 14, Color(1, 1, 1, 0.55), 3))
+	var inv := InventoryUI.open(hud, self)
+	await inv.closed
+	if _menu_kind == "party":
+		_close_menu()
 
 # Picture for an item or gear id: res://assets/items/<id>.png (a few items use a different file name).
-const ITEM_ICON_FILES := { "beer": "beer", "bowl": "chipotle_bowl" }
+const ITEM_ICON_FILES := { "beer": "beer", "bowl": "chipotle_bowl", "weighted_d6": "dice" }
 func item_icon(id: String) -> Texture2D:
 	if id == "":
 		return null
 	var p := "res://assets/items/%s.png" % ITEM_ICON_FILES.get(id, id)
 	return load(p) if ResourceLoader.exists(p) else null
-
-func _cycle_gear(id: String, d: int) -> void:
-	var opts: Array = [""] + Game.gear_owned
-	var cur: String = Game.equipped.get(id, "")
-	var i := (opts.find(cur) + d + opts.size()) % opts.size()
-	var nxt: String = opts[i]
-	for other in Game.equipped.keys():   # one trinket, one owner
-		if Game.equipped[other] == nxt and nxt != "":
-			Game.equipped.erase(other)
-	if nxt == "":
-		Game.equipped.erase(id)
-	else:
-		Game.equipped[id] = nxt
-	ui_sfx.play()
-	_build_party_menu()
-
 
 const GROUND_SHADER := """
 shader_type spatial;

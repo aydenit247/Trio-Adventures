@@ -20,6 +20,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   Claude" credit. Ask again only if it matters for your task.
 - [asar] Spoon Mail is called **Spoon Mail Armor** (Asar's call).
 - [ebain] Ebain added a **Grok** assistant (tag `grok`) for doc hygiene + light tasks. Its lane is in CLAUDE.md.
+- [asar] Asar's calls on the inventory: **Tab = inventory, Q = switch character** (was Tab/I), 7 gear slots like his mockup, currency is **gold** (not spoons), no shop yet, window themed as a "Deloye Lore" page "signed xylo".
+- [asar] Asar wants **screenshots while working** on visual stuff, not just at the end.
 
 ## Godot gotchas
 - [ebain] **Lambdas copy local variables when they're created.** `var m; rows = [{"pick": func(): m.close()}]; m = open(...)`
@@ -65,7 +67,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   api.sketchfab.com plus an API token.
 - [ebain] Sounds go in `godot/assets/sounds/` as `.ogg` (e.g. crickets.ogg, a seamless loop cut with ffmpeg + numpy).
   Set `loop=true` in the `.import` file.
-- [asar] Gear art: name the file after the gear id in `assets/items/` (`spoon.png`, `conditioner.png`…) and the I menu
+- [asar] Gear art: name the file after the gear id in `assets/items/` (`spoon.png`, `conditioner.png`…) and the inventory
   picks it up.
 
 ## Git / workflow
@@ -77,6 +79,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Installing global npm tools (e.g. gltfpack) gets blocked in the sandbox. Do mesh work in Godot or with Python.
 
 ## Code conventions worth knowing
+- [asar] `Game.equipped` is now fighter → { slot → gear id }. Use `Game.equip()/unequip()/wearer()/gear_stats()`, never write the dict directly. Old saves are migrated in `apply_state`. `Game.SLOTS` is the save-slot list; gear slots are `Game.GEAR_SLOTS`.
+- [asar] New gear needs a `"slot"` in CombatD.GEAR (helmet/armor/shoes/shield/weapon/trinket). New enemies need `"gold"`.
 - [ebain] Menus: use `MenuUI` (scripts/menu_ui.gd) for any new menu. It handles keyboard, controller and mouse, and has
   `MenuUI.confirm()` for yes/no boxes. Don't hand-roll another input loop.
 - [ebain] Saves: an area that has free roam should implement `can_resume()` / `can_resume_saved()` / `_resume(r)`

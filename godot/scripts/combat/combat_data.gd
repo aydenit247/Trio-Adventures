@@ -69,18 +69,19 @@ const ITEMS := {
 	"bowl": { "name": "Chipotle Bowl", "heal": 60, "desc": "Heals 60 (or revives at 60)." },
 }
 
-# Trinkets: one per fighter. Found in the world or dropped by fights.
-#   Picture: res://assets/items/<gear id>.png (shown in the I menu when it exists).
+# Gear: each fighter has 7 slots (Game.GEAR_SLOTS). Found in the world or dropped by fights.
+#   slot = helmet · armor · shoes · shield · weapon · trinket (trinkets fit either trinket slot)
+#   Picture: res://assets/items/<gear id>.png (shown in the inventory when it exists).
 #   hp = +max HP · power = +% damage · spd = +speed · meter = ×meter gain · start = starting meter
 #   no_ones = Crash Out dice never roll a 1 · gouge_proof = immune to Price Gouged
 const GEAR := {
-	"spoon": { "name": "Spoon of Destiny", "desc": "A goblin's spoon. Apparently chosen. +10% damage.", "power": 0.10 },
-	"conditioner": { "name": "Backup Conditioner", "desc": "Lykor's emergency bottle. +15 max HP. Lykor wants it back.", "hp": 15 },
-	"vol9": { "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. +25% meter gain.", "meter": 1.25 },
-	"weighted_d6": { "name": "Weighted d6", "desc": "On some cheating shi. Crash Out dice can't roll a 1.", "no_ones": true },
-	"can_hat": { "name": "Beezy Can Hat", "desc": "Two cans, two straws, zero shame. +1 speed.", "spd": 1 },
-	"spoon_mail": { "name": "Spoon Mail Armor", "desc": "Armor made of spoons. Goes 'clink.' +25 max HP.", "hp": 25 },
-	"receipt": { "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
+	"spoon": { "slot": "weapon", "name": "Spoon of Destiny", "desc": "A goblin's spoon. Apparently chosen. +10% damage.", "power": 0.10 },
+	"conditioner": { "slot": "trinket", "name": "Backup Conditioner", "desc": "Lykor's emergency bottle. +15 max HP. Lykor wants it back.", "hp": 15 },
+	"vol9": { "slot": "trinket", "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. +25% meter gain.", "meter": 1.25 },
+	"weighted_d6": { "slot": "trinket", "name": "Weighted d6", "desc": "On some cheating shi. Crash Out dice can't roll a 1.", "no_ones": true },
+	"can_hat": { "slot": "helmet", "name": "Beezy Can Hat", "desc": "Two cans, two straws, zero shame. +1 speed.", "spd": 1 },
+	"spoon_mail": { "slot": "armor", "name": "Spoon Mail Armor", "desc": "Armor made of spoons. Goes 'clink.' +25 max HP.", "hp": 25 },
+	"receipt": { "slot": "trinket", "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
 }
 
 # Statuses. `good` = good for whoever has it. Durations count the holder's own turns.
@@ -122,34 +123,34 @@ const BUZZED_MISFIRES := {
 }
 
 # Fights. `story` fights can't be fled and you can't lose them for good (you retry after the penalty).
-# Enemy tex/h = Godot cutout + height (m). talk = options in the Talk menu.
+# Enemy tex/h = Godot cutout + height (m). gold = what it drops (win = all of it, Talk = half). talk = options in the Talk menu.
 const FIGHTS := {
 	"goblins": {
 		"title": "Skorn vs. The Goblins", "party": ["skorn"], "xp": 30, "par": 7, "story": true,
 		"enemies": [
-			{ "name": "Goblin", "tag": "(Unemployed)", "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.25, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Also Unemployed)", "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.18, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Between Jobs)", "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.3, "ai": "goblin", "second_wind": true },
+			{ "name": "Goblin", "tag": "(Unemployed)", "gold": 4, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.25, "ai": "goblin" },
+			{ "name": "Goblin", "tag": "(Also Unemployed)", "gold": 3, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.18, "ai": "goblin" },
+			{ "name": "Goblin", "tag": "(Between Jobs)", "gold": 5, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.3, "ai": "goblin", "second_wind": true },
 		],
 		"talk": ["bribe_goblin", "job_offer", "roast"],
 		"loot": "spoon",
 	},
 	"dulbers": {
 		"title": "The Party vs. Dulbers Frint", "party": ["skorn", "lykor", "xylo"], "xp": 60, "par": 16, "story": true, "boss": true,
-		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "hp": 300, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
+		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "gold": 75, "hp": 300, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
 		"talk": ["refund", "compliment_store"],
 		"loot": "receipt",
 	},
 	"giant": {
 		"title": "BOSS: Diddy Chud Giant", "party": ["skorn", "lykor", "xylo"], "xp": 100, "par": 22, "story": true, "boss": true,
-		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "hp": 520, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
+		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "gold": 150, "hp": 520, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
 		"talk": ["feed_giant", "lullaby"],
 	},
 	# ---- village side fights
 	"bouncer": {
 		"title": "Bar Fight: Big Thumbs", "xp": 40, "par": 9, "story": true,
 		"enemies": [
-			{ "name": "Big Thumbs", "tag": "(Bouncer) (Has a Gym Membership)", "hp": 150, "spd": 8, "tex": "goblin_fight", "h": 1.75, "ai": "goblin", "second_wind": true },
+			{ "name": "Big Thumbs", "tag": "(Bouncer) (Has a Gym Membership)", "gold": 25, "hp": 150, "spd": 8, "tex": "goblin_fight", "h": 1.75, "ai": "goblin", "second_wind": true },
 		],
 		"talk": ["bribe_goblin", "kings_decree"],
 	},
@@ -157,9 +158,9 @@ const FIGHTS := {
 	"goblin_patrol": {
 		"title": "Goblin Patrol", "xp": 25, "par": 7,
 		"enemies": [
-			{ "name": "Goblin", "tag": "(Unpaid Internship)", "hp": 24, "spd": 8, "tex": "goblin_fight", "h": 1.2, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Hall Monitor)", "hp": 30, "spd": 7, "tex": "goblin_fight", "h": 1.32, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Shift Manager)", "hp": 36, "spd": 9, "tex": "goblin_fight", "h": 1.4, "ai": "goblin", "second_wind": true },
+			{ "name": "Goblin", "tag": "(Unpaid Internship)", "gold": 2, "hp": 24, "spd": 8, "tex": "goblin_fight", "h": 1.2, "ai": "goblin" },
+			{ "name": "Goblin", "tag": "(Hall Monitor)", "gold": 6, "hp": 30, "spd": 7, "tex": "goblin_fight", "h": 1.32, "ai": "goblin" },
+			{ "name": "Goblin", "tag": "(Shift Manager)", "gold": 10, "hp": 36, "spd": 9, "tex": "goblin_fight", "h": 1.4, "ai": "goblin", "second_wind": true },
 		],
 		"talk": ["bribe_goblin", "job_offer", "roast"],
 		"loot": "can_hat",

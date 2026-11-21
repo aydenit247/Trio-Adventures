@@ -45,7 +45,7 @@ const BURN := [
 	{ "who": "xylo", "line": "Chill. Them goblins up north know every road in Caelid. We just ask them." }, # DRAFT
 	{ "who": "lykor", "line": "Bet. We leave at sunrise. And nobody touch NOTHING." }, # DRAFT
 	{ "do": "party_up" },
-	{ "who": "narrator", "line": "(Explore the camp. Tab switches who you control.)" },
+	{ "who": "narrator", "line": "(Explore the camp. Q switches who you control. Tab opens your inventory.)" },
 ]
 
 # Before the fire is lit

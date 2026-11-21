@@ -60,7 +60,8 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 	for i in ids.size():
 		var id: String = ids[i]
 		var P: Dictionary = D.PARTY[id]
-		var g: Dictionary = D.GEAR.get(gear.get(id, ""), {})
+		var gv = gear.get(id, "")   # combined stats from Game.gear_stats() (or one gear id, e.g. from the balance sim)
+		var g: Dictionary = gv if gv is Dictionary else D.GEAR.get(gv, {})
 		var max_hp := int(round((P["hp"] + g.get("hp", 0)) * lvl))
 		var moves: Dictionary = P["moves"].duplicate()
 		for at in P.get("learn", {}):

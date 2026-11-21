@@ -676,8 +676,8 @@ func on_action(n: String) -> void:
 		"take_conditioner":
 			Game.set_flag("chestLooted")
 			Game.give_gear("conditioner")
-			if not Game.equipped.has("lykor"):
-				Game.equipped["lykor"] = "conditioner"
+			if Game.wearer("conditioner").is_empty() and not Game.slots_of("lykor").has("trinket1"):
+				Game.equip("lykor", "conditioner", "trinket1")
 			reward(10, "Got: Backup Conditioner (Lykor's trinket, +15 Aura)")
 			await lv.wait(0.6)
 		"xylo_nap":
@@ -772,8 +772,8 @@ func on_action(n: String) -> void:
 			Game.set_flag("loreOffWon", lore_wrong == 0)
 		"lore_reward":
 			Game.give_gear("vol9")
-			if not Game.equipped.has("xylo"):
-				Game.equipped["xylo"] = "vol9"
+			if Game.wearer("vol9").is_empty() and not Game.slots_of("xylo").has("trinket1"):
+				Game.equip("xylo", "vol9", "trinket1")
 			Game.finish_quest("lore_off")
 			reward(40, "Got: Deloye Lore Vol. 9 (Signed) — Xylo's trinket")
 			await lv.wait(0.5)

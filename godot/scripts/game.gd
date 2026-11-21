@@ -13,7 +13,8 @@ var tts_on := true
 var xp := 0
 var level := 1
 var gear_owned: Array = []        # gear ids found so far
-var equipped := {}                # fighter id -> gear id
+var equipped := {}                # fighter id -> { slot -> gear id }   (slots: GEAR_SLOTS below; gear slot types in CombatD.GEAR)
+var gold := 0                     # currency, dropped by enemies (see "gold" on each enemy in CombatD.FIGHTS)
 var used67 := false               # the 6-7 happens once per game
 var forehead := ""                # funny penalty text written on the leader's forehead
 var quests := {}                  # id -> { title, note, state = "active" | "done" }
@@ -40,6 +41,7 @@ func reset() -> void:
 	level = 1
 	gear_owned = []
 	equipped = {}
+	gold = 0
 	used67 = false
 	forehead = ""
 	quests = {}
@@ -61,6 +63,81 @@ func give_gear(id: String) -> bool:
 		return false
 	gear_owned.append(id)
 	return true
+
+func add_gold(n: int) -> void:
+	gold = max(0, gold + n)
+
+# ---- equipment: 7 slots per fighter. A slot only takes gear of its type ("trinket" fits either trinket slot).
+const GEAR_SLOTS := ["helmet", "armor", "shoes", "shield", "weapon", "trinket1", "trinket2"]
+const SLOT_NAMES := { "helmet": "Helmet", "armor": "Armor", "shoes": "Shoes", "shield": "Shield", "weapon": "Weapon", "trinket1": "Trinket 1", "trinket2": "Trinket 2" }
+const CombatD = preload("res://scripts/combat/combat_data.gd")
+
+static func slot_type(slot: String) -> String:
+	return "trinket" if slot.begins_with("trinket") else slot
+
+func gear_type(gear_id: String) -> String:
+	return CombatD.GEAR.get(gear_id, {}).get("slot", "trinket")
+
+func slots_of(fighter: String) -> Dictionary:
+	if not equipped.has(fighter) or not equipped[fighter] is Dictionary:
+		equipped[fighter] = {}
+	return equipped[fighter]
+
+# Who has this gear on, and in which slot: ["lykor", "armor"], or [] if it's in the bag.
+func wearer(gear_id: String) -> Array:
+	for f in equipped:
+		if equipped[f] is Dictionary:
+			for s in equipped[f]:
+				if equipped[f][s] == gear_id:
+					return [f, s]
+	return []
+
+func unequip(fighter: String, slot: String) -> void:
+	slots_of(fighter).erase(slot)
+
+# Put gear on a fighter. slot "" = pick the right slot (first free trinket slot, else trinket 1).
+# Takes it off whoever had it. Returns the slot used, or "" if it doesn't fit.
+func equip(fighter: String, gear_id: String, slot := "") -> String:
+	var t := gear_type(gear_id)
+	if slot == "":
+		if t == "trinket":
+			var sl := slots_of(fighter)
+			slot = "trinket1" if not sl.has("trinket1") else ("trinket2" if not sl.has("trinket2") else "trinket1")
+		else:
+			slot = t
+	if slot_type(slot) != t:
+		return ""
+	var w := wearer(gear_id)
+	if not w.is_empty():
+		unequip(w[0], w[1])
+	slots_of(fighter)[slot] = gear_id
+	return slot
+
+# Everything a fighter's gear adds up to, in the same shape as one CombatD.GEAR entry (battle.gd reads this).
+func gear_stats(fighter: String) -> Dictionary:
+	var out := { "hp": 0, "power": 0.0, "spd": 0, "start": 0, "meter": 1.0 }
+	for s in slots_of(fighter):
+		var G: Dictionary = CombatD.GEAR.get(slots_of(fighter)[s], {})
+		out["hp"] += G.get("hp", 0)
+		out["power"] += G.get("power", 0.0)
+		out["spd"] += G.get("spd", 0)
+		out["start"] = mini(100, out["start"] + G.get("start", 0))
+		out["meter"] *= G.get("meter", 1.0)
+		for k in ["no_ones", "gouge_proof"]:
+			if G.get(k, false):
+				out[k] = true
+	return out
+
+# Old saves stored one gear id per fighter: move it into the right slot.
+func _migrate_equipped(old: Dictionary) -> Dictionary:
+	var out := {}
+	for f in old:
+		if old[f] is Dictionary:
+			out[f] = old[f].duplicate()
+		elif old[f] is String and old[f] != "":
+			var t := gear_type(old[f])
+			out[f] = { ("trinket1" if t == "trinket" else t): old[f] }
+	return out
 
 func start_quest(id: String, title: String, note: String) -> void:
 	if not quests.has(id):
@@ -222,7 +299,7 @@ var title_mode := false           # the title screen is showing the camp in the 
 func state_dict() -> Dictionary:
 	return {
 		"flags": flags.duplicate(true), "inv": inv.duplicate(true), "xp": xp, "level": level,
-		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(), "used67": used67,
+		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "gold": gold, "used67": used67,
 		"forehead": forehead, "quests": quests.duplicate(true),
 	}
 
@@ -233,7 +310,8 @@ func apply_state(d: Dictionary) -> void:
 	xp = int(d.get("xp", 0))
 	level = int(d.get("level", 1))
 	gear_owned = d.get("gear_owned", []).duplicate()
-	equipped = d.get("equipped", {}).duplicate()
+	equipped = _migrate_equipped(d.get("equipped", {}))
+	gold = int(d.get("gold", 0))
 	used67 = d.get("used67", false)
 	forehead = d.get("forehead", "")
 	quests = d.get("quests", {}).duplicate(true)

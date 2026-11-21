@@ -77,8 +77,8 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 		ids.append(u.id)
 	var gear := {}
 	for id in ids:
-		if Game.equipped.has(id):
-			gear[id] = Game.equipped[id]
+		if id in ["skorn", "lykor", "xylo", "chief"]:
+			gear[id] = Game.gear_stats(id)   # all 7 slots added up
 	b = BattleT.new(key, {
 		"party": ids, "mods": o.get("mods", {}), "level": Game.level, "inv": Game.inv,
 		"difficulty": Game.difficulty, "used67": Game.used67, "gear": gear,
@@ -1298,10 +1298,23 @@ func _outro(res: String) -> void:
 		lv.dialogue.show_box()
 	queue_free()
 
+# Gold from a fight: every enemy's "gold" (win) or half of it (talked), give or take 20%.
+static func fight_gold(def: Dictionary, res: String) -> int:
+	if res != "win" and res != "talked":
+		return 0
+	var total := 0
+	for E in def.get("enemies", []):
+		total += int(E.get("gold", 0))
+	if res == "talked":
+		total = int(total * 0.5)
+	return int(round(total * randf_range(0.8, 1.2))) if total > 0 else 0
+
 func _results(res: String) -> void:
 	var g := b.grade()
 	var xp: int = int(round(fdef["xp"] * (g["xp"] if res == "win" else 0.5)))
 	var ups := Game.add_xp(xp)
+	var gold := fight_gold(fdef, res)
+	Game.add_gold(gold)
 	var loot := ""
 	if res == "win" and fdef.has("loot") and Game.give_gear(fdef["loot"]):
 		loot = fdef["loot"]
@@ -1323,13 +1336,15 @@ func _results(res: String) -> void:
 		lines.append(["TALKED IT OUT", 40, GREEN])
 		lines.append(["(Half XP for being reasonable)", 18, Color(1, 1, 1, 0.7)])
 	lines.append(["+%d XP   ·   Level %d   (%s)" % [xp, Game.level, "%d to next" % Game.xp_to_next() if Game.xp_to_next() > 0 else "max"], 20, Color.WHITE])
+	if gold > 0:
+		lines.append(["+%d Gold   ·   %d total" % [gold, Game.gold], 20, GOLD])
 	for lvn in ups:
 		lines.append(["LEVEL UP! The trio is now Level %d. (+10%% HP and damage)" % lvn, 20, GREEN])
 		if lvn == 3:
 			lines.append(["New moves: Belly Bump · Conditioner Mist · Citation Needed", 18, Color("#fff07a")])
 	if loot != "":
 		lines.append(["Found: %s — %s" % [D.GEAR[loot]["name"], D.GEAR[loot]["desc"]], 18, Color("#8ad8ff")])
-		lines.append(["(Equip it from the Party menu: press I)", 15, Color(1, 1, 1, 0.6)])
+		lines.append(["(Equip it in your inventory: press Tab)", 15, Color(1, 1, 1, 0.6)])
 	lines.append(["", 8, Color.WHITE])
 	lines.append(["Press E to continue", 16, Color(1, 1, 1, 0.6)])
 	for L in lines:
