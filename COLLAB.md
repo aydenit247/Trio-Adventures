@@ -9,6 +9,11 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Title screen + save/load + settings menu + "less clunky" pass (loading screen, controller support, mouse in
+  menus, choice hotkeys, fullscreen key, app icon/splash) + new shared TIPS.md — files: godot/project.godot,
+  godot/scripts/game.gd, godot/scripts/level.gd, godot/scripts/dialogue.gd, godot/scripts/camp.gd,
+  godot/scripts/village.gd, godot/export_presets.cfg, new godot/title.tscn, new godot/scripts/title.gd, new
+  godot/scripts/menu_ui.gd, new TIPS.md — branch: ebain/title-saves-polish — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -35,6 +40,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/project.godot, scripts/game.gd, level.gd, dialogue.gd, camp.gd, village.gd, export_presets.cfg, title.tscn (new), title.gd (new), menu_ui.gd (new), TIPS.md (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
