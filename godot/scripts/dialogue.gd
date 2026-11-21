@@ -1,4 +1,5 @@
 # Dialogue box: portrait, name, typewriter text, choices, and the same robot TTS voices as the web game.
+# Lines with a real recording (see voice_lines.gd) play that instead of TTS.
 #   await dialogue.run(steps, main)
 extends CanvasLayer
 class_name Dialogue
@@ -34,11 +35,14 @@ var _typing: Tween
 var _choices: Array = []
 var _sel := 0
 var _voices: PackedStringArray = []
+var _vo: AudioStreamPlayer   # plays recorded voice lines
 
 func _ready() -> void:
 	layer = 10
 	_build()
 	panel.visible = false
+	_vo = AudioStreamPlayer.new()
+	add_child(_vo)
 	if DisplayServer.has_feature(DisplayServer.FEATURE_TEXT_TO_SPEECH):
 		_voices = DisplayServer.tts_get_voices_for_language("en")
 
@@ -116,7 +120,7 @@ func run(steps: Array, ctx: Node) -> void:
 	create_tween().tween_property(panel, "modulate:a", 1.0, 0.15)
 	await _run_steps(steps, ctx)
 	panel.visible = false
-	DisplayServer.tts_stop()
+	stop_voice()
 	active = false
 
 func _run_steps(steps: Array, ctx: Node) -> void:
@@ -139,7 +143,7 @@ func _run_steps(steps: Array, ctx: Node) -> void:
 # Hide/show the box mid-dialogue (e.g. while the player sneaks during a scene)
 func hide_box() -> void:
 	panel.visible = false
-	DisplayServer.tts_stop()
+	stop_voice()
 
 func show_box() -> void:
 	panel.visible = true
@@ -233,8 +237,23 @@ func _portrait(who: String, mood: String) -> Texture2D:
 			return load(p)
 	return null
 
+func stop_voice() -> void:
+	DisplayServer.tts_stop()
+	if _vo:
+		_vo.stop()
+
 func _speak(who: String, line: String, thought: bool) -> void:
-	if not tts_on or _voices.is_empty():
+	if not tts_on:
+		return
+	var rec := VoiceLines.stream_for(line) if not thought else null
+	if rec:
+		DisplayServer.tts_stop()
+		_vo.stream = rec
+		_vo.play()
+		return
+	if _vo:
+		_vo.stop()
+	if _voices.is_empty():
 		return
 	var clean := line.replace("…", ", ").replace("*", "")
 	for pair in [["\\bshi\\b", "shee"], ["\\bdoe\\b", "dough"], ["\\by'all\\b", "yall"]]:
