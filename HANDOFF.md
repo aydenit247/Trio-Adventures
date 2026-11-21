@@ -87,9 +87,25 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
 - `FIGHT=goblins|dulbers|giant|goblin_patrol|bouncer` (+ `LEVEL=2`, `ALLIES=1`, `AUTO_LOSE=1`, `MENUS=1`) — runs one fight
 - `LOOK="x,z,yaw;..."` (camp) — close-up screenshots of spots with the fire lit
 - `--views` instead of `--shots` walks the trio in 4 directions
+- `DEV_DIALOGUE=skip|choices|only:<speaker>` (+ `DEV_PICK=1..5`) — run a tour in a dev dialogue mode (see Dev mode below)
+- `DEV_MENU=1` — screenshots of the F1 dev menu + dialogue viewer
+- **Fast logic-only check:** add `--headless` (no xvfb, no rendering flags). Tours run in about a minute, print
+  `SHOT <name>` instead of saving pictures, and any script error shows up. Use this to check that a flow still
+  finishes, and the xvfb run when you need to see it.
 Tours are slow in the sandbox (5–9 min); run them one at a time or they time out. `--check-only` always reports
 "Identifier not found: Game" — that's a false positive (the autoload). The sandbox has no TTS and no Forward+, so
 voices are silent and the screenshots look a bit flatter than the real game.
+
+### Dev mode (F1 in game)
+F1 opens the developer menu (`scripts/dev_mode.gd`, class **DevMode**). It lets you:
+- pick a **dialogue mode**: normal · choices (only choice menus) · skip (no dialogue at all; choices are auto-picked
+  with option #`Skip-all pick`) · `only:skorn|lykor|xylo|goblins|dulbers|mattias_giant|narrator` (only that speaker's lines)
+- open the **dialogue viewer**: read every line of a scene's script without playing it, filtered by speaker
+  (A/D switch script, W/S scroll, Q back)
+- **jump to a scene**, set **fights auto-win**, and use cheats (+100 XP, +items, all gear, story flags)
+It works by routing `run_dialogue()` in level.gd through `DevMode.run()`, so dialogue.gd is untouched. Settings live
+in `Game.dev_dialogue`, `Game.dev_pick` and `Game.dev_autowin`. Nested dialogue (village rooms) uses `lv.run_nested(steps)`.
+
 Balance sim for combat: `godot --headless --path godot --script res://tools/sim_combat.gd`.
 
 ### Building the game
@@ -114,8 +130,10 @@ Commit as user `Claude`, email `noreply@anthropic.com`, ending each message with
 
 **Style: 2.5D.** A 3D world; characters are billboard cutout cards (unshaded, tinted per frame by `light_at()` from
 glows registered with `add_glow`). Directional character views: `<id>.png` (front), `<id>_back.png`, `<id>_side.png`
-(side faces right). Environment = real glTF models + photo textures, plus some cutout cards (trees, tents, bushes)
-and painted backdrops (Mart, Pass).
+(side faces right). Environment = real glTF models + photo textures, plus some cutout cards (trees, tents, bushes).
+Every area is fully 3D now. The painted pictures in `assets/backdrops/` are reference art only. Keep scenes light:
+Poly Haven boulders/trunks are 65–100k triangles each, so use `rock_07`/`rock_09`/`rock_face_01` (12–20k) for
+anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass.gd).
 
 | File | What it is |
 |---|---|
@@ -128,14 +146,15 @@ and painted backdrops (Mart, Pass).
 | `scripts/camp.gd` + `camp_script.gd` | Scene 1 (`main.tscn`) |
 | `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
 | `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
-| `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`); shop room at x = 300 |
-| `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`); Snore Sneak + Lore Session minigames |
+| `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`): modelled shop exterior (`_shop_exterior`, street houses) + stocked interior at x = 300 (`_shop_interior`); the trip recolors `room_lights`/`glow_jars` |
+| `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`): rock-face canyon + animated lava (`_canyon`, `_lava`), giant lying across the path (`giant_lying`); Snore Sneak + Lore Session minigames |
+| `scripts/dev_mode.gd` | **DevMode**: the F1 developer menu, dialogue modes, line viewer (see "Dev mode") |
 | `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter |
 | `scripts/combat/battle.gd` | pure combat rules (turn timeline, meters, ultimates, team-ups, statuses, boss AI, talk/flee, grade) |
 | `scripts/combat/battle_view.gd` | in-world fight presentation (line-up, menus, timed ring, dice, events, results) |
 | `scripts/models.gd` | **Models**: `place(parent, id, pos, rot_y, scale, collide, recolor)`, `mat(texture, tile, tint)` (triplanar PBR for any box/cylinder), `block`, `cylinder`, `patch` (soft-edged ground decal), `tint` |
 | `scripts/fx.gd`, `util.gd`, `ambience.gd` | particles (flames, poof), mesh/material/sound helpers, synthesized fire + crickets |
-| `assets/characters/`, `portraits/`, `props/`, `backdrops/`, `items/` | Ebain's art (cutouts, painted backdrops) |
+| `assets/characters/`, `portraits/`, `props/`, `backdrops/`, `items/` | Ebain's art (cutouts; backdrops are reference only now) |
 | `assets/models/<id>/`, `assets/textures/<id>/` | Poly Haven models (glTF) and textures (albedo/normal/rough.jpg) |
 | `../tools/fetch_polyhaven.py` | `python3 tools/fetch_polyhaven.py model|texture <id>` downloads into the project |
 | `../tools/key_chars.py`, `key_props.py` | green-screen cutters for Ebain's character / prop images |
@@ -165,7 +184,8 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
   goblin kids, Skorn's job interviews).
 - **Character art from Ebain (Gemini):** new named goblins (bartender, comedian, bouncer, shaman, smith) — right now
   they're recolored goblin cutouts. Cut new art with `tools/key_chars.py` into `godot/assets/characters/`.
-  Wishlist: `godot/ASSETS_NEEDED.md`.
+  Wishlist: `godot/ASSETS_NEEDED.md`. Top of the list: a **sleeping giant** (lying down) for the Pass. Right now
+  it's his standing art turned on its side.
 - **Voice lines:** 37 goblin + Chief lines recorded by Asar are in (`assets/voices/goblins/`, `voice_lines.gd`).
   The rest are numbered in `VOICE_LINES.md`; Asar records them by number. Mattias lines may come later.
 - **Pronunciations:** Ebain hasn't answered the pronunciation list (Lykor, Xylo, metocy, Deloye, slang like ts/mf/ngl).

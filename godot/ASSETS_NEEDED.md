@@ -35,18 +35,12 @@ Huts, throne, outhouse, job board and all four rooms are built from Poly Haven m
 Still nice to have (Gemini, green screen): a bartender goblin, a stand-up comedian goblin with a tiny mic, a huge
 muscly bouncer goblin, a hooded shaman goblin with glasses, a blacksmith goblin in an apron.
 
-## Scene 3 — Metocy Mart (painted backdrops in game now; real props would replace them)
-- [ ] The Metocy Mart building by itself on green screen (front view, crooked shop, glowing blue window, wooden sign)
-- [ ] Wooden crates ×2, barrels ×2, burlap sacks
-- [ ] Street lamp / lantern post
-- [ ] Inside: shop counter, tall shelf full of glowing jars ×2, hanging dried herbs, candle cluster
+## Scene 3 — Metocy Mart (DONE: modelled 3D shop, inside and out, from real CC0 models/textures)
 - [ ] (Optional) Dulbers back view
 
-## Scene 4 — The Pass (next to port)
-- [ ] **Diddy Chud Giant asleep** (lying down / snoring) on green screen — the current sleeping giant is painted
-      into the background
-- [ ] Volcanic rock spires / cliff chunks ×3 (dark rock with glowing lava cracks)
-- [ ] Boulders ×2, a dead burnt tree, steaming lava vent
+## Scene 4 — The Pass (DONE: 3D canyon, lava, rocks)
+- [ ] **Diddy Chud Giant asleep, lying on his back, snoring**, full body, side-on, on green screen. **This is the one
+      that matters most.** Right now his standing art is just turned sideways.
 - [ ] Pile of Chipotle Bowls (the giant's stash)
 - [ ] Mountain path sign ("GIANT'S PASS")
 - [ ] (Optional) Mattias back view

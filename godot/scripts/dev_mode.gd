@@ -52,7 +52,7 @@ static func run(lv: Node, steps: Array) -> void:
 	d.panel.visible = false
 	await walk(lv, steps)
 	d.panel.visible = false
-	DisplayServer.tts_stop()
+	d.stop_voice()
 	d.active = false
 
 static func walk(lv: Node, steps: Array) -> void:
