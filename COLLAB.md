@@ -9,6 +9,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Item pictures: Spoon Mail art (renamed "Spoon Mail Armor") + gear icons in the I menu — files: godot/scripts/combat/combat_data.gd, godot/scripts/level.gd (party menu only), godot/scripts/village_buildings.gd (Spoon Mail reward text), godot/assets/items/ — branch: asar/item-pictures — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -34,6 +35,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/combat/combat_data.gd, godot/scripts/level.gd (party menu), godot/scripts/village_buildings.gd, godot/assets/items/
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
