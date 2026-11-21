@@ -12,6 +12,13 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 - [asar] Goblin voice lines (Asar's recordings) → play instead of TTS for goblin speakers — files: godot/scripts/dialogue.gd,
   godot/scripts/voice_lines.gd (new), godot/assets/voices/ (new), VOICE_LINES.md (new) — branch: asar/voice-lines — started 2026-11-21
 
+- [ebain] (1) Missing-texture sweep · (2) Metocy Mart + The Pass rebuilt as real 3D places (no more painted
+  backdrops) · (3) Developer/test mode (skip dialogue, choices-only, dialogue viewer, scene jump, cheats) — files:
+  godot/scripts/mart.gd, godot/scripts/pass.gd, godot/scripts/level.gd, godot/scripts/game.gd, godot/scripts/models.gd,
+  godot/scripts/village_buildings.gd (run_lines → dev filter), new godot/scripts/dev_mode.gd, new asset folders.
+  NOT touching dialogue.gd (asar's) — dev skipping is done in level.gd before steps reach the dialogue box —
+  branch: ebain/real-mart-pass-devmode — started 2026-11-21
+
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -32,6 +39,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/scripts/dialogue.gd (shared hot spot — short claim), godot/scripts/voice_lines.gd, godot/assets/voices/, VOICE_LINES.md
+- [ebain] godot/scripts/mart.gd, pass.gd, level.gd, game.gd, models.gd, village_buildings.gd, dev_mode.gd (new), new asset folders
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
