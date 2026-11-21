@@ -10,6 +10,9 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Remove Asar's 37 goblin/Chief recordings (Ebain's call: all voices will be AI-generated with the Emberstage
+  studio instead) — files: godot/scripts/voice_lines.gd, godot/assets/voices/goblins/, VOICE_LINES.md, TIPS.md —
+  branch: ebain/remove-recordings — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -42,6 +45,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/scripts/voice_lines.gd, godot/assets/voices/goblins/, VOICE_LINES.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
