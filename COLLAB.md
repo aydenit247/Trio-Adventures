@@ -10,7 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Victory screen redesign (Asar's sketch): "VICTORY!!!", no grade system, gold line with coin icon, found items as icons with hover info — files: godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd (GRADES/par), godot/tools/sim_combat.gd — branch: asar/victory-screen — started 2026-11-21
+- [asar] Victory screen redesign (Asar's sketch): "VICTORY!!!", no grade system, gold line with coin icon, found items as icons with hover info — files: godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd (GRADES/par), godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd — branch: asar/victory-screen — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Controller "back" (B) in battle menus: battle_view.gd only checks Q/Esc/Backspace keys. Add `ui_cancel` (one line, combat hot spot)
@@ -41,7 +41,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd, godot/tools/sim_combat.gd
+- [asar] godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd, godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd (shared coin icon)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
