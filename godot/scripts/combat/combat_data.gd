@@ -70,6 +70,7 @@ const ITEMS := {
 }
 
 # Trinkets: one per fighter. Found in the world or dropped by fights.
+#   Picture: res://assets/items/<gear id>.png (shown in the I menu when it exists).
 #   hp = +max HP · power = +% damage · spd = +speed · meter = ×meter gain · start = starting meter
 #   no_ones = Crash Out dice never roll a 1 · gouge_proof = immune to Price Gouged
 const GEAR := {
@@ -78,7 +79,7 @@ const GEAR := {
 	"vol9": { "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. +25% meter gain.", "meter": 1.25 },
 	"weighted_d6": { "name": "Weighted d6", "desc": "On some cheating shi. Crash Out dice can't roll a 1.", "no_ones": true },
 	"can_hat": { "name": "Beezy Can Hat", "desc": "Two cans, two straws, zero shame. +1 speed.", "spd": 1 },
-	"spoon_mail": { "name": "Spoon Mail", "desc": "Armor made of spoons. Goes 'clink.' +25 max HP.", "hp": 25 },
+	"spoon_mail": { "name": "Spoon Mail Armor", "desc": "Armor made of spoons. Goes 'clink.' +25 max HP.", "hp": 25 },
 	"receipt": { "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
 }
 

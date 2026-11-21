@@ -1292,6 +1292,18 @@ func _build_party_menu() -> void:
 		d.custom_minimum_size = Vector2(700, 0)
 		info.add_child(d)
 		row.add_child(info)
+		var slot := PanelContainer.new()   # trinket slot: shows the equipped gear's picture if it has one
+		var ss := StyleBoxFlat.new()
+		ss.bg_color = Color(0, 0, 0, 0.45); ss.border_color = Color("#e8b923", 0.6); ss.set_border_width_all(2); ss.set_corner_radius_all(8)
+		ss.content_margin_left = 4; ss.content_margin_right = 4; ss.content_margin_top = 4; ss.content_margin_bottom = 4
+		slot.add_theme_stylebox_override("panel", ss)
+		var icon := TextureRect.new()
+		icon.texture = item_icon(g)
+		icon.custom_minimum_size = Vector2(72, 72)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		slot.add_child(icon)
+		row.add_child(slot)
 		col.add_child(row)
 	if not Game.quests.is_empty():
 		col.add_child(_label("QUESTS", Vector2.ZERO, 18, Color("#e8b923"), 4))
@@ -1303,6 +1315,14 @@ func _build_party_menu() -> void:
 		ql.custom_minimum_size = Vector2(840, 0)
 		col.add_child(ql)
 	col.add_child(_label("W/S pick who · A/D swap trinket · I or Esc close", Vector2.ZERO, 14, Color(1, 1, 1, 0.55), 3))
+
+# Picture for an item or gear id: res://assets/items/<id>.png (a few items use a different file name).
+const ITEM_ICON_FILES := { "beer": "beer", "bowl": "chipotle_bowl" }
+func item_icon(id: String) -> Texture2D:
+	if id == "":
+		return null
+	var p := "res://assets/items/%s.png" % ITEM_ICON_FILES.get(id, id)
+	return load(p) if ResourceLoader.exists(p) else null
 
 func _cycle_gear(id: String, d: int) -> void:
 	var opts: Array = [""] + Game.gear_owned

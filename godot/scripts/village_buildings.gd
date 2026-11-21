@@ -854,7 +854,7 @@ func _smith_turn_in() -> void:
 	if turned < 5 and found >= 5:
 		Game.give_gear("spoon_mail")
 		Game.finish_quest("shiny_spoons")
-		reward(30, "Got: Spoon Mail (+25 HP)")
+		reward(30, "Got: Spoon Mail Armor (+25 HP)")
 		await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "SPOON MAIL. Armor made of spoons. Every time you get hit it goes 'clink.' That's the sound of protection." }]) # DRAFT
 	elif found < 5:
 		await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "Bring me %d more and I'll make you armor. Spoon armor. The best armor. The only armor I make." % (SPOONS.size() - found) }]) # DRAFT
