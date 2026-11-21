@@ -121,10 +121,15 @@ func _poll() -> void:
 			line = "Choice on screen (%d options)" % d._choices.size()
 	_changed("dialogue", line, ("Dialogue — " + line.left(160)) if line != "" else "Dialogue closed")
 	var fight := ""
+	var fight_msg := ""
 	for ch in sc.get_children():
 		if ch.get_class() != "" and ch.get_script() and str(ch.get_script().resource_path).ends_with("battle_view.gd"):
 			fight = str(ch.get("key"))
+			var ll = ch.get("log_lbl")   # the fight's message line ("Lykor uses Hair Flip…", "Big Thumbs is down!")
+			if ll:
+				fight_msg = ll.text
 	_changed("fight", fight, ("Fight started: %s" % fight) if fight != "" else "Fight ended")
+	_changed("fight_msg", fight_msg, ("Fight — " + fight_msg.left(200)) if fight_msg != "" else "")
 	var menu = sc.get("_menu_kind")
 	_changed("menu", str(menu) if menu != null else "", ("Menu open: %s" % menu) if menu else "Menu closed")
 	# snapshot for the reports (cheap, every 0.25 s)
