@@ -1,0 +1,89 @@
+# Voice packs dropped into voice-imports/ (a zip exported from the Emberstage voice studio) get imported automatically:
+# converted to OGG, linked in godot/scripts/voice_index.gd, committed to foundation, mirrored to main, and the Windows
+# build is started. The zip is removed afterwards. See voice-imports/README.md.
+name: Voice import
+
+on:
+  push:
+    branches: [main, foundation]
+    paths: ['voice-imports/**.zip']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: voice-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect the uploaded zips
+        id: zips
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/packs
+          # zips from the commit that triggered this (any branch), plus any already sitting in foundation's folder
+          git ls-tree -r --name-only "$GITHUB_SHA" -- voice-imports | grep -i '\.zip$' > /tmp/list.txt || true
+          while read -r f; do [ -n "$f" ] && git show "$GITHUB_SHA:$f" > "/tmp/packs/$(basename "$f")"; done < /tmp/list.txt
+          ls -la /tmp/packs
+          echo "count=$(ls /tmp/packs | wc -l)" >> "$GITHUB_OUTPUT"
+          echo "upload_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Switch to foundation
+        if: steps.zips.outputs.count != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout foundation
+          git pull --ff-only origin foundation
+
+      - name: Install ffmpeg
+        if: steps.zips.outputs.count != '0'
+        run: which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+
+      - name: Import
+        if: steps.zips.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          : > /tmp/report.txt
+          for z in /tmp/packs/*.zip; do
+            echo "### $(basename "$z")" | tee -a /tmp/report.txt
+            python3 tools/import_voices.py "$z" | tee -a /tmp/report.txt
+            echo | tee -a /tmp/report.txt
+          done
+          { echo "## Voice import"; echo '```'; cat /tmp/report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          git rm -q --ignore-unmatch voice-imports/*.zip voice-imports/*.ZIP || true
+          git add godot/assets/voices godot/scripts/voice_index.gd
+          if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
+          git commit -q -F - <<MSG
+          Voice import: $(ls /tmp/packs | tr '\n' ' ')
+
+          $(grep -E 'imported|aren.t in the game' /tmp/report.txt || true)
+          MSG
+
+      - name: Push (foundation, then mirror main)
+        if: steps.zips.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          # someone may have pushed while this ran: replay on top of theirs and try again
+          for i in 1 2 3; do
+            git push origin foundation && break
+            git pull --rebase origin foundation
+          done
+          git fetch origin main
+          # main is a copy of foundation. If the zip was uploaded straight to main, that upload commit is replaced.
+          git push --force-with-lease=main:"$(git rev-parse origin/main)" origin foundation:main
+
+      - name: Start the Windows build
+        if: steps.zips.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run windows-build.yml --ref main
