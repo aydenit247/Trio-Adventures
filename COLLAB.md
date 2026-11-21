@@ -9,7 +9,8 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- (nothing right now)
+- [ebain] Mart + Pass real art (Poly Haven props/rocks/textures) — files: godot/scripts/mart.gd, godot/scripts/pass.gd,
+  new folders in godot/assets/models/ + godot/assets/textures/ — branch: ebain/mart-pass-real-art — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -29,7 +30,7 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- (none)
+- [ebain] godot/scripts/mart.gd, godot/scripts/pass.gd, new asset folders
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
