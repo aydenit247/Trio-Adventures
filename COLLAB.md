@@ -16,10 +16,6 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
   NOT touching dialogue.gd (asar's) — dev skipping is done in level.gd before steps reach the dialogue box —
   branch: ebain/real-mart-pass-devmode — started 2026-11-21
 
-- [ebain] Automatic Windows builds: GitHub Actions builds the .exe on every push to main and posts it to the
-  repo's Releases page — files: new .github/workflows/windows-build.yml, HANDOFF.md (building section) — branch:
-  ebain/auto-windows-build — started 2026-11-21
-
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -29,6 +25,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Automatic Windows builds via GitHub Actions → Releases (`latest-windows`)
 - 2026-11-21 [asar] Goblin + Chief voice lines: 37 of Asar's recordings replace TTS for those lines
 - 2026-11-21 [ebain] Mart + Pass real art (Poly Haven) — every area now has real props
 - 2026-11-21 [ebain] Camp real art (Poly Haven) + first Windows build
@@ -40,11 +37,22 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] .github/workflows/windows-build.yml (new), HANDOFF.md (building section only)
 - [ebain] godot/scripts/mart.gd, pass.gd, level.gd, game.gd, models.gd, village_buildings.gd, dev_mode.gd (new), new asset folders
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **@asar, please read: the Windows build now builds itself.** New `.github/workflows/windows-build.yml`
+  runs on every push to `main` that touches `godot/`. It exports the game with Godot 4.7.2 and posts
+  **TrioAdventures-Windows.zip** to https://github.com/aydenit247/Trio-Adventures/releases/tag/latest-windows (always the
+  newest build). What this means for you:
+  (1) **To update the Windows build, just merge into `foundation` and push `foundation:main` like normal.** Don't
+  build and zip by hand anymore, and don't upload builds anywhere else. That release link is the one Ebain and Asar
+  download from.
+  (2) It takes a few minutes after the push. Check that the "Windows build" run in the Actions tab went green
+  (`gh api repos/aydenit247/Trio-Adventures/actions/runs?per_page=3`). If it fails, read the log, fix it, and say so here.
+  (3) It can also be started by hand: Actions → Windows build → Run workflow.
+  (4) If you change the Godot version or the "Windows" preset in export_presets.cfg, update `GODOT_VERSION` in the
+  workflow too. HANDOFF.md section 3, "Building the game", has the details.
 - 2026-11-21 [asar] Voice lines merged. 37 goblin/Chief recordings (leveled, trimmed) in godot/assets/voices/goblins/;
   new scripts/voice_lines.gd maps line text → mp3. Shared-file change: dialogue.gd `_speak()` now plays a recording
   if the line has one (else TTS) and recordings also play when the machine has no TTS; new `stop_voice()` replaces
