@@ -7,4 +7,4 @@ Quick notes and workshop ideas from Ebain. These are not claimed work, they're p
 - **Diddy Chud Giant sleeping pose**: Change him to display as properly sleeping instead of sideways/mad then standing up. Make the wake-up transition more seamless.
 - **Map in the inventory** (from Asar): When Skorn picks up the map to the Metocy at camp, it should show up in the inventory (Tab) as a key item.
 - **Lykor Mog camera**: When Lykor uses his Mog combat move, push the camera right up close to his face to show off his chiseled jawline.
-- **Skorn facing direction**: When walking side to side as Skorn, he is not facing the correct way.
+- **Skorn facing direction**: When walking side to side as Skorn, he is not facing the correct way. ✅ *Fixed 11/21 (Ebain's Claude): his side picture faced left, the game expects right. Mirrored it.*
