@@ -188,21 +188,31 @@ After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crasho
 - **Not yet human-tested:** how the timing window feels with a real keyboard (`qte()` in CombatScene: 850ms ring,
   PERFECT ±8px, GOOD ±22px, scaled by difficulty).
 
-## 6b. Godot 2.5D test (`godot/`)
+## 6b. Godot version (`godot/`) — THE MAIN GAME NOW
 
-Ebain wants it to feel more like a real game, so there's a Godot 4.7 prototype in `godot/` (the Phaser game is untouched).
-- **Style: 2.5D.** 3D world, with characters AND props as green-screen cutout cards (billboards) from Ebain's Grok art,
-  fake-lit per frame by `light_at()` (moonlit blue, warm near the fire). Photo ground textures (Poly Haven) blended
-  by a shader. DOF, grain, vignette. Decided to stay 2.5D: Claude can't make realistic 3D characters.
-- **Content:** Scene 1 playable — fire out → walk Skorn to Lykor's bag → grab the map → carry it to the pit → it lights →
-  rest of Scene 1 → free roam (map scrap, bag, tent, goblin, Lykor/Xylo talk, Mattias at the end of the dark path).
-- **Code:** `scripts/main.gd` builds the level, `unit.gd` (cutout characters), `dialogue.gd` (box + choices + TTS),
-  `camp_script.gd` (lines, `# Ebain` / `# DRAFT`), `ambience.gd` (synth crackle + crickets).
-- **Art pipeline:** `python3 tools/key_props.py <src_dir> godot/assets/props` keys green screen + splits sheets.
-  Set `mipmaps/generate=true` in the props' `.import` files.
-- **Testing here:** Godot binary from GitHub releases; render with
-  `xvfb-run ... --rendering-method gl_compatibility -- --shots` (main.gd `_shot_tour`, SHOT_DIR env var).
-  Sandbox has no TTS and no Forward+ (no volumetric fog/DOF in screenshots).
+Ebain decided (Nov 2026) to go all-in on Godot; the Phaser version is no longer worked on.
+Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `godot --headless --path godot
+--export-release "Web" ../play3d/index.html`, single-threaded export, needs Godot 4.7.2 web templates).
+- **Style: 2.5D.** 3D world; characters AND props are green-screen cutout cards (billboards) from Ebain's Grok art,
+  tinted per frame by `light_at()` (glows registered with `add_glow`). Photo ground textures blended by a shader
+  (clearing + path points per area). Directional views: `<id>_back.png` / `<id>_side.png` (side faces right).
+- **Code:** `scripts/level.gd` = shared engine (environment day/night, ground, `card()`, party/NPCs, camera,
+  interactions, dialogue, HUD, joke labels `char_label()`, `knock()`, `walk_to()`, test helpers).
+  Areas extend it: `camp.gd` (Scene 1, night) → `village.gd` (Scene 2, day). `game.gd` autoload = flags + items
+  across areas. Dialogue data: `camp_script.gd`, `village_script.gd` (`# Ebain` / `# DRAFT`, same format as web).
+- **Scene 1 (camp):** fire out → bag → map → burn it → rest of Scene 1 → free roam → north path → "next morning" →
+  village. (Mattias moved out of camp; his lines wait for Scene 4.)
+- **Scene 2 (village), as Lykor:** walk in → ambush (labeled goblins) → kneel → chief → follow to throne → crowned →
+  choice: A speech (+3 beezy) · B chug-off mash minigame (chugWon / foreheadLoser) · C crown Skorn (skornKing, Skorn
+  stays) · D sneak — player really sneaks, gets caught, goblins follow (goblinAllies) · E Skorn fights (placeholder
+  win, lykorDethroned). Then east exit → "To be continued" card.
+- **Placeholders:** goblin huts (tinted tent art) and the throne (built from shapes) until Ebain sends art.
+  The goblin fight in path E is a placeholder until combat is ported (Combat 2.0 engine → GDScript is the plan).
+- **Art pipeline:** props `python3 tools/key_props.py <src> godot/assets/props`; character views
+  `python3 tools/key_chars.py <src> godot/assets/characters`. Set `mipmaps/generate=true` in new `.import` files.
+- **Testing here:** Godot binary from GitHub releases; `xvfb-run ... --rendering-method gl_compatibility
+  [res://village.tscn] -- --shots` runs that area's `_shot_tour()` (SHOT_DIR env; VILLAGE_CHOICE=0..4 picks a path;
+  `--views` walks 4 directions). Sandbox has no TTS/Forward+.
 
 ## 7. Open items / where we left off
 

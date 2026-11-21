@@ -115,6 +115,13 @@ func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> voi
 		sprite.position.y = lerp(sprite.position.y, 0.0, delta * 10.0)
 		sprite.scale = Vector3(1.0, 1.0 + sin(_idle) * 0.008, 1.0)
 
+# Swap to a pose (kneeling goblin, fighting goblin, ...). h = height in meters for this image.
+func set_pose(tex: Texture2D, h: float) -> void:
+	views = { "front": tex }
+	height_m = h
+	view = ""
+	set_view("front")
+
 func set_view(v: String) -> void:
 	if not views.has(v):
 		v = "front"

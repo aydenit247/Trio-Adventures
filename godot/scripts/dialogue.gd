@@ -7,7 +7,9 @@ const CHARS := {
 	"skorn":    { "name": "Skorn", "color": Color("#b07cff"), "pitch": 0.4, "rate": 1.15 },
 	"lykor":    { "name": "Lykor", "color": Color("#ffd86a"), "pitch": 1.4, "rate": 0.95 },
 	"xylo":     { "name": "Xylo", "color": Color("#ff6a5a"), "pitch": 0.6, "rate": 0.85 },
-	"goblin":   { "name": "Goblin (Between Jobs)", "color": Color("#7dcf5a"), "pitch": 2.0, "rate": 1.4 },
+	"goblin":   { "name": "Goblin", "color": Color("#7dcf5a"), "pitch": 2.0, "rate": 1.4 },
+	"goblins":  { "name": "Goblins", "color": Color("#7dcf5a"), "pitch": 2.0, "rate": 1.5, "portrait": "goblin" },
+	"chief":    { "name": "Chief Bogdrinker", "color": Color("#9bc25a"), "pitch": 1.55, "rate": 1.1 },
 	"mattias":  { "name": "Metocin Mattias", "color": Color("#6aa8ff"), "pitch": 0.8, "rate": 0.85 },
 	"narrator": { "name": "", "color": Color("#c9c0e8"), "pitch": 1.0, "rate": 1.0 },
 }
@@ -123,13 +125,21 @@ func _run_steps(steps: Array, ctx: Node) -> void:
 			var i: int = await ask(opts)
 			await _run_steps(opts[i]["steps"], ctx)
 		elif s.has("if"):
-			if ctx.flags.get(s["if"], false):
+			if Game.flag(s["if"]):
 				await _run_steps(s["steps"], ctx)
 		elif s.has("if_not"):
-			if not ctx.flags.get(s["if_not"], false):
+			if not Game.flag(s["if_not"]):
 				await _run_steps(s["steps"], ctx)
 		else:
 			await say(s)
+
+# Hide/show the box mid-dialogue (e.g. while the player sneaks during a scene)
+func hide_box() -> void:
+	panel.visible = false
+	DisplayServer.tts_stop()
+
+func show_box() -> void:
+	panel.visible = true
 
 func say(s: Dictionary) -> void:
 	var who: String = s.get("who", "narrator")
@@ -138,7 +148,7 @@ func say(s: Dictionary) -> void:
 	var line: String = s.get("line", "")
 	name_lbl.text = c["name"] + ("  (thinking)" if thought else "")
 	name_lbl.add_theme_color_override("font_color", c["color"])
-	var tex := _portrait(who, s.get("mood", ""))
+	var tex := _portrait(c.get("portrait", who), s.get("mood", ""))
 	portrait.texture = tex
 	portrait_frame.visible = tex != null
 	_clear_choices()
@@ -160,6 +170,7 @@ func ask(opts: Array) -> int:
 	_clear_choices()
 	hint.visible = false
 	text_lbl.visible = false
+	panel.offset_top = -214 - max(0, opts.size() - 3) * 34   # grow the box for long choice lists
 	_choices = []
 	for o in opts:
 		var l := Label.new()
@@ -178,6 +189,7 @@ func ask(opts: Array) -> int:
 	_render_choices()
 	var i: int = await _picked
 	_clear_choices()
+	panel.offset_top = -214
 	return i
 
 func _render_choices() -> void:

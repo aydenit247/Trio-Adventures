@@ -1,0 +1,716 @@
+# Area: Goblin Village (Scene 2, played as Lykor). Daytime.
+# Walk in → goblin ambush → THE MOGGING ELF → follow the chief to the throne → crowned → pick a way out:
+#   A royal speech · B chug-off (mash minigame) · C crown Skorn · D sneak out (you actually sneak) · E Skorn "negotiates"
+# Then head east toward the Metocy Mart.
+#
+# Huts and throne are placeholders until Ebain makes the art (see HANDOFF.md for the Grok prompts).
+extends Level
+
+const VS = preload("res://scripts/village_script.gd")
+const THRONE_POS := Vector3(0, 0, -9)
+const SEAT_POS := Vector3(0, 0, -8.2)
+const FIRE_POS := Vector3(6.5, 0, 2.5)
+const EXIT_POS := Vector3(30, 0, -2)
+const GOBLIN_TAGS := ["(Unemployed)", "(Also Unemployed)", "(Between Jobs)", "(Laid Off)", "(Freelance)", "(Looking for Work)"]
+
+# "enter" → "ambushed" (follow the chief) → "throne" (scene) → "after" (free roam, exit east) → "end"
+var stage := "enter"
+var goblins: Array[Unit] = []
+var chief: Unit
+var fire_light: OmniLight3D
+var noise := FastNoiseLite.new()
+var mug: Sprite3D
+var chug_ui: Control
+var chug_you := 0.0
+var chug_rival := 0.0
+var chug_running := false
+var forehead: Label3D
+var king_label: Label3D
+
+func _configure() -> void:
+	night = false
+	light_dir = Vector3(0.4, 0.75, 0.35)
+	clear_center = Vector2(0, -2)
+	clear_radius = 11.0
+	path_pts = PackedVector2Array([Vector2(0, 34), Vector2(0.8, 24), Vector2(-0.6, 16), Vector2(0, 8), Vector2(10, -1), Vector2(20, -2.5), Vector2(32, -2)])
+	path_width = 1.9
+	subtitle = "Scene 2 — Goblin Village (later that morning)"
+	party_ids = ["lykor", "xylo", "skorn"]
+	party_start = [Vector3(0, 0, 27), Vector3(-1.0, 0, 29), Vector3(1.0, 0, 29)]
+	leader_id = "lykor"
+	switch_enabled = false
+	noise.frequency = 1.0
+	talk = {
+		"skorn": [{ "who": "skorn", "mood": "angry", "line": "Why they always pick HIM, bro." }], # DRAFT
+		"xylo": [{ "who": "xylo", "mood": "unimpressed", "line": "Deloye Lore said nothing about goblins. Nothing about anything, really." }], # DRAFT
+	}
+
+func _build_level() -> void:
+	_build_fire()
+	add_glow(FIRE_POS, Color(1.0, 0.75, 0.5), 6.0, func(): return fire_light.light_energy / 2.0)
+	_build_forest()
+	_build_village()
+	_build_throne()
+	for i in 6:
+		var g := spawn_npc("goblin", "Goblin " + GOBLIN_TAGS[i], "goblin", rng.randf_range(1.1, 1.3), Vector3(rng.randf_range(-9, 9), 0, rng.randf_range(-12, 4)))
+		g.walk_speed = 3.0
+		g.visible = false
+		goblins.append(g)
+	chief = spawn_npc("chief", "Chief Bogdrinker", "goblin_chief", 1.45, THRONE_POS + Vector3(1.8, 0, 1.0))
+	chief.walk_speed = 1.8
+	chief.visible = false
+
+func _build_fire() -> void:
+	card("campfire", 1.37, FIRE_POS)
+	var fl := Fx.flames(0.75)
+	fl.position = FIRE_POS + Vector3(0, 0.4, 0.45)
+	add_child(fl)
+	fire_light = OmniLight3D.new()
+	fire_light.light_color = Color(1.0, 0.6, 0.3)
+	fire_light.light_energy = 2.0
+	fire_light.omni_range = 7.0
+	fire_light.position = FIRE_POS + Vector3(0, 0.9, 0)
+	add_child(fire_light)
+	Util.static_cyl(self, FIRE_POS, 1.5, 1.0)
+	# cooking smoke drifting up (light grey in daylight)
+	var sm := CPUParticles3D.new()
+	sm.amount = 14
+	sm.lifetime = 5.0
+	sm.mesh = Fx.quad(1.4, false)
+	sm.direction = Vector3.UP
+	sm.spread = 8.0
+	sm.gravity = Vector3(0.2, 0.3, 0)
+	sm.initial_velocity_min = 0.4
+	sm.initial_velocity_max = 0.6
+	sm.scale_amount_curve = Fx.curve([[0.0, 0.4], [1.0, 1.8]])
+	sm.color_ramp = Fx.ramp([[0.0, Color(0.85, 0.85, 0.85, 0)], [0.2, Color(0.85, 0.85, 0.85, 0.18)], [1.0, Color(0.85, 0.85, 0.85, 0)]])
+	sm.position = FIRE_POS + Vector3(0, 1.6, 0)
+	add_child(sm)
+
+func _on_path(p: Vector3, w := 3.4) -> bool:
+	for i in path_pts.size() - 1:
+		var a := Vector3(path_pts[i].x, 0, path_pts[i].y)
+		var b := Vector3(path_pts[i + 1].x, 0, path_pts[i + 1].y)
+		var ab := b - a
+		var h: float = clamp((p - a).dot(ab) / ab.length_squared(), 0.0, 1.0)
+		if (p - a - ab * h).length() < w:
+			return true
+	return false
+
+func _build_forest() -> void:
+	var placed := 0
+	var tries := 0
+	while placed < 170 and tries < 4000:
+		tries += 1
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(15.5, 48.0)
+		var p := Vector3(cos(a) * r, 0, sin(a) * r - 2.0)
+		if _on_path(p, 4.0):
+			continue
+		card("tree_%d" % (rng.randi() % 4 + 1), rng.randf_range(6.5, 10.0), p, rng.randf() < 0.5, true, 0.5 if r < 34.0 else 0.0)
+		placed += 1
+	for k in 45:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(12.0, 40.0)
+		var p := Vector3(cos(a) * r, 0, sin(a) * r - 2.0)
+		if _on_path(p):
+			continue
+		var big := rng.randf() < 0.25
+		card("bush_big" if big else "bush_%d" % (rng.randi() % 3 + 1), rng.randf_range(1.6, 2.3) if big else rng.randf_range(1.3, 2.2), p, rng.randf() < 0.5, true)
+	for k in 10:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(13.0, 30.0)
+		var p := Vector3(cos(a) * r, 0, sin(a) * r - 2.0)
+		if _on_path(p):
+			continue
+		card("rock_%d" % [1, 2, 4][rng.randi() % 3], rng.randf_range(1.2, 2.4), p, rng.randf() < 0.5, true, 0.45)
+
+func _build_village() -> void:
+	# PLACEHOLDER huts: the canvas tent art, dirtied up, until there's goblin hut art
+	var hut_tint := Color(0.72, 0.6, 0.46)
+	for h in [[Vector3(-10.5, 0, -5), 0.7], [Vector3(10.5, 0, -6.5), -0.7], [Vector3(-11.5, 0, 5.5), 1.2], [Vector3(-5.5, 0, -14), 0.2], [Vector3(6.5, 0, -15), -0.2], [Vector3(12.5, 0, 7.5), -1.2]]:
+		card("tent_green", rng.randf_range(2.4, 2.9), h[0], rng.randf() < 0.5, false, 0.0, "props", hut_tint)
+		Util.static_box(self, h[0] + Vector3(0, 1, 0), Vector3(3.6, 2, 2.4), h[1])
+	# junk & seating
+	card("log", 0.8, Vector3(4.2, 0, 5.2), true)
+	Util.static_box(self, Vector3(4.2, 0.3, 5.2), Vector3(1.6, 0.6, 0.5), 0.3)
+	card("log", 0.8, Vector3(9.0, 0, 4.6))
+	Util.static_box(self, Vector3(9.0, 0.3, 4.6), Vector3(1.6, 0.6, 0.5), -0.4)
+	card("sign", 2.6, Vector3(13.5, 0, -4.2))
+	Util.static_cyl(self, Vector3(13.2, 0, -4.2), 0.2)
+	var s := Label3D.new()   # nailed-on note, since the sign is in runes
+	s.text = "METOCY MART →\n(probably)"
+	s.font_size = 40
+	s.pixel_size = 0.005
+	s.modulate = Color(0.15, 0.08, 0.03)
+	s.outline_size = 0
+	s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	s.position = Vector3(13.5, 0.75, -4.0)
+	add_child(s)
+
+# PLACEHOLDER throne: spoons + bones + one (1) wagon wheel, built from shapes until there's throne art
+func _build_throne() -> void:
+	var wood := Util.mat(Color(0.35, 0.24, 0.15))
+	var metal := Util.mat(Color(0.75, 0.75, 0.78), 0.35)
+	metal.metallic = 0.8
+	var bone := Util.mat(Color(0.86, 0.82, 0.72))
+	var root := Node3D.new()
+	root.position = THRONE_POS
+	add_child(root)
+	var seat := BoxMesh.new()
+	seat.size = Vector3(1.3, 0.55, 0.9)
+	Util.add_mesh(root, seat, wood, Vector3(0, 0.28, 0))
+	var back := BoxMesh.new()
+	back.size = Vector3(1.3, 1.5, 0.2)
+	Util.add_mesh(root, back, wood, Vector3(0, 1.0, -0.4))
+	var wheel := TorusMesh.new()
+	wheel.inner_radius = 0.7
+	wheel.outer_radius = 0.82
+	Util.add_mesh(root, wheel, wood, Vector3(0, 1.75, -0.55), Vector3(PI / 2.0, 0, 0))
+	var spoke := CylinderMesh.new()
+	spoke.top_radius = 0.03
+	spoke.bottom_radius = 0.03
+	spoke.height = 1.4
+	for k in 4:
+		Util.add_mesh(root, spoke, wood, Vector3(0, 1.75, -0.55), Vector3(0, 0, k * PI / 4.0))
+	var handle := CylinderMesh.new()
+	handle.top_radius = 0.025
+	handle.bottom_radius = 0.025
+	handle.height = 1.3
+	var bowl := SphereMesh.new()
+	bowl.radius = 0.11
+	bowl.height = 0.08
+	for k in 7:
+		var x := -0.75 + k * 0.25
+		var hh: float = 1.9 - absi(k - 3) * 0.12
+		Util.add_mesh(root, handle, metal, Vector3(x, hh - 0.6, -0.5), Vector3(0, 0, (k - 3) * 0.08))
+		Util.add_mesh(root, bowl, metal, Vector3(x + (k - 3) * 0.05, hh + 0.08, -0.5), Vector3(PI / 2.0, 0, 0), Vector3(1, 1.4, 1))
+	var b := CylinderMesh.new()
+	b.top_radius = 0.05
+	b.bottom_radius = 0.05
+	b.height = 0.9
+	for k in 6:
+		Util.add_mesh(root, b, bone, Vector3(rng.randf_range(-1.1, 1.1), 0.08, rng.randf_range(-0.2, 0.9)), Vector3(PI / 2.0, rng.randf() * TAU, 0))
+	Util.static_box(self, THRONE_POS + Vector3(0, 0.6, -0.3), Vector3(1.4, 1.2, 1.0))
+	char_label(root, "Throne (Spoons, Bones, 1 Wheel)", -1.0, 2.85)
+
+# ---------------------------------------------------------------- per frame
+func _level_process(_delta: float) -> void:
+	fire_light.light_energy = 2.0 * (1.0 + noise.get_noise_1d(t * 9.0) * 0.3)
+	if mug and mug.get_meta("owner", null):
+		var o: Unit = mug.get_meta("owner")
+		mug.global_position = o.global_position + Vector3(0.45, 1.05, 0.1)
+	if busy:
+		return
+	if stage == "enter" and leader.global_position.z < 12.0:
+		stage = "ambushed"
+		_ambush()
+	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.5:
+		stage = "end"
+		_end_card()
+
+func _level_interactables() -> Array:
+	var list: Array = []
+	if stage == "ambushed":
+		list.append({ "id": "throne", "label": "the throne", "verb": "Sit on", "pos": THRONE_POS, "h": 2.6, "r": 2.8, "steps": VS.THRONE })
+		list.append({ "id": "chief", "label": "Chief Bogdrinker", "verb": "Talk to", "node": chief, "h": 1.9, "r": 2.0, "steps": VS.CHIEF_WAITING })
+	elif stage == "after":
+		if chief.visible:
+			list.append({ "id": "chief", "label": "Chief Bogdrinker", "verb": "Talk to", "node": chief, "h": 1.9, "r": 2.0, "steps": VS.CHIEF_AFTER })
+		for g in goblins:
+			if g.visible and not g.has_meta("follow"):
+				list.append({ "id": "goblin", "label": g.display_name, "verb": "Talk to", "node": g, "h": 1.6, "r": 1.6, "steps": VS.GOBLIN_AFTER })
+		for u in npcs:
+			if u.id == "skorn":
+				list.append({ "id": "skorn_king", "label": "King Skorn", "verb": "Talk to", "node": u, "h": 2.2, "r": 2.2, "steps": VS.CHIEF_AFTER_SKORN })
+	return list
+
+# ---------------------------------------------------------------- story
+func _begin() -> void:
+	busy = true
+	fade_in(1.5)
+	target_yaw = 0.0
+	await wait(0.8)
+	await run_dialogue(VS.INTRO)
+	objective("Head into the goblin village.")
+
+func _ambush() -> void:
+	focus_override = leader.global_position + Vector3(0, 0, -2.5)
+	await run_dialogue(VS.AMBUSH)
+	focus_override = null
+	objective("Follow Chief Bogdrinker to the throne.")
+
+func _on_action(n: String) -> void:
+	match n:
+		"goblins_appear":
+			await _goblins_appear()
+		"goblins_kneel":
+			var kneel: Texture2D = load("res://assets/characters/goblin_kneel.png")
+			for g in goblins:
+				g.set_pose(kneel, 0.75)
+				hop(g, 0.25)
+			char_label(leader, "Lykor (The Mogging Elf)", 3.0)
+			await wait(0.6)
+		"chief_appears":
+			chief.global_position = leader.global_position + Vector3(0.6, 0, -6.0)
+			chief.visible = true
+			_poof(chief.global_position)
+			await walk_to(chief, leader.global_position + Vector3(0.4, 0, -2.6), 1.0, 3.0)
+			char_label(chief, "Chief Bogdrinker", 3.0, 2.0)
+			await wait(0.5)
+		"follow_chief":
+			var stand: Texture2D = load("res://assets/characters/goblin.png")
+			for i in goblins.size():
+				goblins[i].set_pose(stand, rng.randf_range(1.1, 1.3))
+				goblins[i].set_meta("goal", THRONE_POS + Vector3(-4.5 + i * 1.8, 0, 3.2 + (i % 2) * 0.8))
+				goblins[i].set_meta("goal_speed", 0.8)
+			chief.set_meta("goal", THRONE_POS + Vector3(1.9, 0, 1.0))
+			chief.set_meta("goal_speed", 0.9)
+		"to_throne":
+			await _to_throne()
+		"crown":
+			king_label = char_label(leader, "Lykor (King, Apparently)", -1.0, 2.3, Color("#ffdf4a"))
+			ui_sfx.play()
+			await wait(0.4)
+		"beezy":
+			_give_mug(leader)
+			await wait(0.5)
+		"goblins_block":
+			for i in goblins.size():
+				var a := PI * (0.15 + 0.7 * i / 5.0)
+				goblins[i].set_meta("goal", SEAT_POS + Vector3(-cos(a) * 3.0, 0, sin(a) * 3.0))
+				goblins[i].set_meta("goal_speed", 1.0)
+			await wait(1.2)
+		"gift_beezy":
+			await _gift_beezy()
+		"goblins_cry":
+			for k in 3:
+				for g in goblins:
+					if g.visible:
+						hop(g, 0.35)
+				await wait(0.35)
+		"chug_game":
+			var won: bool = await _chug_game()
+			Game.set_flag("chugWon", won)
+		"pass_out":
+			await _pass_out()
+		"wake_outside":
+			await _wake_outside()
+		"crown_skorn":
+			await _crown_skorn()
+		"sneak":
+			await _sneak()
+		"goblins_join":
+			Game.set_flag("goblinAllies")
+			for i in 3:
+				goblins[i].set_meta("follow", true)
+				goblins[i].set_meta("follow_i", i)
+				goblins[i].remove_meta("goal")
+			for g in goblins:
+				hop(g, 0.35)
+			char_label(goblins[1], "Goblins (Coming Along, Unfortunately)", 3.5, 1.7)
+			await wait(0.5)
+		"skorn_slap":
+			await _skorn_slap()
+		"fight_goblins":
+			await _fight_goblins()
+		"dethrone":
+			Game.set_flag("lykorDethroned")
+			if king_label:
+				king_label.text = "Lykor (Dethroned)"
+			var sk := _member("skorn")
+			char_label(sk, "Skorn (Respected now)", 3.0)
+			if mug:
+				mug.set_meta("owner", sk)
+			hop(sk, 0.4)
+			await wait(0.4)
+		"leave":
+			_leave()
+
+func _member(id: String) -> Unit:
+	for u in party + npcs:
+		if u.id == id:
+			return u
+	return null
+
+func _poof(p: Vector3) -> void:
+	var f := Fx.poof(Color(0.55, 0.65, 0.35))
+	f.position = p + Vector3(0, 0.5, 0)
+	add_child(f)
+	f.emitting = true
+	get_tree().create_timer(1.5).timeout.connect(f.queue_free)
+
+func _goblins_appear() -> void:
+	var c := leader.global_position
+	whoosh_sfx.play()
+	shake = 0.3
+	for i in goblins.size():
+		var a := PI * (0.1 + 0.8 * i / 5.0)
+		var p := c + Vector3(-cos(a) * 3.4, 0, -sin(a) * 3.0 - 0.5)
+		goblins[i].global_position = p
+		goblins[i].visible = true
+		_poof(p)
+		hop(goblins[i], 0.5)
+		await wait(0.12)
+	for i in goblins.size():
+		char_label(goblins[i], "Goblin " + GOBLIN_TAGS[i], 3.0, 1.6)
+	await wait(0.4)
+
+func _to_throne() -> void:
+	stage = "throne"
+	objective("")
+	await fade_out(0.4)
+	leader.global_position = SEAT_POS
+	leader.set_view("front")
+	for u in party:
+		if u.id == "xylo":
+			u.global_position = SEAT_POS + Vector3(-2.6, 0, 2.2)
+		elif u.id == "skorn":
+			u.global_position = SEAT_POS + Vector3(2.8, 0, 2.4)
+	follow_enabled = false
+	for i in goblins.size():
+		goblins[i].remove_meta("goal")
+		goblins[i].global_position = THRONE_POS + Vector3(-4.5 + i * 1.8, 0, 4.4 + (i % 2) * 0.8)
+	chief.remove_meta("goal")
+	chief.global_position = SEAT_POS + Vector3(1.6, 0, 0.9)
+	focus_override = SEAT_POS + Vector3(0, 0, 2.0)
+	target_yaw = 0.0
+	zoom = 8.5
+	fade_in(0.5)
+	await wait(0.5)
+
+func _give_mug(owner: Unit) -> void:
+	if mug == null:
+		mug = Sprite3D.new()
+		mug.texture = load("res://assets/items/beer.png")
+		mug.pixel_size = 0.32 / 508.0
+		mug.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		mug.shaded = false
+		mug.no_depth_test = true
+		add_child(mug)
+	mug.set_meta("owner", owner)
+	mug.scale = Vector3.ZERO
+	create_tween().tween_property(mug, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	ui_sfx.play()
+
+func _gift_beezy() -> void:
+	for k in 3:
+		var m := Sprite3D.new()
+		m.texture = load("res://assets/items/beer.png")
+		m.pixel_size = 0.3 / 508.0
+		m.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		m.shaded = false
+		m.no_depth_test = true
+		add_child(m)
+		m.global_position = chief.global_position + Vector3(0, 1.2, 0)
+		var tw := create_tween()
+		tw.tween_property(m, "global_position", leader.global_position + Vector3(0, 1.4, 0), 0.4).set_delay(k * 0.15)
+		tw.tween_callback(m.queue_free)
+	ui_sfx.play()
+	Game.inv["beer"] += 3
+	show_toast("Lykor got: Beezy ×3")
+	await wait(0.9)
+
+# ---- B: chug-off (mash E / Space)
+func _chug_game() -> bool:
+	dialogue.hide_box()
+	chug_ui = Control.new()
+	chug_ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	chug_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(chug_ui)
+	var panel := PanelContainer.new()
+	panel.anchor_left = 0.5; panel.anchor_right = 0.5
+	panel.offset_left = -360; panel.offset_right = 360; panel.offset_top = 140; panel.offset_bottom = 400
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.045, 0.11, 0.93)
+	sb.border_color = Color("#e8b923")
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(14)
+	sb.content_margin_left = 24; sb.content_margin_right = 24; sb.content_margin_top = 18; sb.content_margin_bottom = 18
+	panel.add_theme_stylebox_override("panel", sb)
+	chug_ui.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 10)
+	panel.add_child(col)
+	var title := _label("BEEZY CHUG-OFF", Vector2.ZERO, 34, Color("#e8b923"), 8)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(title)
+	var hint := _label("Mash E / SPACE to chug!", Vector2.ZERO, 20, Color.WHITE, 5)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(hint)
+	var bars := []
+	for who in [["Lykor", Color("#ffd86a")], ["Chief Bogdrinker (400-year champ)", Color("#9bc25a")]]:
+		col.add_child(_label(who[0], Vector2.ZERO, 18, who[1], 5))
+		var pb := ProgressBar.new()
+		pb.custom_minimum_size = Vector2(0, 26)
+		pb.max_value = 100
+		pb.show_percentage = false
+		var fill := StyleBoxFlat.new()
+		fill.bg_color = who[1]
+		fill.set_corner_radius_all(6)
+		pb.add_theme_stylebox_override("fill", fill)
+		col.add_child(pb)
+		bars.append(pb)
+	var timer_lbl := _label("", Vector2.ZERO, 18, Color("#a49cc4"), 4)
+	timer_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(timer_lbl)
+	chug_you = 0.0
+	chug_rival = 0.0
+	chug_running = true
+	var time_left := 8.0
+	while chug_running:
+		await get_tree().process_frame
+		var d := get_process_delta_time()
+		time_left -= d
+		chug_rival += d * rng.randf_range(10.0, 26.0)   # about 18/sec on average → done in ~5.5s
+		if shots_mode and fmod(t, 0.12) < d:
+			_chug_press()
+		bars[0].value = chug_you
+		bars[1].value = chug_rival
+		timer_lbl.text = "%.1f" % max(time_left, 0.0)
+		if chug_you >= 100.0 or chug_rival >= 100.0 or time_left <= 0.0:
+			chug_running = false
+	var won := chug_you >= 100.0 and chug_you >= chug_rival
+	hint.text = "LEGEND!" if won else "Bogdrinker wins. Lykor is not okay."
+	hint.add_theme_color_override("font_color", Color("#7dff8a") if won else Color("#ff8a6a"))
+	await wait(1.4)
+	chug_ui.queue_free()
+	dialogue.show_box()
+	return won
+
+func _chug_press() -> void:
+	if not chug_running:
+		return
+	chug_you = min(100.0, chug_you + 3.2)
+	hop(leader, 0.12)
+
+func _input(ev: InputEvent) -> void:
+	if chug_running and ev.is_action_pressed("interact"):
+		_chug_press()
+		get_viewport().set_input_as_handled()
+
+func _pass_out() -> void:
+	shake = 0.3
+	knock(leader, -80.0, 0.5)
+	await wait(0.6)
+	if mug:
+		mug.visible = false
+	await fade_out(0.8)
+
+func _wake_outside() -> void:
+	Game.set_flag("foreheadLoser")
+	for g in goblins:
+		g.visible = false
+	chief.visible = false
+	if king_label:
+		king_label.queue_free()
+	unknock(leader)
+	place_party(EXIT_POS + Vector3(-9, 0, 1.5), Vector3(1, 0, 0))
+	for u in party:
+		if u != leader:
+			pass
+	focus_override = null
+	follow_enabled = true
+	fade_in(0.8)
+	await wait(0.8)
+	forehead = char_label(leader, "METOCY MART, EAST. LOSER.", -1.0, 2.05, Color("#ff8a6a"))
+
+# ---- C: crown Skorn
+func _crown_skorn() -> void:
+	Game.set_flag("skornKing")
+	var sk := _member("skorn")
+	await walk_to(sk, SEAT_POS + Vector3(0, 0, 0.3), 1.0, 3.0)
+	sk.global_position = SEAT_POS
+	sk.set_view("front")
+	await walk_to(leader, SEAT_POS + Vector3(1.4, 0, 1.8), 1.0, 2.0)
+	ui_sfx.play()
+	char_label(sk, "The Purple King (Downgrade)", 4.0)
+	if king_label:
+		king_label.text = "King (Former)"
+	var kneel: Texture2D = load("res://assets/characters/goblin_kneel.png")
+	for g in goblins:
+		g.set_pose(kneel, 0.75)
+	await wait(0.6)
+
+# ---- D: sneak out (you actually control Lykor, slowly… and they catch you anyway)
+func _sneak() -> void:
+	dialogue.hide_box()
+	objective("Sneak out of the village… slow… quiet…")
+	walk_mult = 0.32
+	follow_enabled = false
+	focus_override = null
+	interact_cooldown = 999.0   # no talking to people mid-sneak
+	busy = false
+	freeze_all(false)
+	for g in goblins:   # goblins stand around looking the other way
+		g.remove_meta("goal")
+	var start_pos := leader.global_position
+	var tt := 0.0
+	while leader.global_position.distance_to(start_pos) < 5.0 and tt < 25.0:
+		await get_tree().process_frame
+		tt += get_process_delta_time()
+		if shots_mode:
+			auto_dir = Vector3(0, 0, -1)
+	auto_dir = Vector3.ZERO
+	busy = true
+	freeze_all(true)
+	walk_mult = 1.0
+	interact_cooldown = 0.3
+	# CAUGHT: every goblin pops up right around him
+	whoosh_sfx.play()
+	shake = 0.4
+	var c := leader.global_position
+	for i in goblins.size():
+		var a := TAU * i / goblins.size()
+		goblins[i].global_position = c + Vector3(cos(a) * 1.7, 0, sin(a) * 1.7)
+		_poof(goblins[i].global_position)
+		hop(goblins[i], 0.4)
+	chief.global_position = c + Vector3(0.5, 0, -2.4)
+	hop(leader, 0.6)
+	focus_override = c
+	objective("")
+	await wait(0.5)
+	dialogue.show_box()
+
+# ---- E: Skorn negotiates
+func _skorn_slap() -> void:
+	var sk := _member("skorn")
+	var g := goblins[0]
+	for gg in goblins:
+		if gg.global_position.distance_to(sk.global_position) < g.global_position.distance_to(sk.global_position):
+			g = gg
+	await walk_to(sk, g.global_position + (sk.global_position - g.global_position).normalized() * 1.0, 1.4, 2.0)
+	var slap := Util.noise_burst(90, 0.6, 1.0)
+	var p := _sfx(slap, -2.0)
+	p.play()
+	shake = 0.3
+	knock(g, 70.0)
+	await wait(0.6)
+	unknock(g)
+	await wait(0.2)
+
+func _fight_goblins() -> void:
+	# Real turn-based combat comes to Godot next; for now Skorn just wins, in style.
+	var ban := _label("SKORN vs. THE GOBLINS", Vector2.ZERO, 54, Color("#ff6a4a"), 10)
+	ban.anchor_left = 0.5; ban.anchor_right = 0.5; ban.anchor_top = 0.3
+	ban.offset_left = -500; ban.offset_right = 500
+	ban.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud.add_child(ban)
+	dialogue.hide_box()
+	shake = 0.4
+	var sk := _member("skorn")
+	var fight_tex: Texture2D = load("res://assets/characters/goblin_fight.png")
+	for i in 3:
+		var g := goblins[i]
+		g.set_pose(fight_tex, 1.25)
+		await walk_to(sk, g.global_position + Vector3(-1.0, 0, 0.3), 1.6, 1.5)
+		var p := _sfx(Util.noise_burst(90, 0.6, 1.0), -2.0)
+		p.play()
+		shake = 0.25
+		knock(g, 85.0)
+		await wait(0.45)
+	show_toast("(Real combat comes to Godot next. Skorn wins for now.)", 2.2)
+	await wait(1.8)
+	ban.queue_free()
+	var kneel: Texture2D = load("res://assets/characters/goblin_kneel.png")
+	for g in goblins:
+		unknock(g)
+		g.set_pose(kneel, 0.75)
+	dialogue.show_box()
+
+func _leave() -> void:
+	stage = "after"
+	focus_override = null
+	follow_enabled = true
+	switch_enabled = true
+	if Game.flag("skornKing"):
+		var sk := remove_from_party("skorn")
+		sk.global_position = SEAT_POS
+	var stand: Texture2D = load("res://assets/characters/goblin.png")
+	for g in goblins:
+		if g.visible and not Game.flag("skornKing"):
+			g.set_pose(stand, rng.randf_range(1.1, 1.3))
+	objective("Head east to the Metocy Mart.")
+
+func _end_card() -> void:
+	busy = true
+	freeze_all(true)
+	var ui := ColorRect.new()
+	ui.color = Color(0, 0, 0, 0)
+	ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hud.add_child(ui)
+	create_tween().tween_property(ui, "color:a", 0.85, 0.8)
+	var lines := ["TO BE CONTINUED", "", "Next stop: Metocy Mart (coming to Godot soon)", ""]
+	if Game.flag("skornKing"): lines.append("Skorn stayed behind as the Purple King.")
+	if Game.flag("goblinAllies"): lines.append("The goblins are tagging along.")
+	if Game.flag("chugWon"): lines.append("Lykor out-drank a 400-year champion.")
+	if Game.flag("foreheadLoser"): lines.append("Lykor's forehead says LOSER.")
+	if Game.flag("lykorDethroned"): lines.append("Lykor got dethroned by Skorn.")
+	if Game.inv["beer"] > 0: lines.append("Beezy: %d" % Game.inv["beer"])
+	lines += ["", "Press E to play again from the camp"]
+	var l := _label("\n".join(lines), Vector2.ZERO, 26, Color("#f3e3b0"), 6)
+	l.set_anchors_preset(Control.PRESET_FULL_RECT)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.modulate.a = 0.0
+	hud.add_child(l)
+	create_tween().tween_property(l, "modulate:a", 1.0, 1.0)
+	await wait(1.2)
+	if shots_mode:
+		return
+	while not Input.is_action_just_pressed("interact"):
+		await get_tree().process_frame
+	Game.reset()
+	Game.goto("res://main.tscn")
+
+# ---------------------------------------------------------------- automated screenshots
+# Pick a path with env var VILLAGE_CHOICE=0..4 (A..E)
+func _shot_tour() -> void:
+	var choice := int(OS.get_environment("VILLAGE_CHOICE")) if OS.get_environment("VILLAGE_CHOICE") != "" else 0
+	var tag := "abcde"[choice]
+	fade.color.a = 0.0
+	busy = false
+	await wait(1.5)
+	await shot("v_01_enter")
+	place_party(Vector3(0, 0, 13.5), Vector3(0, 0, -1))
+	await wait(0.8)
+	place_party(Vector3(0, 0, 11.5), Vector3(0, 0, -1))
+	await wait(1.6)
+	await advance(1)
+	await wait(1.2)
+	await shot("v_02_ambush")
+	await advance(4)
+	await wait(1.0)
+	await shot("v_03_kneel")
+	await advance(4)
+	await wait(2.4)
+	await shot("v_04_chief")
+	await advance(6)
+	await wait(3.0)
+	place_party(THRONE_POS + Vector3(0, 0, 3.0), Vector3(0, 0, -1))
+	await wait(1.5)
+	await shot("v_05_throne_area")
+	start(current_interactables().filter(func(i): return i["id"] == "throne")[0])
+	await wait(2.0)
+	await advance(9, 0.6)
+	await wait(1.5)
+	await shot("v_06_throne")
+	await advance(4)
+	await wait(1.0)
+	await shot("v_07_choice")
+	dialogue._picked.emit(choice)
+	await wait(1.0)
+	await shot("v_08_%s_1" % tag)
+	for k in 14:
+		await advance(1, 0.7)
+		if k == 3:
+			await shot("v_09_%s_2" % tag)
+		if chug_running or (stage == "throne" and not dialogue.panel.visible):
+			await wait(9.0 if chug_running else 6.0)
+			await shot("v_10_%s_mid" % tag)
+	await wait(2.0)
+	await shot("v_11_%s_after" % tag)
+	place_party(EXIT_POS + Vector3(-2.5, 0, 0), Vector3(1, 0, 0))
+	await wait(2.5)
+	await shot("v_12_%s_end" % tag)
+	get_tree().quit()

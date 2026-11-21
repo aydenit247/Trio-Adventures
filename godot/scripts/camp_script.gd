@@ -146,6 +146,14 @@ const OBJECTS := {
 	],
 }
 
+# Walking out of camp up the north path → Goblin Village
+const LEAVE := [
+	{ "who": "narrator", "line": "The next morning…" }, # Ebain
+	{ "who": "lykor", "line": "Aight, new rule: Skorn don't hold nothing. I'm leading." }, # DRAFT
+	{ "who": "skorn", "mood": "confused", "line": "Bet, my fault. I'm dumb as hell." }, # Ebain
+]
+
+# (Mattias's lines are from Scene 4 — The Pass. Kept here for when that area is built.)
 # Walking down the dark path
 const MATTIAS := [
 	{ "who": "mattias", "line": "You had called?" }, # Ebain
