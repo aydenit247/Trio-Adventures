@@ -9,6 +9,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Throne "bones" look like white sticks → real bone shapes · crickets → Ebain's real cricket recording — files: godot/scripts/village.gd, godot/scripts/ambience.gd, new godot/assets/sounds/crickets.ogg — branch: ebain/bones-crickets — started 2026-11-21
 - [asar] FIX: game hard-freezes during dialogue on Windows (Godot TTS deadlock) — files: godot/scripts/dialogue.gd — branch: asar/tts-freeze — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -34,6 +35,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/scripts/dialogue.gd
+- [ebain] godot/scripts/village.gd, godot/scripts/ambience.gd, godot/assets/sounds/crickets.ogg (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
