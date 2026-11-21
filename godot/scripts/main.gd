@@ -315,7 +315,7 @@ func _build_camp() -> void:
 	lan.position = LANTERN
 	add_child(lan)
 
-	_card("campfire", 1.1, FIRE_POS + Vector3(0, 0, 0.05))
+	_card("campfire", 1.37, FIRE_POS)
 	_card("log", 0.8, Vector3(-3.4, 0, 2.8), false, false)
 	Util.static_box(self, Vector3(-3.4, 0.3, 2.8), Vector3(1.6, 0.6, 0.5), 0.9)
 	_card("bag", 0.55, Vector3(-2.7, 0, -1.6))
@@ -359,17 +359,6 @@ func _curve(points: Array) -> Curve:
 	return c
 
 func _build_fire() -> void:
-	var stick := CylinderMesh.new()
-	stick.top_radius = 0.06
-	stick.bottom_radius = 0.09
-	stick.height = 1.0
-	stick.radial_segments = 6
-	var char_m := Util.mat(Color(0.12, 0.07, 0.04))
-	for k in 5:
-		var a := k / 5.0 * TAU
-		var mi := Util.add_mesh(self, stick, char_m, FIRE_POS + Vector3(cos(a) * 0.22, 0.35, sin(a) * 0.22))
-		mi.rotation = Vector3(0, -a, 0)
-		mi.rotate_object_local(Vector3.FORWARD, 0.55)
 	var coal := SphereMesh.new()
 	coal.radius = 0.3
 	coal.height = 0.2
@@ -674,6 +663,12 @@ func _process(delta: float) -> void:
 	_goblin_ai(delta, cam_right)
 	for u in party + [goblin]:
 		u.sprite.modulate = light_at(u.global_position)
+	if flames and cam:
+		var to_cam := cam.global_position - FIRE_POS
+		to_cam.y = 0.0
+		var front := FIRE_POS + to_cam.normalized() * 0.45
+		flames.global_position = front + Vector3(0, 0.38, 0)
+		embers.global_position = front + Vector3(0, 0.6, 0)
 	for c in cards:
 		if c[2]:
 			var lc := light_at(c[1] + Vector3(0, 0.5, 0))

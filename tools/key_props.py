@@ -15,7 +15,7 @@ from scipy import ndimage
 
 SHEETS = {  # file stem -> (output name, expected object count or None for 1)
     'trees': 'tree', 'rocks': 'rock', 'bushes3': 'bush', 'bush_big': 'bush_big', 'tent_green': 'tent_green',
-    'tent_purple': 'tent_purple', 'campfire': 'campfire', 'log': 'log', 'bag': 'bag', 'sign': 'sign',
+    'tent_purple': 'tent_purple', 'campfire_unlit': 'campfire', 'log': 'log', 'bag': 'bag', 'sign': 'sign',
 }
 
 
@@ -107,7 +107,7 @@ def main(src: str, out: str):
     for stem, name in SHEETS.items():
         p = next(Path(src).glob(stem + '.*'))
         rgba = key(np.asarray(Image.open(p).convert('RGB')))
-        if stem == 'campfire':
+        if stem == 'campfire':   # old lit campfire art: cut the baked flames out (unused now that there's an unlit version)
             rgba = remove_fire(rgba)
         if stem == 'trees':   # 2x2 grid: split by quadrant (branches nearly touch)
             h, w = rgba.shape[:2]
@@ -129,7 +129,7 @@ def main(src: str, out: str):
                 pieces = split(rgba[:, x0:x1], merge_px=1, min_area=200)
                 parts.append(max(pieces, key=lambda c: (c[..., 3] > 60).sum()))   # the rock, not its neighbour's sliver
         else:
-            parts = split(rgba, merge_px={'campfire': 14, 'sign': 14}.get(stem, 10))
+            parts = split(rgba, merge_px={'campfire_unlit': 14, 'sign': 14}.get(stem, 10))
         for i, part in enumerate(parts, 1):
             fn = f'{name}.png' if len(parts) == 1 else f'{name}_{i}.png'
             Image.fromarray(part).save(Path(out) / fn)

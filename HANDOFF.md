@@ -188,6 +188,22 @@ After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crasho
 - **Not yet human-tested:** how the timing window feels with a real keyboard (`qte()` in CombatScene: 850ms ring,
   PERFECT ±8px, GOOD ±22px, scaled by difficulty).
 
+## 6b. Godot 2.5D test (`godot/`)
+
+Ebain wants it to feel more like a real game, so there's a Godot 4.7 prototype in `godot/` (the Phaser game is untouched).
+- **Style: 2.5D.** 3D world, with characters AND props as green-screen cutout cards (billboards) from Ebain's Grok art,
+  fake-lit per frame by `light_at()` (moonlit blue, warm near the fire). Photo ground textures (Poly Haven) blended
+  by a shader. DOF, grain, vignette. Decided to stay 2.5D: Claude can't make realistic 3D characters.
+- **Content:** Scene 1 playable — fire out → walk Skorn to Lykor's bag → grab the map → carry it to the pit → it lights →
+  rest of Scene 1 → free roam (map scrap, bag, tent, goblin, Lykor/Xylo talk, Mattias at the end of the dark path).
+- **Code:** `scripts/main.gd` builds the level, `unit.gd` (cutout characters), `dialogue.gd` (box + choices + TTS),
+  `camp_script.gd` (lines, `# Ebain` / `# DRAFT`), `ambience.gd` (synth crackle + crickets).
+- **Art pipeline:** `python3 tools/key_props.py <src_dir> godot/assets/props` keys green screen + splits sheets.
+  Set `mipmaps/generate=true` in the props' `.import` files.
+- **Testing here:** Godot binary from GitHub releases; render with
+  `xvfb-run ... --rendering-method gl_compatibility -- --shots` (main.gd `_shot_tour`, SHOT_DIR env var).
+  Sandbox has no TTS and no Forward+ (no volumetric fog/DOF in screenshots).
+
 ## 7. Open items / where we left off
 
 0. **Friend's voice lines (in progress).** Ebain's friend is recording Metocin Mattias (3 lines) and the goblins (Chief
