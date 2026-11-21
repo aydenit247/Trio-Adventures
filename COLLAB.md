@@ -11,7 +11,8 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Voice import pipeline: tools/import_voices.py (studio export zip → OGG in assets/voices/, updates voice_lines.gd) +
-  voice_lines.gd takes file extensions — files: godot/scripts/voice_lines.gd, new tools/import_voices.py, VOICE_LINES.md —
+  voice_lines.gd takes file extensions + inner thoughts can play voice files — files: godot/scripts/voice_lines.gd,
+  godot/scripts/dialogue.gd (1 line in _speak), new godot/scripts/voice_index.gd, new tools/import_voices.py, VOICE_LINES.md —
   branch: ebain/voice-import — started 2026-11-21
 - [asar] Inventory: right-click an item → "View" shows its picture big — files: godot/scripts/inventory_ui.gd — branch: asar/item-view — started 2026-11-21
 
@@ -47,7 +48,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/voice_lines.gd, tools/import_voices.py (new), VOICE_LINES.md
+- [ebain] godot/scripts/voice_lines.gd, godot/scripts/dialogue.gd (_speak only), voice_index.gd (new), tools/import_voices.py (new), VOICE_LINES.md
 - [asar] godot/scripts/inventory_ui.gd
 
 ## Log (newest first)
