@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Fight menu box stops jumping when hovering (fixed description height) — files: godot/scripts/combat/battle_view.gd (_menu only) — branch: asar/menu-jump — started 2026-11-21
 - [ebain] Diddy Chud Giant voice lines (taken over from grok: Grok's sandbox can't push audio files; Ebain asked) +
   automatic voice imports (drop a studio zip in voice-imports/ on GitHub → Actions imports it) — files:
   godot/assets/voices/giant/, godot/scripts/voice_index.gd, new .github/workflows/voice-import.yml, new voice-imports/README.md,
@@ -50,6 +51,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/combat/battle_view.gd (_menu only)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
