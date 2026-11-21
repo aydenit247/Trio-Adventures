@@ -1,324 +1,189 @@
-# Trio Adventures — Handoff for a New Chat
+# Trio Adventures — Handoff (read this first)
 
-Paste this whole file into a new chat (or point the new chat to `HANDOFF.md` in the repo). It is everything a fresh Claude needs to pick up exactly where we left off. **`DESIGN.md` in the repo is the source of truth** for story, scenes, choices, lore canon, combat numbers and systems. This file is the "how we work + where things stand" companion.
+For any Claude starting fresh on this repo — including Ebain's friend's Claude. Read `CLAUDE.md` (the collaboration
+rules) and `COLLAB.md` (the live board) too. `DESIGN.md` has the full story and combat design notes from the early
+version; this file is the up-to-date picture.
 
----
-
-## 1. What this is
-
-**Trio Adventures** by **Ebain** (the user, Ayden) is a comedic, goofy, Baldur's Gate 3–toned browser RPG. It runs on desktop browsers only.
-
-- **Characters:** Skorn, Lykor and Xylo, from Ebain's AI video series.
-- **The quest:** they're looking for the **metocy**, a mystical herb in a tiny blue oval capsule.
-- **Repo:** https://github.com/aydenit247/Trio-Adventures
-- **Live game:** https://aydenit247.github.io/Trio-Adventures/. GitHub Pages serves it from the `main` branch.
-- **Status:** Chapter 1 (about 15 minutes) is fully playable from start to finish. It has real combat, voices, sound, saves, an outcome tracker, settings, a tutorial and credits.
-
-### The trio
-- **Skorn:** a chaotic, angry purple orc and the map burner. He's dumb, proud and loud.
-- **Lykor:** "the Mogging Elf." He's handsome, blond and vain about his hair and conditioner.
-- **Xylo:** a mysterious red dragon and the lore guy. He reads **Deloye Lore**, a huge book about a universe with little to no lore.
-
-### Other characters
-- **Dulbers Frint:** a shapeshifting demon who runs Metocy Mart. "hey guys its your boy dulbers frint."
-- **Metocin Mattias:** shows up with "You had called?"
-- **Diddy Chud Giant:** the boss at the pass.
-- **Chief Bogdrinker:** the goblin chief. He gives out beezy, which is beer.
-- **The goblins:** unemployed.
-- **Dulbmeethus:** the god behind the smoke. You reach him by smoking a Dulber's Frint Pack. His line is "Y'all could hear me doe?"
-
-### Items
-- **Midtocy:** the fake metocy.
-- **Beezy:** beer. Heals 30.
-- **Chipotle Bowl:** heals 60.
-- **The d6:** labeled "on some dice shi."
+**TL;DR:** a goofy, Baldur's Gate 3–toned 2.5D RPG made in **Godot 4.7.2** (`godot/`). Chapter 1 is playable start
+to finish: Camp → Goblin Village → Metocy Mart → The Pass, with real turn-based combat, an explorable village with
+side quests, and real 3D props. The target is a **Windows download**. The old browser (Phaser) version in `src/` is
+abandoned — don't work on it.
 
 ---
 
-## 2. How to resume in a new chat (technical)
+## 1. The game
 
-1. Attach the repo: `add_repo` owner `aydenit247`, repo `Trio-Adventures`, access `push`. Clone it, then register the repo root.
-2. Work on the **`foundation`** branch. To go live, push foundation, then push foundation to main:
-   ```
-   git checkout foundation
-   git -c push.negotiate=true push -q origin foundation
-   git push -q origin foundation:main
-   ```
-   (GitHub may print a "repository moved" notice about letter case. It's harmless.)
-3. **Commit as** user `Claude` with email `noreply@anthropic.com`, and end each message with:
-   ```
-   Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-   Claude-Session: <current session url>
-   ```
-4. **Local testing:** run `python3 -m http.server 8765` from the repo root. Restart it with nohup if it dies. Test with Playwright Python using `executable_path='/usr/bin/google-chrome'` and `--autoplay-policy=no-user-gesture-required`.
-   - Headless Chrome is very slow, roughly 8x slower game time. Wait generously, or force state with `page.evaluate`, e.g. set `TitleScene.menuReady = true`.
-   - `window.game` is the Phaser game. Start a scene directly: `game.scene.getScenes(true).forEach(s=>s.scene.stop()); game.scene.start('Pass')`.
-   - Start a fight directly: `game.scene.start('Combat',{fight:'giant',mods:{enraged:true},bg:'bg_giant_pass',onDone:r=>window.done=r})`.
-   - Force dice 6s: `Phaser.Math.Between=(a,b)=>b`. Don't override `Math.random`, because that breaks Phaser text.
-   - A paused scene isn't in `getScenes(true)`. Check `isActive() || isPaused()` instead.
-5. **The workspace has no general internet.** Only package registries and GitHub are reachable. Art, video and audio must be uploaded by Ebain.
+**Trio Adventures** by **Ebain** (Ayden, the creator). Three friends from Ebain's AI video series go on a quest for
+the **metocy**, a mystical herb in a tiny blue oval capsule.
 
----
+- **Skorn:** a chaotic, angry purple orc. Dumb, proud, loud. Burned the map.
+- **Lykor:** "the Mogging Elf." Handsome, blond, vain about his hair and his conditioner.
+- **Xylo:** a mysterious red dragon and the lore guy. Reads **Deloye Lore**, a huge book about a universe with little
+  to no lore.
+- **Dulbers Frint:** shapeshifting demon who runs the Metocy Mart. "hey guys its your boy dulbers frint."
+- **Metocin Mattias:** shows up out of nowhere: "You had called?"
+- **Chief Bogdrinker:** goblin chief, gives out beezy (beer). The goblins are all unemployed.
+- **Diddy Chud Giant:** the boss blocking the Pass. Wakes up with "Aight. Bet."
+- **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?"
+- **Items:** Beezy (heals 30), Chipotle Bowl (heals 60), Midtocy (the fake metocy), the d6 ("on some dice shi").
 
-## 3. Tech stack and code map
+### Chapter 1 flow (each main event has a 5-way choice)
+1. **Camp (night, as Skorn):** fire's out → grab the bag → find the map → burn it to start the fire (oops) → roam →
+   head north. No choice here — Ebain wants it that way.
+2. **Goblin Village (day, as Lykor):** ambush → kneel → the Chief → crowned at the spoon throne → choice: A royal
+   speech (+3 beezy) · B chug-off minigame · C crown Skorn (he stays behind, `skornKing`) · D sneak out for real,
+   goblins follow (`goblinAllies`) · E Skorn fights 3 goblins (real combat). Then the village opens up (section 4).
+3. **Metocy Mart (evening, as Xylo):** Dulbers offers the midtocy → A everyone trips / B Skorn trips → boss fight vs
+   demon Dulbers · C refuse → kicked out · D Xylo inspects it (Deloye Lore ch. 8,784 sec. B12) · E goblins handle it
+   (if allies). Skorn pockets the midtocy in most paths (`hasMidtocy`).
+4. **The Pass (lava, as Skorn):** Mattias appears → the giant is asleep in the way → A throw the midtocy (giant trips)
+   · B **Snore Sneak** minigame · C **Lore Session** minigame (pick the true Deloye Lore continuation) · D slap him ·
+   E it's the Chief's cousin (if allies). Fights are real boss fights. → END OF CHAPTER 1 → back to camp.
 
-- **Phaser 3.90**, vendored at `lib/phaser.min.js`. No build step; it uses plain ES modules. The canvas is 1280×720 with `Scale.FIT`.
-- `index.html` loads the fonts (Cinzel, Nunito) and Phaser. It also has three small icon buttons in the top-left:
-  - 🔊 mute (M)
-  - 🗣 voices (V)
-  - ⚙ settings (O). Opens the Settings overlay from anywhere.
-- `src/main.js` lists the scenes: `Boot, Intro, Title, Goblin, Mart, Pass, Continue, Combat, Settings, Outcomes, Credits`.
-
-### Scenes (`src/scenes/`)
-- **BootScene:** the loading screen. It loads all portraits, backgrounds, `char_*` full-body cutouts (including combat poses and hurt poses), `item_*` and `vid_*` videos. It registers the ChromaKey pipeline and preloads the menu music.
-- **IntroScene:** Scene 1, "The Map," at camp at night. Skorn burns the map in a cutscene, then the "Trio Adventures by Ebain" title card appears. **Ebain wants Scene 1 kept as-is, with no choice.**
-- **TitleScene:** the menu row: Continue (with "Saved at: …" underneath), New Game (confirms if a save exists), Chapters (submenu: Goblin Village, Metocy Mart, The Pass, Back), Outcomes x/22, Settings, Replay Intro. The Gregorian chant menu music plays here.
-- **StageScene:** the shared base for story scenes. It provides:
-  - stage setup and background placement: `BG={scale:1.375,left:-64,top:-100}`, with `at(x,y)` mapping art coordinates to screen
-  - characters: `makeChar`, `setCharTex`, show/hide, `setSpeaker`, hop, walk
-  - lighting moods (moon, day, shop, candle, lava, fire, trip), `tripOn` and `tripOff`
-  - labels: `label`, `charLabel`
-  - `playCutscene(key,{keyed,...})`
-  - minigames: `mashGame`
-  - **`fight(key, mods)`**: pauses the scene, launches CombatScene, and resolves when you win
-  - **`finish(next)`**: records outcomes, autosaves, and fades out
-  - an "Outcome found" toast
-  - ESC skips the scene
-- **GoblinScene, MartScene, PassScene:** Scenes 2, 3 and 4. Their scripts are in `src/data/scenes/`.
-- **ContinueScene:** the "End of Chapter 1" card. Space goes to the credits.
-- **CombatScene:** turn-based combat (see section 6).
-- **OverlayScene:** the base for overlays. It pauses everything underneath and resumes it on close.
-- **SettingsScene, OutcomesScene:** overlays.
-- **CreditsScene:** the credit roll with joke roles and the outcome count, then back to Title.
-
-### UI and data
-- `src/ui/DialogueBox.js`: typewriter text with per-character blips (turned off while TTS voices are on). It handles choices, thought lines and conditionals. Script steps:
-  - `{who, mood, line, thought}` is a line of dialogue.
-  - `{do:'hookName'}` calls a scene hook.
-  - `{choice:[{text, if?, steps}]}` is a choice. An option can be hidden by a flag with `if`.
-  - `{if:'flag', steps}` and `{ifNot:'flag', steps}` are conditionals.
-  - The text speed comes from Settings.
-  - Every picked choice is recorded in `scene.picked` and passed to `Outcomes.onChoice`.
-- `src/data/scenes/scene1_the_map.js`, `scene2_goblins.js`, `scene3_metocy_mart.js`, `scene4_the_pass.js`: the dialogue scripts. Ebain's own lines are tagged `// Ebain` and my drafts `// DRAFT`.
-- `src/data/characters.js`: names, portraits, moods, voice blip settings, and `PORTRAIT_FILES`.
-- `src/data/combat.js`: PARTY stats and moves, ITEMS, THROWABLES, TRIP_MISFIRES, FIGHTS (enemy HP, AI, XP) and LEVELS.
-- `src/data/deloyeLore.js`: five Lore Session passages. Each has `where`, `title`, `text`, one `right` continuation and two `wrong`. Ebain said to **leave it as-is** (one right answer per page).
-
-### Systems, audio and effects
-- `src/systems/save.js`: the autosave in localStorage `trio_save`. It's written when a scene finishes into Mart, Pass or Continue, and on New Game or Chapters.
-- `src/systems/outcomes.js`: the 22 OUTCOMES, unlocked by choice text, by flags at scene end, or directly from combat. Stored in localStorage `trio_outcomes`.
-- `src/systems/settings.js`: text speed, music, sfx and voice volume, and voice speed. Stored in localStorage `trio_settings`.
-- `src/audio/Sfx.js`: every sound effect is synthesized with Web Audio. That covers blips, one-shots, background loops (night, fire, village, shop, trip) and **combat sounds**: slap, roar, hairflip, mog, zap, impactMagic, pages, chudThud, stomp, sitWarn, sitImpact, bonk, throw, hit, hurt, heal, buff, diceRoll, crit, miss, enemyDown, victory, defeat (sad trombone) and dance. Music is played through HTMLAudio: `playMusic` and `stopMusic`, with a retry on the next click or keypress.
-- `src/audio/Voice.js`: **TTS character voices** through the browser's Web Speech API. Each character has a pitch, speed and preferred system voice. `clean()` fixes pronunciations ("shi" becomes "shee", "doe" becomes "dough"). V toggles it.
-- `src/fx/ChromaKey.js`: a GPU green-screen shader for keyed videos.
-- `src/fx.js`: effect textures (`fx_soft` and others), `coverImage` and `vignette`.
-
-### Assets (`assets/`)
-- `portraits/`: dialogue portraits for each mood.
-- `characters/`: full-body cutouts, including combat and hurt poses.
-- `backgrounds/`: camp_unlit and camp_lit, goblin_village, goblin_throne, mart_exterior, mart_interior, mart_interior_trip, mountain_path, giant_pass, title_trio.
-- `items/`
-- `video/`: map_burn, dulbers_transform, mattias_appear, giant_wake, xylo_chudout and xylo_chudout_short. Most are green-screen.
-- `audio/menu_theme.mp3`
+**Big direction (Ebain):** these four are the MAIN EVENTS. Between them he wants lots of optional, open-world-ish
+stuff: places to walk into, joke NPCs, side quests, roaming enemies, gear to find. More chapters later; Dulbers is
+set up to come back as a villain.
 
 ---
 
-## 4. Story — Chapter 1 (full detail in DESIGN.md)
+## 2. Creative rules (important)
 
-**Scene 1, "The Map" (IntroScene):** camp at night. Skorn grabs the sack and burns the map in a cutscene, then dawn comes. Last line: "Bet, my fault. I'm dumb as hell." Then the title card. **No choice here, by Ebain's request.**
-
-**Scene 2, Goblin Village (Chief Bogdrinker):** there are five choices.
-- **A, royal speech:** Ebain's lines. You get beezy ×3.
-- **B, chug contest:** a mash minigame. A win shows "LEGEND!" A loss means Lykor passes out and wakes up outside with "METOCY MART, EAST. LOSER." written on his forehead.
-- **C, crown Skorn:** sets `skornKing`. Skorn stays behind.
-- **D, sneak out:** "Slow… quiet…" / "What the fuck is y'all doing?" The goblins join as allies (`goblinAllies`).
-- **E, Skorn "negotiates":** a **fight** of Skorn against 3 goblins, then Lykor is dethroned.
-
-**Scene 3, Metocy Mart (Dulbers Frint):** he offers the midtocy. There are five choices.
-- **A, everyone takes it:** everyone trips, then the reveal, then a **fight** against demon Dulbers with the whole party tripping.
-- **B, Skorn tries it first:** Skorn trips, then the **fight**, with only Skorn tripping.
-- **C, refuse it:** you get kicked out and see the Giant's Pass sign. Dulbers escapes, setting him up as a future villain.
-- **D, Xylo inspects it:** he cites Deloye Lore ch. 8,784 sec. B12. Dulbers hands over the midtocy and escapes.
-- **E, goblins taste-test it:** only if you have goblin allies. A goblin brawl kills Dulbers (`dulbersDead`), then the goblins go home.
-
-Skorn pockets the midtocy in every path except C (`hasMidtocy`).
-
-**Scene 4, The Pass (Diddy Chud Giant asleep, Mattias appears):** there are five choices.
-- **A, Skorn throws the midtocy:** needs `hasMidtocy`. The giant wakes and trips, then a **boss fight** against a Tripping giant.
-- **B, sneak across:** the Snore Sneak minigame. A win steals the Chipotle Bowls and there's no fight. A loss means a **boss fight** against an Enraged giant.
-- **C, Xylo reads him Deloye Lore:** the Lore Session minigame. Five epic passages, and you pick the right continuation. Get it right and he falls asleep. Get it wrong and it's the **boss fight**.
-- **D, fight him:** a slap, then the **boss fight**.
-- **E, let Chief Bogdrinker handle it:** needs `goblinAllies`. It turns out to be his cousin.
-
-After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crashouts." / "Foolish..". Then Mattias's ending, then End of Chapter 1, then the credits.
-
-**Story flags (registry):** goblinAllies, skornKing, chugWon, lykorDethroned, foreheadLoser, inv_beer, hasMidtocy, dulbersEscaped, dulbersDead, skornTripped, sneakWon, loreWon, inv_bowl, xp, level, used67, declined67.
+- **Tone:** goofy BG3. Realistic-looking art, dumb jokes, lots of joke labels over people's heads
+  (e.g. "Goblin (Between Jobs)", "Diddy Chud Giant (Asleep, In The Way)").
+- **Every main event needs a player choice**, and each major encounter keeps at least one combat option.
+- **Ebain's dialogue is used verbatim** — only fix grammar/spelling, never rewrite his jokes. Tag his lines `# Ebain`
+  and Claude's drafts `# DRAFT`. When writing new scenes, lay them out as numbered lines with his characters' lines
+  marked ⭐ so he can edit them.
+- **Ebain has the final say** on story and characters. His friend can propose things; check big story changes with Ebain.
+- **Art:** characters are Ebain's **Gemini** images (realistic, green screen), cut out into 2D cards. Environment
+  props and textures come from **Poly Haven** (free, CC0). Don't download photos of real people.
+- **Voices:** robot TTS voices on purpose (Ebain finds them funny). Real voice lines for Mattias + goblins may come
+  from the friend later.
+- **The 6-7** happens once per game (combat easter egg).
 
 ---
 
-## 5. Ebain's creative rules and preferences (important)
+## 3. Working in this repo (technical setup)
 
-- **The tone is goofy BG3:** realistic art, dumb jokes, lots of joke labels (e.g. "Goblin (Between Jobs)").
-- **Every scene needs a player choice.** Most choices should lead to different outcomes, and each major encounter keeps at least one combat option.
-- **Dialogue workflow:**
-  1. I lay out a scene as numbered lines, marking his characters' lines with ⭐.
-  2. He replies with edits.
-  3. **I apply his wording verbatim.** I only clean up grammar and spelling, never rewrite his jokes.
-  4. His lines get tagged `// Ebain` and my drafts `// DRAFT`.
-- **Art:** he makes images and videos with Gemini (realistic style) on green screen. I cut them out with numpy/scipy chroma-key scripts: edge flood fill, chroma distance, a spill key and dark-haze cleanup. The goblins are keyed without the spill pass.
-- **Music:** Gregorian chant on the menu. **He'll add more music later**; the plan is AI-generated tracks, or a Claude-in-Chrome agent pulling from Pixabay with the handoff list in section 8.
-- **Voice acting:** real voice acting is shelved. TTS robot voices are in instead, and he thinks they're funny.
-- **The 6-7** happens once per game, and the dice are "on some dice shi."
-- **Platform:** desktop only. Local saves are fine.
+### Getting started in a fresh workspace
+1. Attach the repo (`aydenit247/Trio-Adventures`, push access) and clone it. Work from the **`foundation`** branch;
+   **`main`** is what GitHub Pages serves. Follow `CLAUDE.md`: pull → read `COLLAB.md` → claim → work on
+   `<yourtag>/<task>` → merge into `foundation` → push `foundation` and `foundation:main`.
+   (GitHub may print a "repository moved" notice about letter case. Harmless.)
+2. Get Godot 4.7.2 for Linux (GitHub release `godotengine/godot` tag `4.7.2-stable`,
+   `Godot_v4.7.2-stable_linux.x86_64.zip`). The workspace can reach GitHub and package registries; Poly Haven/ambientCG
+   are reachable only if the person allows them in their Claude settings.
+3. For Windows builds, install the export templates: download `Godot_v4.7.2-stable_export_templates.tpz` (1.3 GB, same
+   release) and extract `templates/windows_release_x86_64.exe` (+ `windows_debug_x86_64.exe`) into
+   `~/.local/share/godot/export_templates/4.7.2.stable/`.
+4. After adding new assets, run `godot --headless --path godot --import` once.
 
----
+### Testing (no screen here, so everything is screenshot tours)
+`xvfb-run -a -s "-screen 0 1280x720x24" godot --path godot --rendering-method gl_compatibility --rendering-driver
+opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_shot_tour()` and writes PNGs to
+`$SHOT_DIR`. Useful env vars:
+- `VILLAGE_CHOICE=0..4`, `MART_CHOICE=0..4`, `PASS_CHOICE=0..4` — which choice path the tour takes
+- `VILLAGE_TOUR=buildings TOUR_PART=1|2` — walks every village building and quest
+- `FIGHT=goblins|dulbers|giant|goblin_patrol|bouncer` (+ `LEVEL=2`, `ALLIES=1`, `AUTO_LOSE=1`, `MENUS=1`) — runs one fight
+- `LOOK="x,z,yaw;..."` (camp) — close-up screenshots of spots with the fire lit
+- `--views` instead of `--shots` walks the trio in 4 directions
+Tours are slow in the sandbox (5–9 min); run them one at a time or they time out. `--check-only` always reports
+"Identifier not found: Game" — that's a false positive (the autoload). The sandbox has no TTS and no Forward+, so
+voices are silent and the screenshots look a bit flatter than the real game.
+Balance sim for combat: `godot --headless --path godot --script res://tools/sim_combat.gd`.
 
-## 6. Combat system (Combat 2.0 — see DESIGN.md → Combat for every number)
+### Building the game
+- **Windows (the real target):** `godot --headless --path godot --export-release "Windows"
+  ../build/windows/TrioAdventures.exe` → `TrioAdventures.exe` (engine, never changes) + `TrioAdventures.pck` (the
+  game). `build/` is gitignored (too big for git) — zip it and hand it to your person as a file. Updates usually only
+  need the new `.pck`. Windows SmartScreen will warn ("More info → Run anyway").
+- **Web build** (`play3d/`, live at https://aydenit247.github.io/Trio-Adventures/play3d/) is **frozen** at the
+  Nov 21 village version. Don't re-export it unless Ebain asks.
 
-- **Architecture:** `src/combat/engine.js` is pure rules (no Phaser) and returns event lists; `CombatScene.js` animates
-  them. `tools/sim_combat.mjs` runs thousands of fights through the same engine with sloppy/average/good fake players.
-  **Rebalance by editing numbers, then rerun the sim.**
-- **Turn order:** speed timeline bar top-left (FFX-style). **Timed hits/blocks:** shrinking ring, SPACE.
-  **Meters → ultimates** (FULL CRASH OUT, MOG SUPREME, CHUD OUT). **Team-ups** at 50% from two people (trio at 60%).
-- Statuses both ways, boss Locked In after CC, telegraphs with counters, boss phase 2 at 50% (giant "Aight. Bet." +
-  snack; Dulbers shapeshifts into bootleg party members), rare chaos events, banter bubbles + TTS, S–F grade with XP bonus.
-- Settings: Combat difficulty (Chill/Normal/Crashout) and Timed hits (On/Auto).
-- **Testing:** `window.TRIO_QTE='perfect'` auto-resolves timed presses. To script a fight, replace
-  `scene.chooseAction` with an async function that returns actions (see the chat history for `test_script.py`).
-- **Not yet human-tested:** how the timing window feels with a real keyboard (`qte()` in CombatScene: 850ms ring,
-  PERFECT ±8px, GOOD ±22px, scaled by difficulty).
-
-## 6b. Godot version (`godot/`) — THE MAIN GAME NOW
-
-Ebain decided (Nov 2026) to go all-in on Godot; the Phaser version is no longer worked on.
-**Target: Windows download (Ebain, Nov 2026).** The web build at https://aydenit247.github.io/Trio-Adventures/play3d/
-is FROZEN at the Nov 21 village version — don't spend effort on web texture budgets anymore.
-Windows build: `godot --headless --path godot --export-release "Windows" ../build/windows/TrioAdventures.exe` →
-TrioAdventures.exe (the engine, never changes) + TrioAdventures.pck (the game). `build/` is gitignored (too big for
-git); hand the zip to Ebain as a chat file. Updates usually only need the new .pck. Needs the Godot 4.7.2 Windows
-export templates (windows_release_x86_64.exe) in ~/.local/share/godot/export_templates/4.7.2.stable/.
-Desktop renders with Forward+ (SSAO, volumetric fog, glow); the sandbox screenshots use gl_compatibility, so the real
-game looks a bit better than the test shots. New textures: VRAM compressed (compress/mode=2), 1K is fine.
-- **Style: 2.5D.** 3D world; characters AND props are green-screen cutout cards (billboards) from Ebain's Gemini art,
-  tinted per frame by `light_at()` (glows registered with `add_glow`). Photo ground textures blended by a shader
-  (clearing + path points per area). Directional views: `<id>_back.png` / `<id>_side.png` (side faces right).
-- **Code:** `scripts/level.gd` = shared engine (environment day/night, ground, `card()`, party/NPCs, camera,
-  interactions, dialogue, HUD, joke labels `char_label()`, `knock()`, `walk_to()`, test helpers).
-  Areas extend it: `camp.gd` (Scene 1, night) → `village.gd` (Scene 2, day) → `mart.gd` (Scene 3, evening) → `pass.gd` (Scene 4, lava). `game.gd` autoload = flags + items
-  across areas. Dialogue data: `camp_script.gd`, `village_script.gd` (`# Ebain` / `# DRAFT`, same format as web).
-- **Scene 1 (camp):** real props now too — mossy boulders and rock clusters, ferns, fallen branches, chunky sitting
-  logs, a stump with an axe, firewood, pot + bowls by the fire, buckets, crates, a lantern (its light moved onto it).
-  Camp close-ups: `LOOK="x,z,yaw;..." ... res://main.tscn -- --shots`. Fire out → bag → map → burn it → rest of Scene 1 → free roam → north path → "next morning" →
-  village. (Mattias moved out of camp; his lines wait for Scene 4.)
-- **Scene 2 (village), as Lykor:** walk in → ambush (labeled goblins) → kneel → chief → follow to throne → crowned →
-  choice: A speech (+3 beezy) · B chug-off mash minigame (chugWon / foreheadLoser) · C crown Skorn (skornKing, Skorn
-  stays) · D sneak — player really sneaks, gets caught, goblins follow (goblinAllies) · E Skorn fights (placeholder
-  win, lykorDethroned). Then east exit → "To be continued" card.
-- **Real environment art (Nov 2026):** `scripts/models.gd` (`Models.place(parent, id, pos, rot_y, scale, collide,
-  recolor)`, `Models.mat(texture_id, tile_m, tint)` = world-space triplanar PBR material for any box/cylinder,
-  `Models.block`, `Models.cylinder`). Assets in `godot/assets/models/<id>/` (glTF) and `godot/assets/textures/<id>/`
-  (albedo/normal/rough.jpg), fetched with `tools/fetch_polyhaven.py`. Characters stay Gemini cutouts.
-- **Explorable village (after the throne scene), `village_buildings.gd` + `village_rooms_script.gd`:** six places:
-  round 3D huts (clay / log / stone walls, thatched roofs), a cloth tent, plank outhouse + job board, and a throne
-  kitbashed from a real chair, rusty wheel rim and giant wooden spoons. Doors fade you into rooms built at x = 400/440/480/520 (sun + ambient dim indoors).
-  1 Chief's Hut (Chief is home if he's not following you; belt, self-portrait, chest → Backup Conditioner, hay-bed nap) ·
-  2 Unemployment Office & Bar (Sludge's **Bar Tab** quest: pay 3 Beezy / Lykor's mog → `bouncer` fight / fight; Gorbo's
-  open mic: laugh or heckle; Gulpo **Chug Rematch** reusing the chug minigame; clerk window gag) · 3 Job Board + Grubnik
-  (**Lucky Spoon**: the Goblin Patrol drops it → Weighted d6) · 4 Shaman's Tent (fortunes, **Lore-Off** 3-question
-  quiz → Deloye Lore Vol. 9) · 5 Clank's Spoonsmithy (**Shiny Spoons**: 5 sparkly spoons around the village; 3 → Spoon
-  of Destiny, 5 → Spoon Mail) · 6 Outhouse (each of the trio can go in once for a gag + loot). Quests live in
-  `Game.quests` and show in the I menu. Named one-off speakers: `{ who = "goblin", name = "Sludge (Bartender)" }`.
-  Test: `VILLAGE_TOUR=buildings TOUR_PART=1|2 ... res://village.tscn -- --shots`.
-- **Scene 3 (Metocy Mart, `mart.gd`), as Xylo:** evening fog. Outside: Ebain's painted shop front is a stage-set
-  backdrop (`backdrop()`, camera locked + flatter via `cam_locked`/`cam_height`/`cam_look_h`) → Dulbers pops out →
-  go inside (room built at x=300: plank-floor shader + painted interior backdrop, swaps to the trip version) →
-  choice A all trip / B Skorn trips (both → reveal, demon transform, placeholder fight) · C refuse → kicked out, pass
-  sign · D Xylo's Deloye Lore inspection → deal · E (only if goblinAllies) goblins take Dulbers out. Flags: hasMidtocy,
-  skornTripped, dulbersEscaped, dulbersDead; skornKing → Skorn bursts in. Exit east → The Pass.
-  Test: `MART_CHOICE=0..4 ... res://mart.tscn -- --shots`.
-- **Mart + Pass real art (Nov 2026):** Mart street: cobblestone ground patch (`Models.patch` = soft-edged textured
-  ground decal), barrels/crates/sacks/bucket by the painted shop, two lantern posts with real light; shop room: a 3D
-  counter with candlesticks in front of the painted one, barrels, sacks, crates, a bookshelf with bottles, pots.
-  Pass: real rock faces + boulders (darkened, lava-lit) in front of the framing cliff cutouts, burnt-ground and
-  dark-rock patches, charred logs and branches.
-- **Scene 4 (The Pass, `pass.gd` + `pass_script.gd`), as Skorn:** new `lava` mood in level.gd (red ambient/fog/sky,
-  burnt ground). Painted `giant_pass.jpg` backdrop with the giant asleep (floating Zzz at `GIANT_HEAD`), framed by big
-  dark cliff cards. Walk up → Metocin Mattias poofs in (blue light) and vanishes → giant → choice: A throw midtocy (if
-  hasMidtocy) → he wakes geeked → placeholder boss fight · B **Snore Sneak** minigame (hold E only while he snores; fill
-  the snore meter and he wakes → fight) → +2 bowls · C **Lore Session** minigame (5 Deloye Lore pages, pick the true
-  continuation; one miss → fight) → he rolls over · D Skorn slaps him → fight · E (goblinAllies) the chief's cousin, he
-  leaves calmly. Waking swaps the backdrop to `mountain_path.jpg` and Ebain's awake giant (`giant_angry`, 7 m) stands up.
-  Mattias's voice echoes → exit east → "END OF CHAPTER 1" card → back to the camp. Flags: sneakWon, loreWon.
-  Test: `PASS_CHOICE=0..4 ... res://pass.tscn -- --shots`.
-- **Combat (Godot, Nov 2026) — Combat 2.0 ported.** `scripts/combat/combat_data.gd` (all numbers/moves/fights/talk/gear),
-  `battle.gd` (pure rules, port of engine.js), `battle_view.gd` (presentation). Ebain's picks: fights happen **right where
-  you are** (party lines up left, enemies right, camera swings to a side angle, menus on top) · **XP + gear** (shared
-  level, +10% HP/dmg per level; Level 3 teaches Belly Bump / Conditioner Mist / Citation Needed; one trinket per fighter,
-  equip with **I**) · **visible roaming enemies** (`spawn_roamers(fight, home, radius)`: wander → notice you (walking is
-  sneakier) → chase → touch = fight) · **recruited allies fight** (Chief Bogdrinker joins as a 4th fighter when
-  goblinAllies) · **losing = funny penalty** (YOU GOT COOKED + sad trombone, then a goblin steals a Beezy / eats a bowl /
-  writes on your forehead; story fights retry, roaming fights wake you at `checkpoint`) · **snappy side fights,
-  cinematic bosses** · **Talk + Run** (Run = d6 4+, side fights only; Talk options per fight: bribe, job offer, roast,
-  refund, compliment, feed the giant, lullaby) · **timed ring kept with an Auto option** (T in battle, or Esc menu).
-  Level API: `await fight(key, { enemies = [units], mods = {} })`. Story fights wired: village E (`goblins`), Mart A/B
-  (`dulbers`, tripping), Pass (`giant`: A tripping, B enraged). First roaming group: Goblin Patrol on the village east road.
-  Esc = pause menu (difficulty, timed hits, voices, party). Balance sim: `godot --headless --path godot --script
-  res://tools/sim_combat.gd`. Fight test: `FIGHT=goblins|dulbers|giant|goblin_patrol [LEVEL=2 ALLIES=1 AUTO_LOSE=1
-  MENUS=1] ... res://village.tscn -- --shots`.
-- **Placeholders:** goblin huts (tinted tent art) and the throne (built from shapes) until Ebain sends art.
-  Mart uses painted backdrops instead of props (edges show from far back).
-- **Art pipeline:** props `python3 tools/key_props.py <src> godot/assets/props`; character views
-  `python3 tools/key_chars.py <src> godot/assets/characters`. Set `mipmaps/generate=true` in new `.import` files.
-- **Testing here:** Godot binary from GitHub releases; `xvfb-run ... --rendering-method gl_compatibility
-  [res://village.tscn] -- --shots` runs that area's `_shot_tour()` (SHOT_DIR env; VILLAGE_CHOICE=0..4 picks a path;
-  `--views` walks 4 directions). Sandbox has no TTS/Forward+.
-
-## 7. Open items / where we left off
-
-**Big direction (Ebain, Nov 2026):** the camp, Goblin Village, Metocy Mart and the Pass are the MAIN EVENTS. He wants
-lots of stuff in between and optional content: open-world-ish side areas, tents you can go inside (e.g. a goblin who
-tells jokes), random interactive things, roaming enemies, gear to find. Next chapters add more main events.
-
-0. **Friend's voice lines (in progress).** Ebain's friend is recording Metocin Mattias (3 lines) and the goblins (Chief
-   Bogdrinker 25, regular goblin 3, crowd 9) as one MP3 with line numbers read out. Plan: split it, pitch-shift / voice-change
-   each character, stack crowd lines into a mob, and play them instead of TTS for those characters.
-1. **Pronunciation list (not answered yet).** I gave Ebain 38 words with my guessed pronunciations: names like Lykor ("LIE-kor"), Xylo ("ZY-low"), Caelid, Dulbmeethus, Metocin and Deloye; items like metocy ("meh-TOE-see"); slang like jit, aight, finna, looksmaxxin and Balright; and the abbreviations ts, mf, ngl and fw (spell them out or read them as words?).
-   - He hasn't replied. My guesses aren't in the code yet; only "shi" → "shee" and "doe" → "dough" are.
-   - When he answers, add respellings to `Voice.clean()` in `src/audio/Voice.js` as word-boundary regex replacements.
-2. **Voice tuning:** he hasn't heard and judged the TTS voices yet. Adjust `PROFILES` (pitch and rate) in `Voice.js` based on his feedback.
-3. **Music:** he'll provide tracks later. Planned slots:
-   - camp/overworld
-   - goblin village (goofy tavern)
-   - Metocy Mart (cheesy shop music), plus a warped trip version
-   - battle
-   - boss
-   - a mountain/pass track
-   - a victory jingle
-   - a "YOU GOT COOKED" sting
-
-   Wire them up with `Sfx.playMusic`, crossfading between scenes and respecting the music volume setting.
-4. **Real sound-effect files (optional):** if he sends Pixabay downloads (see section 8 for filenames), swap them in for the synthesized ones where they sound better.
-5. **Credits:** I listed "Code, Cutouts & Sounds: Claude" and asked whether he wants it kept. No answer yet.
-6. **Future chapters:** Dulbers comes back as a villain (he escapes in Mart paths C and D). There's room for Chapter 2 and beyond.
-7. **Image ideas:** Ebain couldn't generate images for a while. More combat or emotion art can be added whenever he sends it.
+### Commits
+Commit as user `Claude`, email `noreply@anthropic.com`, ending each message with your own session's attribution lines.
 
 ---
 
-## 8. Pixabay asset list (for a browsing agent, if Ebain uses one)
+## 4. Code map (`godot/`)
 
-Put everything in `Downloads/trio-sfx/`. Use MP3, short and clean, under the Pixabay license only.
+**Style: 2.5D.** A 3D world; characters are billboard cutout cards (unshaded, tinted per frame by `light_at()` from
+glows registered with `add_glow`). Directional character views: `<id>.png` (front), `<id>_back.png`, `<id>_side.png`
+(side faces right). Environment = real glTF models + photo textures, plus some cutout cards (trees, tents, bushes)
+and painted backdrops (Mart, Pass).
 
-**Sound effects:**
-- **Combat:** slap, punch, rage_roar, hair_swish, mog_sting, magic_zap, page_flip, ground_thud, giant_stomp, spoon_bonk, throw_whoosh, dice_roll.
-- **Drinks and crowd:** bottle_clink, gulp, crowd_ooh, crowd_cheer.
-- **Shop and world:** door_creak, shop_bell, footstep_dirt, snore, record_scratch, coins.
-- **Loops:** fire_crackle, night_ambience, tavern_ambience, wind_mountain.
-- **Jingles:** level_up, fail_trombone.
+| File | What it is |
+|---|---|
+| `project.godot` | autoload `Game`, main scene `main.tscn` (camp), Forward+, 1280×720 |
+| `scripts/game.gd` | **Game** autoload: story `flags`, `inv`, XP/level, gear, `quests`, settings, `goto(scene)` |
+| `scripts/level.gd` | **Level** base class every area extends: environment (night/day/lava), ground shader, `card()`, `backdrop()`, party + NPCs (`spawn_npc`, `add_to_party`, `walk_to`, `hop`, `knock`), camera (`cam_locked`, `zoom`, `cam_height`, `cam_look_h`, `focus_override`), interactions, `run_dialogue()`, HUD (`objective`, `show_toast`, `char_label`), `fight()`, roaming enemies (`spawn_roamers`), the defeat penalty, Esc pause menu + I party/gear/quest menu, test helpers. Hooks: `_configure`, `_build_level`, `_after_build`, `_begin`, `_level_interactables`, `_on_action`, `_level_process`, `_shot_tour` |
+| `scripts/unit.gd` | **Unit**: a character (CharacterBody3D + billboard Sprite3D), views, `set_pose`, `restore_views` |
+| `scripts/dialogue.gd` | **Dialogue** box + TTS. Steps: `{who, mood, line, thought, name?, portrait?}`, `{do: "action"}` → `_on_action`, `{choice: [{text, if?, steps}]}`, `{if: flag, steps}`, `{if_not: flag, steps}`. `CHARS` = speakers, voices, pronunciation fixes |
+| `scripts/camp.gd` + `camp_script.gd` | Scene 1 (`main.tscn`) |
+| `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
+| `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
+| `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`); shop room at x = 300 |
+| `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`); Snore Sneak + Lore Session minigames |
+| `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter |
+| `scripts/combat/battle.gd` | pure combat rules (turn timeline, meters, ultimates, team-ups, statuses, boss AI, talk/flee, grade) |
+| `scripts/combat/battle_view.gd` | in-world fight presentation (line-up, menus, timed ring, dice, events, results) |
+| `scripts/models.gd` | **Models**: `place(parent, id, pos, rot_y, scale, collide, recolor)`, `mat(texture, tile, tint)` (triplanar PBR for any box/cylinder), `block`, `cylinder`, `patch` (soft-edged ground decal), `tint` |
+| `scripts/fx.gd`, `util.gd`, `ambience.gd` | particles (flames, poof), mesh/material/sound helpers, synthesized fire + crickets |
+| `assets/characters/`, `portraits/`, `props/`, `backdrops/`, `items/` | Ebain's art (cutouts, painted backdrops) |
+| `assets/models/<id>/`, `assets/textures/<id>/` | Poly Haven models (glTF) and textures (albedo/normal/rough.jpg) |
+| `../tools/fetch_polyhaven.py` | `python3 tools/fetch_polyhaven.py model|texture <id>` downloads into the project |
+| `../tools/key_chars.py`, `key_props.py` | green-screen cutters for Ebain's character / prop images |
 
-**Music (`music/`):** camp, goblin_village, shop, battle, boss, mountain, victory.
+### Combat in one paragraph
+Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
+FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T or the Esc menu), meters → ultimates
+(FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events, banter, S–F
+grade, XP + levels (Level 3 teaches new moves), one trinket per fighter, Talk + Run options, Chief Bogdrinker joins
+as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
+roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`,
+`goblin_patrol` (roaming, village east road).
+
+### The explorable village (after the throne scene)
+1 Chief's Hut (belt, self-portrait, chest → Backup Conditioner, hay-bed nap) · 2 Unemployment Office & Bar (**Bar
+Tab** → bouncer fight, Gorbo's open mic, Gulpo **Chug Rematch**) · 3 Job Board + Grubnik (**Lucky Spoon** from the
+Goblin Patrol → Weighted d6) · 4 Shaman's Tent (fortunes, **Lore-Off** → Deloye Lore Vol. 9) · 5 Clank's Spoonsmithy
+(**Shiny Spoons**, 5 hidden around → Spoon of Destiny / Spoon Mail) · 6 Outhouse (each of the trio goes in once).
+All this dialogue is `# DRAFT` — Ebain may rewrite it. The rooms are built from Poly Haven props.
 
 ---
 
-## 9. Working with Ebain
+## 5. Open items
 
-He's casual: he types fast and loose and likes things done rather than over-explained. He'll often answer with "do all of them" or "lets go." Give short, clear status updates with screenshots, and ask him for creative input, like dialogue lines, joke names and art.
+Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
+- **Village extras:** the Goblin Pit (fight arena), personal quests (Lykor's hair contest, Xylo's lore class for
+  goblin kids, Skorn's job interviews).
+- **Character art from Ebain (Gemini):** new named goblins (bartender, comedian, bouncer, shaman, smith) — right now
+  they're recolored goblin cutouts. Cut new art with `tools/key_chars.py` into `godot/assets/characters/`.
+  Wishlist: `godot/ASSETS_NEEDED.md`.
+- **Voice lines:** the friend may record Mattias + the goblins as one MP3 with line numbers read out → split it,
+  voice-change per character, play instead of TTS for those speakers (`dialogue.gd`).
+- **Pronunciations:** Ebain hasn't answered the pronunciation list (Lykor, Xylo, metocy, Deloye, slang like ts/mf/ngl).
+  TTS respellings live in `dialogue.gd`.
+- **Music + real sound effects:** none yet (all sounds are synthesized). Planned tracks: camp, goblin village, Mart
+  (+ warped trip version), battle, boss, mountain/pass, victory jingle, "YOU GOT COOKED" sting. There's no music
+  system in the Godot version yet.
+- **Credits:** asked Ebain whether to keep "Code, Cutouts & Sounds: Claude". No answer yet.
+- **Chapter 2+:** Dulbers returns as a villain.
+
+---
+
+## 6. Working with your person
+
+- **Ebain** types fast and loose, likes things done rather than explained, and often answers "do all of them" or
+  "lets go." Give short updates with screenshots, and ask him for creative input (lines, joke names, art).
+- **If you're the friend's Claude:** you're working for Ebain's friend, not Ebain. Use your person's name as your tag
+  on the board, follow `CLAUDE.md`, and leave Log notes so Ebain's Claude knows what changed. Story/character
+  decisions still go through Ebain.
+
+---
+
+## Appendix: the old browser version (abandoned)
+
+`index.html`, `src/` and `lib/phaser.min.js` are the original Phaser 3 web game (live at the GitHub Pages root). Its
+combat engine (`src/combat/engine.js`) was ported to Godot as `battle.gd`, and its story scripts
+(`src/data/scenes/`) to the `*_script.gd` files. Leave it alone unless Ebain asks.

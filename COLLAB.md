@@ -9,8 +9,7 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Rewrite HANDOFF.md Godot-first so the friend's Claude can onboard — files: HANDOFF.md — branch:
-  ebain/handoff — started 2026-11-21
+- (nothing right now)
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -31,10 +30,12 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] HANDOFF.md
+- (none)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Rewrote HANDOFF.md Godot-first (setup, testing, building, code map, open items). New Claudes:
+  read CLAUDE.md → COLLAB.md → HANDOFF.md, in that order.
 - 2026-11-21 [ebain] Mart + Pass real art merged. models.gd gained `Models.patch(...)` (soft-edged ground texture
   decal) — use it for paths/ground variety. New models: rock faces, boulders, candlesticks, sacks, charred logs.
 - 2026-11-21 [ebain] Ebain switched the target to a **Windows download**; the web build (play3d/) is frozen, so don't
