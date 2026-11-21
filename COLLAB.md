@@ -10,6 +10,9 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Mute campfire/crickets on the title menu + **whole-game bug-fix scan** (short claim, a few hours max; I'll
+  log exactly what I touched) — files: godot/scripts/*.gd incl. combat/* and inventory_ui.gd, only where a bug is found —
+  branch: ebain/bugfix-scan — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Controller "back" (B) in battle menus: battle_view.gd only checks Q/Esc/Backspace keys. Add `ui_cancel` (one line, combat hot spot)
@@ -42,6 +45,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/scripts/*.gd (bug-fix scan; short)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
