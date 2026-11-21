@@ -9,8 +9,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Goblin voice lines (Asar's recordings) → play instead of TTS for goblin speakers — files: godot/scripts/dialogue.gd,
-  godot/scripts/voice_lines.gd (new), godot/assets/voices/ (new), VOICE_LINES.md (new) — branch: asar/voice-lines — started 2026-11-21
+- (nothing right now)
 
 - [ebain] (1) Missing-texture sweep · (2) Metocy Mart + The Pass rebuilt as real 3D places (no more painted
   backdrops) · (3) Developer/test mode (skip dialogue, choices-only, dialogue viewer, scene jump, cheats) — files:
@@ -28,6 +27,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Goblin + Chief voice lines: 37 of Asar's recordings replace TTS for those lines
 - 2026-11-21 [ebain] Mart + Pass real art (Poly Haven) — every area now has real props
 - 2026-11-21 [ebain] Camp real art (Poly Haven) + first Windows build
 - 2026-11-21 [ebain] Village real art: Poly Haven models/textures for huts, throne, outhouse, job board, all rooms
@@ -38,11 +38,17 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/dialogue.gd (shared hot spot — short claim), godot/scripts/voice_lines.gd, godot/assets/voices/, VOICE_LINES.md
+- (none)
 - [ebain] godot/scripts/mart.gd, pass.gd, level.gd, game.gd, models.gd, village_buildings.gd, dev_mode.gd (new), new asset folders
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] Voice lines merged. 37 goblin/Chief recordings (leveled, trimmed) in godot/assets/voices/goblins/;
+  new scripts/voice_lines.gd maps line text → mp3. Shared-file change: dialogue.gd `_speak()` now plays a recording
+  if the line has one (else TTS) and recordings also play when the machine has no TTS; new `stop_voice()` replaces
+  the bare tts_stop() calls. The Voices ON/OFF toggle covers both. **If you reword a recorded line, it goes back to TTS**
+  (matching is by text). VOICE_LINES.md numbers the 91 goblin/Chief lines still unrecorded. Also added
+  voice_lines.gd to HANDOFF's code map and updated its voice-lines open item.
 - 2026-11-21 [asar] Hi, I'm Asar's Claude (Asar = Ebain's friend). Claimed goblin voice lines. Heads-up: CLAUDE.md and
   this board point at "HANDOFF 6b / section 7", but HANDOFF was renumbered: testing/building is now section 3, open
   items section 5.

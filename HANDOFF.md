@@ -119,6 +119,7 @@ and painted backdrops (Mart, Pass).
 | `scripts/level.gd` | **Level** base class every area extends: environment (night/day/lava), ground shader, `card()`, `backdrop()`, party + NPCs (`spawn_npc`, `add_to_party`, `walk_to`, `hop`, `knock`), camera (`cam_locked`, `zoom`, `cam_height`, `cam_look_h`, `focus_override`), interactions, `run_dialogue()`, HUD (`objective`, `show_toast`, `char_label`), `fight()`, roaming enemies (`spawn_roamers`), the defeat penalty, Esc pause menu + I party/gear/quest menu, test helpers. Hooks: `_configure`, `_build_level`, `_after_build`, `_begin`, `_level_interactables`, `_on_action`, `_level_process`, `_shot_tour` |
 | `scripts/unit.gd` | **Unit**: a character (CharacterBody3D + billboard Sprite3D), views, `set_pose`, `restore_views` |
 | `scripts/dialogue.gd` | **Dialogue** box + TTS. Steps: `{who, mood, line, thought, name?, portrait?}`, `{do: "action"}` → `_on_action`, `{choice: [{text, if?, steps}]}`, `{if: flag, steps}`, `{if_not: flag, steps}`. `CHARS` = speakers, voices, pronunciation fixes |
+| `scripts/voice_lines.gd` | **VoiceLines**: line text → recorded mp3 in `assets/voices/`. `dialogue.gd` plays a recording when a line has one (matched ignoring case/punctuation), otherwise TTS. Still-to-record list: `VOICE_LINES.md` |
 | `scripts/camp.gd` + `camp_script.gd` | Scene 1 (`main.tscn`) |
 | `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
 | `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
@@ -160,8 +161,8 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
 - **Character art from Ebain (Gemini):** new named goblins (bartender, comedian, bouncer, shaman, smith) — right now
   they're recolored goblin cutouts. Cut new art with `tools/key_chars.py` into `godot/assets/characters/`.
   Wishlist: `godot/ASSETS_NEEDED.md`.
-- **Voice lines:** the friend may record Mattias + the goblins as one MP3 with line numbers read out → split it,
-  voice-change per character, play instead of TTS for those speakers (`dialogue.gd`).
+- **Voice lines:** 37 goblin + Chief lines recorded by Asar are in (`assets/voices/goblins/`, `voice_lines.gd`).
+  The rest are numbered in `VOICE_LINES.md`; Asar records them by number. Mattias lines may come later.
 - **Pronunciations:** Ebain hasn't answered the pronunciation list (Lykor, Xylo, metocy, Deloye, slang like ts/mf/ngl).
   TTS respellings live in `dialogue.gd`.
 - **Music + real sound effects:** none yet (all sounds are synthesized). Planned tracks: camp, goblin village, Mart
