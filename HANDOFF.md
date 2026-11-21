@@ -206,6 +206,16 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   choice: A speech (+3 beezy) · B chug-off mash minigame (chugWon / foreheadLoser) · C crown Skorn (skornKing, Skorn
   stays) · D sneak — player really sneaks, gets caught, goblins follow (goblinAllies) · E Skorn fights (placeholder
   win, lykorDethroned). Then east exit → "To be continued" card.
+- **Explorable village (after the throne scene), `village_buildings.gd` + `village_rooms_script.gd`:** six places,
+  all placeholder art. Doors fade you into rooms built at x = 400/440/480/520 (sun + ambient dim indoors).
+  1 Chief's Hut (Chief is home if he's not following you; belt, self-portrait, chest → Backup Conditioner, hay-bed nap) ·
+  2 Unemployment Office & Bar (Sludge's **Bar Tab** quest: pay 3 Beezy / Lykor's mog → `bouncer` fight / fight; Gorbo's
+  open mic: laugh or heckle; Gulpo **Chug Rematch** reusing the chug minigame; clerk window gag) · 3 Job Board + Grubnik
+  (**Lucky Spoon**: the Goblin Patrol drops it → Weighted d6) · 4 Shaman's Tent (fortunes, **Lore-Off** 3-question
+  quiz → Deloye Lore Vol. 9) · 5 Clank's Spoonsmithy (**Shiny Spoons**: 5 sparkly spoons around the village; 3 → Spoon
+  of Destiny, 5 → Spoon Mail) · 6 Outhouse (each of the trio can go in once for a gag + loot). Quests live in
+  `Game.quests` and show in the I menu. Named one-off speakers: `{ who = "goblin", name = "Sludge (Bartender)" }`.
+  Test: `VILLAGE_TOUR=buildings TOUR_PART=1|2 ... res://village.tscn -- --shots`.
 - **Scene 3 (Metocy Mart, `mart.gd`), as Xylo:** evening fog. Outside: Ebain's painted shop front is a stage-set
   backdrop (`backdrop()`, camera locked + flatter via `cam_locked`/`cam_height`/`cam_look_h`) → Dulbers pops out →
   go inside (room built at x=300: plank-floor shader + painted interior backdrop, swaps to the trip version) →
