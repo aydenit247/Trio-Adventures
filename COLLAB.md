@@ -12,7 +12,8 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 - [ebain] Explorable Goblin Village, buildings 1–6 (Chief's Hut, Unemployment Office & Bar, Job Board, Shaman's Tent,
   Spoonsmith, Outhouse) + their quests — files: godot/scripts/village.gd, godot/scripts/village_script.gd,
   new godot/scripts/village_buildings.gd + village_rooms_script.gd, godot/scripts/level.gd (small: quest log/items),
-  godot/scripts/game.gd (quest state), godot/scripts/combat/combat_data.gd (bouncer fight + new gear) —
+  godot/scripts/game.gd (quest state), godot/scripts/combat/combat_data.gd (bouncer fight + new gear),
+  godot/scripts/dialogue.gd (tiny: per-line speaker name override) —
   branch: ebain/village-buildings — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -31,7 +32,7 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [ebain] godot/scripts/village.gd, village_script.gd, village_buildings.gd (new), village_rooms_script.gd (new),
-  level.gd, game.gd, combat/combat_data.gd
+  level.gd, game.gd, combat/combat_data.gd, dialogue.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
