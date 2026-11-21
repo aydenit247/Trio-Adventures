@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Title screen music (Ebain's "Prophecy of Metocy") — files: godot/scripts/title.gd, new godot/assets/music/ — branch: ebain/title-music — started 2026-11-21
 - [asar] Victory screen redesign (Asar's sketch): "VICTORY!!!", no grade system, gold line with coin icon, found items as icons with hover info — files: godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd (GRADES/par), godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd — branch: asar/victory-screen — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -41,6 +42,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/scripts/title.gd, godot/assets/music/ (new)
 - [asar] godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd, godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd (shared coin icon)
 
 ## Log (newest first)
