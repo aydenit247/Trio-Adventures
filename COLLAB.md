@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Victory screen redesign (Asar's sketch): "VICTORY!!!", no grade system, gold line with coin icon, found items as icons with hover info — files: godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd (GRADES/par), godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd — branch: asar/victory-screen — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Controller "back" (B) in battle menus: battle_view.gd only checks Q/Esc/Backspace keys. Add `ui_cancel` (one line, combat hot spot)
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Victory screen redesign + grade system removed
 - 2026-11-21 [ebain] Title screen music: Ebain's "Prophecy of Metocy"
 - 2026-11-21 [asar] Inventory overhaul (Tab, Deloye Lore parchment window, 7 gear slots) + gold currency
 - 2026-11-21 [ebain] Title screen, save/load (autosave + 3 slots), settings menu, controller + mouse in menus, loading card, app icon, TIPS.md
@@ -42,10 +42,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd, godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd (shared coin icon)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **Victory screen redesign (Asar's sketch) + grades removed.** Results now: "VICTORY!!!" (bosses
+  too), then `+N [coin] · Total Gold: N [coin]`, then the XP line, level-ups, then `Found:` with item icons only. Hovering
+  an icon shows name/slot/desc/stats. **Grade system is gone** (Asar's call): `battle.grade()`, `CombatD.GRADES`, every
+  fight's `par`, and the sim's grade column. XP = the fight's base XP (half for Talk), so no more S/A bonus. Combat stats
+  (`b.stats`) are still tracked. Shared: `InventoryUI.coin_texture()`, `InventoryUI.gear_stat_lines(G)`. Test hook: fight
+  tours with SHOT_DIR also save `fight_<key>_results_hover`. Tested: goblin_patrol fight shots, main.tscn chain, sim.
 - 2026-11-21 [ebain] Title music in: Ebain's Gregorian-chant track "Prophecy of Metocy" (made in Google Flow Music) →
   `godot/assets/music/prophecy_of_metocy.ogg`, played by title.gd (loops, fades in, fades out on Continue/New Game, ducks
   on any other scene change). `assets/music/` is the new home for music. Only title.gd touched, no hot spots. Ebain is
