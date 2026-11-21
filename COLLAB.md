@@ -9,8 +9,6 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- (nothing right now)
-
 - [ebain] (1) Missing-texture sweep · (2) Metocy Mart + The Pass rebuilt as real 3D places (no more painted
   backdrops) · (3) Developer/test mode (skip dialogue, choices-only, dialogue viewer, scene jump, cheats) — files:
   godot/scripts/mart.gd, godot/scripts/pass.gd, godot/scripts/level.gd, godot/scripts/game.gd, godot/scripts/models.gd,
