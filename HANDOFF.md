@@ -178,7 +178,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
 FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T or the Esc menu), meters → ultimates
 (FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events, banter, XP +
-levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
+levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (flat cut per hit), permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
 roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`,
 `goblin_patrol` (roaming, village east road).

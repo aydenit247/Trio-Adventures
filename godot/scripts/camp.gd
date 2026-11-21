@@ -306,11 +306,13 @@ func _grab_map() -> void:
 	ui_sfx.pitch_scale = 1.3
 	ui_sfx.play()
 	stage = "has_map"
+	Game.set_flag("hasMap")   # shows as "Metocy Map (firestarter)" in the inventory until it's burned
 	objective("Put the paper in the fire pit.")
 	await wait(0.3)
 	ui_sfx.pitch_scale = 1.0
 
 func _burn_map() -> void:
+	Game.set_flag("hasMap", false)
 	var sk := party[0]
 	var start_pos := paper.global_position
 	sk.remove_child(paper)

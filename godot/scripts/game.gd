@@ -14,6 +14,7 @@ var xp := 0
 var level := 1
 var gear_owned: Array = []        # gear ids found so far
 var equipped := {}                # fighter id -> { slot -> gear id }   (slots: GEAR_SLOTS below; gear slot types in CombatD.GEAR)
+var boosts := {}                  # fighter id -> { hp, meter } from used BOOSTS items (permanent)
 var gold := 0                     # currency, dropped by enemies (see "gold" on each enemy in CombatD.FIGHTS)
 var used67 := false               # the 6-7 happens once per game
 var forehead := ""                # funny penalty text written on the leader's forehead
@@ -41,6 +42,7 @@ func reset() -> void:
 	level = 1
 	gear_owned = []
 	equipped = {}
+	boosts = {}
 	gold = 0
 	used67 = false
 	forehead = ""
@@ -115,7 +117,7 @@ func equip(fighter: String, gear_id: String, slot := "") -> String:
 
 # Everything a fighter's gear adds up to, in the same shape as one CombatD.GEAR entry (battle.gd reads this).
 func gear_stats(fighter: String) -> Dictionary:
-	var out := { "hp": 0, "power": 0.0, "spd": 0, "start": 0, "meter": 1.0 }
+	var out := { "hp": 0, "power": 0.0, "spd": 0, "start": 0, "meter": 1.0, "armor": 0 }
 	for s in slots_of(fighter):
 		var G: Dictionary = CombatD.GEAR.get(slots_of(fighter)[s], {})
 		out["hp"] += G.get("hp", 0)
@@ -123,10 +125,26 @@ func gear_stats(fighter: String) -> Dictionary:
 		out["spd"] += G.get("spd", 0)
 		out["start"] = mini(100, out["start"] + G.get("start", 0))
 		out["meter"] *= G.get("meter", 1.0)
+		out["armor"] += G.get("armor", 0)
 		for k in ["no_ones", "gouge_proof"]:
 			if G.get(k, false):
 				out[k] = true
+	var bo: Dictionary = boosts.get(fighter, {})   # permanent boosts from used items
+	out["hp"] += bo.get("hp", 0)
+	out["meter"] *= bo.get("meter", 1.0)
 	return out
+
+# Use a BOOSTS item (Backup Conditioner, Deloye Lore Vol. 9) on a fighter: used up, bonus is permanent.
+func use_boost(fighter: String, item_id: String) -> bool:
+	var B: Dictionary = CombatD.BOOSTS.get(item_id, {})
+	if B.is_empty() or inv.get(item_id, 0) <= 0:
+		return false
+	inv[item_id] -= 1
+	var bo: Dictionary = boosts.get(fighter, {})
+	bo["hp"] = bo.get("hp", 0) + B.get("hp", 0)
+	bo["meter"] = bo.get("meter", 1.0) * B.get("meter", 1.0)
+	boosts[fighter] = bo
+	return true
 
 # Old saves stored one gear id per fighter: move it into the right slot.
 func _migrate_equipped(old: Dictionary) -> Dictionary:
@@ -299,7 +317,7 @@ var title_mode := false           # the title screen is showing the camp in the 
 func state_dict() -> Dictionary:
 	return {
 		"flags": flags.duplicate(true), "inv": inv.duplicate(true), "xp": xp, "level": level,
-		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "gold": gold, "used67": used67,
+		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "boosts": boosts.duplicate(true), "gold": gold, "used67": used67,
 		"forehead": forehead, "quests": quests.duplicate(true),
 	}
 
@@ -312,6 +330,14 @@ func apply_state(d: Dictionary) -> void:
 	gear_owned = d.get("gear_owned", []).duplicate()
 	equipped = _migrate_equipped(d.get("equipped", {}))
 	gold = int(d.get("gold", 0))
+	boosts = d.get("boosts", {}).duplicate(true)
+	for old_id in CombatD.BOOSTS:   # older saves had these as trinkets: put them in the bag instead
+		if gear_owned.has(old_id):
+			gear_owned.erase(old_id)
+			var w := wearer(old_id)
+			if not w.is_empty():
+				unequip(w[0], w[1])
+			inv[old_id] = int(inv.get(old_id, 0)) + 1
 	used67 = d.get("used67", false)
 	forehead = d.get("forehead", "")
 	quests = d.get("quests", {}).duplicate(true)

@@ -70,7 +70,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		party.append({
 			"side": "party", "id": id, "key": id, "P": P, "moves": moves, "name": P["name"], "max_hp": max_hp, "hp": max_hp,
 			"spd": P["spd"] + g.get("spd", 0), "order": i, "meter": g.get("start", 0), "cds": { "special": 0, "bonus": 0, "extra": 0 },
-			"st": {}, "defending": false, "gear": g, "low_warned": false,
+			"st": {}, "defending": false, "gear": g, "armor": int(g.get("armor", 0)), "low_warned": false,
 			"tripping": mods.get("tripping", "") == "party" or (mods.get("tripping", "") == "skorn" and id == "skorn"),
 		})
 
@@ -846,6 +846,8 @@ func party_status(p: Dictionary, name: String, turns: int, text: String) -> Arra
 
 func hurt(p: Dictionary, dmg: int, block: String, aoe: bool) -> Array:
 	var ev := []
+	if dmg > 0 and p.get("armor", 0) > 0:   # armor: flat cut per hit (10 − 3 = 7), never below 1
+		dmg = maxi(1, dmg - p["armor"])
 	p["hp"] = maxi(0, p["hp"] - dmg)
 	stats["dmg_taken"] += dmg
 	ev.append({ "t": "hurt", "u": p, "amt": dmg, "hp": p["hp"], "block": block, "quick": aoe })

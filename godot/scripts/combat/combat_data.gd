@@ -73,15 +73,21 @@ const ITEMS := {
 #   slot = helmet · armor · shoes · shield · weapon · trinket (trinkets fit either trinket slot)
 #   Picture: res://assets/items/<gear id>.png (shown in the inventory when it exists).
 #   hp = +max HP · power = +% damage · spd = +speed · meter = ×meter gain · start = starting meter
+#   armor = flat damage cut on every hit taken (10 damage − 3 armor = 7; a hit always does at least 1)
 #   no_ones = Crash Out dice never roll a 1 · gouge_proof = immune to Price Gouged
 const GEAR := {
-	"spoon": { "slot": "weapon", "name": "Spoon of Destiny", "desc": "A goblin's spoon. Apparently chosen. +10% damage.", "power": 0.10 },
-	"conditioner": { "slot": "trinket", "name": "Backup Conditioner", "desc": "Lykor's emergency bottle. +15 max HP. Lykor wants it back.", "hp": 15 },
-	"vol9": { "slot": "trinket", "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. +25% meter gain.", "meter": 1.25 },
+	"spoon": { "slot": "trinket", "name": "Spoon of Destiny", "desc": "A goblin's spoon. Apparently chosen. +10% damage to all attacks.", "power": 0.10 },
 	"weighted_d6": { "slot": "trinket", "name": "Weighted d6", "desc": "On some cheating shi. Crash Out dice can't roll a 1.", "no_ones": true },
-	"can_hat": { "slot": "helmet", "name": "Beezy Can Hat", "desc": "Two cans, two straws, zero shame. +1 speed.", "spd": 1 },
-	"spoon_mail": { "slot": "armor", "name": "Spoon Mail Armor", "desc": "Armor made of spoons. Goes 'clink.' +25 max HP.", "hp": 25 },
+	"can_hat": { "slot": "helmet", "name": "Beezy Mug Helmet", "desc": "A beezy mug, worn proudly on the head. Still a little sticky. +2 armor.", "armor": 2 },
+	"spoon_mail": { "slot": "armor", "name": "Spoon Mail Armor", "desc": "Armor made of spoons. Goes 'clink.' +3 armor.", "armor": 3 },
 	"receipt": { "slot": "trinket", "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
+}
+
+# Permanent boosts: used from the Tab inventory on one fighter, used up, the bonus lasts all game (Game.boosts).
+# Kept in Game.inv by id. Same stat keys as GEAR.
+const BOOSTS := {
+	"conditioner": { "name": "Backup Conditioner", "desc": "Lykor's emergency bottle. Use it on someone for +15 max HP, for good. Lykor wants it back.", "hp": 15 },
+	"vol9": { "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. Read it to someone for +15% meter gain, for good.", "meter": 1.15 },
 }
 
 # Statuses. `good` = good for whoever has it. Durations count the holder's own turns.

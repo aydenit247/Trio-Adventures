@@ -194,6 +194,7 @@ func _draw_gear() -> void:
 	var S: Dictionary = Game.gear_stats(fid)
 	var hp := int(round((P["hp"] + S["hp"]) * (1.0 + 0.1 * (Game.level - 1))))
 	var bits := ["%s %d" % [P.get("hp_label", "HP").get_slice(" (", 0), hp], "SPD %d" % (P["spd"] + S["spd"])]
+	if S["armor"] > 0: bits.append("ARMOR %d" % S["armor"])
 	if S["power"] > 0.0: bits.append("+%d%% DMG" % int(round(S["power"] * 100)))
 	if S["meter"] > 1.0: bits.append("+%d%% Meter" % int(round((S["meter"] - 1.0) * 100)))
 	var st := _txt("  ·  ".join(bits), Vector2(6, 189), 13, Color("#f3e3b0"), serif, pf)
@@ -334,10 +335,16 @@ func _bag_items() -> Array:
 		out.append({ "id": "beer", "kind": "use", "name": "Beezy", "desc": CombatD.ITEMS["beer"]["desc"], "count": Game.inv["beer"] })
 	if Game.inv.get("bowl", 0) > 0:
 		out.append({ "id": "bowl", "kind": "use", "name": "Chipotle Bowl", "desc": CombatD.ITEMS["bowl"]["desc"], "count": Game.inv["bowl"] })
+	for k in CombatD.BOOSTS:
+		if int(Game.inv.get(k, 0)) > 0:
+			var B: Dictionary = CombatD.BOOSTS[k]
+			out.append({ "id": k, "kind": "boost", "name": B["name"], "desc": B["desc"], "count": int(Game.inv[k]) })
 	for g in Game.gear_owned:
-		if Game.wearer(g).is_empty():
+		if CombatD.GEAR.has(g) and Game.wearer(g).is_empty():
 			var G: Dictionary = CombatD.GEAR.get(g, {})
 			out.append({ "id": g, "kind": "gear", "name": G.get("name", g), "desc": G.get("desc", ""), "count": 1 })
+	if Game.flag("hasMap"):
+		out.append({ "id": "metocy_map", "kind": "key", "name": "Metocy Map (firestarter)", "desc": "The map to the metocy. Lykor packed it. Skorn has other plans for it.", "count": 1 })
 	if Game.flag("hasMidtocy"):
 		out.append({ "id": "midtocy", "kind": "key", "name": "Midtocy", "desc": "The fake metocy. Skorn swears it's fine. It is not fine.", "count": 1 })
 	if Game.flag("luckySpoonFound") and Game.quest_state("lucky_spoon") == "active":
@@ -381,6 +388,8 @@ func _describe(i: int) -> Array:   # [name, description, what E does]
 			return [it["name"], "%s\n\n%s" % [t.capitalize(), it["desc"]], "[E] Equip on %s" % fname]
 		"use":
 			return ["%s ×%d" % [it["name"], it["count"]], it["desc"] + "\n\nUse it during fights (Items).", ""]
+		"boost":
+			return [it["name"] + ((" ×%d" % it["count"]) if it["count"] > 1 else ""), it["desc"], "[E] Use on %s (permanent)" % fname]
 		_:
 			return [it["name"] + ((" ×%d" % it["count"]) if it["count"] > 1 else ""), it["desc"], ""]
 
@@ -403,6 +412,10 @@ func _activate() -> void:
 			var s: String = Game.equip(fid, it["id"])
 			if s != "":
 				note = "%s equipped %s (%s)." % [fname, it["name"], Game.SLOT_NAMES[s]]
+				_click()
+		elif it["kind"] == "boost":
+			if Game.use_boost(fid, it["id"]):
+				note = "%s used %s. %s" % [fname, it["name"], ", ".join(gear_stat_lines(CombatD.BOOSTS[it["id"]]))]
 				_click()
 	_rebuild()
 	note = ""
@@ -552,6 +565,7 @@ static func coin_texture() -> Texture2D:
 # A gear piece's numbers as short lines ("+25 max HP", "+10% damage"...)
 static func gear_stat_lines(G: Dictionary) -> Array:
 	var out := []
+	if G.get("armor", 0): out.append("+%d armor (each hit does %d less)" % [G["armor"], G["armor"]])
 	if G.get("hp", 0): out.append("+%d max HP" % G["hp"])
 	if G.get("power", 0.0): out.append("+%d%% damage" % int(round(G["power"] * 100)))
 	if G.get("spd", 0): out.append("+%d speed" % G["spd"])

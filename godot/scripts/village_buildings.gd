@@ -675,10 +675,8 @@ func on_action(n: String) -> void:
 			Game.set_flag("chiefHomeSeen")
 		"take_conditioner":
 			Game.set_flag("chestLooted")
-			Game.give_gear("conditioner")
-			if Game.wearer("conditioner").is_empty() and not Game.slots_of("lykor").has("trinket1"):
-				Game.equip("lykor", "conditioner", "trinket1")
-			reward(10, "Got: Backup Conditioner (Lykor's trinket, +15 Aura)")
+			Game.inv["conditioner"] = int(Game.inv.get("conditioner", 0)) + 1
+			reward(10, "Got: Backup Conditioner (use it in your inventory for +15 max HP)")
 			await lv.wait(0.6)
 		"xylo_nap":
 			Game.set_flag("xyloNapped")
@@ -771,11 +769,9 @@ func on_action(n: String) -> void:
 		"lore_end":
 			Game.set_flag("loreOffWon", lore_wrong == 0)
 		"lore_reward":
-			Game.give_gear("vol9")
-			if Game.wearer("vol9").is_empty() and not Game.slots_of("xylo").has("trinket1"):
-				Game.equip("xylo", "vol9", "trinket1")
+			Game.inv["vol9"] = int(Game.inv.get("vol9", 0)) + 1
 			Game.finish_quest("lore_off")
-			reward(40, "Got: Deloye Lore Vol. 9 (Signed) — Xylo's trinket")
+			reward(40, "Got: Deloye Lore Vol. 9 (Signed) (read it in your inventory for +15% meter gain)")
 			await lv.wait(0.5)
 		# ---- Spoonsmith
 		"start_shiny_spoons":
@@ -854,7 +850,7 @@ func _smith_turn_in() -> void:
 	if turned < 5 and found >= 5:
 		Game.give_gear("spoon_mail")
 		Game.finish_quest("shiny_spoons")
-		reward(30, "Got: Spoon Mail Armor (+25 HP)")
+		reward(30, "Got: Spoon Mail Armor (+3 armor)")
 		await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "SPOON MAIL. Armor made of spoons. Every time you get hit it goes 'clink.' That's the sound of protection." }]) # DRAFT
 	elif found < 5:
 		await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "Bring me %d more and I'll make you armor. Spoon armor. The best armor. The only armor I make." % (SPOONS.size() - found) }]) # DRAFT
