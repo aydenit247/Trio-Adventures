@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Crash/freeze reports: game writes an in-depth report to a "Crash Reports" folder next to the exe (crash, freeze watchdog, force-close), repo gets a `Crash Reports/` folder — files: new godot/scripts/crash_reporter.gd, godot/scripts/game.gd (1 line in _ready to start it), new Crash Reports/README.md — branch: asar/crash-reports — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Crash + freeze reports (crash_reporter.gd + repo folder Crash Reports/)
 - 2026-11-21 [ebain] Voice import pipeline: studio export zip → OGG + voice_index.gd (tools/import_voices.py)
 - 2026-11-21 [asar] Inventory right-click → View (big item picture)
 - 2026-11-21 [asar] Item rework (armor stat, permanent consumables, Metocy Map), stats panel, pictures for every item
@@ -46,10 +46,18 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/game.gd (1 line), crash_reporter.gd (new), Crash Reports/ (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **Crash + freeze reports merged (Asar's ask).** New `crash_reporter.gd`, started by one line in
+  **game.gd** `_ready`. A watchdog thread writes a **Freeze** report after 12 s without a frame (then adds "came back after
+  N s" or, after a Task Manager kill, "never came back"). A session marker that a normal quit deletes catches
+  **crashes/force-closes**, reported on the next launch with the previous session's events, state and Godot log tail. A
+  notice shows where it went. `OS.add_logger` feeds every error/print into the breadcrumbs. It polls scene/dialogue/fight/menu
+  with `get()`, so nobody has to call it, but `CrashReporter.note("...")` is there. Reports go in `Crash Reports/` next to
+  the exe (user:// in editor/sandbox). The repo's new `Crash Reports/` folder + README is where players' reports get filed.
+  Heads-up: sandbox runs killed by `timeout` leave a Crash report in user:// on the next run (expected, ignore).
+  Tested: normal quit (no report), kill -9 (Crash report), 16 s stall (Freeze + recovered), hang + kill (hard freeze), chain.
 - 2026-11-21 [ebain] **Voice import pipeline merged.** `python3 tools/import_voices.py <studio export zip>` converts the
   studio's WAVs to OGG in `godot/assets/voices/<character>/` and writes the generated `godot/scripts/voice_index.gd`
   (don't hand-edit it). Shared-file changes: **voice_lines.gd** now reads VoiceIndex first and hand-added `LINES` entries
