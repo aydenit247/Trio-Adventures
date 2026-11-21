@@ -1,12 +1,12 @@
 # Area: The Pass (Scene 4, played as Skorn). Volcanic, red, ashy.
-# Walk up → Metocin Mattias appears → the giant blocks the path (painted asleep in the backdrop) → choose:
+# Walk up → Metocin Mattias appears → the giant is asleep across the path (a real 3D canyon now) → choose:
 #   A throw midtocy (if Skorn has it) · B Snore Sneak minigame · C Lore Session minigame · D fight · E cousin (goblins)
-# When he wakes, the backdrop swaps to the empty path and Ebain's awake giant art stands up for real.
+# When he wakes, the lying figure is replaced by Ebain's awake giant standing up for real.
 # End of Chapter 1.
 extends Level
 
 const PS = preload("res://scripts/pass_script.gd")
-const GIANT_HEAD := Vector3(6.6, 10.0, -13.6)     # where his head is in the painted backdrop
+const GIANT_HEAD := Vector3(4.2, 2.7, -10.0)      # his head, at the right end of where he's lying
 const GIANT_STAND := Vector3(3.5, 0, -9.5)
 const EXIT_POS := Vector3(14, 0, 0)
 
@@ -17,7 +17,6 @@ var giant_mood := ""
 var giant: Unit
 var mattias: Unit
 var mattias_light: OmniLight3D
-var backdrop_mat: StandardMaterial3D
 var allies: Array[Unit] = []
 var chief: Unit
 var zzz_timer := 0.0
@@ -50,16 +49,12 @@ func _configure() -> void:
 	}
 
 func _build_level() -> void:
-	backdrop_mat = backdrop("res://assets/backdrops/giant_pass.jpg", 26.0, Vector3(0, -0.5, -14.0), Color(0.95, 0.9, 0.9))
-	# big dark cliffs framing the painted set so its edges never show
 	var cliff := Color(0.3, 0.2, 0.18)
-	for side in [-1.0, 1.0]:   # tall cliff cutouts frame the painting so its edges never show…
-		card("rock_1", 15.0, Vector3(side * 14.5, 0, -12.6), side > 0, false, 0.0, "props", cliff)
-		card("rock_4", 11.0, Vector3(side * 18.5, 0, -10.5), side < 0, false, 0.0, "props", cliff * 0.9)
+	_canyon()
 	for side in [-1.0, 1.0]:   # …and real rock faces (Poly Haven) sit in front of them, darkened and lava-lit
 		Models.place(self, "rock_face_01", Vector3(side * 14.0, -0.3, -11.5), (0.0 if side < 0 else PI) + side * 0.5, 3.0, false, cliff)
 		Models.place(self, "rock_face_01", Vector3(side * 17.5, -0.3, -6.0), (0.0 if side < 0 else PI) + side * 1.2, 2.4, false, cliff * 0.9)
-		Models.place(self, "namaqualand_boulder_03", Vector3(side * 12.0, 0, -4.5), randf() * TAU, 1.8, true, cliff)
+		Models.place(self, "rock_07", Vector3(side * 12.0, 0, -4.5), randf() * TAU, 20.0, true, cliff)
 	# burnt ground + dark rock patches over the path
 	Models.patch(self, Vector3(0.5, 0, -2.0), Vector2(20, 28), "burned_ground_01", 2.5, Color(0.55, 0.42, 0.38), 0.0, 0.3)
 	Models.patch(self, Vector3(-4.0, 0, -7.5), Vector2(8, 6), "dark_rock", 2.0, Color(0.5, 0.38, 0.34), 0.7, 0.45)
@@ -80,9 +75,9 @@ func _build_level() -> void:
 		if p.x > 0 and abs(p.z) < 3.2:
 			continue
 		match k % 3:
-			0: Models.place(self, "namaqualand_boulder_03", p, rng.randf() * TAU, rng.randf_range(0.6, 1.1), true, rock_tint)
+			0: Models.place(self, "rock_07", p, rng.randf() * TAU, rng.randf_range(8.0, 13.0), true, rock_tint)
 			1: Models.place(self, "rock_07", p, rng.randf() * TAU, rng.randf_range(7.0, 12.0), true, rock_tint)
-			_: Models.place(self, "boulder_01", p, rng.randf() * TAU, rng.randf_range(0.8, 1.5), true, rock_tint)
+			_: Models.place(self, "rock_09", p, rng.randf() * TAU, rng.randf_range(14.0, 22.0), true, rock_tint)
 	# burnt logs + charred branches
 	var burnt := Color(0.16, 0.12, 0.1)
 	Models.place(self, "dead_tree_trunk_02", Vector3(-6.8, 0.1, 2.5), 0.5, 0.9, true, burnt)
@@ -113,6 +108,112 @@ func _build_level() -> void:
 			g.set_meta("follow", true)
 			g.set_meta("follow_i", i + 1)
 			allies.append(g)
+
+# ================================================================ the canyon as a real 3D place (inspired by Ebain's paintings)
+const GIANT_LIE := Vector3(1.6, 0, -10.2)          # where he's sleeping across the path
+var giant_lying: Sprite3D
+
+func _canyon() -> void:
+	var rock := Color(0.24, 0.16, 0.14)
+	var rock2 := Color(0.3, 0.2, 0.17)
+	# canyon walls: real rock faces stacked into tall dark cliffs on both sides and behind
+	for i in 7:
+		var z := -16.0 + i * 4.6
+		for side in [-1.0, 1.0]:
+			var x: float = side * (12.5 + randf_range(0.0, 2.5))
+			if side > 0 and abs(z) < 4.0:
+				continue   # the east exit
+			var r := Models.place(self, "rock_face_01", Vector3(x, -0.5, z), (PI / 2.0 if side < 0 else -PI / 2.0) + randf_range(-0.4, 0.4), 1.0, false, rock if i % 2 == 0 else rock2)
+			r.scale = Vector3(randf_range(1.6, 2.2), randf_range(2.4, 3.6), randf_range(1.6, 2.2))
+			_no_shadow(r)
+	for i in 6:   # the far wall behind the giant, with the path continuing up between spires
+		var x := -14.0 + i * 5.6
+		if abs(x - 1.0) < 2.5:
+			continue
+		var r := Models.place(self, "rock_face_01", Vector3(x, -0.5, -21.0 - randf_range(0, 3)), randf_range(-0.3, 0.3), 1.0, false, rock)
+		r.scale = Vector3(2.0, randf_range(3.0, 4.6), 1.8)
+		_no_shadow(r)
+	for p in [Vector3(-7.5, 0, -15.5), Vector3(8.5, 0, -16.5), Vector3(-10.5, 0, -8.0), Vector3(11.0, 0, -9.0), Vector3(-3.5, 0, -19.0), Vector3(6.0, 0, -19.5)]:
+		var sp := Models.place(self, "rock_07", p, randf() * TAU, 1.0, true, rock2)   # jagged spires
+		sp.scale = Vector3(randf_range(9.0, 12.0), randf_range(26.0, 40.0), randf_range(6.0, 8.0))
+		_no_shadow(sp)
+	# lava: channels down both sides + a molten pool behind the giant
+	_lava(Vector3(-9.6, 0.02, -2.0), Vector2(2.2, 26.0))
+	_lava(Vector3(9.8, 0.02, -8.0), Vector2(2.0, 10.0))
+	_lava(Vector3(9.8, 0.02, 8.5), Vector2(2.0, 9.0))
+	_lava(Vector3(-2.0, 0.02, -15.5), Vector2(12.0, 3.0))
+	_lava(Vector3(7.0, 0.02, -17.5), Vector2(6.0, 2.5))
+	for p in [Vector3(-9.6, 0.6, -10), Vector3(-9.6, 0.6, 2), Vector3(9.8, 0.6, -8), Vector3(9.8, 0.6, 8), Vector3(-2, 0.8, -15.5), Vector3(7, 0.8, -17.5)]:
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.38, 0.1)
+		l.light_energy = 2.4
+		l.omni_range = 7.5
+		l.position = p
+		add_child(l)
+		add_glow(p, Color(1.0, 0.5, 0.25), 6.0, func(): return 1.0)
+	# the sleeping giant, lying across the path (real 3D figure, not a painting)
+	giant_lying = Sprite3D.new()
+	giant_lying.texture = load("res://assets/characters/giant_angry.png")
+	giant_lying.pixel_size = 6.4 / giant_lying.texture.get_height()
+	giant_lying.shaded = false
+	giant_lying.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	giant_lying.modulate = Color(1.0, 0.78, 0.72)
+	giant_lying.rotation.z = -PI / 2.0
+	giant_lying.position = GIANT_LIE + Vector3(0, giant_lying.texture.get_width() * giant_lying.pixel_size * 0.42, 0)
+	add_child(giant_lying)
+	Util.static_box(self, GIANT_LIE + Vector3(0, 1.5, 0), Vector3(6.6, 3.0, 2.0))
+	for p in [Vector3(-1.8, 0, 0.9), Vector3(3.9, 0, 0.7), Vector3(-3.4, 0, -0.4), Vector3(5.2, 0, -0.6)]:   # rocks he's lying on
+		Models.place(self, "rock_07", GIANT_LIE + p, randf() * TAU, randf_range(6.0, 9.0), false, rock2)
+	char_label_at(GIANT_LIE + Vector3(0, 6.0, 0.4), "Diddy Chud Giant (Asleep) (Eyes Open, Somehow)", 6.0)
+
+# Far scenery doesn't need to cast shadows (big savings on lower-end PCs).
+func _no_shadow(n: Node) -> void:
+	if n is GeometryInstance3D:
+		n.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for c in n.get_children():
+		_no_shadow(c)
+
+func _lava(c: Vector3, size: Vector2) -> void:
+	var sm := ShaderMaterial.new()
+	sm.shader = Shader.new()
+	sm.shader.code = LAVA_SHADER
+	var pm := PlaneMesh.new()
+	pm.size = size
+	Util.add_mesh(self, pm, sm, c)
+
+const LAVA_SHADER := """
+shader_type spatial;
+render_mode unshaded;
+varying vec3 wpos;
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float n2(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+float fbm(vec2 p) { float v = 0.0; float a = 0.5; for (int i = 0; i < 5; i++) { v += a * n2(p); p *= 2.03; a *= 0.5; } return v; }
+void fragment() {
+	vec2 p = wpos.xz * 0.45;
+	float flow = fbm(p + vec2(TIME * 0.04, TIME * 0.07));
+	float crust = fbm(p * 1.7 - vec2(TIME * 0.02, 0.0) + flow);
+	float hot = smoothstep(0.38, 0.62, flow + (crust - 0.5) * 0.6);
+	vec3 col = mix(vec3(0.12, 0.03, 0.01), vec3(1.0, 0.36, 0.05), hot);
+	col = mix(col, vec3(1.0, 0.85, 0.35), smoothstep(0.75, 0.95, hot * flow * 1.4));
+	vec2 e = abs(UV - 0.5) * 2.0;
+	float edge = smoothstep(0.75, 1.0, max(e.x, e.y) + (n2(wpos.xz * 1.3) - 0.5) * 0.3);
+	ALBEDO = mix(col * 1.4, vec3(0.08, 0.04, 0.03), edge);
+}
+"""
+
+var _giant_block_cleared := false
+func _clear_giant_block() -> void:
+	# the collider he was lying on goes away once he's up or rolled off
+	if _giant_block_cleared:
+		return
+	_giant_block_cleared = true
+	for c in get_children():
+		if c is StaticBody3D and c.get_child_count() > 0 and c.get_child(0) is CollisionShape3D:
+			var cs: CollisionShape3D = c.get_child(0)
+			if cs.global_position.distance_to(GIANT_LIE + Vector3(0, 1.5, 0)) < 0.2:
+				c.queue_free()
 
 func _ash() -> void:
 	var a := CPUParticles3D.new()
@@ -271,7 +372,9 @@ func _on_action(n: String) -> void:
 			whoosh_sfx.pitch_scale = 0.5
 			whoosh_sfx.play()
 			await fade_out(0.5)
-			backdrop_mat.albedo_texture = load("res://assets/backdrops/mountain_path.jpg")
+			giant_lying.position += Vector3(7.5, 0, -3.0)   # rolls off into the rocks
+			giant_lying.rotation.z = -PI / 2.0 - 0.4
+			_clear_giant_block()
 			giant_awake = true    # stops the Zzz (he's rolled off the path)
 			fade_in(0.6)
 			await wait(0.7)
@@ -339,7 +442,8 @@ func _giant_wakes(angry: bool) -> void:
 	shake = 1.0 if angry else 0.4
 	_sfx(Util.noise_burst(900, 0.03, 1.0), 0.0).play()
 	await fade_out(0.35)
-	backdrop_mat.albedo_texture = load("res://assets/backdrops/mountain_path.jpg")
+	giant_lying.visible = false
+	_clear_giant_block()
 	giant.global_position = GIANT_STAND
 	giant.visible = true
 	fade_in(0.35)
@@ -570,6 +674,8 @@ func _shot_tour() -> void:
 	busy = false
 	await wait(1.5)
 	await shot("p_01_enter")
+	if OS.get_environment("PERF") != "":
+		print("PERF prims=", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME), " fps=", Engine.get_frames_per_second())
 	place_party(Vector3(0, 0, 4.0), Vector3(0, 0, -1))
 	await wait(1.6)
 	await advance(1)
@@ -585,11 +691,13 @@ func _shot_tour() -> void:
 	await shot("p_04_choice")
 	dialogue._picked.emit(min(choice, dialogue._choices.size() - 1))
 	await wait(1.0)
+	var action_shot := false
 	for k in 24:
 		await advance(1, 0.7)
 		if k == 3:
 			await shot("p_05_%s_mid" % tag)
-		if not dialogue.panel.visible and dialogue.active:
+		if not action_shot and not dialogue.panel.visible and dialogue.active:
+			action_shot = true
 			await wait(3.0)
 			await shot("p_06_%s_action" % tag)
 			await wait(8.0)

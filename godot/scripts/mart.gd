@@ -1,8 +1,8 @@
 # Area: Metocy Mart (Scene 3, played as Xylo). Evening, foggy.
 # Outside: walk up to the shop → Dulbers pops out → go inside.
 # Inside: the "metocy" → choose: A everyone takes it · B Skorn first · C refuse · D Xylo inspects · E goblins (secret)
-# The shop front and the shop room are Ebain's painted backgrounds standing as stage-set backdrops, so the camera
-# stays facing them here (no camera turning in this area).
+# The shop front and the shop room are real 3D builds based on Ebain's paintings (mart_exterior.jpg /
+# mart_interior.jpg in assets/backdrops are the reference). Camera stays facing the shop (no camera turning here).
 extends Level
 
 const MS = preload("res://scripts/mart_script.gd")
@@ -18,7 +18,6 @@ var inside := false
 var dulbers: Unit
 var pill: Sprite3D
 var pill_light: OmniLight3D
-var room_backdrop: StandardMaterial3D
 var tripping := false
 var trip_overlay: ColorRect
 var allies: Array[Unit] = []
@@ -46,17 +45,8 @@ func _configure() -> void:
 	}
 
 func _build_level() -> void:
-	# ---- outside: the painted shop front as a backdrop, real props in front
-	backdrop("res://assets/backdrops/mart_exterior.jpg", 24.0, Vector3(0, -0.3, -12.5), Color(0.85, 0.87, 0.95))
-	add_glow(Vector3(-5.5, 1.5, -11), Color(1.0, 0.7, 0.4), 6.0, func(): return 1.0)
-	add_glow(Vector3(4.0, 1.5, -11), Color(1.0, 0.7, 0.4), 6.0, func(): return 1.0)
-	for p in [Vector3(-5.5, 2.5, -11.5), Vector3(4.0, 2.5, -11.5)]:
-		var l := OmniLight3D.new()
-		l.light_color = Color(1.0, 0.7, 0.4)
-		l.light_energy = 1.4
-		l.omni_range = 7.0
-		l.position = p
-		add_child(l)
+	# ---- outside: the shop as a real 3D building, built from Ebain's painting
+	_shop_exterior()
 	for k in 14:
 		var side := -1.0 if k % 2 == 0 else 1.0
 		var p := Vector3(side * rng.randf_range(8.5, 16.0), 0, rng.randf_range(-11, 14))
@@ -102,7 +92,299 @@ func _walls(c: Vector3, half_x: float, back_z: float, front_z: float, east_gap: 
 	Util.static_box(self, c + Vector3(0, 1, back_z), Vector3(half_x * 2, 2, 0.5))
 	Util.static_box(self, c + Vector3(0, 1, front_z), Vector3(half_x * 2, 2, 0.5))
 
-# Real props in front of the painted shop (Poly Haven, CC0): cobblestones, barrels, crates, sacks, lantern posts
+# ================================================================ the shop as a real building (inspired by Ebain's painting)
+const SHOP_X := -1.5          # centre of the shop front
+const SHOP_FRONT := -11.3     # z of the front wall
+var room_lights: Array = []   # interior lights (they go wild when everyone trips)
+var glow_jars: Array = []     # blue jar material (turns pink when tripping)
+
+func _shop_exterior() -> void:
+	var planks := Models.mat("weathered_planks", 1.4, Color(0.75, 0.66, 0.58))
+	var beam := Models.mat("weathered_planks", 1.0, Color(0.42, 0.33, 0.27))
+	var stone := Models.mat("rustic_stone_wall", 1.6, Color(0.7, 0.7, 0.75))
+	var roof := Models.mat("grey_roof_tiles", 1.4, Color(0.62, 0.64, 0.7))
+	var f := SHOP_FRONT
+	var w := 11.0
+	var d := 6.0
+	var c := Vector3(SHOP_X, 0, f - d / 2.0)
+	# stone footing + plank body
+	Models.block(self, c + Vector3(0, 0.15, 0), Vector3(w + 0.3, 0.3, d + 0.3), stone, 0.0, true)
+	Models.block(self, c + Vector3(0, 0.3 + 1.7, 0), Vector3(w, 3.4, d), planks)
+	Util.static_box(self, c + Vector3(0, 1.5, 0), Vector3(w, 3.0, d))
+	# timber frame on the front: posts + beams
+	for x in [-w / 2.0, -2.6, -0.5, w / 2.0]:
+		Models.block(self, Vector3(SHOP_X + x, 2.0, f + 0.08), Vector3(0.24, 3.4, 0.2), beam)
+	for y in [0.45, 3.6]:
+		Models.block(self, Vector3(SHOP_X, y, f + 0.1), Vector3(w + 0.2, 0.22, 0.22), beam)
+	# gable roof (ridge runs left-right) + overhang
+	var pitch := deg_to_rad(36.0)
+	var run := d / 2.0 + 0.7
+	var slope := run / cos(pitch)
+	for s in [-1.0, 1.0]:
+		var rp := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(w + 1.2, 0.16, slope)
+		rp.mesh = bm
+		rp.material_override = roof
+		rp.position = c + Vector3(0, 3.7 + tan(pitch) * run / 2.0, s * run / 2.0)
+		rp.rotation.x = s * pitch
+		add_child(rp)
+	for s in [-1.0, 1.0]:   # gable ends (triangles filled with planks)
+		var tri := MeshInstance3D.new()
+		var pm := PrismMesh.new()
+		pm.size = Vector3(d, tan(pitch) * d / 2.0, 0.2)
+		tri.mesh = pm
+		tri.material_override = planks
+		tri.position = c + Vector3(s * w / 2.0, 3.7 + tan(pitch) * d / 4.0, 0)
+		tri.rotation.y = PI / 2.0
+		add_child(tri)
+	Models.cylinder(self, c + Vector3(-3.6, 3.6, -1.2), 0.45, 0.42, 3.0, stone, 10)   # chimney
+	_smoke_at(c + Vector3(-3.6, 6.7, -1.2))
+	# the door (a real one) + step
+	var door := Models.place(self, "large_castle_door", Vector3(DOOR_OUT.x, 0.28, f + 0.05), 0.0, 0.72)
+	door.name = "ShopDoor"
+	Models.block(self, Vector3(DOOR_OUT.x, 0.12, f + 0.45), Vector3(1.8, 0.24, 0.6), stone)
+	# window right of the door: glowing blue shelves behind a lattice
+	_shop_window(Vector3(SHOP_X + 0.6, 1.75, f), Vector2(1.7, 1.25))
+	# display window with a canvas awning and a ledge of bottles
+	_shop_window(Vector3(SHOP_X + 3.3, 1.65, f), Vector2(2.0, 1.4))
+	Models.block(self, Vector3(SHOP_X + 3.3, 0.85, f + 0.35), Vector3(2.4, 0.1, 0.6), beam)
+	Models.place(self, "wine_bottles_01", Vector3(SHOP_X + 2.5, 0.9, f + 0.35), 0.0, 1.0)
+	Models.place(self, "ceramic_vase_01", Vector3(SHOP_X + 3.9, 0.9, f + 0.3), 0.0, 1.0)
+	Models.place(self, "brass_vase_01", Vector3(SHOP_X + 4.3, 0.9, f + 0.4), 0.0, 0.7)
+	var canvas := Models.mat("fabric_pattern_05", 1.2, Color(0.72, 0.66, 0.52))
+	var aw := MeshInstance3D.new()
+	var am := BoxMesh.new()
+	am.size = Vector3(3.0, 0.05, 1.8)
+	aw.mesh = am
+	aw.material_override = canvas
+	aw.position = Vector3(SHOP_X + 3.3, 2.75, f + 0.85)
+	aw.rotation.x = deg_to_rad(22.0)
+	add_child(aw)
+	for x in [1.9, 4.7]:
+		Models.block(self, Vector3(SHOP_X + x, 1.25, f + 1.7), Vector3(0.12, 2.5, 0.12), beam, 0.0, true)
+	# hanging sign on a bracket over the door
+	Models.block(self, Vector3(DOOR_OUT.x - 0.9, 3.25, f + 0.75), Vector3(0.1, 0.1, 1.5), beam)
+	var sign_board := Models.block(self, Vector3(DOOR_OUT.x - 0.9, 2.75, f + 1.35), Vector3(0.08, 0.75, 1.6), planks)
+	sign_board.rotation.y = 0.0
+	for side in [-1.0, 1.0]:
+		var t := Label3D.new()
+		t.text = "METOCY\nMART"
+		t.font_size = 64
+		t.pixel_size = 0.005
+		t.modulate = Color(0.95, 0.85, 0.55)
+		t.outline_size = 6
+		t.outline_modulate = Color(0.1, 0.06, 0.03)
+		t.position = Vector3(DOOR_OUT.x - 0.9 + side * 0.05, 2.78, f + 1.35)
+		t.rotation.y = side * PI / 2.0
+		add_child(t)
+	var front_sign := Label3D.new()   # painted lettering over the door, facing the street
+	front_sign.text = "METOCY MART  ·  NO REFUNDS"
+	front_sign.font_size = 56
+	front_sign.pixel_size = 0.006
+	front_sign.modulate = Color(0.95, 0.82, 0.5)
+	front_sign.outline_size = 8
+	front_sign.outline_modulate = Color(0.08, 0.05, 0.02)
+	front_sign.position = Vector3(SHOP_X, 3.25, f + 0.22)
+	add_child(front_sign)
+	# oil lamps by the door
+	for x in [DOOR_OUT.x - 0.95, DOOR_OUT.x + 1.0]:
+		Models.block(self, Vector3(x, 2.6, f + 0.25), Vector3(0.06, 0.06, 0.4), beam)
+		Models.place(self, "vintage_oil_lamp", Vector3(x, 1.85, f + 0.42), 0.0, 0.9)
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.68, 0.38)
+		l.light_energy = 1.6
+		l.omni_range = 5.5
+		l.position = Vector3(x, 2.3, f + 0.6)
+		add_child(l)
+		add_glow(l.position, Color(1.0, 0.7, 0.4), 5.0, func(): return 0.9)
+	# the old stone town behind it
+	_house(Vector3(-12.5, 0, -16.5), Vector3(6.5, 6.5, 6.0), 0.15)
+	_house(Vector3(9.5, 0, -17.0), Vector3(7.0, 5.8, 6.0), -0.1)
+	_house(Vector3(-1.0, 0, -24.0), Vector3(12.0, 8.0, 6.0), 0.0)
+	_house(Vector3(-20.0, 0, -12.0), Vector3(6.0, 5.5, 6.0), 0.5)
+	# big dead trees framing it like the painting
+	card("tree_2", 11.0, Vector3(-8.6, 0, -15.0), false, false)
+	card("tree_4", 10.0, Vector3(6.2, 0, -16.0), true, false)
+
+func _shop_window(p: Vector3, size: Vector2) -> void:
+	var beam := Models.mat("weathered_planks", 1.0, Color(0.4, 0.31, 0.25))
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.25, 0.5, 0.95)
+	glass.emission_enabled = true
+	glass.emission = Color(0.3, 0.6, 1.0)
+	glass.emission_energy_multiplier = 1.6
+	glow_jars.append(glass)
+	var q := QuadMesh.new()
+	q.size = size
+	Util.add_mesh(self, q, glass, p + Vector3(0, 0, 0.12))
+	for i in 3:   # bottle silhouettes on two little shelves behind the glass
+		for row in 2:
+			var b := CylinderMesh.new()
+			b.top_radius = 0.035
+			b.bottom_radius = 0.06
+			b.height = 0.22
+			Util.add_mesh(self, b, Util.mat(Color(0.05, 0.08, 0.15)), p + Vector3(-size.x * 0.3 + i * size.x * 0.3, -0.3 + row * 0.5, 0.15))
+	for k in [-1.0, 1.0]:   # lattice + frame
+		Models.block(self, p + Vector3(k * size.x / 2.0, 0, 0.18), Vector3(0.12, size.y + 0.2, 0.1), beam)
+		Models.block(self, p + Vector3(0, k * size.y / 2.0, 0.18), Vector3(size.x + 0.2, 0.12, 0.1), beam)
+	Models.block(self, p + Vector3(0, 0, 0.19), Vector3(0.05, size.y, 0.05), beam)
+	Models.block(self, p + Vector3(0, 0, 0.19), Vector3(size.x, 0.05, 0.05), beam)
+	var l := OmniLight3D.new()
+	l.light_color = Color(0.35, 0.6, 1.0)
+	l.light_energy = 1.4
+	l.omni_range = 4.0
+	l.position = p + Vector3(0, 0, 0.9)
+	add_child(l)
+
+func _house(c: Vector3, size: Vector3, rot: float) -> void:
+	var stone := Models.mat("castle_wall_slates", 2.0, Color(0.55, 0.57, 0.65))
+	var roof := Models.mat("grey_roof_tiles", 1.6, Color(0.5, 0.52, 0.58))
+	var root := Node3D.new()
+	root.position = c
+	root.rotation.y = rot
+	add_child(root)
+	var body := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	body.mesh = bm
+	body.material_override = stone
+	body.position = Vector3(0, size.y / 2.0, 0)
+	root.add_child(body)
+	var rf := MeshInstance3D.new()
+	var pm := PrismMesh.new()
+	pm.size = Vector3(size.x + 0.6, size.y * 0.45, size.z + 0.6)
+	rf.mesh = pm
+	rf.material_override = roof
+	rf.position = Vector3(0, size.y + size.y * 0.225, 0)
+	root.add_child(rf)
+	for k in 4:   # windows, one or two lit
+		var lit := k == 1 or (k == 3 and size.x > 8.0)
+		var wm := Util.mat(Color(1.0, 0.7, 0.35) if lit else Color(0.04, 0.04, 0.06))
+		if lit:
+			wm.emission_enabled = true
+			wm.emission = Color(1.0, 0.65, 0.3)
+			wm.emission_energy_multiplier = 1.2
+		var q := QuadMesh.new()
+		q.size = Vector2(0.8, 1.1)
+		var mi := MeshInstance3D.new()
+		mi.mesh = q
+		mi.material_override = wm
+		mi.position = Vector3(-size.x * 0.32 + (k % 2) * size.x * 0.64, size.y * (0.35 if k < 2 else 0.72), size.z / 2.0 + 0.02)
+		root.add_child(mi)
+	Util.static_box(self, c + Vector3(0, size.y / 2.0, 0), size, rot)
+
+func _smoke_at(p: Vector3) -> void:
+	var sm := CPUParticles3D.new()
+	sm.amount = 10
+	sm.lifetime = 4.0
+	sm.mesh = Fx.quad(1.0, false)
+	sm.direction = Vector3.UP
+	sm.spread = 10.0
+	sm.gravity = Vector3(0.2, 0.3, 0)
+	sm.initial_velocity_min = 0.4
+	sm.initial_velocity_max = 0.6
+	sm.scale_amount_curve = Fx.curve([[0.0, 0.4], [1.0, 1.6]])
+	sm.color_ramp = Fx.ramp([[0.0, Color(0.5, 0.5, 0.55, 0)], [0.2, Color(0.45, 0.45, 0.5, 0.25)], [1.0, Color(0.5, 0.5, 0.55, 0)]])
+	sm.position = p
+	add_child(sm)
+
+# The shop room: plank walls, tall shelves of jars (some glowing blue), books, hanging herbs, candles
+func _shop_interior() -> void:
+	var dark := Models.mat("weathered_planks", 1.0, Color(0.5, 0.42, 0.36))
+	var wall := Models.mat("raw_plank_wall", 2.0, Color(0.7, 0.62, 0.55))
+	Models.block(self, INT + Vector3(0, 3.5, -5.0), Vector3(14, 7, 0.3), wall)                  # back wall
+	for x in [-6.9, 6.9]:
+		Models.block(self, INT + Vector3(x, 3.5, 0), Vector3(0.3, 7, 11), wall)                   # side walls
+	for z in [-3.5, -0.5, 2.5]:                                                                     # ceiling beams
+		Models.block(self, INT + Vector3(0, 5.2, z), Vector3(14, 0.3, 0.3), dark)
+	# tall shelves along the back wall, packed with jars
+	for x in [-5.0, -2.6, 2.6, 5.0]:
+		_shelf(INT + Vector3(x, 0, -4.55), 2.1, 3.4)
+	_shelf(INT + Vector3(-6.45, 0, -1.8), 2.1, 3.0, PI / 2.0)
+	_shelf(INT + Vector3(6.45, 0, -1.2), 2.1, 3.0, -PI / 2.0)
+	# hanging herbs + a couple of skull-ish jars of… something
+	for k in 9:
+		var hx := -5.5 + k * 1.35
+		Models.block(self, INT + Vector3(hx, 4.65, -3.5), Vector3(0.03, 0.8, 0.03), dark)
+		_box_c(INT + Vector3(hx, 4.15, -3.5), Vector3(0.22, 0.45, 0.22), Color(0.32, 0.4, 0.2) if k % 2 == 0 else Color(0.45, 0.32, 0.18))
+	# counter clutter: scale-ish vase, magnifying glass (for Xylo), books, oil lamp
+	Models.place(self, "book_encyclopedia_set_01", COUNTER + Vector3(-0.9, 1.06, -0.45), 0.2, 1.0)
+	Models.place(self, "magnifying_glass_01", COUNTER + Vector3(0.6, 1.07, -0.35), 0.0, 1.2).rotation = Vector3(-PI / 2.0, 0.5, 0)
+	Models.place(self, "vintage_oil_lamp", COUNTER + Vector3(1.15, 1.06, -0.5), 0.0, 0.7)
+	Models.place(self, "antique_ceramic_vase_01", INT + Vector3(-3.8, 0, -3.9), 0.0, 1.4)
+	Models.place(self, "brass_vase_01", INT + Vector3(3.8, 0, -3.9), 0.0, 1.2)
+
+func _shelf(base: Vector3, w: float, h: float, rot := 0.0) -> void:
+	var wood := Models.mat("weathered_planks", 0.9, Color(0.42, 0.32, 0.25))
+	var root := Node3D.new()
+	root.position = base
+	root.rotation.y = rot
+	add_child(root)
+	var parts := []
+	for s in [-1.0, 1.0]:
+		parts.append([Vector3(s * w / 2.0, h / 2.0, 0), Vector3(0.08, h, 0.45)])
+	var rows := 5
+	for r in rows:
+		parts.append([Vector3(0, 0.15 + r * (h - 0.3) / (rows - 1), 0), Vector3(w, 0.05, 0.45)])
+	parts.append([Vector3(0, h / 2.0, -0.21), Vector3(w, h, 0.03)])
+	for pt in parts:
+		var mi := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = pt[1]
+		mi.mesh = bm
+		mi.material_override = wood
+		mi.position = pt[0]
+		root.add_child(mi)
+	for r in rows - 1:   # jars on every shelf
+		var y: float = 0.175 + r * (h - 0.3) / (rows - 1)
+		var x := -w / 2.0 + 0.2
+		while x < w / 2.0 - 0.15:
+			var jh := randf_range(0.18, 0.42)
+			var jr := randf_range(0.06, 0.12)
+			var glow := randf() < 0.3
+			var cm := CylinderMesh.new()
+			cm.top_radius = jr * 0.85
+			cm.bottom_radius = jr
+			cm.height = jh
+			var m: StandardMaterial3D
+			if glow:
+				m = _blue_glass()
+			else:
+				m = Util.mat([Color(0.35, 0.25, 0.15), Color(0.2, 0.25, 0.18), Color(0.45, 0.4, 0.32), Color(0.15, 0.12, 0.1)][randi() % 4])
+			var mi := MeshInstance3D.new()
+			mi.mesh = cm
+			mi.material_override = m
+			mi.position = Vector3(x, y + jh / 2.0, randf_range(-0.05, 0.08))
+			root.add_child(mi)
+			x += jr * 2.0 + randf_range(0.04, 0.12)
+	Util.static_box(self, base + Vector3(0, h / 2.0, 0), Vector3(w, h, 0.5), rot)
+
+var _blue_mat: StandardMaterial3D
+func _blue_glass() -> StandardMaterial3D:
+	if _blue_mat == null:
+		_blue_mat = StandardMaterial3D.new()
+		_blue_mat.albedo_color = Color(0.3, 0.6, 1.0)
+		_blue_mat.emission_enabled = true
+		_blue_mat.emission = Color(0.25, 0.55, 1.0)
+		_blue_mat.emission_energy_multiplier = 2.2
+		glow_jars.append(_blue_mat)
+	return _blue_mat
+
+func _box_c(p: Vector3, size: Vector3, c: Color) -> void:
+	var bm := BoxMesh.new()
+	bm.size = size
+	Util.add_mesh(self, bm, Util.mat(c), p)
+
+# Tripping: the room's lights and glowing jars go purple/pink instead of swapping a painting
+func _trip_room(on: bool) -> void:
+	for l in room_lights:
+		l.light_color = Color(0.85, 0.35, 1.0) if on else Color(1.0, 0.7, 0.4)
+	for m in glow_jars:
+		m.emission = Color(1.0, 0.3, 0.8) if on else Color(0.25, 0.55, 1.0)
+		m.albedo_color = Color(1.0, 0.4, 0.85) if on else Color(0.3, 0.6, 1.0)
+
+# Real props in front of the shop (Poly Haven, CC0): cobblestones, barrels, crates, sacks, lantern posts
 func _mart_props() -> void:
 	Models.patch(self, Vector3(-0.5, 0, -8.0), Vector2(19, 9), "cobblestone_floor_04", 2.2, Color(0.32, 0.33, 0.4))
 	var sack := Color(0.95, 0.8, 0.6)
@@ -166,13 +448,10 @@ func _build_room() -> void:
 	cs.position = INT + Vector3(0, -0.5, 0)
 	floor_body.add_child(cs)
 	add_child(floor_body)
-	var fm := ShaderMaterial.new()
-	fm.shader = Shader.new()
-	fm.shader.code = PLANK_SHADER
 	var pm := PlaneMesh.new()
-	pm.size = Vector2(16, 14)
-	Util.add_mesh(self, pm, fm, INT + Vector3(0, 0.001, 0))
-	room_backdrop = backdrop("res://assets/backdrops/mart_interior.jpg", 14.0, INT + Vector3(0, 0, -5.0), Color(0.9, 0.85, 0.8))
+	pm.size = Vector2(16, 24)
+	Util.add_mesh(self, pm, Models.mat("old_wooden_floor_01", 2.0, Color(0.75, 0.65, 0.58)), INT + Vector3(0, 0.001, 5))
+	_shop_interior()
 	var wall_m := Util.mat(Color(0.1, 0.065, 0.045))
 	wall_m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var wall := PlaneMesh.new()
@@ -193,6 +472,7 @@ func _build_room() -> void:
 		l.omni_range = 8.0
 		l.position = p
 		add_child(l)
+		room_lights.append(l)
 	pill = Sprite3D.new()
 	pill.texture = load("res://assets/items/metocy.png")
 	pill.pixel_size = 0.5 / 447.0
@@ -412,7 +692,7 @@ func _trip(who: Array, whole_room: bool) -> void:
 		u.set_pose(tex, CHAR_HEIGHT[u.id])
 		u.set_meta("tripping", true)
 	if whole_room:
-		room_backdrop.albedo_texture = load("res://assets/backdrops/mart_interior_trip.jpg")
+		_trip_room(true)
 	if trip_overlay == null:
 		trip_overlay = ColorRect.new()
 		trip_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -431,7 +711,7 @@ func _trip_end() -> void:
 	cam.rotation.z = 0.0
 	if trip_overlay:
 		trip_overlay.color.a = 0.0
-	room_backdrop.albedo_texture = load("res://assets/backdrops/mart_interior.jpg")
+	_trip_room(false)
 	for u in party:
 		if u.has_meta("tripping"):
 			u.remove_meta("tripping")

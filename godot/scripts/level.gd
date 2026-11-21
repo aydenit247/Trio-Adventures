@@ -82,10 +82,15 @@ func _ready() -> void:
 	cam_target = leader.global_position
 	_update_camera(1.0)
 	var args := OS.get_cmdline_user_args()
+	if OS.get_environment("DEV_DIALOGUE") != "":   # test hook: run with dev dialogue mode on
+		Game.dev_dialogue = OS.get_environment("DEV_DIALOGUE")
+		Game.dev_pick = int(OS.get_environment("DEV_PICK")) if OS.get_environment("DEV_PICK") != "" else 1
 	shots_mode = "--shots" in args
 	dialogue.tts_on = Game.tts_on and not shots_mode
 	if "--views" in args:
 		_views_tour()
+	elif shots_mode and OS.get_environment("DEV_MENU") != "":
+		_dev_menu_tour()
 	elif shots_mode and OS.get_environment("FIGHT") != "":
 		_fight_tour(OS.get_environment("FIGHT"))
 	elif shots_mode:
@@ -128,6 +133,7 @@ func _setup_input() -> void:
 	_key("tts", [KEY_V])
 	_key("party_menu", [KEY_I])
 	_key("pause", [KEY_ESCAPE])
+	_key("dev_menu", [KEY_F1])
 
 func _unhandled_input(ev: InputEvent) -> void:
 	if ev is InputEventMouseButton and ev.pressed:
@@ -165,7 +171,8 @@ func _build_environment() -> void:
 	env.adjustment_saturation = 1.1
 	var sun := DirectionalLight3D.new()
 	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 60.0
+	sun.directional_shadow_max_distance = 40.0
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS   # 4 splits re-drew every rock up to 4x
 	if night:
 		env.ambient_light_color = Color(0.22, 0.26, 0.45)
 		env.ambient_light_energy = 0.75
@@ -654,6 +661,11 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
 		open_pause_menu()
 		return
+	if Input.is_action_just_pressed("dev_menu"):
+		var dm := DevMode.new()
+		add_child(dm)
+		dm.open(self)
+		return
 	if Input.is_action_just_pressed("tts"):
 		dialogue.tts_on = not dialogue.tts_on
 		Game.tts_on = dialogue.tts_on
@@ -727,10 +739,20 @@ func freeze_all(on: bool) -> void:
 func run_dialogue(steps: Array) -> void:
 	busy = true
 	freeze_all(true)
-	await dialogue.run(steps, self)
+	if DevMode.active():
+		await DevMode.run(self, steps)   # F1 test mode: skip / filter lines
+	else:
+		await dialogue.run(steps, self)
 	freeze_all(false)
 	busy = false
 	interact_cooldown = 0.3
+
+# Run extra steps from inside an action that's already part of a dialogue (respects dev mode)
+func run_nested(steps: Array) -> void:
+	if DevMode.active():
+		await DevMode.walk(self, steps)
+	else:
+		await dialogue._run_steps(steps, self)
 
 func start(it: Dictionary) -> void:
 	prompt.visible = false
@@ -778,6 +800,10 @@ func story_so_far() -> Array:
 
 # ---------------------------------------------------------------- testing helpers
 func shot(name: String) -> void:
+	if DisplayServer.get_name() == "headless":   # logic-only tour runs: no pixels to save
+		print("SHOT ", name)
+		await get_tree().process_frame
+		return
 	await RenderingServer.frame_post_draw
 	var dir := OS.get_environment("SHOT_DIR")
 	if dir.is_empty():
@@ -799,6 +825,25 @@ func place_party(p: Vector3, facing := Vector3(0, 0, 1)) -> void:
 		party[i].global_position = p if i == 0 else p - facing * 1.4 + side * (0.9 if i == 1 else -0.9)
 	set_leader(party[0])
 	cam_target = p
+
+# Screenshot the F1 dev menu + dialogue viewer (DEV_MENU=1 ... -- --shots)
+func _dev_menu_tour() -> void:
+	fade.color.a = 0.0
+	busy = false
+	await wait(1.0)
+	var dm := DevMode.new()
+	add_child(dm)
+	dm.open(self)
+	await wait(0.8)
+	await shot("dev_menu")
+	Game.dev_dialogue = "only:lykor"
+	dm._render()
+	dm._open_viewer()
+	dm.view_i = 1
+	dm._view_render()
+	await wait(0.8)
+	await shot("dev_viewer")
+	get_tree().quit()
 
 # Test a fight here: FIGHT=goblins|dulbers|giant|goblin_patrol (roaming) ... -- --shots
 func _fight_tour(key: String) -> void:
@@ -881,6 +926,13 @@ var _forehead_lbl: Label3D
 
 func fight(key: String, opts := {}) -> String:
 	var def: Dictionary = CombatD.FIGHTS[key]
+	if Game.dev_autowin:   # F1 test mode: skip the fight, count it as won
+		var ups := Game.add_xp(def["xp"])
+		if def.has("loot"):
+			Game.give_gear(def["loot"])
+		show_toast("(dev) auto-won: %s  (+%d XP%s)" % [def["title"], def["xp"], ", LEVEL UP" if not ups.is_empty() else ""], 2.0)
+		await wait(0.6)
+		return "win"
 	var story: bool = def.get("story", false)
 	while true:
 		var units := fight_party(key, opts)

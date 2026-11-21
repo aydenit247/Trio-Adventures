@@ -19,7 +19,11 @@ def files(asset_id):
     return json.loads(get("https://api.polyhaven.com/files/" + asset_id))
 
 def model(asset_id, res="1k", dry=False):
-    f = files(asset_id)["gltf"]
+    fl = files(asset_id)
+    if "gltf" not in fl:
+        print(f"  ({asset_id} has no glTF download, skipped)")
+        return 0
+    f = fl["gltf"]
     res = res if res in f else sorted(f.keys())[0]
     g = f[res]["gltf"]
     items = [(asset_id + ".gltf", g["url"], g.get("size", 0))] + [(k, v["url"], v.get("size", 0)) for k, v in g.get("include", {}).items()]

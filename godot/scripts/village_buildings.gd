@@ -90,7 +90,7 @@ func _outside() -> void:
 	fl.omni_range = 4.5
 	fl.position = sm["door"] + Vector3(0, 1.0, 0.4)
 	lv.add_child(fl)
-	_box(sm["door"] + Vector3(1.4, 0.35, 0.6), Vector3(0.7, 0.7, 0.4), Color(0.22, 0.22, 0.24), true)
+	Models.block(lv, sm["door"] + Vector3(1.4, 0.35, 0.6), Vector3(0.7, 0.7, 0.4), Models.mat("metal_plate", 0.6, Color(0.45, 0.45, 0.5)), 0.0, true)
 	Models.place(lv, "cross_pein_hammer", sm["door"] + Vector3(1.4, 0.73, 0.6), 0.0, 1.6).rotation = Vector3(PI / 2.0, 0.4, 0)
 	Models.place(lv, "wooden_bucket_01", sm["door"] + Vector3(-1.1, 0, 0.9), 0.0, 1.0)
 	# Locked house
@@ -207,7 +207,7 @@ func _room_shell(id: String) -> void:
 		l.position = o + p
 		lv.add_child(l)
 	# doormat by the exit
-	_box(o + Vector3(0, 0.02, FRONT_Z - 0.7), Vector3(1.6, 0.03, 0.9), Color(0.45, 0.2, 0.12))
+	Models.block(lv, o + Vector3(0, 0.02, FRONT_Z - 0.7), Vector3(1.6, 0.03, 0.9), Models.mat("fabric_pattern_05", 0.6, Color(0.7, 0.35, 0.22)))
 
 func _chief_room() -> void:
 	var o := origin("chief")
@@ -216,7 +216,7 @@ func _chief_room() -> void:
 	for x in [-5.5, 5.5]:
 		_quad(o + Vector3(x, 3.0, BACK_Z + 0.05), Vector2(1.0, 2.8), Color(0.6, 0.12, 0.1))
 	# portrait of the Chief, painted by the Chief (his cutout in a gold frame)
-	_box(o + Vector3(0, 2.4, BACK_Z + 0.05), Vector3(1.9, 2.3, 0.08), Color(0.75, 0.58, 0.18))
+	Models.block(lv, o + Vector3(0, 2.4, BACK_Z + 0.05), Vector3(1.9, 2.3, 0.08), Models.mat("metal_plate", 0.8, Color(1.0, 0.78, 0.35)))
 	var pic := Sprite3D.new()
 	pic.texture = load("res://assets/characters/goblin_chief.png")
 	pic.pixel_size = 2.0 / pic.texture.get_height()
@@ -226,7 +226,7 @@ func _chief_room() -> void:
 	lv.add_child(pic)
 	# the belt, on a little plank stand
 	Models.block(lv, o + Vector3(-3.2, 0.6, BACK_Z + 0.6), Vector3(1.2, 1.2, 0.6), planks, 0.0, true)
-	_box(o + Vector3(-3.2, 1.45, BACK_Z + 0.6), Vector3(0.9, 0.3, 0.12), Color(0.8, 0.65, 0.2))
+	Models.block(lv, o + Vector3(-3.2, 1.45, BACK_Z + 0.6), Vector3(0.9, 0.3, 0.12), Models.mat("metal_plate", 0.5, Color(1.0, 0.8, 0.35)))
 	_label3d("CHUG CHAMP", o + Vector3(-3.2, 1.45, BACK_Z + 0.7), 22, Color(0.2, 0.1, 0.02), false)
 	# royal chest (a real one)
 	Models.place(lv, "treasure_chest", o + Vector3(4.2, 0, BACK_Z + 1.0), 0.0, 1.3, true)
@@ -300,7 +300,7 @@ func _bar_room() -> void:
 func _shaman_room() -> void:
 	var o := origin("shaman")
 	_label3d("SHAMAN WUZZLE\nFORTUNES · PROPHECIES · NO REFUNDS EITHER", o + Vector3(0, 4.3, BACK_Z), 40, Color("#d6a8ff"))
-	_box(o + Vector3(0, 0.02, -0.4), Vector3(5.0, 0.03, 3.4), Color(0.4, 0.12, 0.35))   # rug
+	Models.block(lv, o + Vector3(0, 0.02, -0.4), Vector3(5.0, 0.03, 3.4), Models.mat("fabric_pattern_07", 1.0, Color(0.75, 0.35, 0.65)))   # rug
 	Models.place(lv, "round_wooden_table_01", o + Vector3(0, 0, -1.3), 0.0, 0.65, true)
 	var ball := MeshInstance3D.new()
 	var sp := SphereMesh.new()
@@ -370,7 +370,7 @@ func _smith_room() -> void:
 	lv.add_child(fo)
 	# anvil on a stump-block, hammers on it
 	Models.block(lv, o + Vector3(-1.4, 0.32, -1.6), Vector3(0.6, 0.64, 0.6), planks, 0.0, true)
-	_box(o + Vector3(-1.4, 0.75, -1.6), Vector3(1.0, 0.24, 0.42), Color(0.18, 0.18, 0.2))
+	Models.block(lv, o + Vector3(-1.4, 0.75, -1.6), Vector3(1.0, 0.24, 0.42), Models.mat("metal_plate", 0.6, Color(0.45, 0.45, 0.5)))
 	Models.place(lv, "cross_pein_hammer", o + Vector3(-1.2, 0.88, -1.55), 0.0, 1.3).rotation = Vector3(PI / 2.0, 0.6, 0)
 	Models.place(lv, "sledgehammer_01", o + Vector3(-0.5, 0.75, -1.9), 0.3, 1.0)
 	Models.place(lv, "wooden_bucket_01", o + Vector3(-2.6, 0, -1.2), 0.0, 1.0)
@@ -406,9 +406,13 @@ func _cyl(p: Vector3, r: float, h: float, c: Color, rot := Vector3.ZERO, solid :
 		Util.static_cyl(lv, p - Vector3(0, h / 2.0, 0), r, h)
 
 func _quad(p: Vector3, size: Vector2, c: Color) -> void:
+	# cloth (banners): real fabric texture tinted to the colour
 	var q := QuadMesh.new()
 	q.size = size
-	var m := Util.mat(c)
+	var m: StandardMaterial3D = Models.mat("fabric_pattern_05", 0.8, c * 1.6).duplicate()
+	m.uv1_triplanar = false
+	m.uv1_world_triplanar = false
+	m.uv1_scale = Vector3(size.x, size.y, 1)
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	Util.add_mesh(lv, q, m, p)
 
@@ -650,7 +654,7 @@ func reward(xp: int, msg := "") -> void:
 	lv.show_toast(txt, 2.6)
 
 func run_lines(steps: Array) -> void:
-	await lv.dialogue._run_steps(steps, lv)
+	await lv.run_nested(steps)
 
 func on_action(n: String) -> void:
 	if n.begins_with("enter_"):

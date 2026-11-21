@@ -18,6 +18,11 @@ var used67 := false               # the 6-7 happens once per game
 var forehead := ""                # funny penalty text written on the leader's forehead
 var quests := {}                  # id -> { title, note, state = "active" | "done" }
 
+# developer / test mode (F1)
+var dev_dialogue := "normal"      # see DevMode.MODES
+var dev_pick := 1                 # which choice "Skip all" picks
+var dev_autowin := false          # fights are skipped and count as won
+
 # settings
 var difficulty := 1               # 0 Chill · 1 Normal · 2 Crashout
 var timed_auto := false           # timed hits/blocks resolve on their own
