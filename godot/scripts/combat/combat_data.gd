@@ -126,7 +126,7 @@ const BUZZED_MISFIRES := {
 # Enemy tex/h = Godot cutout + height (m). gold = what it drops (win = all of it, Talk = half). talk = options in the Talk menu.
 const FIGHTS := {
 	"goblins": {
-		"title": "Skorn vs. The Goblins", "party": ["skorn"], "xp": 30, "par": 7, "story": true,
+		"title": "Skorn vs. The Goblins", "party": ["skorn"], "xp": 30, "story": true,
 		"enemies": [
 			{ "name": "Goblin", "tag": "(Unemployed)", "gold": 4, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.25, "ai": "goblin" },
 			{ "name": "Goblin", "tag": "(Also Unemployed)", "gold": 3, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.18, "ai": "goblin" },
@@ -136,19 +136,19 @@ const FIGHTS := {
 		"loot": "spoon",
 	},
 	"dulbers": {
-		"title": "The Party vs. Dulbers Frint", "party": ["skorn", "lykor", "xylo"], "xp": 60, "par": 16, "story": true, "boss": true,
+		"title": "The Party vs. Dulbers Frint", "party": ["skorn", "lykor", "xylo"], "xp": 60, "story": true, "boss": true,
 		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "gold": 75, "hp": 300, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
 		"talk": ["refund", "compliment_store"],
 		"loot": "receipt",
 	},
 	"giant": {
-		"title": "BOSS: Diddy Chud Giant", "party": ["skorn", "lykor", "xylo"], "xp": 100, "par": 22, "story": true, "boss": true,
+		"title": "BOSS: Diddy Chud Giant", "party": ["skorn", "lykor", "xylo"], "xp": 100, "story": true, "boss": true,
 		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "gold": 150, "hp": 520, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
 		"talk": ["feed_giant", "lullaby"],
 	},
 	# ---- village side fights
 	"bouncer": {
-		"title": "Bar Fight: Big Thumbs", "xp": 40, "par": 9, "story": true,
+		"title": "Bar Fight: Big Thumbs", "xp": 40, "story": true,
 		"enemies": [
 			{ "name": "Big Thumbs", "tag": "(Bouncer) (Has a Gym Membership)", "gold": 25, "hp": 150, "spd": 8, "tex": "goblin_fight", "h": 1.75, "ai": "goblin", "second_wind": true },
 		],
@@ -156,7 +156,7 @@ const FIGHTS := {
 	},
 	# ---- roaming (optional) fights
 	"goblin_patrol": {
-		"title": "Goblin Patrol", "xp": 25, "par": 7,
+		"title": "Goblin Patrol", "xp": 25,
 		"enemies": [
 			{ "name": "Goblin", "tag": "(Unpaid Internship)", "gold": 2, "hp": 24, "spd": 8, "tex": "goblin_fight", "h": 1.2, "ai": "goblin" },
 			{ "name": "Goblin", "tag": "(Hall Monitor)", "gold": 6, "hp": 30, "spd": 7, "tex": "goblin_fight", "h": 1.32, "ai": "goblin" },
@@ -195,14 +195,6 @@ const DIFFICULTY := [
 	{ "name": "Crashout", "label": "Crashout (on some hard shi)", "dmg": 1.25, "hp": 1.1, "window": 0.75 },
 ]
 
-const GRADES := [
-	{ "min": 90, "g": "S", "label": "on some S tier shi", "color": "#ffdf4a", "xp": 1.25 },
-	{ "min": 76, "g": "A", "label": "mogged it", "color": "#7dff8a", "xp": 1.1 },
-	{ "min": 62, "g": "B", "label": "aight", "color": "#8ad8ff", "xp": 1.0 },
-	{ "min": 48, "g": "C", "label": "mid", "color": "#f3e3b0", "xp": 1.0 },
-	{ "min": 34, "g": "D", "label": "down bad", "color": "#ff9a5a", "xp": 1.0 },
-	{ "min": -999, "g": "F", "label": "bro got cooked (but won??)", "color": "#ff6a5a", "xp": 1.0 },
-]
 
 # XP needed to reach each level (index = level)
 const LEVELS := [0, 0, 50, 120, 220, 350, 520, 740, 1000, 1300, 1650]

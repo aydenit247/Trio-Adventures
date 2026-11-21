@@ -871,21 +871,3 @@ func hurt(p: Dictionary, dmg: int, block: String, aoe: bool) -> Array:
 		ev += bark(p, "hurt", 0.12)
 	return ev
 
-# ------------------------------------------------------------------ grade
-func grade() -> Dictionary:
-	var s := stats
-	var max_hp := 0
-	for p in party:
-		max_hp += p["max_hp"]
-	var score := 100.0
-	score -= 45.0 * minf(1.5, float(s["dmg_taken"]) / max_hp)
-	score -= 12.0 * s["kos"]
-	score -= 3.0 * s["items"]
-	score += 15.0 * (float(s["perfects"]) / s["timed"] if s["timed"] > 0 else 0.0)
-	var par: float = def["par"] + (0.0 if def.get("story", false) else 1.5 * (party.size() - 1))
-	score -= maxf(0.0, s["party_turns"] - par) * 1.2
-	var sc := int(round(clampf(score, 0.0, 100.0)))
-	for g in D.GRADES:
-		if sc >= g["min"]:
-			return g.merged({ "score": sc })
-	return D.GRADES.back().merged({ "score": sc })

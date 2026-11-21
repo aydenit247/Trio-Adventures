@@ -40,7 +40,6 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 	rng.seed = 42
 	var wins := 0
 	var turns := 0
-	var grades := {}
 	var hp_left := 0.0
 	for i in n:
 		var oo := o.duplicate(true)
@@ -61,8 +60,6 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 				b.enemy_resolve(u, it, _block(skill, rng) if it["kind"] == "hit" else "")
 		if b.result() == "win":
 			wins += 1
-			var g: String = b.grade()["g"]
-			grades[g] = grades.get(g, 0) + 1
 			var hp := 0.0
 			var mx := 0.0
 			for p in b.party:
@@ -70,7 +67,7 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 				mx += p["max_hp"]
 			hp_left += hp / mx
 		turns += b.stats["party_turns"]
-	print("%-14s %-34s %-8s win %3d%%  turns %4.1f  hp left %3d%%  grades %s" % [key, str(o.get("party")) + " L" + str(o["level"]) + " " + str(o.get("mods", {})), skill, 100 * wins / n, float(turns) / n, int(100 * hp_left / max(1, wins)), grades])
+	print("%-14s %-34s %-8s win %3d%%  turns %4.1f  hp left %3d%%" % [key, str(o.get("party")) + " L" + str(o["level"]) + " " + str(o.get("mods", {})), skill, 100 * wins / n, float(turns) / n, int(100 * hp_left / max(1, wins))])
 
 func _choose(b, u: Dictionary, skill: String, rng: RandomNumberGenerator) -> Dictionary:
 	var foes: Array = b.alive(b.enemies)

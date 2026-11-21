@@ -1298,6 +1298,83 @@ func _outro(res: String) -> void:
 		lv.dialogue.show_box()
 	queue_free()
 
+# ---- victory screen bits
+var loot_icons: Array = []
+func _row() -> HBoxContainer:
+	var r := HBoxContainer.new()
+	r.alignment = BoxContainer.ALIGNMENT_CENTER
+	r.add_theme_constant_override("separation", 6)
+	return r
+
+func _row_label(text: String, size: int, color: Color) -> Label:
+	var l := lv._label(text, Vector2.ZERO, size, color, 5)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	return l
+
+func _coin_icon(px: int) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = InventoryUI.coin_texture()
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.custom_minimum_size = Vector2(px, px)
+	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return t
+
+# A found item's picture (or initials). Hover it to see what it is and what it does.
+func _loot_icon(gear_id: String) -> Control:
+	var G: Dictionary = D.GEAR.get(gear_id, {})
+	var box := Panel.new()
+	box.custom_minimum_size = Vector2(60, 60)
+	box.mouse_filter = Control.MOUSE_FILTER_STOP
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("#1c1815"); sb.border_color = Color("#b8913a"); sb.set_border_width_all(2); sb.set_corner_radius_all(6)
+	box.add_theme_stylebox_override("panel", sb)
+	var tex: Texture2D = lv.item_icon(gear_id)
+	if tex:
+		var t := TextureRect.new()
+		t.texture = tex
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.position = Vector2(5, 5); t.size = Vector2(50, 50)
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(t)
+	else:
+		var ini := ""
+		for w in G.get("name", gear_id).split(" ", false):
+			if ini.length() < 3 and w[0] == w[0].to_upper() and w[0] != "(":
+				ini += w[0]
+		var l := lv._label(ini, Vector2.ZERO, 18, Color("#e8d9b5"), 4)
+		l.size = Vector2(60, 60); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(l)
+	# hover card
+	var tip := PanelContainer.new()
+	tip.add_theme_stylebox_override("panel", _box(Color(0.08, 0.06, 0.12, 0.97), GOLD, 2))
+	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tip.visible = false
+	tip.z_index = 10
+	var tc := VBoxContainer.new()
+	tc.add_theme_constant_override("separation", 2)
+	tip.add_child(tc)
+	tc.add_child(lv._label(G.get("name", gear_id), Vector2.ZERO, 20, GOLD, 4))
+	tc.add_child(lv._label(G.get("slot", "trinket").capitalize(), Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 3))
+	var d := lv._label(G.get("desc", ""), Vector2.ZERO, 15, Color.WHITE, 3)
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.custom_minimum_size = Vector2(300, 0)
+	tc.add_child(d)
+	for s in InventoryUI.gear_stat_lines(G):
+		tc.add_child(lv._label("• " + s, Vector2.ZERO, 15, Color("#7dff8a"), 3))
+	tc.add_child(lv._label("Equip it in your inventory (Tab)", Vector2.ZERO, 13, Color(1, 1, 1, 0.55), 3))
+	root.add_child(tip)
+	box.mouse_entered.connect(func():
+		tip.visible = true
+		tip.reset_size()
+		var r := box.get_global_rect()
+		tip.global_position = Vector2(r.get_center().x - tip.size.x / 2.0, r.position.y - tip.size.y - 8))
+	box.mouse_exited.connect(func(): tip.visible = false)
+	box.tree_exiting.connect(func(): if is_instance_valid(tip): tip.queue_free())
+	return box
+
 # Gold from a fight: every enemy's "gold" (win) or half of it (talked), give or take 20%.
 static func fight_gold(def: Dictionary, res: String) -> int:
 	if res != "win" and res != "talked":
@@ -1310,14 +1387,13 @@ static func fight_gold(def: Dictionary, res: String) -> int:
 	return int(round(total * randf_range(0.8, 1.2))) if total > 0 else 0
 
 func _results(res: String) -> void:
-	var g := b.grade()
-	var xp: int = int(round(fdef["xp"] * (g["xp"] if res == "win" else 0.5)))
+	var xp: int = int(round(fdef["xp"] * (1.0 if res == "win" else 0.5)))
 	var ups := Game.add_xp(xp)
 	var gold := fight_gold(fdef, res)
 	Game.add_gold(gold)
-	var loot := ""
+	var found: Array = []   # gear ids picked up this fight
 	if res == "win" and fdef.has("loot") and Game.give_gear(fdef["loot"]):
-		loot = fdef["loot"]
+		found.append(fdef["loot"])
 	sfx("ready", 0.9)
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.5; panel.anchor_right = 0.5; panel.anchor_top = 0.5; panel.anchor_bottom = 0.5
@@ -1326,33 +1402,41 @@ func _results(res: String) -> void:
 	root.add_child(panel)
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_theme_constant_override("separation", 6)
+	col.add_theme_constant_override("separation", 8)
 	panel.add_child(col)
-	var lines: Array = []
-	if res == "win":
-		lines.append([("VICTORY" if key != "giant" else "BOSS DOWN"), 40, GOLD])
-		lines.append(["Grade: %s — %s" % [g["g"], g["label"]], 30, Color(g["color"])])
-	else:
-		lines.append(["TALKED IT OUT", 40, GREEN])
-		lines.append(["(Half XP for being reasonable)", 18, Color(1, 1, 1, 0.7)])
-	lines.append(["+%d XP   ·   Level %d   (%s)" % [xp, Game.level, "%d to next" % Game.xp_to_next() if Game.xp_to_next() > 0 else "max"], 20, Color.WHITE])
-	if gold > 0:
-		lines.append(["+%d Gold   ·   %d total" % [gold, Game.gold], 20, GOLD])
-	for lvn in ups:
-		lines.append(["LEVEL UP! The trio is now Level %d. (+10%% HP and damage)" % lvn, 20, GREEN])
-		if lvn == 3:
-			lines.append(["New moves: Belly Bump · Conditioner Mist · Citation Needed", 18, Color("#fff07a")])
-	if loot != "":
-		lines.append(["Found: %s — %s" % [D.GEAR[loot]["name"], D.GEAR[loot]["desc"]], 18, Color("#8ad8ff")])
-		lines.append(["(Equip it in your inventory: press Tab)", 15, Color(1, 1, 1, 0.6)])
-	lines.append(["", 8, Color.WHITE])
-	lines.append(["Press E to continue", 16, Color(1, 1, 1, 0.6)])
-	for L in lines:
-		var l := lv._label(L[0], Vector2.ZERO, L[1], L[2], 5)
+	var line := func(text: String, size: int, color: Color) -> void:
+		var l := lv._label(text, Vector2.ZERO, size, color, 5)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size = Vector2(620, 0)
 		col.add_child(l)
+	if res == "win":
+		line.call("VICTORY!!!", 44, GOLD)
+	else:
+		line.call("TALKED IT OUT", 40, GREEN)
+		line.call("(Half XP and gold for being reasonable)", 18, Color(1, 1, 1, 0.7))
+	if gold > 0:   # +20 (coin)   ·   Total Gold: 67 (coin)
+		var row := _row()
+		row.add_child(_row_label("+%d" % gold, 24, GOLD))
+		row.add_child(_coin_icon(24))
+		row.add_child(_row_label("     ·     Total Gold: %d" % Game.gold, 20, Color(1, 1, 1, 0.85)))
+		row.add_child(_coin_icon(20))
+		col.add_child(row)
+	line.call("+%d XP   ·   Level %d   (%s)" % [xp, Game.level, "%d to next" % Game.xp_to_next() if Game.xp_to_next() > 0 else "max"], 20, Color.WHITE)
+	for lvn in ups:
+		line.call("LEVEL UP! The trio is now Level %d. (+10%% HP and damage)" % lvn, 20, GREEN)
+		if lvn == 3:
+			line.call("New moves: Belly Bump · Conditioner Mist · Citation Needed", 18, Color("#fff07a"))
+	if not found.is_empty():   # Found: [icon] [icon]  (hover for details)
+		var row := _row()
+		row.add_child(_row_label("Found:", 22, Color("#8ad8ff")))
+		for g in found:
+			var ic := _loot_icon(g)
+			row.add_child(ic)
+			loot_icons.append(ic)
+		col.add_child(row)
+	line.call("", 8, Color.WHITE)
+	line.call("Press E to continue", 16, Color(1, 1, 1, 0.6))
 	panel.scale = Vector2(0.8, 0.8)
 	panel.pivot_offset = Vector2(330, 190)
 	create_tween().tween_property(panel, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -1363,6 +1447,10 @@ func _results(res: String) -> void:
 		await lv.wait(1.2)
 		if OS.get_environment("SHOT_DIR") != "":
 			await lv.shot("fight_%s_results" % key)
+			if not loot_icons.is_empty():   # test: show the hover card too
+				loot_icons[0].mouse_entered.emit()
+				await lv.wait(0.3)
+				await lv.shot("fight_%s_results_hover" % key)
 		return
 	while not Input.is_action_just_pressed("interact"):
 		await get_tree().process_frame

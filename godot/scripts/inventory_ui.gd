@@ -75,7 +75,7 @@ func _build() -> void:
 	cz.variation_opentype = { TextServerManager.get_primary_interface().name_to_tag("wght"): 700 }
 	serif_bold = cz
 	script_font = load("res://assets/fonts/PinyonScript-Regular.ttf")
-	coin_tex = _make_coin()
+	coin_tex = coin_texture()
 
 	# the game behind us, blurred and dimmed (like Minecraft's inventory)
 	var blur := ColorRect.new()
@@ -542,7 +542,26 @@ func _arrow(t: String, pos: Vector2, cb: Callable) -> void:
 	b.pressed.connect(cb)
 	pagebox.add_child(b)
 
-func _make_coin() -> Texture2D:
+# The gold coin icon (inventory, victory screen). Made once, shared.
+static var _coin: Texture2D
+static func coin_texture() -> Texture2D:
+	if _coin == null:
+		_coin = _make_coin()
+	return _coin
+
+# A gear piece's numbers as short lines ("+25 max HP", "+10% damage"...)
+static func gear_stat_lines(G: Dictionary) -> Array:
+	var out := []
+	if G.get("hp", 0): out.append("+%d max HP" % G["hp"])
+	if G.get("power", 0.0): out.append("+%d%% damage" % int(round(G["power"] * 100)))
+	if G.get("spd", 0): out.append("+%d speed" % G["spd"])
+	if G.get("meter", 1.0) != 1.0: out.append("+%d%% meter gain" % int(round((G["meter"] - 1.0) * 100)))
+	if G.get("start", 0): out.append("Start fights with %d meter" % G["start"])
+	if G.get("no_ones", false): out.append("Crash Out dice never roll a 1")
+	if G.get("gouge_proof", false): out.append("Immune to Price Gouged")
+	return out
+
+static func _make_coin() -> Texture2D:
 	var n := 40
 	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
 	var c := Vector2(n / 2.0 - 0.5, n / 2.0 - 0.5)
