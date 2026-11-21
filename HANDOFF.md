@@ -198,7 +198,7 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   (clearing + path points per area). Directional views: `<id>_back.png` / `<id>_side.png` (side faces right).
 - **Code:** `scripts/level.gd` = shared engine (environment day/night, ground, `card()`, party/NPCs, camera,
   interactions, dialogue, HUD, joke labels `char_label()`, `knock()`, `walk_to()`, test helpers).
-  Areas extend it: `camp.gd` (Scene 1, night) → `village.gd` (Scene 2, day). `game.gd` autoload = flags + items
+  Areas extend it: `camp.gd` (Scene 1, night) → `village.gd` (Scene 2, day) → `mart.gd` (Scene 3, evening). `game.gd` autoload = flags + items
   across areas. Dialogue data: `camp_script.gd`, `village_script.gd` (`# Ebain` / `# DRAFT`, same format as web).
 - **Scene 1 (camp):** fire out → bag → map → burn it → rest of Scene 1 → free roam → north path → "next morning" →
   village. (Mattias moved out of camp; his lines wait for Scene 4.)
@@ -206,7 +206,16 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   choice: A speech (+3 beezy) · B chug-off mash minigame (chugWon / foreheadLoser) · C crown Skorn (skornKing, Skorn
   stays) · D sneak — player really sneaks, gets caught, goblins follow (goblinAllies) · E Skorn fights (placeholder
   win, lykorDethroned). Then east exit → "To be continued" card.
+- **Scene 3 (Metocy Mart, `mart.gd`), as Xylo:** evening fog. Outside: Ebain's painted shop front is a stage-set
+  backdrop (`backdrop()`, camera locked + flatter via `cam_locked`/`cam_height`/`cam_look_h`) → Dulbers pops out →
+  go inside (room built at x=300: plank-floor shader + painted interior backdrop, swaps to the trip version) →
+  choice A all trip / B Skorn trips (both → reveal, demon transform, placeholder fight) · C refuse → kicked out, pass
+  sign · D Xylo's Deloye Lore inspection → deal · E (only if goblinAllies) goblins take Dulbers out. Flags: hasMidtocy,
+  skornTripped, dulbersEscaped, dulbersDead; skornKing → Skorn bursts in. Exit east → "To be continued: The Pass".
+  Test: `MART_CHOICE=0..4 ... res://mart.tscn -- --shots`.
 - **Placeholders:** goblin huts (tinted tent art) and the throne (built from shapes) until Ebain sends art.
+  Mart uses painted backdrops instead of props (edges show from far back). Fights in village E and Mart A/B are
+  scripted wins until combat is ported.
   The goblin fight in path E is a placeholder until combat is ported (Combat 2.0 engine → GDScript is the plan).
 - **Art pipeline:** props `python3 tools/key_props.py <src> godot/assets/props`; character views
   `python3 tools/key_chars.py <src> godot/assets/characters`. Set `mipmaps/generate=true` in new `.import` files.

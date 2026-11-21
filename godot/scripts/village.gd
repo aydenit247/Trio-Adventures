@@ -633,35 +633,8 @@ func _leave() -> void:
 	objective("Head east to the Metocy Mart.")
 
 func _end_card() -> void:
-	busy = true
-	freeze_all(true)
-	var ui := ColorRect.new()
-	ui.color = Color(0, 0, 0, 0)
-	ui.set_anchors_preset(Control.PRESET_FULL_RECT)
-	hud.add_child(ui)
-	create_tween().tween_property(ui, "color:a", 0.85, 0.8)
-	var lines := ["TO BE CONTINUED", "", "Next stop: Metocy Mart (coming to Godot soon)", ""]
-	if Game.flag("skornKing"): lines.append("Skorn stayed behind as the Purple King.")
-	if Game.flag("goblinAllies"): lines.append("The goblins are tagging along.")
-	if Game.flag("chugWon"): lines.append("Lykor out-drank a 400-year champion.")
-	if Game.flag("foreheadLoser"): lines.append("Lykor's forehead says LOSER.")
-	if Game.flag("lykorDethroned"): lines.append("Lykor got dethroned by Skorn.")
-	if Game.inv["beer"] > 0: lines.append("Beezy: %d" % Game.inv["beer"])
-	lines += ["", "Press E to play again from the camp"]
-	var l := _label("\n".join(lines), Vector2.ZERO, 26, Color("#f3e3b0"), 6)
-	l.set_anchors_preset(Control.PRESET_FULL_RECT)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.modulate.a = 0.0
-	hud.add_child(l)
-	create_tween().tween_property(l, "modulate:a", 1.0, 1.0)
-	await wait(1.2)
-	if shots_mode:
-		return
-	while not Input.is_action_just_pressed("interact"):
-		await get_tree().process_frame
-	Game.reset()
-	Game.goto("res://main.tscn")
+	await fade_out(1.0)
+	Game.goto("res://mart.tscn")
 
 # ---------------------------------------------------------------- automated screenshots
 # Pick a path with env var VILLAGE_CHOICE=0..4 (A..E)

@@ -61,6 +61,9 @@ var auto_dir := Vector3.ZERO
 var cards: Array = []           # [material, position, dynamic]
 var glows: Array = []           # light sources that tint the cutouts
 var shots_mode := false
+var cam_locked := false         # stage-set rooms (painted backdrops) keep the camera facing them
+var cam_height := 0.6           # camera height as a fraction of zoom (lower = flatter view)
+var cam_look_h := 1.1           # how high above the leader the camera aims
 var _tex_cache := {}
 
 func _ready() -> void:
@@ -125,7 +128,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 			zoom = clamp(zoom - 0.6, 5.0, 15.0)
 		elif ev.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom = clamp(zoom + 0.6, 5.0, 15.0)
-	if ev is InputEventMouseMotion and (ev.button_mask & MOUSE_BUTTON_MASK_RIGHT):
+	if ev is InputEventMouseMotion and (ev.button_mask & MOUSE_BUTTON_MASK_RIGHT) and not cam_locked:
 		target_yaw -= ev.relative.x * 0.006
 
 # ---------------------------------------------------------------- environment
@@ -267,6 +270,27 @@ func card(name: String, height: float, pos: Vector3, flip := false, fade_near :=
 		Util.static_cyl(self, pos, collide_r)
 	return m
 
+# A painted backdrop (Ebain's background art) standing upright like a stage set. Faces +Z (toward the camera).
+func backdrop(path: String, width: float, pos: Vector3, tint := Color.WHITE) -> StandardMaterial3D:
+	var tex: Texture2D = load(path)
+	var h := width * tex.get_height() / float(tex.get_width())
+	var q := QuadMesh.new()
+	q.size = Vector2(width, h)
+	q.center_offset = Vector3(0, h / 2.0, 0)
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = tex
+	m.albedo_color = tint
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	m.disable_fog = true
+	var mi := MeshInstance3D.new()
+	mi.mesh = q
+	mi.material_override = m
+	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	return m
+
 # A light that tints nearby cutouts (cutouts are unshaded, so this is how they get lit).
 # strength: Callable returning 0..1+ (e.g. the fire's flicker)
 func add_glow(pos: Vector3, color: Color, radius: float, strength: Callable, strong := false) -> void:
@@ -307,6 +331,13 @@ func _build_party() -> void:
 func spawn_npc(id: String, display: String, tex: String, h: float, pos: Vector3) -> Unit:
 	var u := make_unit(id, display, "res://assets/characters/%s.png" % tex, h, pos)
 	npcs.append(u)
+	return u
+
+func add_to_party(id: String, pos: Vector3) -> Unit:
+	var u := make_unit(id, CHAR_NAME[id], "res://assets/characters/%s.png" % id, CHAR_HEIGHT[id], pos)
+	u.stepped.connect(_on_step.bind(u))
+	party.append(u)
+	set_leader(leader)
 	return u
 
 func remove_from_party(id: String) -> Unit:
@@ -608,9 +639,9 @@ func _goal_dir(u: Unit) -> Vector3:
 	return to.normalized() * float(u.get_meta("goal_speed", 1.0))
 
 func _update_camera(delta: float) -> void:
-	if Input.is_action_pressed("cam_left"):
+	if Input.is_action_pressed("cam_left") and not cam_locked:
 		target_yaw += delta * 1.8
-	if Input.is_action_pressed("cam_right"):
+	if Input.is_action_pressed("cam_right") and not cam_locked:
 		target_yaw -= delta * 1.8
 	yaw = lerp_angle(yaw, target_yaw, clamp(delta * 6.0, 0.0, 1.0))
 	if cam == null:
@@ -626,9 +657,9 @@ func _update_camera(delta: float) -> void:
 		cam.attributes = ca
 	var focus: Vector3 = focus_override if focus_override != null else leader.global_position
 	cam_target = cam_target.lerp(focus, clamp(delta * 4.0, 0.0, 1.0))
-	var off := Vector3(0, zoom * 0.6, zoom).rotated(Vector3.UP, yaw)
+	var off := Vector3(0, zoom * cam_height, zoom).rotated(Vector3.UP, yaw)
 	cam.global_position = cam_target + off
-	cam.look_at(cam_target + Vector3(0, 1.1, 0), Vector3.UP)
+	cam.look_at(cam_target + Vector3(0, cam_look_h, 0), Vector3.UP)
 	if shake > 0.0:
 		shake = max(0.0, shake - delta)
 		cam.h_offset = rng.randf_range(-1, 1) * shake * 0.25
@@ -677,6 +708,45 @@ func start(it: Dictionary) -> void:
 	prompt.visible = false
 	ui_sfx.play()
 	await run_dialogue(it["steps"])
+
+# "To be continued" style card. next_scene = scene to load when E is pressed.
+func end_card(lines: Array, next_scene: String) -> void:
+	busy = true
+	freeze_all(true)
+	var ui := ColorRect.new()
+	ui.color = Color(0, 0, 0, 0)
+	ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hud.add_child(ui)
+	create_tween().tween_property(ui, "color:a", 0.85, 0.8)
+	var l := _label("\n".join(lines), Vector2.ZERO, 26, Color("#f3e3b0"), 6)
+	l.set_anchors_preset(Control.PRESET_FULL_RECT)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.modulate.a = 0.0
+	hud.add_child(l)
+	create_tween().tween_property(l, "modulate:a", 1.0, 1.0)
+	await wait(1.2)
+	if shots_mode:
+		return
+	while not Input.is_action_just_pressed("interact"):
+		await get_tree().process_frame
+	if next_scene == "res://main.tscn":
+		Game.reset()
+	Game.goto(next_scene)
+
+# Lines summing up the story so far (for end cards)
+func story_so_far() -> Array:
+	var out := []
+	if Game.flag("skornKing"): out.append("Skorn was crowned the Purple King (briefly).")
+	if Game.flag("chugWon"): out.append("Lykor out-drank a 400-year champion.")
+	if Game.flag("foreheadLoser"): out.append("Lykor's forehead says LOSER.")
+	if Game.flag("lykorDethroned"): out.append("Lykor got dethroned by Skorn.")
+	if Game.flag("goblinAllies"): out.append("The goblins are tagging along.")
+	if Game.flag("hasMidtocy"): out.append("Skorn has midtocy in his pocket.")
+	if Game.flag("dulbersEscaped"): out.append("Dulbers Frint got away. (He'll be back.)")
+	if Game.flag("dulbersDead"): out.append("Dulbers Frint was never seen again.")
+	if Game.inv["beer"] > 0: out.append("Beezy: %d" % Game.inv["beer"])
+	return out
 
 # ---------------------------------------------------------------- testing helpers
 func shot(name: String) -> void:

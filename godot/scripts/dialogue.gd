@@ -10,6 +10,8 @@ const CHARS := {
 	"goblin":   { "name": "Goblin", "color": Color("#7dcf5a"), "pitch": 2.0, "rate": 1.4 },
 	"goblins":  { "name": "Goblins", "color": Color("#7dcf5a"), "pitch": 2.0, "rate": 1.5, "portrait": "goblin" },
 	"chief":    { "name": "Chief Bogdrinker", "color": Color("#9bc25a"), "pitch": 1.55, "rate": 1.1 },
+	"dulbers":  { "name": "Dulbers Frint", "color": Color("#8fb0c8"), "pitch": 1.7, "rate": 1.3 },
+	"dulbers_demon": { "name": "Dulbers Frint (Demon)", "color": Color("#c06bff"), "pitch": 0.1, "rate": 0.75 },
 	"mattias":  { "name": "Metocin Mattias", "color": Color("#6aa8ff"), "pitch": 0.8, "rate": 0.85 },
 	"narrator": { "name": "", "color": Color("#c9c0e8"), "pitch": 1.0, "rate": 1.0 },
 }
@@ -121,7 +123,7 @@ func _run_steps(steps: Array, ctx: Node) -> void:
 		if s.has("do"):
 			await ctx.do_action(s["do"])
 		elif s.has("choice"):
-			var opts: Array = s["choice"]
+			var opts: Array = s["choice"].filter(func(o): return not o.has("if") or Game.flag(o["if"]))
 			var i: int = await ask(opts)
 			await _run_steps(opts[i]["steps"], ctx)
 		elif s.has("if"):
