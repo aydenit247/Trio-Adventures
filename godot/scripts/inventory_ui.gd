@@ -336,7 +336,11 @@ func _slot_box(r: Rect2, gear_id: String, style: int, item := {}) -> Panel:
 	box.gui_input.connect(func(ev):
 		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 			sel = idx
-			_activate())
+			_activate()
+		elif ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_RIGHT:
+			sel = idx
+			_show_sel()
+			_open_item_menu(idx, get_global_mouse_position()))
 	return box
 
 # everything in the shared bag, in a stable order
@@ -474,6 +478,19 @@ func _input(ev: InputEvent) -> void:
 		return
 	if Engine.get_process_frames() - _opened_at < 2:   # the key press that opened us
 		return
+	if popup_layer:   # right-click menu or the big picture is open: any back/confirm key closes it, nothing else gets through
+		if ev.is_pressed() and not ev.is_echo() and not ev is InputEventMouse:
+			if ev.is_action_pressed("interact") or ev.is_action_pressed("ui_accept"):
+				if popup_view_idx >= 0:
+					var i := popup_view_idx
+					_close_popup()
+					_view_item(i)
+				else:
+					_close_popup()
+			elif ev.is_action_pressed("party_menu") or ev.is_action_pressed("pause") or ev.is_action_pressed("ui_cancel") or (ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_B):
+				_close_popup()
+			get_viewport().set_input_as_handled()
+		return
 	var handled := true
 	if ev is InputEventJoypadButton and ev.pressed and ev.button_index in [JOY_BUTTON_B]:
 		close()
@@ -501,6 +518,106 @@ func _input(ev: InputEvent) -> void:
 		handled = false
 	if handled:
 		get_viewport().set_input_as_handled()
+
+# ---------------------------------------------------------------- right-click menu + big picture
+
+var popup_layer: Control          # right-click menu or picture viewer (only one at a time)
+var popup_view_idx := -1          # which cell the open right-click menu is for (-1 = viewer is open instead)
+
+# What's in a cell: { id, name } or {} if it's empty
+func _item_at(i: int) -> Dictionary:
+	if i < 0 or i >= cells.size():
+		return {}
+	var c: Dictionary = cells[i]
+	if c["kind"] == "slot":
+		var g: String = Game.slots_of(fighters[who]).get(c["slot"], "")
+		return { "id": g, "name": CombatD.GEAR[g]["name"] } if g != "" else {}
+	if c["i"] < bag.size():
+		return { "id": bag[c["i"]]["id"], "name": bag[c["i"]]["name"] }
+	return {}
+
+func _popup_base(dim: float) -> Control:
+	_close_popup()
+	popup_layer = Control.new()
+	popup_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	popup_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	var shade := ColorRect.new()
+	shade.color = Color(0, 0, 0, dim)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	popup_layer.add_child(shade)
+	popup_layer.gui_input.connect(func(ev):   # click outside = close
+		if ev is InputEventMouseButton and ev.pressed:
+			_close_popup())
+	add_child(popup_layer)
+	return popup_layer
+
+func _close_popup() -> void:
+	if popup_layer:
+		popup_layer.queue_free()
+		popup_layer = null
+	popup_view_idx = -1
+
+func _open_item_menu(i: int, at: Vector2) -> void:
+	if page != "gear" or _item_at(i).is_empty():
+		return
+	var layer := _popup_base(0.0)
+	popup_view_idx = i
+	var box := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("#1d1814"); sb.border_color = GOLD; sb.set_border_width_all(2); sb.set_corner_radius_all(5)
+	sb.content_margin_left = 4; sb.content_margin_right = 4; sb.content_margin_top = 4; sb.content_margin_bottom = 4
+	box.add_theme_stylebox_override("panel", sb)
+	var b := Button.new()
+	b.text = "View"; b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(110, 32)
+	b.add_theme_font_override("font", serif_bold); b.add_theme_font_size_override("font_size", 17)
+	b.add_theme_color_override("font_color", Color("#f3e3b0")); b.add_theme_color_override("font_hover_color", GOLD)
+	var bs := StyleBoxFlat.new(); bs.bg_color = Color(0, 0, 0, 0)
+	var bh := StyleBoxFlat.new(); bh.bg_color = Color(1, 1, 1, 0.08)
+	b.add_theme_stylebox_override("normal", bs); b.add_theme_stylebox_override("hover", bh); b.add_theme_stylebox_override("pressed", bh)
+	b.pressed.connect(func():
+		_close_popup()
+		_view_item(i))
+	box.add_child(b)
+	layer.add_child(box)
+	box.position = at - global_position + Vector2(4, 4)
+	_click()
+
+# The item's picture, big, over everything. Click / Esc / E / Tab closes it.
+func _view_item(i: int) -> void:
+	var it := _item_at(i)
+	if it.is_empty():
+		return
+	var layer := _popup_base(0.72)
+	popup_view_idx = -1
+	var vp := get_viewport_rect().size
+	var frame := Panel.new()
+	var fs := StyleBoxFlat.new()
+	fs.bg_color = Color("#1d1814"); fs.border_color = GOLD; fs.set_border_width_all(3); fs.set_corner_radius_all(10)
+	fs.shadow_color = Color(0, 0, 0, 0.6); fs.shadow_size = 20
+	frame.add_theme_stylebox_override("panel", fs)
+	frame.size = Vector2(560, 600)
+	frame.position = (vp - frame.size) / 2.0
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(frame)
+	var tex: Texture2D = lv.item_icon(it["id"])
+	if tex:
+		var t := TextureRect.new()
+		t.texture = tex
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.position = Vector2(24, 24); t.size = Vector2(512, 480)
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.add_child(t)
+	else:
+		var none := _txt("(no picture yet)", Vector2(0, 230), 22, Color(1, 1, 1, 0.5), serif, frame)
+		none.size = Vector2(560, 30); none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var nm := _txt(it["name"], Vector2(0, 514), 26, GOLD, serif_bold, frame)
+	nm.size = Vector2(560, 34); nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var hint := _txt("Click anywhere or press Esc to close", Vector2(0, 554), 14, Color(1, 1, 1, 0.5), serif, frame)
+	hint.size = Vector2(560, 20); hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_click()
 
 func close() -> void:
 	if not is_inside_tree():
