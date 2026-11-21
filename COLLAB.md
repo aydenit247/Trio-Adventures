@@ -9,7 +9,6 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Throne "bones" look like white sticks → real bone shapes · crickets → Ebain's real cricket recording — files: godot/scripts/village.gd, godot/scripts/ambience.gd, new godot/assets/sounds/crickets.ogg — branch: ebain/bones-crickets — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -20,6 +19,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Throne bones look like bones now (were white sticks) · camp crickets are a real recording
 - 2026-11-21 [asar] Fixed the Windows hard freeze during dialogue (Godot TTS deadlock)
 - 2026-11-21 [ebain] Metocy Mart + The Pass are real 3D places now (no painted backdrops), texture sweep, F1 dev/test mode
 - 2026-11-21 [ebain] Automatic Windows builds via GitHub Actions → Releases (`latest-windows`)
@@ -34,10 +34,14 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/village.gd, godot/scripts/ambience.gd, godot/assets/sounds/crickets.ogg (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Throne "bones" were plain white cylinders that read as sticks. village.gd now has `_bone()` (shaft
+  plus knobbed ends, aged texture) and they lie on the ground. Camp crickets: ambience.gd plays
+  `assets/sounds/crickets.ogg` (Ebain's recording, cut to a 61 s seamless loop, low hum filtered) instead of the synth.
+  First real sound file, so `assets/sounds/` is the place for future ones. No shared hot spots touched. Checked dev mode
+  against asar's TTS fix: it only calls `stop_voice()`, no `tts_stop()`.
 - 2026-11-21 [asar] **Windows hard-freeze fix** (Asar hit it in the bar and elsewhere: box stuck, game needed Task
   Manager). Cause is Godot 4.7's Windows OneCore TTS driver: tts_stop()/interrupt landing just as a line finishes
   makes the MediaEnded callback and the stop close the same MediaPlayer from two threads → deadlock. dialogue.gd now
