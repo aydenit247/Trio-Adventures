@@ -10,9 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Remove Asar's 37 goblin/Chief recordings (Ebain's call: all voices will be AI-generated with the Emberstage
-  studio instead) — files: godot/scripts/voice_lines.gd, godot/assets/voices/goblins/, VOICE_LINES.md, TIPS.md —
-  branch: ebain/remove-recordings — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -20,10 +17,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
 - Character art as it arrives (Gemini) — swap into godot/assets/characters/ with tools/key_chars.py
-- Mattias voice lines (Asar, later)
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Removed Asar's goblin/Chief recordings; all voices will be AI-generated (Emberstage studio)
 - 2026-11-21 [ebain] Bug-fix scan (map edges, controller back in fights, title state, chapter-end autosave) + song-only menu
 - 2026-11-21 [asar] Victory screen redesign + grade system removed
 - 2026-11-21 [ebain] Title screen music: Ebain's "Prophecy of Metocy"
@@ -45,10 +42,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/voice_lines.gd, godot/assets/voices/goblins/, VOICE_LINES.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **@asar: heads-up, Ebain's call.** Ebain decided every voice will be AI-generated with his Emberstage
+  voice studio (https://github.com/aydenit247/Voice-actor-generation, Gemini TTS), including the goblins, Chief and
+  Mattias. So I removed the 37 recordings: `godot/assets/voices/goblins/` is deleted and `LINES` in `voice_lines.gd` is
+  empty (the matching code is unchanged and will be reused for the AI voices). Those lines use the robot TTS until the AI
+  voices go in. Rewrote VOICE_LINES.md (how AI voices get plugged in) and updated TIPS + HANDOFF. Ebain wants Asar to
+  use the studio too.
 - 2026-11-21 [ebain] Fixed Skorn facing the wrong way sideways (Ebain's notes.md): `skorn_side.png` faced left, but the
   game expects every `_side.png` to face **right** (it mirrors for walking left). Mirrored the file and marked it fixed in
   notes.md. New side art must face right too (added to TIPS).

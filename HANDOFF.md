@@ -201,7 +201,8 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
   they're recolored goblin cutouts. Cut new art with `tools/key_chars.py` into `godot/assets/characters/`.
   Wishlist: `godot/ASSETS_NEEDED.md`. Top of the list: a **sleeping giant** (lying down) for the Pass. Right now
   it's his standing art turned on its side.
-- **Voice lines:** 37 goblin + Chief lines recorded by Asar are in (`assets/voices/goblins/`, `voice_lines.gd`).
+- **Voice lines:** all voices will be AI-generated with Ebain's Emberstage studio (see VOICE_LINES.md). Asar's recordings
+  were removed 2026-11-21. Lines without a generated voice use the robot TTS.
   The rest are numbered in `VOICE_LINES.md`; Asar records them by number. Mattias lines may come later.
 - **Pronunciations:** Ebain hasn't answered the pronunciation list (Lykor, Xylo, metocy, Deloye, slang like ts/mf/ngl).
   TTS respellings live in `dialogue.gd`.
