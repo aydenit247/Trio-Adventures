@@ -93,7 +93,12 @@ voices are silent and the screenshots look a bit flatter than the real game.
 Balance sim for combat: `godot --headless --path godot --script res://tools/sim_combat.gd`.
 
 ### Building the game
-- **Windows (the real target):** `godot --headless --path godot --export-release "Windows"
+- **Windows (the real target) builds itself.** `.github/workflows/windows-build.yml` runs on every push to `main`
+  that touches `godot/` (or by hand: GitHub → Actions → "Windows build" → Run workflow). It exports the game and posts
+  **TrioAdventures-Windows.zip** to the Releases page under the `latest-windows` tag:
+  https://github.com/aydenit247/Trio-Adventures/releases/tag/latest-windows — that link always has the newest build,
+  for Ebain and Asar alike. Takes a few minutes after the push. If it fails, check the Actions tab log.
+- **Manual Windows build** (only if you need one in the sandbox): `godot --headless --path godot --export-release "Windows"
   ../build/windows/TrioAdventures.exe` → `TrioAdventures.exe` (engine, never changes) + `TrioAdventures.pck` (the
   game). `build/` is gitignored (too big for git) — zip it and hand it to your person as a file. Updates usually only
   need the new `.pck`. Windows SmartScreen will warn ("More info → Run anyway").

@@ -1,0 +1,90 @@
+# Builds the Windows version of Trio Adventures on every push to main (or by hand from the Actions tab)
+# and posts it to the repo's Releases page as "latest-windows" → TrioAdventures-Windows.zip.
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+    paths: ['godot/**', '.github/workflows/windows-build.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-build
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.2"
+  TAG: latest-windows
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot + Windows export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-windows-templates
+
+      - name: Download Godot + Windows export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          mkdir -p ~/godot-bin && cd ~/godot-bin
+          curl -fsSL -o godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip && rm godot.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot && chmod +x godot
+          curl -fsSL -o templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          dest=~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          mkdir -p "$dest"
+          unzip -q -j templates.tpz templates/windows_release_x86_64.exe templates/windows_debug_x86_64.exe templates/version.txt -d "$dest"
+          rm templates.tpz
+          ls -la "$dest"
+
+      - name: Import assets
+        run: ~/godot-bin/godot --headless --path godot --import || true
+
+      - name: Export Windows build
+        run: |
+          set -euo pipefail
+          mkdir -p build/windows
+          ~/godot-bin/godot --headless --path godot --export-release "Windows" ../build/windows/TrioAdventures.exe
+          ls -la build/windows
+          test -s build/windows/TrioAdventures.exe
+          test -s build/windows/TrioAdventures.pck
+
+      - name: Zip
+        run: cd build/windows && zip -q -9 ../TrioAdventures-Windows.zip TrioAdventures.exe TrioAdventures.pck
+
+      - name: Publish to Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          stamp=$(date -u +'%Y-%m-%d %H:%M UTC')
+          msg=$(git log -1 --pretty=%s)
+          cat > notes.md <<NOTES
+          **Latest automatic Windows build** — ${stamp}, commit ${GITHUB_SHA::7} ("${msg}").
+
+          1. Download **TrioAdventures-Windows.zip** below and unzip it anywhere.
+          2. Run **TrioAdventures.exe** (keep it next to TrioAdventures.pck).
+          3. If Windows SmartScreen warns: **More info → Run anyway**.
+
+          This page updates itself every time new game changes are pushed to main.
+          NOTES
+          git tag -f "$TAG" && git push -f origin "refs/tags/$TAG"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "Trio Adventures — latest Windows build" --notes-file notes.md --latest
+          else
+            gh release create "$TAG" --title "Trio Adventures — latest Windows build" --notes-file notes.md --latest
+          fi
+          gh release upload "$TAG" build/TrioAdventures-Windows.zip --clobber
