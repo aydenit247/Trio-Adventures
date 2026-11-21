@@ -188,18 +188,29 @@ func _draw_gear() -> void:
 		t.texture = load(tex_path)
 		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		t.position = Vector2(8, 6); t.size = Vector2(184, 182)
+		t.position = Vector2(8, 6); t.size = Vector2(184, 216)
 		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		pf.add_child(t)
 	var S: Dictionary = Game.gear_stats(fid)
 	var hp := int(round((P["hp"] + S["hp"]) * (1.0 + 0.1 * (Game.level - 1))))
-	var bits := ["%s %d" % [P.get("hp_label", "HP").get_slice(" (", 0), hp], "SPD %d" % (P["spd"] + S["spd"])]
-	if S["armor"] > 0: bits.append("ARMOR %d" % S["armor"])
-	if S["power"] > 0.0: bits.append("+%d%% DMG" % int(round(S["power"] * 100)))
-	if S["meter"] > 1.0: bits.append("+%d%% Meter" % int(round((S["meter"] - 1.0) * 100)))
-	var st := _txt("  ·  ".join(bits), Vector2(6, 189), 13, Color("#f3e3b0"), serif, pf)
-	st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; st.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; st.custom_minimum_size = Vector2(188, 0); st.size = Vector2(188, 38)
+	# stats panel (right of the shoes/shield): Health blue · Armor white · Speed yellow · Damage red
+	var sp := _framed(Rect2(726, 86, 226, 196), Color(0.16, 0.13, 0.1, 0.9))
+	var head := _txt("STATS", Vector2(0, 8), 18, GOLD, serif_bold, sp)
+	head.size = Vector2(226, 24); head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var rows := [
+		["Health", str(hp), Color("#5ab4ff")],
+		["Armor", str(S["armor"]), Color.WHITE],
+		["Speed", str(P["spd"] + S["spd"]), Color("#ffd84a")],
+		["Damage", "+%d%%" % int(round(S["power"] * 100)), Color("#ff5a4a")],
+	]
+	for k in rows.size():
+		var y := 42 + k * 36
+		var nl := _txt(rows[k][0] + ":", Vector2(18, y), 21, rows[k][2], serif_bold, sp)
+		nl.size = Vector2(120, 28)
+		nl.add_theme_color_override("font_outline_color", Color.BLACK); nl.add_theme_constant_override("outline_size", 4)
+		var vl := _txt(rows[k][1], Vector2(110, y), 21, rows[k][2], serif_bold, sp)
+		vl.size = Vector2(98, 28); vl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		vl.add_theme_color_override("font_outline_color", Color.BLACK); vl.add_theme_constant_override("outline_size", 4)
 	# name plate with arrows
 	var plate := _framed(Rect2(406, 312, 160, 28), Color("#2a2420"))
 	var nm := _txt(P["name"], Vector2(0, 1), 18, GOLD, serif_bold, plate)
@@ -253,8 +264,8 @@ func _draw_gear() -> void:
 	var card := _framed(Rect2(22, 86, 232, 250), Color(0.16, 0.13, 0.1, 0.9))
 	info_name = _txt("", Vector2(12, 10), 18, GOLD, serif_bold, card)
 	info_name.size = Vector2(208, 46); info_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info_lbl = _txt("", Vector2(12, 58), 14, Color("#eadbb8"), serif, card)
-	info_lbl.size = Vector2(208, 112); info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info_lbl = _txt("", Vector2(12, 66), 14, Color("#eadbb8"), serif, card)
+	info_lbl.size = Vector2(208, 104); info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info_hint = _txt("", Vector2(12, 174), 14, Color("#ffd27a"), serif_bold, card)
 	info_hint.size = Vector2(208, 44); info_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var keys := _txt("Q fighter · J quests · Tab close", Vector2(12, 226), 12, Color(1, 1, 1, 0.5), serif, card)
