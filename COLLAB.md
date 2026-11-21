@@ -16,6 +16,10 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
   NOT touching dialogue.gd (asar's) — dev skipping is done in level.gd before steps reach the dialogue box —
   branch: ebain/real-mart-pass-devmode — started 2026-11-21
 
+- [ebain] Automatic Windows builds: GitHub Actions builds the .exe on every push to main and posts it to the
+  repo's Releases page — files: new .github/workflows/windows-build.yml, HANDOFF.md (building section) — branch:
+  ebain/auto-windows-build — started 2026-11-21
+
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -36,6 +40,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] .github/workflows/windows-build.yml (new), HANDOFF.md (building section only)
 - [ebain] godot/scripts/mart.gd, pass.gd, level.gd, game.gd, models.gd, village_buildings.gd, dev_mode.gd (new), new asset folders
 
 ## Log (newest first)
