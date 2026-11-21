@@ -222,10 +222,23 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   leaves calmly. Waking swaps the backdrop to `mountain_path.jpg` and Ebain's awake giant (`giant_angry`, 7 m) stands up.
   Mattias's voice echoes → exit east → "END OF CHAPTER 1" card → back to the camp. Flags: sneakWon, loreWon.
   Test: `PASS_CHOICE=0..4 ... res://pass.tscn -- --shots`.
+- **Combat (Godot, Nov 2026) — Combat 2.0 ported.** `scripts/combat/combat_data.gd` (all numbers/moves/fights/talk/gear),
+  `battle.gd` (pure rules, port of engine.js), `battle_view.gd` (presentation). Ebain's picks: fights happen **right where
+  you are** (party lines up left, enemies right, camera swings to a side angle, menus on top) · **XP + gear** (shared
+  level, +10% HP/dmg per level; Level 3 teaches Belly Bump / Conditioner Mist / Citation Needed; one trinket per fighter,
+  equip with **I**) · **visible roaming enemies** (`spawn_roamers(fight, home, radius)`: wander → notice you (walking is
+  sneakier) → chase → touch = fight) · **recruited allies fight** (Chief Bogdrinker joins as a 4th fighter when
+  goblinAllies) · **losing = funny penalty** (YOU GOT COOKED + sad trombone, then a goblin steals a Beezy / eats a bowl /
+  writes on your forehead; story fights retry, roaming fights wake you at `checkpoint`) · **snappy side fights,
+  cinematic bosses** · **Talk + Run** (Run = d6 4+, side fights only; Talk options per fight: bribe, job offer, roast,
+  refund, compliment, feed the giant, lullaby) · **timed ring kept with an Auto option** (T in battle, or Esc menu).
+  Level API: `await fight(key, { enemies = [units], mods = {} })`. Story fights wired: village E (`goblins`), Mart A/B
+  (`dulbers`, tripping), Pass (`giant`: A tripping, B enraged). First roaming group: Goblin Patrol on the village east road.
+  Esc = pause menu (difficulty, timed hits, voices, party). Balance sim: `godot --headless --path godot --script
+  res://tools/sim_combat.gd`. Fight test: `FIGHT=goblins|dulbers|giant|goblin_patrol [LEVEL=2 ALLIES=1 AUTO_LOSE=1
+  MENUS=1] ... res://village.tscn -- --shots`.
 - **Placeholders:** goblin huts (tinted tent art) and the throne (built from shapes) until Ebain sends art.
-  Mart uses painted backdrops instead of props (edges show from far back). Fights in village E, Mart A/B and the Pass giant
-  are scripted wins until combat is ported.
-  The goblin fight in path E is a placeholder until combat is ported (Combat 2.0 engine → GDScript is the plan).
+  Mart uses painted backdrops instead of props (edges show from far back).
 - **Art pipeline:** props `python3 tools/key_props.py <src> godot/assets/props`; character views
   `python3 tools/key_chars.py <src> godot/assets/characters`. Set `mipmaps/generate=true` in new `.import` files.
 - **Testing here:** Godot binary from GitHub releases; `xvfb-run ... --rendering-method gl_compatibility
@@ -233,6 +246,10 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   `--views` walks 4 directions). Sandbox has no TTS/Forward+.
 
 ## 7. Open items / where we left off
+
+**Big direction (Ebain, Nov 2026):** the camp, Goblin Village, Metocy Mart and the Pass are the MAIN EVENTS. He wants
+lots of stuff in between and optional content: open-world-ish side areas, tents you can go inside (e.g. a goblin who
+tells jokes), random interactive things, roaming enemies, gear to find. Next chapters add more main events.
 
 0. **Friend's voice lines (in progress).** Ebain's friend is recording Metocin Mattias (3 lines) and the goblins (Chief
    Bogdrinker 25, regular goblin 3, crowd 9) as one MP3 with line numbers read out. Plan: split it, pitch-shift / voice-change

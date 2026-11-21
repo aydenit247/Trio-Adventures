@@ -13,6 +13,7 @@ const EXIT_POS := Vector3(14, 0, 0)
 # "enter" → "mattias" done → "giant" (scene) → "after" (walk out) → "end"
 var stage := "enter"
 var giant_awake := false
+var giant_mood := ""
 var giant: Unit
 var mattias: Unit
 var mattias_light: OmniLight3D
@@ -224,6 +225,7 @@ func _on_action(n: String) -> void:
 		"giant_wakes_calm":
 			await _giant_wakes(false)
 		"giant_trip":
+			giant_mood = "tripping"
 			giant.set_meta("tint", Color(1.15, 0.85, 1.25))
 			char_label(giant, "Diddy Chud Giant (Geeked)", 3.5, 7.4, Color("#c79bff"))
 			hop(giant, 0.4)
@@ -237,7 +239,10 @@ func _on_action(n: String) -> void:
 			giant.visible = false
 			giant.remove_meta("goal")
 		"sneak_game":
-			Game.set_flag("sneakWon", await _sneak_game())
+			var won := await _sneak_game()
+			Game.set_flag("sneakWon", won)
+			if not won:
+				giant_mood = "enraged"
 		"steal_bowls":
 			Game.inv["bowl"] += 2
 			ui_sfx.play()
@@ -333,31 +338,14 @@ func _giant_wakes(angry: bool) -> void:
 	await wait(0.9)
 
 func _fight_giant() -> void:
-	# Real turn-based combat comes to Godot next; for now the party wins, in style.
-	dialogue.hide_box()
-	var ban := _label("BOSS: DIDDY CHUD GIANT", Vector2.ZERO, 54, Color("#ff6a4a"), 10)
-	ban.anchor_left = 0.5; ban.anchor_right = 0.5; ban.anchor_top = 0.25
-	ban.offset_left = -560; ban.offset_right = 560
-	ban.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hud.add_child(ban)
-	shake = 0.6
-	for u in party + allies:
-		var home := u.global_position
-		await walk_to(u, GIANT_STAND + Vector3(rng.randf_range(-1.5, 1.5), 0, 1.4), 2.0, 1.3)
-		_sfx(Util.noise_burst(110, 0.6, 1.0), -2.0).play()
-		shake = 0.35
-		hop(giant, 0.3)
-		u.set_meta("goal", home)
-		u.set_meta("goal_speed", 1.5)
-	knock(giant, 70.0, 0.6)
-	shake = 1.0
-	show_toast("(Real combat comes to Godot next. The party wins for now.)", 2.2)
-	await wait(2.2)
-	for u in party + allies:
-		u.remove_meta("goal")
-	unknock(giant)
-	ban.queue_free()
-	dialogue.show_box()
+	# A: he's tripping on the midtocy · B: you woke him up mid-sneak, he's ENRAGED · C/D: just disturbed
+	var mods := {}
+	if giant_mood == "tripping":
+		mods["enemy_tripping"] = true
+	elif giant_mood == "enraged":
+		mods["enraged"] = true
+	await fight("giant", { "enemies": [giant], "mods": mods })
+	giant.set_meta("tint", Color.WHITE)
 
 func _leave() -> void:
 	stage = "after"

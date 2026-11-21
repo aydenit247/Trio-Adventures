@@ -400,30 +400,14 @@ func _transform() -> void:
 	whoosh_sfx.pitch_scale = 1.0
 
 func _fight_dulbers() -> void:
-	# Real turn-based combat comes to Godot next; for now the trio wins, in style.
-	dialogue.hide_box()
-	var ban := _label("THE PARTY vs. DULBERS FRINT", Vector2.ZERO, 50, Color("#ff6a4a"), 10)
-	ban.anchor_left = 0.5; ban.anchor_right = 0.5; ban.anchor_top = 0.3
-	ban.offset_left = -560; ban.offset_right = 560
-	ban.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hud.add_child(ban)
-	shake = 0.4
-	for u in party + allies:
-		var home := u.global_position
-		await walk_to(u, dulbers.global_position + Vector3(rng.randf_range(-1.2, 1.2), 0, 1.0), 2.0, 1.2)
-		_sfx(Util.noise_burst(90, 0.6, 1.0), -2.0).play()
-		shake = 0.25
-		hop(dulbers, 0.3)
-		u.set_meta("goal", home)
-		u.set_meta("goal_speed", 1.5)
-	knock(dulbers, -75.0, 0.4)
-	show_toast("(Real combat comes to Godot next. The trio wins for now.)", 2.2)
-	await wait(2.0)
-	for u in party + allies:
-		u.remove_meta("goal")
-	unknock(dulbers)
-	ban.queue_free()
-	dialogue.show_box()
+	# Whoever took the midtocy fights tripping (path A: everyone, path B: just Skorn)
+	var all_trip := true
+	for u in party:
+		if not u.has_meta("tripping"):
+			all_trip = false
+	var mods := { "tripping": "party" if all_trip else "skorn" }
+	await fight("dulbers", { "enemies": [dulbers], "mods": mods })
+	dulbers.set_pose(load("res://assets/characters/dulbers_demon.png"), 2.7)
 
 func _kicked_out() -> void:
 	Game.set_flag("dulbersEscaped")

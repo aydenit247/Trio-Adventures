@@ -21,6 +21,8 @@ var trail: Array[Vector3] = []  # leader's breadcrumb trail (newest first)
 # Directional views: "front" (toward camera), "back" (walking away), "side" (art faces right; flipped for left)
 var views := {}
 var view := "front"
+var base_tex: Texture2D
+var base_h := 1.9
 
 var _bob := 0.0
 var _idle := randf() * TAU
@@ -34,6 +36,8 @@ func setup(_id: String, _name: String, tex: Texture2D, h: float) -> void:
 	collision_layer = 2   # units don't push each other
 	collision_mask = 1    # but do bump into the world
 
+	base_tex = tex
+	base_h = h
 	views["front"] = tex
 	for v in ["back", "side"]:
 		var p := "res://assets/characters/%s_%s.png" % [_id, v]
@@ -119,6 +123,17 @@ func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> voi
 func set_pose(tex: Texture2D, h: float) -> void:
 	views = { "front": tex }
 	height_m = h
+	view = ""
+	set_view("front")
+
+# Back to the normal standing art (and walking views) after poses
+func restore_views() -> void:
+	views = { "front": base_tex }
+	for v in ["back", "side"]:
+		var p := "res://assets/characters/%s_%s.png" % [id, v]
+		if ResourceLoader.exists(p):
+			views[v] = load(p)
+	height_m = base_h
 	view = ""
 	set_view("front")
 

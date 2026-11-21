@@ -16,6 +16,7 @@ const GOBLIN_TAGS := ["(Unemployed)", "(Also Unemployed)", "(Between Jobs)", "(L
 # "enter" → "ambushed" (follow the chief) → "throne" (scene) → "after" (free roam, exit east) → "end"
 var stage := "enter"
 var goblins: Array[Unit] = []
+var roam_group := {}
 var chief: Unit
 var fire_light: OmniLight3D
 var noise := FastNoiseLite.new()
@@ -590,33 +591,11 @@ func _skorn_slap() -> void:
 	await wait(0.2)
 
 func _fight_goblins() -> void:
-	# Real turn-based combat comes to Godot next; for now Skorn just wins, in style.
-	var ban := _label("SKORN vs. THE GOBLINS", Vector2.ZERO, 54, Color("#ff6a4a"), 10)
-	ban.anchor_left = 0.5; ban.anchor_right = 0.5; ban.anchor_top = 0.3
-	ban.offset_left = -500; ban.offset_right = 500
-	ban.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hud.add_child(ban)
-	dialogue.hide_box()
-	shake = 0.4
-	var sk := _member("skorn")
-	var fight_tex: Texture2D = load("res://assets/characters/goblin_fight.png")
-	for i in 3:
-		var g := goblins[i]
-		g.set_pose(fight_tex, 1.25)
-		await walk_to(sk, g.global_position + Vector3(-1.0, 0, 0.3), 1.6, 1.5)
-		var p := _sfx(Util.noise_burst(90, 0.6, 1.0), -2.0)
-		p.play()
-		shake = 0.25
-		knock(g, 85.0)
-		await wait(0.45)
-	show_toast("(Real combat comes to Godot next. Skorn wins for now.)", 2.2)
-	await wait(1.8)
-	ban.queue_free()
+	# Skorn vs. 3 goblins, turn-based, right there in front of the throne
+	await fight("goblins", { "enemies": goblins.slice(0, 3) })
 	var kneel: Texture2D = load("res://assets/characters/goblin_kneel.png")
 	for g in goblins:
-		unknock(g)
 		g.set_pose(kneel, 0.75)
-	dialogue.show_box()
 
 func _leave() -> void:
 	stage = "after"
@@ -631,6 +610,10 @@ func _leave() -> void:
 		if g.visible and not Game.flag("skornKing"):
 			g.set_pose(stand, rng.randf_range(1.1, 1.3))
 	objective("Head east to the Metocy Mart.")
+	# optional: a goblin patrol wanders the east road (fight it, sneak past it, or talk your way out)
+	if roam_group.is_empty():
+		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)
+		checkpoint = THRONE_POS + Vector3(0, 0, 4.0)
 
 func _end_card() -> void:
 	await fade_out(1.0)

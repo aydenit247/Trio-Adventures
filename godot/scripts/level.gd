@@ -56,6 +56,7 @@ var leader_lbl: Label
 var leader_por: TextureRect
 var toast: Label
 var objective_lbl: Label
+var help_lbl: Label
 var hud: CanvasLayer
 var shake := 0.0
 var auto_dir := Vector3.ZERO
@@ -77,6 +78,7 @@ func _ready() -> void:
 	_build_party()
 	_build_ui()
 	_after_build()
+	_show_forehead()
 	cam_target = leader.global_position
 	_update_camera(1.0)
 	var args := OS.get_cmdline_user_args()
@@ -84,6 +86,8 @@ func _ready() -> void:
 	dialogue.tts_on = Game.tts_on and not shots_mode
 	if "--views" in args:
 		_views_tour()
+	elif shots_mode and OS.get_environment("FIGHT") != "":
+		_fight_tour(OS.get_environment("FIGHT"))
 	elif shots_mode:
 		_shot_tour()
 	else:
@@ -122,6 +126,8 @@ func _setup_input() -> void:
 	_key("cam_left", [KEY_LEFT])
 	_key("cam_right", [KEY_RIGHT])
 	_key("tts", [KEY_V])
+	_key("party_menu", [KEY_I])
+	_key("pause", [KEY_ESCAPE])
 
 func _unhandled_input(ev: InputEvent) -> void:
 	if ev is InputEventMouseButton and ev.pressed:
@@ -434,11 +440,11 @@ func _build_ui() -> void:
 	box.add_child(leader_por)
 	set_leader(leader)
 
-	var help := _label("WASD walk · Shift run · E talk · Tab switch character · ←/→ or right-drag camera · wheel zoom · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
-	help.anchor_top = 1.0; help.anchor_bottom = 1.0; help.anchor_right = 1.0
-	help.offset_top = -30; help.offset_left = 20; help.offset_right = -20
-	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hud.add_child(help)
+	help_lbl = _label("WASD walk · Shift run · E talk · Tab switch · ←/→ camera · I party · Esc menu · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
+	help_lbl.anchor_top = 1.0; help_lbl.anchor_bottom = 1.0; help_lbl.anchor_right = 1.0
+	help_lbl.offset_top = -30; help_lbl.offset_left = 20; help_lbl.offset_right = -20
+	help_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hud.add_child(help_lbl)
 
 	toast = _label("", Vector2.ZERO, 22, Color.WHITE, 6)
 	toast.anchor_left = 0.5; toast.anchor_right = 0.5
@@ -617,6 +623,7 @@ func _process(delta: float) -> void:
 			var lc := light_at(c[1] + Vector3(0, 0.5, 0))
 			c[0].albedo_color = Color(min(lc.r, 0.92), min(lc.g, 0.8), min(lc.b, 0.78)) * 0.88 * c[3]
 
+	_roam_process(delta)
 	_level_process(delta)
 
 	interact_cooldown = max(0.0, interact_cooldown - delta)
@@ -641,6 +648,12 @@ func _process(delta: float) -> void:
 			set_leader(party[(i + 1) % party.size()])
 			ui_sfx.play()
 			show_toast("Now controlling %s" % leader.display_name)
+	if Input.is_action_just_pressed("party_menu"):
+		open_party_menu()
+		return
+	if Input.is_action_just_pressed("pause"):
+		open_pause_menu()
+		return
 	if Input.is_action_just_pressed("tts"):
 		dialogue.tts_on = not dialogue.tts_on
 		Game.tts_on = dialogue.tts_on
@@ -787,6 +800,63 @@ func place_party(p: Vector3, facing := Vector3(0, 0, 1)) -> void:
 	set_leader(party[0])
 	cam_target = p
 
+# Test a fight here: FIGHT=goblins|dulbers|giant|goblin_patrol (roaming) ... -- --shots
+func _fight_tour(key: String) -> void:
+	fade.color.a = 0.0
+	busy = false
+	if OS.get_environment("ALLIES") != "":
+		Game.set_flag("goblinAllies")
+		var c := spawn_npc("chief", "Chief Bogdrinker", "goblin_chief", 1.45, leader.global_position + Vector3(1.5, 0, 1.5))
+		c.set_meta("follow", true)
+	Game.level = int(OS.get_environment("LEVEL")) if OS.get_environment("LEVEL") != "" else 1
+	Game.inv = { "beer": 2, "bowl": 1 }
+	await wait(1.0)
+	var shooting := [true]
+	var shooter := func():
+		var i := 0
+		while shooting[0]:
+			await wait(float(OS.get_environment("SHOT_EVERY")) if OS.get_environment("SHOT_EVERY") != "" else 4.0)
+			if shooting[0]:
+				await shot("f_%s_%02d" % [key, i])
+				i += 1
+	shooter.call()
+	var res := ""
+	if key == "goblin_patrol":
+		var g := spawn_roamers(key, leader.global_position + Vector3(0, 0, -7), 2.0)
+		await wait(2.0)
+		leader.set_meta("goal", g["home"])
+		leader.set_meta("goal_speed", 0.5)
+		while not g["done"] and not g["busy"]:
+			await wait(0.5)
+		leader.remove_meta("goal")
+		while g["busy"]:
+			await wait(0.5)
+		res = "roam done=%s" % g["done"]
+		await wait(4.0)
+		await shot("f_after_penalty")
+	else:
+		var mods := {}
+		if OS.get_environment("MODS") != "":
+			mods = JSON.parse_string(OS.get_environment("MODS"))
+		res = await fight(key, { "mods": mods })
+	shooting[0] = false
+	if OS.get_environment("MENUS") != "":
+		Game.give_gear("vol9")
+		Game.equipped["xylo"] = "vol9"
+		open_party_menu()
+		await wait(1.0)
+		await shot("menu_party")
+		_close_menu()
+		await wait(0.3)
+		open_pause_menu()
+		await wait(1.0)
+		await shot("menu_pause")
+		_close_menu()
+	print("FIGHT RESULT: ", res, "  level ", Game.level, " xp ", Game.xp, " gear ", Game.gear_owned)
+	await wait(1.5)
+	await shot("f_%s_zz_after" % key)
+	get_tree().quit()
+
 func _views_tour() -> void:
 	fade.color.a = 0.0
 	place_party(party[0].global_position)
@@ -797,6 +867,397 @@ func _views_tour() -> void:
 		await wait(2.4)
 		await shot("view_" + d[0])
 	get_tree().quit()
+
+# ================================================================ COMBAT
+# Start a turn-based fight right where everyone is standing. Awaitable.
+#   opts: enemies = [Unit] already in the world (else they're spawned) · center = Vector3 · mods = {}
+#         party = [ids] to override who fights
+# Story fights can't be lost for good: you get the funny penalty and try again.
+# Returns "win" / "talked" / "fled" / "lose" (lose only for roaming fights).
+const CombatD = preload("res://scripts/combat/combat_data.gd")
+var roamers: Array = []
+var checkpoint = null           # where you wake up after losing a roaming fight (default: area start)
+var _forehead_lbl: Label3D
+
+func fight(key: String, opts := {}) -> String:
+	var def: Dictionary = CombatD.FIGHTS[key]
+	var story: bool = def.get("story", false)
+	while true:
+		var units := fight_party(key, opts)
+		var view := BattleView.new()
+		add_child(view)
+		var res: String = await view.run(key, { "party": units, "enemies": opts.get("enemies", []), "center": opts.get("center", null), "mods": opts.get("mods", {}) })
+		if res == "win" and Game.forehead != "":
+			Game.forehead = ""
+			_show_forehead()
+			show_toast("The forehead writing finally washed off.", 2.0)
+		if res != "lose":
+			return res
+		await _defeat(story)
+		if not story:
+			return "lose"
+	return "win"
+
+# Who fights: the story fight's lineup if it has one, else everyone in the party (+ the Chief if he's with you)
+func fight_party(key: String, opts := {}) -> Array:
+	var def: Dictionary = CombatD.FIGHTS[key]
+	var ids: Array = opts.get("party", def.get("party", []))
+	var out := []
+	if ids.is_empty():
+		out = party.duplicate()
+	else:
+		for id in ids:
+			for u in party + npcs:
+				if u.id == id and u.visible and not out.has(u):
+					out.append(u)
+					break
+	if out.is_empty():
+		out = [leader]
+	if Game.flag("goblinAllies") and ids.size() != 1:
+		for u in npcs:
+			if u.id == "chief" and u.visible and u.global_position.distance_to(out[0].global_position) < 25.0:
+				out.append(u)
+				break
+	return out
+
+func _defeat(story: bool) -> void:
+	busy = true
+	var ui := ColorRect.new()
+	ui.color = Color(0.25, 0, 0, 0)
+	ui.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hud.add_child(ui)
+	create_tween().tween_property(ui, "color:a", 0.7, 0.6)
+	var l := _label("YOU GOT COOKED", Vector2.ZERO, 72, Color("#ff6a5a"), 14)
+	l.set_anchors_preset(Control.PRESET_FULL_RECT)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hud.add_child(l)
+	for i in 4:   # sad trombone
+		var p := _sfx(Util.chime([392.0, 370.0, 349.0, 330.0][i], 380 if i < 3 else 1100, 0.35), -2.0)
+		p.play()
+		await wait(0.42)
+		p.queue_free()
+	await wait(1.0)
+	await fade_out(0.8)
+	ui.queue_free()
+	l.queue_free()
+	# the penalty
+	var opts := []
+	for P in CombatD.PENALTIES:
+		if P.has("lose") and Game.inv[P["lose"]] <= 0:
+			continue
+		opts.append(P)
+	var P: Dictionary = opts[rng.randi() % opts.size()]
+	var msg := ""
+	if P.has("lose"):
+		Game.inv[P["lose"]] -= 1
+		msg = P["text"]
+	else:
+		var words: Array = P["forehead"]
+		Game.forehead = words[rng.randi() % words.size()]
+		msg = P["text"] % [Game.forehead, leader.display_name] if P["text"].count("%s") == 2 else P["text"] % leader.display_name
+	if not story:
+		var wake: Vector3 = checkpoint if checkpoint != null else (party_start[0] if not party_start.is_empty() else leader.global_position)
+		place_party(wake, Vector3(0, 0, -1))
+	_show_forehead()
+	fade_in(1.0)
+	show_toast(msg, 3.2)
+	await wait(1.2)
+	if story:
+		show_toast("…and you wake up right before the fight. Again.", 2.5)
+		await wait(1.6)
+	busy = false
+
+func _show_forehead() -> void:
+	if _forehead_lbl:
+		_forehead_lbl.queue_free()
+		_forehead_lbl = null
+	if Game.forehead == "" or leader == null:
+		return
+	_forehead_lbl = Label3D.new()
+	_forehead_lbl.text = "(Forehead: \"%s\")" % Game.forehead
+	_forehead_lbl.font_size = 30
+	_forehead_lbl.pixel_size = 0.006
+	_forehead_lbl.outline_size = 8
+	_forehead_lbl.no_depth_test = true
+	_forehead_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_forehead_lbl.modulate = Color("#ff9a8a")
+	party[0].add_child(_forehead_lbl)
+	_forehead_lbl.position = Vector3(0, party[0].height_m + 0.25, 0)
+
+# ---------------------------------------------------------------- roaming enemies
+# A group you can see wandering. Get close and they chase you (walking = harder to notice);
+# touch them and the fight starts right there. Run, Talk or win to deal with them.
+func spawn_roamers(fight_key: String, home: Vector3, radius := 4.0) -> Dictionary:
+	var def: Dictionary = CombatD.FIGHTS[fight_key]
+	var g := { "key": fight_key, "home": home, "radius": radius, "units": [], "state": "wander", "cool": 0.0, "done": false, "busy": false }
+	for i in def["enemies"].size():
+		var E: Dictionary = def["enemies"][i]
+		var p := home + Vector3(rng.randf_range(-radius, radius) * 0.6, 0, rng.randf_range(-radius, radius) * 0.6)
+		var u := spawn_npc("roam_%s_%d" % [fight_key, i], "%s %s" % [E["name"], E.get("tag", "")], E.get("roam_tex", "goblin"), E["h"], p)
+		u.walk_speed = 2.2
+		u.run_speed = 4.6
+		var tag := Label3D.new()
+		tag.text = u.display_name
+		tag.font_size = 34
+		tag.pixel_size = 0.008
+		tag.outline_size = 8
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.modulate = Color("#ffcf9a")
+		u.add_child(tag)
+		tag.position = Vector3(0, E["h"] + 0.3, 0)
+		u.set_meta("tag", tag)
+		g["units"].append(u)
+	roamers.append(g)
+	return g
+
+func _roam_process(delta: float) -> void:
+	for g in roamers:
+		if g["done"] or g["busy"]:
+			continue
+		g["cool"] = max(0.0, g["cool"] - delta)
+		var units: Array = g["units"]
+		if busy:
+			for u in units:
+				u.remove_meta("goal")
+			continue
+		var lp := leader.global_position
+		var nearest := 999.0
+		for u in units:
+			nearest = min(nearest, u.global_position.distance_to(lp))
+		var running := Input.is_action_pressed("run") and leader.moving
+		var notice := 5.5 if running else 3.2
+		match g["state"]:
+			"wander":
+				for u in units:
+					if not u.has_meta("goal") or rng.randf() < delta * 0.25:
+						u.set_meta("goal", g["home"] + Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)) * g["radius"])
+						u.set_meta("goal_speed", 0.45)
+				if nearest < notice and g["cool"] <= 0.0:
+					g["state"] = "chase"
+					for u in units:
+						char_label(u, "!", 1.2, u.height_m + 0.75, Color("#ff5a3a"))
+					show_toast("%s spotted you!" % CombatD.FIGHTS[g["key"]]["title"])
+			"chase":
+				for u in units:
+					u.set_meta("goal", lp)
+					u.set_meta("goal_speed", 1.0)
+				if nearest > 12.0:
+					g["state"] = "wander"
+					show_toast("They lost you.")
+				elif nearest < 1.5:
+					_roam_fight(g)
+
+func _roam_fight(g: Dictionary) -> void:
+	g["busy"] = true
+	for u in g["units"]:
+		u.remove_meta("goal")
+		if u.has_meta("tag"): u.get_meta("tag").visible = false
+	var res := await fight(g["key"], { "enemies": g["units"] })
+	g["busy"] = false
+	for u in g["units"]:
+		if u.has_meta("tag"): u.get_meta("tag").visible = true
+	match res:
+		"win":
+			g["done"] = true
+			for u in g["units"]:
+				knock(u, 80.0, 0.3)
+			await wait(1.5)
+			for u in g["units"]:
+				_poof_out(u)
+		"talked":
+			g["done"] = true
+			for u in g["units"]:
+				u.set_meta("goal", g["home"] + Vector3(30, 0, rng.randf_range(-6, 6)))
+				u.set_meta("goal_speed", 1.0)
+			await wait(4.0)
+			for u in g["units"]:
+				_poof_out(u)
+		"fled", "lose":
+			g["state"] = "wander"
+			g["cool"] = 6.0
+			for u in g["units"]:
+				u.global_position = g["home"] + Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)) * g["radius"] * 0.5
+			if res == "fled":
+				var away: Vector3 = (leader.global_position - g["home"]).normalized()
+				away.y = 0.0
+				place_party(leader.global_position + away * 4.0, away)
+
+func _poof_out(u: Unit) -> void:
+	if not is_instance_valid(u):
+		return
+	var f := Fx.poof(Color(0.8, 0.75, 0.7))
+	f.position = u.global_position + Vector3(0, 0.5, 0)
+	add_child(f)
+	f.emitting = true
+	get_tree().create_timer(1.5).timeout.connect(f.queue_free)
+	npcs.erase(u)
+	u.queue_free()
+
+# ---------------------------------------------------------------- menus (Esc / I)
+var _menu_root: Control
+var _menu_rows: Array = []
+var _menu_sel := 0
+var _menu_kind := ""
+
+func _menu_panel(title: String, w := 720.0, h := 460.0) -> VBoxContainer:
+	_menu_root = Control.new()
+	_menu_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hud.add_child(_menu_root)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_menu_root.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.anchor_left = 0.5; panel.anchor_right = 0.5; panel.anchor_top = 0.5; panel.anchor_bottom = 0.5
+	panel.offset_left = -w / 2; panel.offset_right = w / 2; panel.offset_top = -h / 2; panel.offset_bottom = h / 2
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.045, 0.11, 0.96)
+	sb.border_color = Color("#e8b923")
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(14)
+	sb.content_margin_left = 26; sb.content_margin_right = 26; sb.content_margin_top = 18; sb.content_margin_bottom = 18
+	panel.add_theme_stylebox_override("panel", sb)
+	_menu_root.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 8)
+	panel.add_child(col)
+	col.add_child(_label(title, Vector2.ZERO, 30, Color("#e8b923"), 6))
+	return col
+
+func _close_menu() -> void:
+	if _menu_root:
+		_menu_root.queue_free()
+		_menu_root = null
+	_menu_kind = ""
+	busy = false
+	freeze_all(false)
+	interact_cooldown = 0.3
+
+# ---- Esc: pause menu
+func open_pause_menu() -> void:
+	busy = true
+	freeze_all(true)
+	_menu_kind = "pause"
+	_menu_sel = 0
+	var col := _menu_panel("PAUSED", 620, 380)
+	_menu_rows = []
+	for i in 5:
+		var l := _label("", Vector2.ZERO, 22, Color.WHITE, 5)
+		col.add_child(l)
+		_menu_rows.append(l)
+	col.add_child(_label("W/S choose · A/D or E change · Esc close", Vector2.ZERO, 14, Color(1, 1, 1, 0.55), 3))
+	_render_pause()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	while _menu_kind == "pause":
+		await get_tree().process_frame
+		if Input.is_action_just_pressed("move_forward"): _menu_sel = (_menu_sel + 4) % 5; _render_pause()
+		elif Input.is_action_just_pressed("move_back"): _menu_sel = (_menu_sel + 1) % 5; _render_pause()
+		elif Input.is_action_just_pressed("move_left"): _pause_change(-1)
+		elif Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("interact"): _pause_change(1)
+		elif Input.is_action_just_pressed("pause"): _close_menu()
+
+func _render_pause() -> void:
+	var txt := [
+		"Resume",
+		"Combat difficulty:  < %s >" % CombatD.DIFFICULTY[Game.difficulty]["label"],
+		"Timed hits:  < %s >" % ("AUTO (they land on their own)" if Game.timed_auto else "MANUAL (press E on the ring)"),
+		"Voices:  < %s >" % ("ON" if dialogue.tts_on else "OFF"),
+		"Party & Gear  (I)",
+	]
+	for i in 5:
+		_menu_rows[i].text = ("> " if i == _menu_sel else "   ") + txt[i]
+		_menu_rows[i].add_theme_color_override("font_color", Color("#e8b923") if i == _menu_sel else Color.WHITE)
+
+func _pause_change(d: int) -> void:
+	ui_sfx.play()
+	match _menu_sel:
+		0: _close_menu(); return
+		1: Game.difficulty = (Game.difficulty + d + 3) % 3
+		2: Game.timed_auto = not Game.timed_auto
+		3:
+			dialogue.tts_on = not dialogue.tts_on
+			Game.tts_on = dialogue.tts_on
+		4:
+			_close_menu()
+			open_party_menu()
+			return
+	_render_pause()
+
+# ---- I: party, level and gear
+func party_ids_for_menu() -> Array:
+	var ids := ["skorn", "lykor", "xylo"]
+	if Game.flag("goblinAllies"):
+		ids.append("chief")
+	return ids
+
+func open_party_menu() -> void:
+	busy = true
+	freeze_all(true)
+	_menu_kind = "party"
+	_menu_sel = 0
+	_build_party_menu()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var ids := party_ids_for_menu()
+	while _menu_kind == "party":
+		await get_tree().process_frame
+		if Input.is_action_just_pressed("move_forward"): _menu_sel = (_menu_sel + ids.size() - 1) % ids.size(); _build_party_menu()
+		elif Input.is_action_just_pressed("move_back"): _menu_sel = (_menu_sel + 1) % ids.size(); _build_party_menu()
+		elif Input.is_action_just_pressed("move_left"): _cycle_gear(ids[_menu_sel], -1)
+		elif Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("interact"): _cycle_gear(ids[_menu_sel], 1)
+		elif Input.is_action_just_pressed("pause") or Input.is_action_just_pressed("party_menu"): _close_menu()
+
+func _build_party_menu() -> void:
+	if _menu_root:
+		_menu_root.queue_free()
+	var lvn := Game.level
+	var col := _menu_panel("PARTY  ·  Level %d  ·  XP %d%s" % [lvn, Game.xp, ("  (%d to next)" % Game.xp_to_next()) if Game.xp_to_next() > 0 else ""], 860, 520)
+	col.add_child(_label("Beezy ×%d  ·  Chipotle Bowl ×%d  ·  Gear found: %d" % [Game.inv["beer"], Game.inv["bowl"], Game.gear_owned.size()], Vector2.ZERO, 17, Color("#8ad8ff"), 4))
+	var ids := party_ids_for_menu()
+	for i in ids.size():
+		var id: String = ids[i]
+		var P: Dictionary = CombatD.PARTY[id]
+		var g: String = Game.equipped.get(id, "")
+		var G: Dictionary = CombatD.GEAR.get(g, {})
+		var hp := int(round((P["hp"] + G.get("hp", 0)) * (1.0 + 0.1 * (lvn - 1))))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		var por := TextureRect.new()
+		por.texture = load("res://assets/portraits/%s.png" % id)
+		por.custom_minimum_size = Vector2(58, 58)
+		por.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		por.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		row.add_child(por)
+		var info := VBoxContainer.new()
+		info.add_theme_constant_override("separation", 0)
+		var sel := i == _menu_sel
+		info.add_child(_label(("> " if sel else "") + "%s   %s %d · Speed %d" % [P["name"], P["hp_label"], hp, P["spd"] + G.get("spd", 0)], Vector2.ZERO, 19, Color("#e8b923") if sel else Color.WHITE, 4))
+		info.add_child(_label("Trinket:  < %s >" % (G["name"] if g != "" else "(nothing)"), Vector2.ZERO, 16, Color("#ffcf9a"), 3))
+		var d := _label(G.get("desc", "Find gear by winning fights and poking around."), Vector2.ZERO, 13, Color(1, 1, 1, 0.65), 3)
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(700, 0)
+		info.add_child(d)
+		row.add_child(info)
+		col.add_child(row)
+	col.add_child(_label("W/S pick who · A/D swap trinket · I or Esc close", Vector2.ZERO, 14, Color(1, 1, 1, 0.55), 3))
+
+func _cycle_gear(id: String, d: int) -> void:
+	var opts: Array = [""] + Game.gear_owned
+	var cur: String = Game.equipped.get(id, "")
+	var i := (opts.find(cur) + d + opts.size()) % opts.size()
+	var nxt: String = opts[i]
+	for other in Game.equipped.keys():   # one trinket, one owner
+		if Game.equipped[other] == nxt and nxt != "":
+			Game.equipped.erase(other)
+	if nxt == "":
+		Game.equipped.erase(id)
+	else:
+		Game.equipped[id] = nxt
+	ui_sfx.play()
+	_build_party_menu()
+
 
 const GROUND_SHADER := """
 shader_type spatial;
