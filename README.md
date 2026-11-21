@@ -4,6 +4,10 @@
 
 All design decisions live in **[DESIGN.md](DESIGN.md)**.
 
+- **Play the game:** https://aydenit247.github.io/Trio-Adventures/
+- **Play the 2.5D test (Godot):** https://aydenit247.github.io/Trio-Adventures/play3d/ — Scene 1 as a walkable camp.
+  Source in [`godot/`](godot/). Rebuild with Godot 4.7: `godot --headless --path godot --export-release "Web" ../play3d/index.html`
+
 ## Play it locally
 
 The game uses JavaScript modules, so it has to be served (double-clicking `index.html` won't work).

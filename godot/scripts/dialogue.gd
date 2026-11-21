@@ -98,7 +98,7 @@ func _build() -> void:
 	col.add_child(choice_box)
 
 	hint = Label.new()
-	hint.text = "E / Space ▶"
+	hint.text = "E / Space  >"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hint.add_theme_font_size_override("font_size", 15)
 	hint.add_theme_color_override("font_color", Color("#a49cc4"))
@@ -183,7 +183,7 @@ func ask(opts: Array) -> int:
 func _render_choices() -> void:
 	for i in _choices.size():
 		var l: Label = _choices[i]["label"]
-		l.text = ("▶  " if i == _sel else "     ") + _choices[i]["text"]
+		l.text = ("> " if i == _sel else "   ") + _choices[i]["text"]
 		l.add_theme_color_override("font_color", GOLD if i == _sel else Color("#f4efff"))
 
 func _clear_choices() -> void:

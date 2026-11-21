@@ -19,6 +19,7 @@ func setup(fire_pos: Vector3) -> void:
 	fire_player.unit_size = 4.0
 	fire_player.max_distance = 40.0
 	fire_player.volume_db = -4.0
+	fire_player.playback_type = AudioServer.PLAYBACK_TYPE_STREAM   # generators need stream mode (web defaults to samples)
 	add_child(fire_player)
 	fire_player.play()
 	_fire_pb = fire_player.get_stream_playback()
@@ -26,6 +27,7 @@ func setup(fire_pos: Vector3) -> void:
 	cricket_player = AudioStreamPlayer.new()
 	cricket_player.stream = _gen()
 	cricket_player.volume_db = -20.0
+	cricket_player.playback_type = AudioServer.PLAYBACK_TYPE_STREAM
 	add_child(cricket_player)
 	cricket_player.play()
 	_crk_pb = cricket_player.get_stream_playback()
