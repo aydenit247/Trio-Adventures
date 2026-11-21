@@ -31,5 +31,8 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Tightened the rules in CLAUDE.md: pull + read COLLAB.md before any code, no claim = no code, a
+  rejected claim push means the other Claude got there first, stale claims (3 days) can be taken with a Log note,
+  and CLAUDE.md only changes when both people agree.
 - 2026-11-21 [ebain] Set up CLAUDE.md + COLLAB.md so two Claudes can work on the repo without stepping on each
   other. Combat lives in `godot/scripts/combat/`; fights are started with `await fight(key, {...})` from any area.
