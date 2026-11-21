@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Skorn faces the wrong way walking sideways (from notes.md) — files: godot/assets/characters/skorn_side.png, notes.md (mark fixed) — branch: ebain/skorn-facing — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -46,6 +45,9 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Fixed Skorn facing the wrong way sideways (Ebain's notes.md): `skorn_side.png` faced left, but the
+  game expects every `_side.png` to face **right** (it mirrors for walking left). Mirrored the file and marked it fixed in
+  notes.md. New side art must face right too (added to TIPS).
 - 2026-11-21 [ebain] **Bug-fix scan merged.** Ran every tour, path and fight headless: no script errors. Found and
   fixed 4 bugs. Exactly what I touched:
   (1) **level.gd**: new `bounds` (Rect2, set per area in `_configure`), `bounds_exempt()` hook, `_keep_in_bounds()`
