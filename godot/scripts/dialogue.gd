@@ -237,8 +237,12 @@ func _portrait(who: String, mood: String) -> Texture2D:
 			return load(p)
 	return null
 
+# NEVER call DisplayServer.tts_stop() or tts_speak(..., interrupt=true) here.
+# Godot 4.7's Windows TTS driver (OneCore) can deadlock when a line is cut off at the same moment it finishes
+# playing on its own: the "playback ended" callback and the stop both close the same MediaPlayer from two threads.
+# The whole game hangs (needs Task Manager). So the robot voice is never interrupted: a line it's still reading
+# just finishes, and the next line's robot voice is skipped. Recorded lines (AudioStreamPlayer) are safe to stop.
 func stop_voice() -> void:
-	DisplayServer.tts_stop()
 	if _vo:
 		_vo.stop()
 
@@ -247,14 +251,13 @@ func _speak(who: String, line: String, thought: bool) -> void:
 		return
 	var rec := VoiceLines.stream_for(line) if not thought else null
 	if rec:
-		DisplayServer.tts_stop()
 		_vo.stream = rec
 		_vo.play()
 		return
 	if _vo:
 		_vo.stop()
-	if _voices.is_empty():
-		return
+	if _voices.is_empty() or DisplayServer.tts_is_speaking():
+		return   # still reading the previous line: skip this one rather than interrupt it (see stop_voice)
 	var clean := line.replace("…", ", ").replace("*", "")
 	for pair in [["\\bshi\\b", "shee"], ["\\bdoe\\b", "dough"], ["\\by'all\\b", "yall"]]:
 		var re := RegEx.create_from_string("(?i)" + pair[0])
@@ -262,4 +265,4 @@ func _speak(who: String, line: String, thought: bool) -> void:
 	if not clean.strip_edges().is_empty() and clean.strip_edges() != ",":
 		var c: Dictionary = CHARS.get(who, CHARS["narrator"])
 		var v := _voices[CHARS.keys().find(who) % _voices.size()]
-		DisplayServer.tts_speak(clean, v, 45 if thought else 80, c["pitch"], c["rate"], 0, true)
+		DisplayServer.tts_speak(clean, v, 45 if thought else 80, c["pitch"], c["rate"], 0, false)
