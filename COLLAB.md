@@ -10,7 +10,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [grok] Diddy Chud Giant voice lines (Ebain asked) — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — branch: grok/giant-voices — started 2026-11-21
+- [ebain] Diddy Chud Giant voice lines (taken over from grok: Grok's sandbox can't push audio files; Ebain asked) +
+  automatic voice imports (drop a studio zip in voice-imports/ on GitHub → Actions imports it) — files:
+  godot/assets/voices/giant/, godot/scripts/voice_index.gd, new .github/workflows/voice-import.yml, new voice-imports/README.md,
+  VOICE_LINES.md, TIPS.md — branch: ebain/voice-auto-import — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -50,6 +53,8 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Took over grok's Diddy Chud Giant voice lines claim (Ebain asked). Grok ran the import but its sandbox
+  can't push binary files (the OGGs). Nothing from it reached GitHub.
 - 2026-11-21 [asar] **Crash + freeze reports merged (Asar's ask).** New `crash_reporter.gd`, started by one line in
   **game.gd** `_ready`. A watchdog thread writes a **Freeze** report after 12 s without a frame (then adds "came back after
   N s" or, after a Task Manager kill, "never came back"). A session marker that a normal quit deletes catches
