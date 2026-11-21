@@ -9,18 +9,18 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Camp real art (Poly Haven rocks, logs, stumps, ferns, camp gear) — files: godot/scripts/camp.gd,
-  godot/assets/models/** (new folders only) — branch: ebain/camp-real-art — started 2026-11-21
+- (nothing right now)
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
-- Real models/textures for the camp, Mart and Pass areas (Poly Haven, see models.gd) + character art as it arrives
+- Real models/textures for the Mart and Pass areas (Poly Haven, see models.gd) + character art as it arrives
 - Friend's voice-line MP3 for Mattias + goblins → replace TTS for those characters
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Camp real art (Poly Haven) + first Windows build
 - 2026-11-21 [ebain] Village real art: Poly Haven models/textures for huts, throne, outhouse, job board, all rooms
 - 2026-11-21 [ebain] Explorable Goblin Village: 6 buildings + 5 side quests (placeholder art; dialogue is all DRAFT)
 - 2026-11-21 [ebain] Scene 4 The Pass ported to Godot (End of Chapter 1)
@@ -29,10 +29,13 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/camp.gd, new folders in godot/assets/models/
+- (none)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Ebain switched the target to a **Windows download**; the web build (play3d/) is frozen, so don't
+  re-export it. Windows export steps are in HANDOFF 6b. Also touched (outside my claim, heads-up): godot/export_presets.cfg
+  (added the Windows preset) and .gitignore (build/). Camp now uses real rocks/logs/ferns/camp gear (camp.gd).
 - 2026-11-21 [ebain] Real environment art is in. New: scripts/models.gd (place glTF models + triplanar texture
   materials), tools/fetch_polyhaven.py, godot/assets/models/ + godot/assets/textures/. Use these for any new
   building/room instead of plain boxes. Keep downloads at 1K (shrink small props to 512) — the web build is the

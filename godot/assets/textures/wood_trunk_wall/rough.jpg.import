@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d0gpex08u8cds"
-path="res://.godot/imported/rough.jpg-f68e9d4815e48296c500374be663494d.ctex"
+path.s3tc="res://.godot/imported/rough.jpg-f68e9d4815e48296c500374be663494d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/wood_trunk_wall/rough.jpg"
-dest_files=["res://.godot/imported/rough.jpg-f68e9d4815e48296c500374be663494d.ctex"]
+dest_files=["res://.godot/imported/rough.jpg-f68e9d4815e48296c500374be663494d.s3tc.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

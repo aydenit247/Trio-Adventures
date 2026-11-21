@@ -9,7 +9,7 @@ const GOBLIN_HOME := Vector3(9, 0, -6)
 const EXIT_POS := Vector3(0, 0, -25)
 const SKORN_TENT := Vector3(-5.4, 0, -3.6)
 const LYKOR_TENT := Vector3(5.6, 0, -3.9)
-const LANTERN := Vector3(4.9, 1.3, -3.0)
+const LANTERN := Vector3(3.3, 0.75, -1.9)   # the lantern on the crate by Lykor's tent
 
 # Scene 1 progress: "start" (no fire) → "has_map" (carrying the paper) → "lit" (free roam)
 var stage := "start"
@@ -84,8 +84,27 @@ func _build_forest() -> void:
 		var p := Vector3(cos(a) * r, 0, sin(a) * r)
 		if abs(p.x) < 3.0 and p.z < -6.0 and p.z > -30.0:
 			continue
-		card("rock_%d" % [1, 2, 4][rng.randi() % 3], rng.randf_range(1.2, 2.6), p, rng.randf() < 0.5, true, 0.45)
-	card("rock_3", 2.4, Vector3(-2.6, 0, -15.0), false, false, 0.45)
+		Models.place(self, "boulder_01", p + Vector3(0, -0.1, 0), rng.randf() * TAU, rng.randf_range(0.7, 1.5), true)
+	Models.place(self, "boulder_01", Vector3(-2.8, -0.1, -15.0), 0.6, 1.6, true)
+	# big mossy rock clusters at the edge of the clearing
+	Models.place(self, "rock_moss_set_01", Vector3(-13.5, 0, -11.0), 0.4, 0.85)
+	Models.place(self, "rock_moss_set_02", Vector3(14.0, 0, 7.5), 2.2, 0.85)
+	Models.place(self, "rock_moss_set_02", Vector3(-12.0, 0, 11.5), 4.0, 0.7)
+	# ferns + fallen branches on the ground
+	for k in 18:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(6.8, 14.0)
+		var p := Vector3(cos(a) * r, 0, sin(a) * r)
+		if abs(p.x) < 2.8 and p.z < -5.0:
+			continue
+		Models.place(self, "fern_02", p, rng.randf() * TAU, rng.randf_range(0.7, 1.2))
+	for k in 6:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(5.0, 11.0)
+		var p := Vector3(cos(a) * r, 0, sin(a) * r)
+		if abs(p.x) < 2.8 and p.z < -5.0:
+			continue
+		Models.place(self, "dry_branches_medium_01", p, rng.randf() * TAU, rng.randf_range(0.8, 1.3))
 	_mountains()
 	_fireflies()
 
@@ -129,8 +148,25 @@ func _build_camp() -> void:
 	lan.position = LANTERN
 	add_child(lan)
 	card("campfire", 1.37, FIRE_POS)
-	card("log", 0.8, Vector3(-3.4, 0, 2.8))
-	Util.static_box(self, Vector3(-3.4, 0.3, 2.8), Vector3(1.6, 0.6, 0.5), 0.9)
+	# camp life — real props (Poly Haven, CC0); the tents, fire, bag and sign stay Ebain's art
+	for lg in [[Vector3(-3.5, 0.0, 2.7), -0.95], [Vector3(3.6, 0.0, 2.9), 0.85]]:          # sitting logs (made chunkier)
+		var log := Models.place(self, "dead_tree_trunk", lg[0], lg[1], 1.0)
+		log.scale = Vector3(0.7, 1.9, 1.9)
+		Util.static_box(self, lg[0] + Vector3(0, 0.25, 0), Vector3(2.1, 0.5, 0.55), lg[1])
+	Models.place(self, "tree_stump_01", Vector3(-7.6, 0, 1.4), 0.3, 1.0, true)
+	var axe := Models.place(self, "wooden_axe", Vector3(-7.45, 0.55, 1.35), 0.0, 1.6)
+	axe.rotation = Vector3(0.0, 0.8, -0.35)                                                 # stuck in the stump
+	for k in 5:                                                                            # firewood pile
+		Models.place(self, "dead_tree_trunk", Vector3(-6.9 + (k % 3) * 0.05, 0.12 + (k / 3) * 0.22, -0.4 + (k % 3) * 0.24), 0.2, 0.32)
+	Models.place(self, "pot_enamel_01", Vector3(1.45, 0, 1.25), 0.4, 1.6)
+	Models.place(self, "wooden_bowl_01", Vector3(1.95, 0, 0.75), 0.0, 1.3)
+	Models.place(self, "wooden_bowl_01", Vector3(-1.9, 0, 1.6), 1.0, 1.3)
+	Models.place(self, "wooden_bucket_02", Vector3(3.9, 0, -1.4), 0.0, 1.0)
+	Models.place(self, "wooden_bucket_01", Vector3(-3.8, 0, -1.5), 0.6, 1.0)
+	Models.place(self, "wooden_crate_02", Vector3(-7.6, 0, -2.6), 1.3, 1.0, true)
+	Models.place(self, "wooden_crate_01", Vector3(-7.6, 0.46, -2.6), 1.1, 0.95)
+	Models.place(self, "wooden_crate_01", Vector3(3.3, 0, -1.9), 0.4, 1.0, true)
+	Models.place(self, "wooden_lantern_01", Vector3(3.3, 0.34, -1.9), 0.0, 1.0)
 	card("bag", 0.55, Vector3(-2.7, 0, -1.6))
 	card("sign", 2.6, Vector3(2.7, 0, -8.4))
 	Util.static_cyl(self, Vector3(2.4, 0, -8.4), 0.2)
@@ -318,6 +354,22 @@ func _begin() -> void:
 
 # ---------------------------------------------------------------- automated screenshots
 func _shot_tour() -> void:
+	if OS.get_environment("LOOK") != "":   # LOOK="x,z,yaw;x,z,yaw" → close-up screenshots of spots (fire lit)
+		fade.color.a = 0.0
+		fire_base = 2.6
+		flames.emitting = true
+		embers.emitting = true
+		var i := 0
+		for spot in OS.get_environment("LOOK").split(";"):
+			var v := spot.split(",")
+			place_party(Vector3(float(v[0]), 0, float(v[1])), Vector3(0, 0, -1))
+			target_yaw = float(v[2])
+			zoom = 6.0
+			await wait(1.5)
+			await shot("look_%d" % i)
+			i += 1
+		get_tree().quit()
+		return
 	busy = true
 	fade.color.a = 0.0
 	objective("Get the fire going.")

@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1b3eq6uj3rll"
-path="res://.godot/imported/albedo.jpg-65d43a0dc40102145be94df5e9763e91.ctex"
+path.s3tc="res://.godot/imported/albedo.jpg-65d43a0dc40102145be94df5e9763e91.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/raw_plank_wall/albedo.jpg"
-dest_files=["res://.godot/imported/albedo.jpg-65d43a0dc40102145be94df5e9763e91.ctex"]
+dest_files=["res://.godot/imported/albedo.jpg-65d43a0dc40102145be94df5e9763e91.s3tc.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.8
 compress/uastc_level=0

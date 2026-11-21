@@ -191,8 +191,14 @@ After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crasho
 ## 6b. Godot version (`godot/`) — THE MAIN GAME NOW
 
 Ebain decided (Nov 2026) to go all-in on Godot; the Phaser version is no longer worked on.
-Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `godot --headless --path godot
---export-release "Web" ../play3d/index.html`, single-threaded export, needs Godot 4.7.2 web templates).
+**Target: Windows download (Ebain, Nov 2026).** The web build at https://aydenit247.github.io/Trio-Adventures/play3d/
+is FROZEN at the Nov 21 village version — don't spend effort on web texture budgets anymore.
+Windows build: `godot --headless --path godot --export-release "Windows" ../build/windows/TrioAdventures.exe` →
+TrioAdventures.exe (the engine, never changes) + TrioAdventures.pck (the game). `build/` is gitignored (too big for
+git); hand the zip to Ebain as a chat file. Updates usually only need the new .pck. Needs the Godot 4.7.2 Windows
+export templates (windows_release_x86_64.exe) in ~/.local/share/godot/export_templates/4.7.2.stable/.
+Desktop renders with Forward+ (SSAO, volumetric fog, glow); the sandbox screenshots use gl_compatibility, so the real
+game looks a bit better than the test shots. New textures: VRAM compressed (compress/mode=2), 1K is fine.
 - **Style: 2.5D.** 3D world; characters AND props are green-screen cutout cards (billboards) from Ebain's Gemini art,
   tinted per frame by `light_at()` (glows registered with `add_glow`). Photo ground textures blended by a shader
   (clearing + path points per area). Directional views: `<id>_back.png` / `<id>_side.png` (side faces right).
@@ -200,7 +206,9 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   interactions, dialogue, HUD, joke labels `char_label()`, `knock()`, `walk_to()`, test helpers).
   Areas extend it: `camp.gd` (Scene 1, night) → `village.gd` (Scene 2, day) → `mart.gd` (Scene 3, evening) → `pass.gd` (Scene 4, lava). `game.gd` autoload = flags + items
   across areas. Dialogue data: `camp_script.gd`, `village_script.gd` (`# Ebain` / `# DRAFT`, same format as web).
-- **Scene 1 (camp):** fire out → bag → map → burn it → rest of Scene 1 → free roam → north path → "next morning" →
+- **Scene 1 (camp):** real props now too — mossy boulders and rock clusters, ferns, fallen branches, chunky sitting
+  logs, a stump with an axe, firewood, pot + bowls by the fire, buckets, crates, a lantern (its light moved onto it).
+  Camp close-ups: `LOOK="x,z,yaw;..." ... res://main.tscn -- --shots`. Fire out → bag → map → burn it → rest of Scene 1 → free roam → north path → "next morning" →
   village. (Mattias moved out of camp; his lines wait for Scene 4.)
 - **Scene 2 (village), as Lykor:** walk in → ambush (labeled goblins) → kneel → chief → follow to throne → crowned →
   choice: A speech (+3 beezy) · B chug-off mash minigame (chugWon / foreheadLoser) · C crown Skorn (skornKing, Skorn
