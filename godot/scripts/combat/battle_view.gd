@@ -1052,6 +1052,16 @@ func _menu(title: String, opts: Array, can_back: bool):
 		bt.pressed.connect(func(): _menu_sel = i; _confirm_menu())
 		menu_list.add_child(bt)
 		_menu_btns.append(bt)
+	# Reserve room for the longest description in this menu, so the box doesn't grow/shrink (and jump under the
+	# mouse) while you move between options.
+	var font: Font = menu_desc.get_theme_font("font")
+	var fsize: int = menu_desc.get_theme_font_size("font_size")
+	var tallest := 0.0
+	for o in _menu_opts:
+		var t: String = o.get("desc", "")
+		if t != "":
+			tallest = maxf(tallest, font.get_multiline_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, 350, fsize).y)
+	menu_desc.custom_minimum_size = Vector2(350, ceilf(tallest) + 12)   # + headroom: the label draws a few px taller than measured
 	_menu_sel = 0
 	while _menu_sel < _menu_opts.size() - 1 and _menu_opts[_menu_sel].get("off", false):
 		_menu_sel += 1
@@ -1077,6 +1087,7 @@ func _render_menu() -> void:
 		bt.add_theme_color_override("font_hover_color", col)
 		bt.add_theme_color_override("font_pressed_color", col)
 	menu_desc.text = _menu_opts[_menu_sel].get("desc", "") if not _menu_opts.is_empty() else ""
+	menu_desc.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 
 func _confirm_menu() -> void:
 	var o: Dictionary = _menu_opts[_menu_sel]
