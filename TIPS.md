@@ -27,6 +27,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] Asar's calls on the inventory: **Tab = inventory, Q = switch character** (was Tab/I), 7 gear slots like his mockup, currency is **gold** (not spoons), no shop yet, window themed as a "Deloye Lore" page "signed xylo".
 - [asar] Asar wants **screenshots while working** on visual stuff, not just at the end.
 
+- [ebain] **Voice packs:** upload the studio zip to `voice-imports/` on GitHub and the "Voice import" Action does
+  everything. Grok's sandbox can't push binary files (audio, images), so don't give Grok asset jobs; Grok can check line
+  text, write manifests and docs.
+
 ## Godot gotchas
 - [ebain] **Lambdas copy local variables when they're created.** `var m; rows = [{"pick": func(): m.close()}]; m = open(...)`
   → `m` is null inside the lambda. Share through a dictionary/array instead: `var box := {}; ... box["m"].close()`.

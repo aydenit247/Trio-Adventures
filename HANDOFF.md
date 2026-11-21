@@ -115,6 +115,9 @@ Balance sim for combat: `godot --headless --path godot --script res://tools/sim_
   **TrioAdventures-Windows.zip** to the Releases page under the `latest-windows` tag:
   https://github.com/aydenit247/Trio-Adventures/releases/tag/latest-windows — that link always has the newest build,
   for Ebain and Asar alike. Takes a few minutes after the push. If it fails, check the Actions tab log.
+- **Voice packs import themselves too.** `.github/workflows/voice-import.yml`: a studio export zip uploaded to
+  `voice-imports/` (either branch) gets imported with `tools/import_voices.py`, committed to `foundation`, mirrored to
+  `main` (an upload commit made straight on `main` is replaced), and then the Windows build is started.
 - **Manual Windows build** (only if you need one in the sandbox): `godot --headless --path godot --export-release "Windows"
   ../build/windows/TrioAdventures.exe` → `TrioAdventures.exe` (engine, never changes) + `TrioAdventures.pck` (the
   game). `build/` is gitignored (too big for git) — zip it and hand it to your person as a file. Updates usually only
