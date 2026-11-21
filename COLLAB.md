@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Title screen music (Ebain's "Prophecy of Metocy") — files: godot/scripts/title.gd, new godot/assets/music/ — branch: ebain/title-music — started 2026-11-21
 - [asar] Victory screen redesign (Asar's sketch): "VICTORY!!!", no grade system, gold line with coin icon, found items as icons with hover info — files: godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd (GRADES/par), godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd — branch: asar/victory-screen — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -24,6 +23,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Title screen music: Ebain's "Prophecy of Metocy"
 - 2026-11-21 [asar] Inventory overhaul (Tab, Deloye Lore parchment window, 7 gear slots) + gold currency
 - 2026-11-21 [ebain] Title screen, save/load (autosave + 3 slots), settings menu, controller + mouse in menus, loading card, app icon, TIPS.md
 - 2026-11-21 [asar] Spoon Mail Armor art + gear pictures in the I menu
@@ -42,11 +42,14 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/title.gd, godot/assets/music/ (new)
 - [asar] godot/scripts/combat/battle_view.gd, combat/battle.gd, combat/combat_data.gd, godot/tools/sim_combat.gd, godot/scripts/inventory_ui.gd (shared coin icon)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Title music in: Ebain's Gregorian-chant track "Prophecy of Metocy" (made in Google Flow Music) →
+  `godot/assets/music/prophecy_of_metocy.ogg`, played by title.gd (loops, fades in, fades out on Continue/New Game, ducks
+  on any other scene change). `assets/music/` is the new home for music. Only title.gd touched, no hot spots. Ebain is
+  making more tracks in Flow (goblin village loop next), so a proper music system for areas is coming.
 - 2026-11-21 [asar] **Inventory overhaul + gold merged** (Asar's mockup). **Keys changed: Tab = inventory, Q = switch
   character** (pad: Back opens it, Y still switches). `open_party_menu()` now opens **InventoryUI** (new
   inventory_ui.gd): smaller parchment window titled "Deloye Lore", signed xylo, with cursive handwriting behind it, over a
