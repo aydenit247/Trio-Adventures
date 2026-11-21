@@ -9,7 +9,10 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- (nothing right now)
+- [ebain] Village real art: Poly Haven (CC0) models + textures → real 3D huts, throne, outhouse, job board, furnished
+  rooms — files: godot/scripts/village_buildings.gd, godot/scripts/village.gd, new godot/scripts/models.gd,
+  new godot/assets/models/**, new godot/assets/textures/**, godot/ASSETS_NEEDED.md, tools/fetch_polyhaven.py (new) —
+  branch: ebain/village-real-art — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -27,7 +30,8 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- (none)
+- [ebain] godot/scripts/village_buildings.gd, village.gd, models.gd (new), assets/models/**, assets/textures/**,
+  ASSETS_NEEDED.md, tools/fetch_polyhaven.py (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
