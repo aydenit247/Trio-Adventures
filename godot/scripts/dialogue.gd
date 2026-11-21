@@ -167,9 +167,14 @@ func say(s: Dictionary) -> void:
 		text_lbl.text = "[i][color=#c9c0e8]%s[/color][/i]" % line
 	else:
 		text_lbl.text = line
-	text_lbl.visible_ratio = 0.0
-	_typing = create_tween()
-	_typing.tween_property(text_lbl, "visible_ratio", 1.0, max(0.25, line.length() * 0.022))
+	var speed: float = Game.TEXT_SPEED_MULT[Game.text_speed]   # Settings → Text speed (0 = instant)
+	if speed <= 0.0:
+		text_lbl.visible_ratio = 1.0
+		_typing = null
+	else:
+		text_lbl.visible_ratio = 0.0
+		_typing = create_tween()
+		_typing.tween_property(text_lbl, "visible_ratio", 1.0, max(0.2, line.length() * 0.022 * speed))
 	_speak(who, line, thought)
 	await _next
 
@@ -202,7 +207,7 @@ func ask(opts: Array) -> int:
 func _render_choices() -> void:
 	for i in _choices.size():
 		var l: Label = _choices[i]["label"]
-		l.text = ("> " if i == _sel else "   ") + _choices[i]["text"]
+		l.text = ("> " if i == _sel else "   ") + "%d.  %s" % [i + 1, _choices[i]["text"]]
 		l.add_theme_color_override("font_color", GOLD if i == _sel else Color("#f4efff"))
 
 func _clear_choices() -> void:
@@ -220,6 +225,12 @@ func _unhandled_input(ev: InputEvent) -> void:
 			_sel = (_sel + 1) % _choices.size(); _render_choices()
 		elif ev.is_action_pressed("interact"):
 			_picked.emit(_sel)
+		elif ev is InputEventKey and ev.pressed and not ev.echo and ev.keycode >= KEY_1 and ev.keycode <= KEY_9:
+			var n: int = ev.keycode - KEY_1   # number keys pick a choice directly
+			if n < _choices.size():
+				_sel = n
+				_render_choices()
+				_picked.emit(n)
 		get_viewport().set_input_as_handled()
 		return
 	if ev.is_action_pressed("interact") or (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT):
@@ -247,10 +258,11 @@ func stop_voice() -> void:
 		_vo.stop()
 
 func _speak(who: String, line: String, thought: bool) -> void:
-	if not tts_on:
+	if not tts_on or Game.voice_vol <= 0.01:
 		return
 	var rec := VoiceLines.stream_for(line) if not thought else null
 	if rec:
+		_vo.volume_db = linear_to_db(Game.voice_vol)
 		_vo.stream = rec
 		_vo.play()
 		return
@@ -265,4 +277,4 @@ func _speak(who: String, line: String, thought: bool) -> void:
 	if not clean.strip_edges().is_empty() and clean.strip_edges() != ",":
 		var c: Dictionary = CHARS.get(who, CHARS["narrator"])
 		var v := _voices[CHARS.keys().find(who) % _voices.size()]
-		DisplayServer.tts_speak(clean, v, 45 if thought else 80, c["pitch"], c["rate"], 0, false)
+		DisplayServer.tts_speak(clean, v, int((45 if thought else 80) * Game.voice_vol), c["pitch"], c["rate"], 0, false)

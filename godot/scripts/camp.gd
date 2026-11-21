@@ -273,6 +273,9 @@ func _on_action(n: String) -> void:
 			switch_enabled = true
 			set_leader(party[0])
 			objective("Explore the camp, then head north up the path. (The goblins are up north.)")
+			Game.set_flag("campLit")
+			if not shots_mode:
+				Game.save_game("auto", self)   # free roam starts: checkpoint
 
 func _paper_tex() -> ImageTexture:
 	var img := Image.create(64, 48, false, Image.FORMAT_RGBA8)
@@ -332,6 +335,41 @@ func _burn_map() -> void:
 	objective("")
 	await wait(1.3)
 	whoosh_sfx.pitch_scale = 1.0
+
+# ---------------------------------------------------------------- title screen + saves
+func _light_fire_now() -> void:
+	fire_base = 3.0
+	flames.emitting = true
+	embers.emitting = true
+	scrap_mesh.visible = true
+	coal_mat.emission_energy_multiplier = 2.5
+	amb.fire_player.volume_db = -4.0
+
+func _title_backdrop() -> void:
+	_light_fire_now()
+	amb.fire_player.volume_db = -8.0
+	party[0].global_position = Vector3(-2.3, 0, 2.6)   # Skorn joins the other two around the fire
+	focus_override = FIRE_POS + Vector3(0.6, 0, 0.4)
+	zoom = 9.5
+	cam_height = 0.42
+	cam_look_h = 1.4
+	yaw = 0.35
+	target_yaw = 0.35
+	_update_camera(1.0)
+
+func can_resume() -> bool:
+	return stage == "lit" and not leaving
+
+func can_resume_saved() -> bool:
+	return Game.flag("campLit")
+
+func _resume(r: Dictionary) -> void:
+	_light_fire_now()
+	stage = "lit"
+	follow_enabled = true
+	switch_enabled = true
+	objective("Explore the camp, then head north up the path. (The goblins are up north.)")
+	await super._resume(r)
 
 func _leave_camp() -> void:
 	await run_dialogue(CampScript.LEAVE)

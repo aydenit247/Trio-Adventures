@@ -73,5 +73,237 @@ func finish_quest(id: String) -> void:
 func quest_state(id: String) -> String:
 	return quests[id]["state"] if quests.has(id) else ""
 
+# ================================================================ scene changes (with a loading card)
+const LOADING_TIPS := [   # DRAFT — Ebain can rewrite these
+	"Tip: Skorn cannot read. Please do not hand Skorn maps.",
+	"Tip: Lykor's conditioner is not a healing item. Do not ask him.",
+	"Tip: Deloye Lore has 9 volumes and roughly zero lore.",
+	"Tip: Goblins are between jobs. All of them. Forever.",
+	"Tip: Beezy heals 30. Chipotle Bowls heal 60. Both are a lifestyle.",
+	"Tip: Dulbers Frint has a NO REFUNDS policy. He means it.",
+	"Tip: If you lose a fight you wake up with something on your forehead.",
+	"Tip: Press F1 if you're a developer. Press nothing if you're a legend.",
+	"Tip: The giant's eyes are open. He is still asleep. Don't think about it.",
+]
+var _load_layer: CanvasLayer
+var _load_bg: ColorRect
+var _load_lbl: Label
+var _load_tip: Label
+var changing := false
+
 func goto(path: String) -> void:
+	if changing:
+		return
+	changing = true
+	_ensure_loading_ui()
+	_load_tip.text = LOADING_TIPS[randi() % LOADING_TIPS.size()]
+	_load_layer.visible = true
+	var tw := create_tween()
+	tw.tween_property(_load_bg, "modulate:a", 1.0, 0.25)
+	await tw.finished
+	await get_tree().process_frame   # let the card draw before the (slow) scene build
+	await get_tree().process_frame
 	get_tree().change_scene_to_file(path)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var tw2 := create_tween()
+	tw2.tween_property(_load_bg, "modulate:a", 0.0, 0.45)
+	await tw2.finished
+	_load_layer.visible = false
+	changing = false
+
+func _ensure_loading_ui() -> void:
+	if _load_layer:
+		return
+	_load_layer = CanvasLayer.new()
+	_load_layer.layer = 100
+	add_child(_load_layer)
+	_load_bg = ColorRect.new()
+	_load_bg.color = Color(0.03, 0.02, 0.06)
+	_load_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_load_bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	_load_bg.modulate.a = 0.0
+	_load_layer.add_child(_load_bg)
+	_load_lbl = Label.new()
+	_load_lbl.text = "Loading…"
+	_load_lbl.add_theme_font_size_override("font_size", 34)
+	_load_lbl.add_theme_color_override("font_color", Color("#e8b923"))
+	_load_lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_load_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_load_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_load_bg.add_child(_load_lbl)
+	_load_tip = Label.new()
+	_load_tip.add_theme_font_size_override("font_size", 20)
+	_load_tip.add_theme_color_override("font_color", Color("#c9c0e8"))
+	_load_tip.anchor_left = 0.0; _load_tip.anchor_right = 1.0; _load_tip.anchor_top = 1.0; _load_tip.anchor_bottom = 1.0
+	_load_tip.offset_top = -90; _load_tip.offset_bottom = -50
+	_load_tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_load_bg.add_child(_load_tip)
+
+# ================================================================ settings (saved to user://settings.cfg)
+const SETTINGS_PATH := "user://settings.cfg"
+const QUALITY := ["Low", "Medium", "High"]
+const TEXT_SPEED := ["Slow", "Normal", "Fast", "Instant"]
+const TEXT_SPEED_MULT := [1.6, 1.0, 0.5, 0.0]
+var master_vol := 0.8             # 0..1
+var voice_vol := 1.0              # 0..1 (TTS + recorded lines)
+var fullscreen := false
+var vsync := true
+var quality := 2                  # 0 Low · 1 Medium · 2 High
+var text_speed := 1               # index into TEXT_SPEED
+var cam_speed := 1.0              # camera turn speed multiplier (0.4 .. 2.0)
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	load_settings()
+	apply_settings()
+
+func _input(ev: InputEvent) -> void:
+	# F11 or Alt+Enter: fullscreen, anywhere
+	if ev is InputEventKey and ev.pressed and not ev.echo:
+		if ev.keycode == KEY_F11 or (ev.keycode == KEY_ENTER and ev.alt_pressed):
+			fullscreen = not fullscreen
+			apply_settings()
+			save_settings()
+			get_viewport().set_input_as_handled()
+
+func load_settings() -> void:
+	var cf := ConfigFile.new()
+	if cf.load(SETTINGS_PATH) != OK:
+		return
+	master_vol = cf.get_value("audio", "master", master_vol)
+	voice_vol = cf.get_value("audio", "voice", voice_vol)
+	tts_on = cf.get_value("audio", "voices_on", tts_on)
+	fullscreen = cf.get_value("display", "fullscreen", fullscreen)
+	vsync = cf.get_value("display", "vsync", vsync)
+	quality = cf.get_value("display", "quality", quality)
+	text_speed = cf.get_value("game", "text_speed", text_speed)
+	cam_speed = cf.get_value("game", "cam_speed", cam_speed)
+	difficulty = cf.get_value("game", "difficulty", difficulty)
+	timed_auto = cf.get_value("game", "timed_auto", timed_auto)
+
+func save_settings() -> void:
+	var cf := ConfigFile.new()
+	cf.set_value("audio", "master", master_vol)
+	cf.set_value("audio", "voice", voice_vol)
+	cf.set_value("audio", "voices_on", tts_on)
+	cf.set_value("display", "fullscreen", fullscreen)
+	cf.set_value("display", "vsync", vsync)
+	cf.set_value("display", "quality", quality)
+	cf.set_value("game", "text_speed", text_speed)
+	cf.set_value("game", "cam_speed", cam_speed)
+	cf.set_value("game", "difficulty", difficulty)
+	cf.set_value("game", "timed_auto", timed_auto)
+	cf.save(SETTINGS_PATH)
+
+# Audio + window. (Graphics quality is applied per area by Level.apply_graphics().)
+func apply_settings() -> void:
+	AudioServer.set_bus_volume_db(0, linear_to_db(max(master_vol, 0.0001)))
+	AudioServer.set_bus_mute(0, master_vol <= 0.001)
+	if DisplayServer.get_name() != "headless":
+		var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+		if DisplayServer.window_get_mode() != want and not (want == DisplayServer.WINDOW_MODE_WINDOWED and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MAXIMIZED):
+			DisplayServer.window_set_mode(want)
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
+	var lv = get_tree().current_scene if get_tree() else null
+	if lv and lv.has_method("apply_graphics"):
+		lv.apply_graphics()
+
+# ================================================================ saves (user://saves/<slot>.sav)
+# A save holds the game state, the area, and — if the area was in free roam — where you stood.
+# Story scenes that can't be resumed halfway save the state from when you ENTERED the area instead,
+# so loading replays that area from its start (never a half-finished cutscene).
+const SAVE_DIR := "user://saves"
+const SLOTS := ["auto", "1", "2", "3"]
+var area_snapshot := {}           # state when the current area began
+var pending_resume := {}          # set by load_game, used once by the next area
+var title_mode := false           # the title screen is showing the camp in the background
+
+func state_dict() -> Dictionary:
+	return {
+		"flags": flags.duplicate(true), "inv": inv.duplicate(true), "xp": xp, "level": level,
+		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(), "used67": used67,
+		"forehead": forehead, "quests": quests.duplicate(true),
+	}
+
+func apply_state(d: Dictionary) -> void:
+	reset()
+	flags = d.get("flags", {}).duplicate(true)
+	inv = d.get("inv", { "beer": 0, "bowl": 0 }).duplicate(true)
+	xp = int(d.get("xp", 0))
+	level = int(d.get("level", 1))
+	gear_owned = d.get("gear_owned", []).duplicate()
+	equipped = d.get("equipped", {}).duplicate()
+	used67 = d.get("used67", false)
+	forehead = d.get("forehead", "")
+	quests = d.get("quests", {}).duplicate(true)
+
+# Called by every area when it starts (not in title/test mode)
+func area_entered(lv: Node) -> void:
+	if pending_resume.is_empty():
+		area_snapshot = state_dict()
+	pending_resume = {}
+	save_game("auto", lv)
+
+func save_game(slot: String, lv: Node) -> bool:
+	var resume := {}
+	if lv.has_method("can_resume") and lv.can_resume():
+		resume = { "pos": lv.leader.global_position, "leader": lv.leader.id, "yaw": lv.target_yaw }
+	var data := {
+		"version": 1,
+		"scene": lv.scene_file_path,
+		"label": lv.subtitle,
+		"time": Time.get_unix_time_from_system(),
+		"level": level,
+		"state": state_dict() if not resume.is_empty() else area_snapshot,
+		"snapshot": area_snapshot,
+		"resume": resume,
+	}
+	DirAccess.make_dir_recursive_absolute(SAVE_DIR)
+	var f := FileAccess.open("%s/%s.sav" % [SAVE_DIR, slot], FileAccess.WRITE)
+	if f == null:
+		return false
+	f.store_var(data)
+	return true
+
+func read_save(slot: String) -> Dictionary:
+	var path := "%s/%s.sav" % [SAVE_DIR, slot]
+	if not FileAccess.file_exists(path):
+		return {}
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return {}
+	var d = f.get_var()
+	return d if d is Dictionary and d.has("scene") else {}
+
+func latest_slot() -> String:
+	var best := ""
+	var best_t := -1.0
+	for s in SLOTS:
+		var d := read_save(s)
+		if not d.is_empty() and float(d["time"]) > best_t:
+			best_t = float(d["time"])
+			best = s
+	return best
+
+func load_game(slot: String) -> bool:
+	var d := read_save(slot)
+	if d.is_empty():
+		return false
+	title_mode = false
+	apply_state(d["state"])
+	area_snapshot = d.get("snapshot", d["state"]).duplicate(true)
+	pending_resume = d.get("resume", {})
+	goto(d["scene"])
+	return true
+
+func new_game() -> void:
+	title_mode = false
+	reset()
+	area_snapshot = {}
+	pending_resume = {}
+	goto("res://main.tscn")
+
+static func save_when(t: float) -> String:
+	var dt := Time.get_datetime_dict_from_unix_time(int(t) + int(Time.get_time_zone_from_system().get("bias", 0)) * 60)
+	return "%d/%d  %d:%02d" % [dt["month"], dt["day"], dt["hour"], dt["minute"]]

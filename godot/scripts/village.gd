@@ -620,10 +620,40 @@ func _leave() -> void:
 		if g.visible and not Game.flag("skornKing"):
 			g.set_pose(stand, rng.randf_range(1.1, 1.3))
 	objective("Explore the village (I = quests) · or head east to the Metocy Mart.")
+	if not Game.flag("villageOpen"):
+		Game.set_flag("villageOpen")
+		if not shots_mode:
+			Game.save_game.call_deferred("auto", self)   # free roam starts: checkpoint
 	# optional: a goblin patrol wanders the east road (fight it, sneak past it, or talk your way out)
 	if roam_group.is_empty():
 		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)
 		checkpoint = THRONE_POS + Vector3(0, 0, 4.0)
+
+# ---------------------------------------------------------------- saves: resume village free roam
+func can_resume() -> bool:
+	return stage == "after" and vb.room == ""
+
+func can_resume_saved() -> bool:
+	return Game.flag("villageOpen")
+
+func _resume(r: Dictionary) -> void:
+	stage = "after"
+	var stand: Texture2D = load("res://assets/characters/goblin.png")
+	if not Game.flag("foreheadLoser"):
+		for i in goblins.size():
+			goblins[i].global_position = THRONE_POS + Vector3(-3.6 + i * 1.6, 0, 3.4 + (i % 2) * 0.8)
+			goblins[i].visible = true
+			goblins[i].set_pose(stand, 1.15)
+		chief.visible = true
+		chief.global_position = THRONE_POS + Vector3(2.4, 0, 1.6)
+		if Game.flag("goblinAllies"):
+			for i in 3:
+				goblins[i].set_meta("follow", true)
+				goblins[i].set_meta("follow_i", i)
+	_leave()
+	if Game.flag("foreheadLoser") and forehead == null:
+		forehead = char_label(leader, "METOCY MART, EAST. LOSER.", -1.0, 2.05, Color("#ff8a6a"))
+	await super._resume(r)
 
 func _end_card() -> void:
 	await fade_out(1.0)

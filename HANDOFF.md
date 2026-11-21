@@ -1,7 +1,8 @@
 # Trio Adventures — Handoff (read this first)
 
 For any Claude starting fresh on this repo — including Ebain's friend's Claude. Read `CLAUDE.md` (the collaboration
-rules) and `COLLAB.md` (the live board) too. `DESIGN.md` has the full story and combat design notes from the early
+rules), `COLLAB.md` (the live board) and **`TIPS.md`** (gotchas, tricks and answers our people already gave; both
+Claudes add to it) too. `DESIGN.md` has the full story and combat design notes from the early
 version; this file is the up-to-date picture.
 
 **TL;DR:** a goofy, Baldur's Gate 3–toned 2.5D RPG made in **Godot 4.7.2** (`godot/`). Chapter 1 is playable start
@@ -137,8 +138,10 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 
 | File | What it is |
 |---|---|
-| `project.godot` | autoload `Game`, main scene `main.tscn` (camp), Forward+, 1280×720 |
-| `scripts/game.gd` | **Game** autoload: story `flags`, `inv`, XP/level, gear, `quests`, settings, `goto(scene)` |
+| `project.godot` | autoload `Game`, main scene **`title.tscn`** (title screen), Forward+, 1280×720, icon + boot splash (`icon.png`, `icon.ico`, `splash.png`) |
+| `scripts/title.gd` + `title.tscn` | title screen: the camp runs in "title mode" behind the logo (fire lit, slow camera orbit). Continue / New Game / Load / Settings / Quit |
+| `scripts/menu_ui.gd` | **MenuUI**: every menu (title, pause, settings, save/load, yes/no). Keyboard, controller and mouse. `MenuUI.open(parent, title, rows, opts)`, `MenuUI.confirm()`, `open_settings()`, `open_slots()` |
+| `scripts/game.gd` | **Game** autoload: story `flags`, `inv`, XP/level, gear, `quests`; `goto(scene)` (shows a loading card with a joke tip); **settings** (saved in `user://settings.cfg`; F11/Alt+Enter fullscreen); **saves** (`user://saves/<auto/1/2/3>.sav`: `save_game`, `load_game`, `latest_slot`, `new_game`) |
 | `scripts/level.gd` | **Level** base class every area extends: environment (night/day/lava), ground shader, `card()`, `backdrop()`, party + NPCs (`spawn_npc`, `add_to_party`, `walk_to`, `hop`, `knock`), camera (`cam_locked`, `zoom`, `cam_height`, `cam_look_h`, `focus_override`), interactions, `run_dialogue()`, HUD (`objective`, `show_toast`, `char_label`), `fight()`, roaming enemies (`spawn_roamers`), the defeat penalty, Esc pause menu + I party/gear/quest menu, test helpers. Hooks: `_configure`, `_build_level`, `_after_build`, `_begin`, `_level_interactables`, `_on_action`, `_level_process`, `_shot_tour` |
 | `scripts/unit.gd` | **Unit**: a character (CharacterBody3D + billboard Sprite3D), views, `set_pose`, `restore_views` |
 | `scripts/dialogue.gd` | **Dialogue** box + TTS. Steps: `{who, mood, line, thought, name?, portrait?}`, `{do: "action"}` → `_on_action`, `{choice: [{text, if?, steps}]}`, `{if: flag, steps}`, `{if_not: flag, steps}`. `CHARS` = speakers, voices, pronunciation fixes |
@@ -158,6 +161,17 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `assets/models/<id>/`, `assets/textures/<id>/` | Poly Haven models (glTF) and textures (albedo/normal/rough.jpg) |
 | `../tools/fetch_polyhaven.py` | `python3 tools/fetch_polyhaven.py model|texture <id>` downloads into the project |
 | `../tools/key_chars.py`, `key_props.py` | green-screen cutters for Ebain's character / prop images |
+
+### Saves, settings, controls
+- **Saves:** the game autosaves when you enter an area and when free roam starts (camp after the fire, village after
+  the throne). Esc → Save Game has 3 manual slots. An area in free roam resumes exactly where you stood (it implements
+  `can_resume()` / `can_resume_saved()` / `_resume(r)`; see camp.gd and village.gd). Anywhere else, a save keeps the
+  state from when you **entered** the area, so loading replays that area from its start instead of landing mid-cutscene.
+  Only `Game` state is saved, so story facts that matter later must be `Game.flags`.
+- **Settings** (title + Esc menu): volume, voice volume, voices, text speed (Slow/Normal/Fast/Instant), window, VSync,
+  graphics (Low/Medium/High, see `Level.apply_graphics()`), camera turn speed, combat difficulty, timed hits.
+- **Controller:** left stick/d-pad move, right stick or LB/RB camera, A talk/confirm, B run (hold) / back in menus,
+  Y switch leader, Back = party, Start = menu. Number keys 1–9 pick dialogue choices.
 
 ### Combat in one paragraph
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.

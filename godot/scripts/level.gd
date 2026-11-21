@@ -67,6 +67,8 @@ var cam_locked := false         # stage-set rooms (painted backdrops) keep the c
 var cam_height := 0.6           # camera height as a fraction of zoom (lower = flatter view)
 var cam_look_h := 1.1           # how high above the leader the camera aims
 var _tex_cache := {}
+var world_env: WorldEnvironment
+var sun_light: DirectionalLight3D
 
 func _ready() -> void:
 	rng.seed = 7
@@ -78,6 +80,7 @@ func _ready() -> void:
 	_build_party()
 	_build_ui()
 	_after_build()
+	apply_graphics()
 	_show_forehead()
 	cam_target = leader.global_position
 	_update_camera(1.0)
@@ -87,7 +90,9 @@ func _ready() -> void:
 		Game.dev_pick = int(OS.get_environment("DEV_PICK")) if OS.get_environment("DEV_PICK") != "" else 1
 	shots_mode = "--shots" in args
 	dialogue.tts_on = Game.tts_on and not shots_mode
-	if "--views" in args:
+	if Game.title_mode:
+		_title_mode()
+	elif "--views" in args:
 		_views_tour()
 	elif shots_mode and OS.get_environment("DEV_MENU") != "":
 		_dev_menu_tour()
@@ -95,7 +100,12 @@ func _ready() -> void:
 		_fight_tour(OS.get_environment("FIGHT"))
 	elif shots_mode:
 		_shot_tour()
+	elif not Game.pending_resume.is_empty() and Game.pending_resume.has("pos") and can_resume_saved():
+		await _resume(Game.pending_resume)
+		Game.area_entered(self)
 	else:
+		Game.pending_resume = {}
+		Game.area_entered(self)
 		_begin()
 
 # ---------------------------------------------------------------- hooks (override in area scripts)
@@ -107,6 +117,34 @@ func _shot_tour() -> void: get_tree().quit()
 func _level_interactables() -> Array: return []
 func _on_action(_n: String) -> void: pass
 func _level_process(_delta: float) -> void: pass
+# Saves: return true when the area is in free roam and can be resumed exactly where you stand.
+func can_resume() -> bool: return false
+# Can this area put you back where a save left you? (default: same rule as can_resume, but checked before the story runs)
+func can_resume_saved() -> bool: return false
+# Restore free roam from a save. Areas override to rebuild their free-roam state, then call super._resume(r).
+func _resume(r: Dictionary) -> void:
+	if r.has("leader"):
+		for u in party:
+			if u.id == r["leader"]:
+				set_leader(u)
+	place_party(r["pos"], Vector3(0, 0, -1))
+	target_yaw = float(r.get("yaw", 0.0))
+	yaw = target_yaw
+	cam_target = leader.global_position
+	_update_camera(1.0)
+	busy = false
+	freeze_all(false)
+	fade_in(0.8)
+	show_toast("Game loaded", 1.4)
+# Title screen: the area is just a pretty background (areas can add a _title_backdrop()).
+func _title_backdrop() -> void: pass
+func _title_mode() -> void:
+	busy = true
+	freeze_all(true)
+	hud.visible = false
+	prompt.visible = false
+	_title_backdrop()
+	fade_in(1.8)
 
 func do_action(n: String) -> void:
 	await _on_action(n)
@@ -134,6 +172,46 @@ func _setup_input() -> void:
 	_key("party_menu", [KEY_I])
 	_key("pause", [KEY_ESCAPE])
 	_key("dev_menu", [KEY_F1])
+	# controller: left stick / d-pad move, right stick camera, A talk, B run (hold), Y switch, Back party, Start menu
+	_pad_axis("move_forward", JOY_AXIS_LEFT_Y, -1.0)
+	_pad_axis("move_back", JOY_AXIS_LEFT_Y, 1.0)
+	_pad_axis("move_left", JOY_AXIS_LEFT_X, -1.0)
+	_pad_axis("move_right", JOY_AXIS_LEFT_X, 1.0)
+	_pad_axis("cam_left", JOY_AXIS_RIGHT_X, -1.0)
+	_pad_axis("cam_right", JOY_AXIS_RIGHT_X, 1.0)
+	_pad_btn("move_forward", JOY_BUTTON_DPAD_UP)
+	_pad_btn("move_back", JOY_BUTTON_DPAD_DOWN)
+	_pad_btn("move_left", JOY_BUTTON_DPAD_LEFT)
+	_pad_btn("move_right", JOY_BUTTON_DPAD_RIGHT)
+	_pad_btn("interact", JOY_BUTTON_A)
+	_pad_btn("run", JOY_BUTTON_B)
+	_pad_btn("switch", JOY_BUTTON_Y)
+	_pad_btn("party_menu", JOY_BUTTON_BACK)
+	_pad_btn("pause", JOY_BUTTON_START)
+	_pad_btn("cam_left", JOY_BUTTON_LEFT_SHOULDER)
+	_pad_btn("cam_right", JOY_BUTTON_RIGHT_SHOULDER)
+
+func _has_event(action: String, ev: InputEvent) -> bool:
+	for e in InputMap.action_get_events(action):
+		if e is InputEventJoypadButton and ev is InputEventJoypadButton and e.button_index == ev.button_index:
+			return true
+		if e is InputEventJoypadMotion and ev is InputEventJoypadMotion and e.axis == ev.axis and signf(e.axis_value) == signf(ev.axis_value):
+			return true
+	return false
+
+func _pad_btn(action: String, btn: JoyButton) -> void:
+	var e := InputEventJoypadButton.new()
+	e.button_index = btn
+	if not _has_event(action, e):
+		InputMap.action_add_event(action, e)
+
+func _pad_axis(action: String, axis: JoyAxis, dir: float) -> void:
+	var e := InputEventJoypadMotion.new()
+	e.axis = axis
+	e.axis_value = dir
+	if not _has_event(action, e):
+		InputMap.action_set_deadzone(action, 0.25)
+		InputMap.action_add_event(action, e)
 
 func _unhandled_input(ev: InputEvent) -> void:
 	if ev is InputEventMouseButton and ev.pressed:
@@ -142,7 +220,24 @@ func _unhandled_input(ev: InputEvent) -> void:
 		elif ev.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom = clamp(zoom + 0.6, 5.0, 15.0)
 	if ev is InputEventMouseMotion and (ev.button_mask & MOUSE_BUTTON_MASK_RIGHT) and not cam_locked:
-		target_yaw -= ev.relative.x * 0.006
+		target_yaw -= ev.relative.x * 0.006 * Game.cam_speed
+
+# ---------------------------------------------------------------- graphics quality (Settings → Graphics)
+func apply_graphics() -> void:
+	if world_env == null:
+		return
+	var q := Game.quality
+	var e := world_env.environment
+	e.ssao_enabled = q >= 2
+	e.volumetric_fog_enabled = q >= 1
+	e.glow_enabled = q >= 1
+	if sun_light:
+		sun_light.directional_shadow_max_distance = 40.0 if q >= 1 else 24.0
+	RenderingServer.directional_shadow_atlas_set_size([1024, 2048, 4096][q], true)
+	get_viewport().scaling_3d_scale = 1.0 if q >= 1 else 0.75
+	get_viewport().msaa_3d = Viewport.MSAA_2X if q >= 1 else Viewport.MSAA_DISABLED
+	if cam and cam.attributes:
+		cam.attributes.dof_blur_far_enabled = q >= 2
 
 # ---------------------------------------------------------------- environment
 func _build_environment() -> void:
@@ -208,6 +303,8 @@ func _build_environment() -> void:
 	we.environment = env
 	add_child(we)
 	add_child(sun)
+	world_env = we
+	sun_light = sun
 	sun.look_at_from_position(Vector3.ZERO, -light_dir.normalized(), Vector3.UP)
 
 func _build_ground() -> void:
@@ -447,7 +544,7 @@ func _build_ui() -> void:
 	box.add_child(leader_por)
 	set_leader(leader)
 
-	help_lbl = _label("WASD walk · Shift run · E talk · Tab switch · ←/→ camera · I party · Esc menu · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
+	help_lbl = _label("WASD walk · Shift run · E talk · Tab switch · ←/→ or right-drag camera · I party · Esc menu (save/settings) · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
 	help_lbl.anchor_top = 1.0; help_lbl.anchor_bottom = 1.0; help_lbl.anchor_right = 1.0
 	help_lbl.offset_top = -30; help_lbl.offset_left = 20; help_lbl.offset_right = -20
 	help_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -647,6 +744,8 @@ func _process(delta: float) -> void:
 		if Input.is_action_just_pressed("interact") and interact_cooldown <= 0.0:
 			start(it)
 			return
+	if interact_cooldown > 0.0:   # a menu/dialogue just closed this frame: don't let the same key reopen something
+		return
 	if Input.is_action_just_pressed("switch"):
 		if not switch_enabled or party.size() < 2:
 			show_toast("%s is leading right now." % leader.display_name)
@@ -679,10 +778,11 @@ func _goal_dir(u: Unit) -> Vector3:
 	return to.normalized() * float(u.get_meta("goal_speed", 1.0))
 
 func _update_camera(delta: float) -> void:
-	if Input.is_action_pressed("cam_left") and not cam_locked:
-		target_yaw += delta * 1.8
-	if Input.is_action_pressed("cam_right") and not cam_locked:
-		target_yaw -= delta * 1.8
+	if Game.title_mode:
+		target_yaw += delta * 0.06
+	elif not cam_locked and not busy:
+		var turn := Input.get_action_strength("cam_left") - Input.get_action_strength("cam_right")
+		target_yaw += turn * delta * 1.8 * Game.cam_speed
 	yaw = lerp_angle(yaw, target_yaw, clamp(delta * 6.0, 0.0, 1.0))
 	if cam == null:
 		cam = Camera3D.new()
@@ -843,6 +943,16 @@ func _dev_menu_tour() -> void:
 	dm._view_render()
 	await wait(0.8)
 	await shot("dev_viewer")
+	dm.close()
+	busy = false
+	await wait(0.5)
+	open_pause_menu()   # pause menu + save list
+	await wait(0.8)
+	await shot("pause_menu")
+	var sl := MenuUI.open_slots(hud, "save", self)
+	await wait(0.6)
+	await shot("pause_save")
+	sl.close()
 	get_tree().quit()
 
 # Test a fight here: FIGHT=goblins|dulbers|giant|goblin_patrol (roaming) ... -- --shots
@@ -1186,56 +1296,46 @@ func _close_menu() -> void:
 	freeze_all(false)
 	interact_cooldown = 0.3
 
-# ---- Esc: pause menu
+# ---- Esc: pause menu (resume, party, save, load, settings, quit)
+var pause_menu: MenuUI
+
 func open_pause_menu() -> void:
 	busy = true
 	freeze_all(true)
 	_menu_kind = "pause"
-	_menu_sel = 0
-	var col := _menu_panel("PAUSED", 620, 380)
-	_menu_rows = []
-	for i in 5:
-		var l := _label("", Vector2.ZERO, 22, Color.WHITE, 5)
-		col.add_child(l)
-		_menu_rows.append(l)
-	col.add_child(_label("W/S choose · A/D or E change · Esc close", Vector2.ZERO, 14, Color(1, 1, 1, 0.55), 3))
-	_render_pause()
-	await get_tree().process_frame
-	await get_tree().process_frame
-	while _menu_kind == "pause":
-		await get_tree().process_frame
-		if Input.is_action_just_pressed("move_forward"): _menu_sel = (_menu_sel + 4) % 5; _render_pause()
-		elif Input.is_action_just_pressed("move_back"): _menu_sel = (_menu_sel + 1) % 5; _render_pause()
-		elif Input.is_action_just_pressed("move_left"): _pause_change(-1)
-		elif Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("interact"): _pause_change(1)
-		elif Input.is_action_just_pressed("pause"): _close_menu()
-
-func _render_pause() -> void:
-	var txt := [
-		"Resume",
-		"Combat difficulty:  < %s >" % CombatD.DIFFICULTY[Game.difficulty]["label"],
-		"Timed hits:  < %s >" % ("AUTO (they land on their own)" if Game.timed_auto else "MANUAL (press E on the ring)"),
-		"Voices:  < %s >" % ("ON" if dialogue.tts_on else "OFF"),
-		"Party & Gear  (I)",
+	var rows := [
+		{ "text": "Resume", "pick": func(): pause_menu.close() },
+		{ "text": "Party & Gear  (I)", "pick": func():
+			pause_menu.close()
+			await get_tree().process_frame
+			open_party_menu() },
+		{ "text": "Save Game", "pick": func(): await _pause_sub(MenuUI.open_slots(hud, "save", self)) },
+		{ "text": "Load Game", "pick": func(): await _pause_sub(MenuUI.open_slots(hud, "load", self)),
+		  "enabled": func(): return Game.latest_slot() != "" },
+		{ "text": "Settings", "pick": func(): await _pause_sub(MenuUI.open_settings(hud)) },
+		{ "text": "Quit to Title", "pick": func():
+			if await MenuUI.confirm(hud, "Back to the title screen? Anything since your last save is lost.", "Quit to Title", "Stay"):
+				Game.title_mode = true
+				Game.goto("res://title.tscn") },
+		{ "text": "Quit Game", "pick": func():
+			if await MenuUI.confirm(hud, "Quit the game? Anything since your last save is lost.", "Quit", "Stay"):
+				get_tree().quit() },
 	]
-	for i in 5:
-		_menu_rows[i].text = ("> " if i == _menu_sel else "   ") + txt[i]
-		_menu_rows[i].add_theme_color_override("font_color", Color("#e8b923") if i == _menu_sel else Color.WHITE)
+	pause_menu = MenuUI.open(hud, "PAUSED", rows, { "w": 560 })
+	pause_menu.set_note("The game autosaves every time you enter a new area.")
+	await pause_menu.closed
+	pause_menu = null
+	if _menu_kind == "pause":
+		_close_menu()
 
-func _pause_change(d: int) -> void:
-	ui_sfx.play()
-	match _menu_sel:
-		0: _close_menu(); return
-		1: Game.difficulty = (Game.difficulty + d + 3) % 3
-		2: Game.timed_auto = not Game.timed_auto
-		3:
-			dialogue.tts_on = not dialogue.tts_on
-			Game.tts_on = dialogue.tts_on
-		4:
-			_close_menu()
-			open_party_menu()
-			return
-	_render_pause()
+# open a sub-menu over the pause menu and come back to it afterwards
+func _pause_sub(m: MenuUI) -> void:
+	if pause_menu:
+		pause_menu.visible = false
+	await m.closed
+	if is_instance_valid(pause_menu):
+		pause_menu.visible = true
+		pause_menu.refresh()
 
 # ---- I: party, level and gear
 func party_ids_for_menu() -> Array:
