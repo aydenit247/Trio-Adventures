@@ -17,6 +17,7 @@ const CHAR_NAME := { "skorn": "Skorn", "lykor": "Lykor", "xylo": "Xylo" }
 
 # ---- configuration (set in _configure)
 var night := true
+var lava := false               # volcanic mood (the Pass): red light, ash, burnt ground
 var light_dir := Vector3(-0.45, 0.32, -0.83)   # direction TOWARD the moon/sun
 var clear_center := Vector2.ZERO
 var clear_radius := 6.5
@@ -141,6 +142,7 @@ func _build_environment() -> void:
 	sm.shader.code = SKY_SHADER
 	sm.set_shader_parameter("light_dir", light_dir.normalized())
 	sm.set_shader_parameter("night", 1.0 if night else 0.0)
+	sm.set_shader_parameter("lava", 1.0 if lava else 0.0)
 	sky.sky_material = sm
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
@@ -182,6 +184,14 @@ func _build_environment() -> void:
 		env.volumetric_fog_albedo = Color(0.9, 0.9, 0.85)
 		sun.light_color = Color(1.0, 0.93, 0.8)
 		sun.light_energy = 1.5
+	if lava:
+		env.ambient_light_color = Color(0.55, 0.22, 0.12)
+		env.ambient_light_energy = 0.8
+		env.fog_light_color = Color(0.22, 0.07, 0.03)
+		env.fog_density = 0.025
+		env.volumetric_fog_albedo = Color(0.9, 0.5, 0.3)
+		sun.light_color = Color(1.0, 0.45, 0.2)
+		sun.light_energy = 0.9
 	we.environment = env
 	add_child(we)
 	add_child(sun)
@@ -222,6 +232,9 @@ func _build_ground() -> void:
 	mat.set_shader_parameter("path_w", path_width)
 	mat.set_shader_parameter("brightness", 0.8 if night else 0.88)
 	mat.set_shader_parameter("dirt_tint", Color(1, 1, 1) if night else Color(0.74, 0.64, 0.52))
+	if lava:
+		mat.set_shader_parameter("dirt_tint", Color(0.42, 0.33, 0.3))
+		mat.set_shader_parameter("grass_tint", Color(0.3, 0.2, 0.16))
 	Util.add_mesh(self, pm, mat, Vector3.ZERO)
 
 # ---------------------------------------------------------------- props & lighting
@@ -298,6 +311,8 @@ func add_glow(pos: Vector3, color: Color, radius: float, strength: Callable, str
 
 func light_at(p: Vector3) -> Color:
 	var col := Color(0.5, 0.56, 0.8) if night else Color(1.0, 0.97, 0.92)
+	if lava:
+		col = Color(0.9, 0.55, 0.42)
 	for g in glows:
 		var f: float = clamp(1.0 - p.distance_to(g["pos"]) / g["radius"], 0.0, 1.0)
 		f = f * f * float(g["strength"].call())
@@ -796,6 +811,7 @@ uniform int path_n = 0;
 uniform float path_w = 1.6;
 uniform float brightness = 0.8;
 uniform vec3 dirt_tint : source_color = vec3(1.0);
+uniform vec3 grass_tint : source_color = vec3(1.0);
 varying vec3 wpos;
 
 void vertex() {
@@ -825,7 +841,7 @@ void fragment() {
 	float n = texture(noise_tex, p * 0.035).r;
 	float m = smoothstep(0.38, 0.62, worn(p) + (n - 0.5) * 0.7);
 	float shade = 0.8 + 0.3 * texture(noise_tex, p * 0.012 + vec2(0.5)).r;
-	ALBEDO = mix(g * vec3(0.85, 0.95, 0.85), d * dirt_tint, m) * shade * brightness;
+	ALBEDO = mix(g * vec3(0.85, 0.95, 0.85) * grass_tint, d * dirt_tint, m) * shade * brightness;
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.1;
 }
@@ -852,6 +868,7 @@ const SKY_SHADER := """
 shader_type sky;
 uniform vec3 light_dir = vec3(-0.45, 0.32, -0.83);
 uniform float night = 1.0;
+uniform float lava = 0.0;
 
 float hash(vec3 p) {
 	p = fract(p * 0.3183099 + 0.1);
@@ -865,7 +882,10 @@ void sky() {
 	vec3 md = normalize(light_dir);
 	float m = dot(d, md);
 	vec3 col;
-	if (night > 0.5) {
+	if (lava > 0.5) {
+		col = mix(vec3(0.45, 0.12, 0.05), vec3(0.08, 0.02, 0.02), pow(y, 0.6));
+		if (d.y < 0.0) { col = vec3(0.2, 0.06, 0.03); }
+	} else if (night > 0.5) {
 		col = mix(vec3(0.10, 0.12, 0.23), vec3(0.01, 0.014, 0.045), pow(y, 0.45));
 		if (d.y < 0.0) { col = vec3(0.06, 0.07, 0.14); }
 		vec3 p = d * 260.0;

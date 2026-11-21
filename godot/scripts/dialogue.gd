@@ -13,6 +13,7 @@ const CHARS := {
 	"dulbers":  { "name": "Dulbers Frint", "color": Color("#8fb0c8"), "pitch": 1.7, "rate": 1.3 },
 	"dulbers_demon": { "name": "Dulbers Frint (Demon)", "color": Color("#c06bff"), "pitch": 0.1, "rate": 0.75 },
 	"mattias":  { "name": "Metocin Mattias", "color": Color("#6aa8ff"), "pitch": 0.8, "rate": 0.85 },
+	"giant":    { "name": "Diddy Chud Giant", "color": Color("#d9a46a"), "pitch": 0.0, "rate": 0.65 },
 	"narrator": { "name": "", "color": Color("#c9c0e8"), "pitch": 1.0, "rate": 1.0 },
 }
 const GOLD := Color("#e8b923")

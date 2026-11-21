@@ -1,0 +1,599 @@
+# Area: The Pass (Scene 4, played as Skorn). Volcanic, red, ashy.
+# Walk up → Metocin Mattias appears → the giant blocks the path (painted asleep in the backdrop) → choose:
+#   A throw midtocy (if Skorn has it) · B Snore Sneak minigame · C Lore Session minigame · D fight · E cousin (goblins)
+# When he wakes, the backdrop swaps to the empty path and Ebain's awake giant art stands up for real.
+# End of Chapter 1.
+extends Level
+
+const PS = preload("res://scripts/pass_script.gd")
+const GIANT_HEAD := Vector3(6.6, 10.0, -13.6)     # where his head is in the painted backdrop
+const GIANT_STAND := Vector3(3.5, 0, -9.5)
+const EXIT_POS := Vector3(14, 0, 0)
+
+# "enter" → "mattias" done → "giant" (scene) → "after" (walk out) → "end"
+var stage := "enter"
+var giant_awake := false
+var giant: Unit
+var mattias: Unit
+var mattias_light: OmniLight3D
+var backdrop_mat: StandardMaterial3D
+var allies: Array[Unit] = []
+var chief: Unit
+var zzz_timer := 0.0
+var mini_running := false
+var mini_hold := false
+var mini_pick := -1
+var mini_sel := 0
+var mini_opts: Array = []
+var mini_labels: Array = []
+
+func _configure() -> void:
+	night = true
+	lava = true
+	light_dir = Vector3(-0.3, 0.3, -0.9)
+	clear_center = Vector2(0, -3)
+	clear_radius = 6.0
+	path_pts = PackedVector2Array([Vector2(0, 16), Vector2(0.5, 6), Vector2(0, 0), Vector2(2.5, -8), Vector2(0, 0), Vector2(8, 0), Vector2(16, 0)])
+	path_width = 1.8
+	subtitle = "Scene 4 — The Pass"
+	party_ids = ["skorn", "lykor", "xylo"]
+	party_start = [Vector3(0, 0, 10), Vector3(-1, 0, 12), Vector3(1, 0, 12)]
+	leader_id = "skorn"
+	cam_locked = true
+	zoom = 11.0
+	cam_height = 0.32
+	cam_look_h = 2.8
+	talk = {
+		"lykor": [{ "who": "lykor", "mood": "shocked", "line": "The ash is getting in my hair. I can feel it judging me." }], # DRAFT
+		"xylo": [{ "who": "xylo", "mood": "vision", "line": "Deloye Lore speaks of a giant. It does not say anything else about him. Classic Deloye." }], # DRAFT
+	}
+
+func _build_level() -> void:
+	backdrop_mat = backdrop("res://assets/backdrops/giant_pass.jpg", 26.0, Vector3(0, -0.5, -14.0), Color(0.95, 0.9, 0.9))
+	# big dark cliffs framing the painted set so its edges never show
+	var cliff := Color(0.32, 0.2, 0.19)
+	for side in [-1.0, 1.0]:
+		card("rock_1", 15.0, Vector3(side * 14.5, 0, -12.6), side > 0, false, 0.0, "props", cliff)
+		card("rock_4", 11.0, Vector3(side * 18.5, 0, -10.5), side < 0, false, 0.0, "props", cliff * 0.9)
+		card("rock_2", 8.0, Vector3(side * 15.0, 0, -6.0), side > 0, false, 0.0, "props", cliff * 0.85)
+	# lava glow along the edges
+	for p in [Vector3(-8, 0.5, -9), Vector3(8, 0.5, -8), Vector3(-7, 0.5, 4), Vector3(9, 0.5, 6)]:
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.4, 0.12)
+		l.light_energy = 2.2
+		l.omni_range = 8.0
+		l.position = p
+		add_child(l)
+		add_glow(p, Color(1.0, 0.55, 0.3), 7.0, func(): return 1.0)
+	var rock_tint := Color(0.5, 0.33, 0.3)
+	for k in 16:
+		var side := -1.0 if k % 2 == 0 else 1.0
+		var p := Vector3(side * rng.randf_range(6.5, 13.0), 0, rng.randf_range(-11, 13))
+		if p.x > 0 and abs(p.z) < 3.2:
+			continue
+		card("rock_%d" % [1, 2, 4][rng.randi() % 3], rng.randf_range(1.6, 3.4), p, rng.randf() < 0.5, true, 0.5, "props", rock_tint)
+	_ash()
+	_walls()
+	mattias = spawn_npc("mattias", "Metocin Mattias", "mattias", 1.95, Vector3(0, 0, 0.5))
+	mattias.visible = false
+	mattias.set_meta("tint", Color(0.75, 0.85, 1.15))
+	mattias_light = OmniLight3D.new()
+	mattias_light.light_color = Color(0.4, 0.6, 1.0)
+	mattias_light.light_energy = 0.0
+	mattias_light.omni_range = 5.0
+	mattias_light.position = Vector3(0, 1.6, 1.2)
+	add_child(mattias_light)
+	giant = spawn_npc("giant", "Diddy Chud Giant", "giant_angry", 7.0, GIANT_STAND)
+	giant.visible = false
+	giant.walk_speed = 2.0
+	if Game.flag("goblinAllies"):
+		chief = spawn_npc("chief", "Chief Bogdrinker", "goblin_chief", 1.45, Vector3(0, 0, 14))
+		chief.set_meta("follow", true)
+		chief.set_meta("follow_i", 0)
+		allies.append(chief)
+		for i in 2:
+			var g := spawn_npc("goblin", "Goblin", "goblin", rng.randf_range(1.1, 1.3), Vector3(rng.randf_range(-2, 2), 0, 15 + i))
+			g.set_meta("follow", true)
+			g.set_meta("follow_i", i + 1)
+			allies.append(g)
+
+func _ash() -> void:
+	var a := CPUParticles3D.new()
+	a.amount = 120
+	a.lifetime = 8.0
+	a.mesh = Fx.quad(0.06, true)
+	a.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	a.emission_box_extents = Vector3(16, 0.5, 14)
+	a.direction = Vector3.UP
+	a.spread = 30.0
+	a.gravity = Vector3(0.15, 0.25, 0)
+	a.initial_velocity_min = 0.2
+	a.initial_velocity_max = 0.6
+	a.color_ramp = Fx.ramp([[0.0, Color(1, 0.5, 0.2, 0)], [0.2, Color(1, 0.55, 0.25, 1)], [1.0, Color(0.5, 0.2, 0.1, 0)]])
+	a.position = Vector3(0, 0.5, 0)
+	add_child(a)
+
+func _walls() -> void:
+	Util.static_box(self, Vector3(-9.5, 1, 0.5), Vector3(0.5, 2, 26))
+	Util.static_box(self, Vector3(9.5, 1, -6.8), Vector3(0.5, 2, 9.6))
+	Util.static_box(self, Vector3(9.5, 1, 7.6), Vector3(0.5, 2, 10.8))
+	Util.static_box(self, Vector3(0, 1, -12.0), Vector3(19, 2, 0.5))
+	Util.static_box(self, Vector3(0, 1, 13.5), Vector3(19, 2, 0.5))
+	Util.static_box(self, Vector3(13.5, 1, -2.4), Vector3(9, 2, 0.5))
+	Util.static_box(self, Vector3(13.5, 1, 2.4), Vector3(9, 2, 0.5))
+	Util.static_box(self, Vector3(18, 1, 0), Vector3(0.5, 2, 5))
+
+# ---------------------------------------------------------------- per frame
+func _level_process(delta: float) -> void:
+	if not giant_awake and stage != "after" and stage != "end":
+		zzz_timer -= delta
+		if zzz_timer <= 0.0:
+			zzz_timer = 1.3
+			_zzz()
+	if busy:
+		return
+	if stage == "enter" and leader.global_position.z < 5.0:
+		stage = "mattias"
+		_mattias()
+	elif stage == "mattias" and leader.global_position.z < -3.5:
+		stage = "giant"
+		_giant_scene()
+	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.0:
+		stage = "end"
+		var lines := ["END OF CHAPTER 1", "", "Trio Adventures — by Ebain", ""]
+		lines += story_so_far()
+		lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to play again from the camp"]
+		end_card(lines, "res://main.tscn")
+
+func _zzz() -> void:
+	var l := Label3D.new()
+	l.text = "Z" if rng.randf() < 0.6 else "z"
+	l.font_size = 90
+	l.pixel_size = 0.012
+	l.outline_size = 12
+	l.no_depth_test = true
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.modulate = Color(1, 1, 1, 0.9)
+	l.position = GIANT_HEAD + Vector3(rng.randf_range(-0.5, 0.5), 0, 0.2)
+	add_child(l)
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(l, "position", l.position + Vector3(1.5, 2.5, 0), 2.4)
+	tw.tween_property(l, "modulate:a", 0.0, 2.4)
+	tw.chain().tween_callback(l.queue_free)
+
+func _level_interactables() -> Array:
+	return []
+
+# ---------------------------------------------------------------- story
+func _begin() -> void:
+	busy = true
+	fade_in(1.5)
+	await wait(0.8)
+	await run_dialogue(PS.INTRO)
+	objective("Head up the pass.")
+
+func _mattias() -> void:
+	focus_override = leader.global_position + Vector3(0.8, 0, -1.0)
+	zoom = 7.5
+	cam_look_h = 1.2
+	await run_dialogue(PS.MATTIAS)
+	focus_override = null
+	zoom = 11.0
+	cam_look_h = 2.8
+	objective("Get past the giant.")
+
+func _giant_scene() -> void:
+	focus_override = Vector3(1.5, 0, -6.0)
+	await run_dialogue(PS.GIANT)
+
+func _on_action(n: String) -> void:
+	match n:
+		"mattias_appears":
+			mattias.global_position = leader.global_position + Vector3(2.2, 0, -1.6)
+			mattias_light.global_position = mattias.global_position + Vector3(0, 1.6, 0.7)
+			mattias.visible = true
+			_poof(mattias.global_position, Color(0.5, 0.7, 1.0))
+			whoosh_sfx.play()
+			create_tween().tween_property(mattias_light, "light_energy", 3.0, 0.5)
+			char_label(mattias, "Metocin Mattias (Out of Nowhere)", 3.5, 2.4, Color("#9cc4ff"))
+			await wait(0.8)
+		"mattias_vanish":
+			_poof(mattias.global_position, Color(0.5, 0.7, 1.0))
+			whoosh_sfx.play()
+			mattias.visible = false
+			create_tween().tween_property(mattias_light, "light_energy", 0.0, 0.6)
+			await wait(0.7)
+		"to_giant":
+			follow_enabled = false
+			for i in party.size():
+				party[i].set_meta("goal", Vector3(-1.5 + i * 1.6, 0, -5.5 + (i % 2) * 0.7))
+				party[i].set_meta("goal_speed", 0.8)
+			for i in allies.size():
+				allies[i].remove_meta("follow")
+				allies[i].set_meta("goal", Vector3(-4.5 + i * 1.0, 0, -3.5))
+				allies[i].set_meta("goal_speed", 0.8)
+			char_label_at(GIANT_HEAD + Vector3(-2.5, -1.2, 0), "Diddy Chud Giant (Asleep, In The Way)", 4.0)
+			await wait(1.4)
+			for u in party + allies:
+				u.remove_meta("goal")
+		"throw_midtocy":
+			Game.set_flag("hasMidtocy", false)
+			await _throw_midtocy()
+		"giant_wakes":
+			await _giant_wakes(true)
+		"giant_wakes_calm":
+			await _giant_wakes(false)
+		"giant_trip":
+			giant.set_meta("tint", Color(1.15, 0.85, 1.25))
+			char_label(giant, "Diddy Chud Giant (Geeked)", 3.5, 7.4, Color("#c79bff"))
+			hop(giant, 0.4)
+			await wait(0.5)
+		"fight_giant":
+			await _fight_giant()
+		"giant_leaves":
+			giant.set_meta("goal", Vector3(-16, 0, -10))
+			giant.set_meta("goal_speed", 1.0)
+			await wait(2.5)
+			giant.visible = false
+			giant.remove_meta("goal")
+		"sneak_game":
+			Game.set_flag("sneakWon", await _sneak_game())
+		"steal_bowls":
+			Game.inv["bowl"] += 2
+			ui_sfx.play()
+			show_toast("Skorn got: Chipotle Bowl ×2 (heals 60)")
+			await wait(0.6)
+		"lore_game":
+			Game.set_flag("loreWon", await _lore_game())
+		"giant_rolls_over":
+			shake = 0.5
+			whoosh_sfx.pitch_scale = 0.5
+			whoosh_sfx.play()
+			await fade_out(0.5)
+			backdrop_mat.albedo_texture = load("res://assets/backdrops/mountain_path.jpg")
+			giant_awake = true    # stops the Zzz (he's rolled off the path)
+			fade_in(0.6)
+			await wait(0.7)
+			whoosh_sfx.pitch_scale = 1.0
+		"skorn_slaps_giant":
+			var sk := party[0]
+			await walk_to(sk, Vector3(3.0, 0, -9.0), 1.4, 3.0)
+			_sfx(Util.noise_burst(110, 0.6, 1.0), 0.0).play()
+			shake = 0.5
+			char_label_at(GIANT_HEAD + Vector3(-1, 0, 0), "*SLAP*", 1.5, Color("#ffdf4a"))
+			await wait(0.6)
+		"mattias_voice":
+			var flash := OmniLight3D.new()
+			flash.light_color = Color(0.4, 0.6, 1.0)
+			flash.light_energy = 0.0
+			flash.omni_range = 14.0
+			flash.position = Vector3(0, 4, -8)
+			add_child(flash)
+			var tw := create_tween()
+			tw.tween_property(flash, "light_energy", 4.0, 0.5)
+			tw.tween_property(flash, "light_energy", 0.0, 1.5)
+			tw.tween_callback(flash.queue_free)
+			char_label_at(Vector3(0, 4.5, -10), "(a voice, echoing from further up the path)", 3.5, Color("#9cc4ff"))
+			await wait(0.6)
+		"leave":
+			_leave()
+
+func char_label_at(p: Vector3, text: String, secs := 3.0, color := Color("#f3e3b0")) -> void:
+	var n := Node3D.new()
+	n.position = p
+	add_child(n)
+	var l := char_label(n, text, secs, 0.0, color)
+	l.pixel_size = 0.016
+	if secs > 0.0:
+		get_tree().create_timer(secs + 0.6).timeout.connect(n.queue_free)
+
+func _poof(p: Vector3, color := Color(0.8, 0.7, 0.6)) -> void:
+	var f := Fx.poof(color)
+	f.position = p + Vector3(0, 0.6, 0)
+	add_child(f)
+	f.emitting = true
+	get_tree().create_timer(1.5).timeout.connect(f.queue_free)
+
+func _throw_midtocy() -> void:
+	var m := Sprite3D.new()
+	m.texture = load("res://assets/items/midtocy.png")
+	m.pixel_size = 0.5 / 792.0
+	m.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	m.shaded = false
+	add_child(m)
+	m.global_position = party[0].global_position + Vector3(0.4, 1.8, 0)
+	var mid := m.global_position.lerp(GIANT_HEAD, 0.5) + Vector3(0, 3.0, 0)
+	_sfx(Util.noise_burst(300, 0.08, 0.7), -4.0).play()
+	var tw := create_tween()
+	tw.tween_property(m, "global_position", mid, 0.4).set_ease(Tween.EASE_OUT)
+	tw.tween_property(m, "global_position", GIANT_HEAD, 0.4).set_ease(Tween.EASE_IN)
+	await tw.finished
+	m.queue_free()
+	char_label_at(GIANT_HEAD + Vector3(-1, 0.5, 0), "*bonk*", 1.5, Color("#c79bff"))
+	shake = 0.3
+	await wait(0.5)
+
+func _giant_wakes(angry: bool) -> void:
+	giant_awake = true
+	shake = 1.0 if angry else 0.4
+	_sfx(Util.noise_burst(900, 0.03, 1.0), 0.0).play()
+	await fade_out(0.35)
+	backdrop_mat.albedo_texture = load("res://assets/backdrops/mountain_path.jpg")
+	giant.global_position = GIANT_STAND
+	giant.visible = true
+	fade_in(0.35)
+	focus_override = Vector3(1.5, 0, -6.0)
+	zoom = 13.0
+	hop(giant, 0.8)
+	shake = 0.8 if angry else 0.2
+	if angry:
+		char_label(giant, "Diddy Chud Giant (Awake, Disturbed)", 3.5, 7.4, Color("#ff8a6a"))
+	else:
+		char_label(giant, "Diddy Chud Giant (Awake, Confused)", 3.5, 7.4)
+	await wait(0.9)
+
+func _fight_giant() -> void:
+	# Real turn-based combat comes to Godot next; for now the party wins, in style.
+	dialogue.hide_box()
+	var ban := _label("BOSS: DIDDY CHUD GIANT", Vector2.ZERO, 54, Color("#ff6a4a"), 10)
+	ban.anchor_left = 0.5; ban.anchor_right = 0.5; ban.anchor_top = 0.25
+	ban.offset_left = -560; ban.offset_right = 560
+	ban.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud.add_child(ban)
+	shake = 0.6
+	for u in party + allies:
+		var home := u.global_position
+		await walk_to(u, GIANT_STAND + Vector3(rng.randf_range(-1.5, 1.5), 0, 1.4), 2.0, 1.3)
+		_sfx(Util.noise_burst(110, 0.6, 1.0), -2.0).play()
+		shake = 0.35
+		hop(giant, 0.3)
+		u.set_meta("goal", home)
+		u.set_meta("goal_speed", 1.5)
+	knock(giant, 70.0, 0.6)
+	shake = 1.0
+	show_toast("(Real combat comes to Godot next. The party wins for now.)", 2.2)
+	await wait(2.2)
+	for u in party + allies:
+		u.remove_meta("goal")
+	unknock(giant)
+	ban.queue_free()
+	dialogue.show_box()
+
+func _leave() -> void:
+	stage = "after"
+	focus_override = null
+	follow_enabled = true
+	switch_enabled = true
+	zoom = 11.0
+	for g in allies:
+		g.remove_meta("goal")
+		g.set_meta("follow", true)
+	objective("Climb on past the giant.")
+
+# ---------------------------------------------------------------- minigame UI helpers
+func _panel(top: float, height: float, width := 760.0) -> VBoxContainer:
+	var panel := PanelContainer.new()
+	panel.anchor_left = 0.5; panel.anchor_right = 0.5
+	panel.offset_left = -width / 2.0; panel.offset_right = width / 2.0
+	panel.offset_top = top; panel.offset_bottom = top + height
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.045, 0.11, 0.94)
+	sb.border_color = Color("#e8b923")
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(14)
+	sb.content_margin_left = 24; sb.content_margin_right = 24; sb.content_margin_top = 16; sb.content_margin_bottom = 16
+	panel.add_theme_stylebox_override("panel", sb)
+	hud.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 8)
+	panel.add_child(col)
+	return col
+
+func _bar(col: VBoxContainer, label: String, color: Color) -> ProgressBar:
+	col.add_child(_label(label, Vector2.ZERO, 17, color, 5))
+	var pb := ProgressBar.new()
+	pb.custom_minimum_size = Vector2(0, 22)
+	pb.max_value = 100
+	pb.show_percentage = false
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = color
+	fill.set_corner_radius_all(6)
+	pb.add_theme_stylebox_override("fill", fill)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(1, 1, 1, 0.1)
+	bg.set_corner_radius_all(6)
+	pb.add_theme_stylebox_override("background", bg)
+	col.add_child(pb)
+	return pb
+
+func _input(ev: InputEvent) -> void:
+	if not mini_running:
+		return
+	if mini_opts.size() > 0:
+		if ev.is_action_pressed("move_forward") or ev.is_action_pressed("ui_up"):
+			mini_sel = (mini_sel + mini_opts.size() - 1) % mini_opts.size()
+			_render_opts()
+		elif ev.is_action_pressed("move_back") or ev.is_action_pressed("ui_down"):
+			mini_sel = (mini_sel + 1) % mini_opts.size()
+			_render_opts()
+		elif ev.is_action_pressed("interact"):
+			mini_pick = mini_sel
+		get_viewport().set_input_as_handled()
+
+# ---- B: Snore Sneak — hold E/Space ONLY while he snores
+func _sneak_game() -> bool:
+	dialogue.hide_box()
+	var col := _panel(24, 230)
+	var title := _label("SNORE SNEAK", Vector2.ZERO, 34, Color("#ffcf4a"), 8)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(title)
+	var help := _label("Hold E / SPACE to sneak across him — ONLY while he snores", Vector2.ZERO, 18, Color.WHITE, 5)
+	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(help)
+	var cue := _label("", Vector2.ZERO, 30, Color("#7dff8a"), 7)
+	cue.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(cue)
+	var prog_bar := _bar(col, "Progress:  Legs → Belly (Squishy) → Arm (Hairy)", Color("#7dcf5a"))
+	var heat_bar := _bar(col, "Snore Meter (fill it and he wakes up)", Color("#ff5a3a"))
+	mini_running = true
+	var prog := 0.0
+	var heat := 0.0
+	var phase := "snore"
+	var phase_t := 1.6
+	var grace := 0.0
+	var won := false
+	var start_pos := []
+	for u in party:
+		start_pos.append(u.global_position)
+	await wait(1.0)
+	while true:
+		await get_tree().process_frame
+		var d := get_process_delta_time()
+		phase_t -= d
+		grace = max(0.0, grace - d)
+		if phase_t <= 0.0:
+			var sec := int(prog / 34.0)
+			if phase == "snore":
+				phase = "inhale"
+				phase_t = rng.randf_range(0.8, 1.4)
+			else:
+				phase = "snore"
+				phase_t = rng.randf_range(1.0, 1.9) / (1.0 + sec * 0.25)
+				_sfx(Util.noise_burst(int(phase_t * 900), 0.03, 0.9), -6.0).play()
+				_zzz()
+			grace = 0.18
+		var holding := Input.is_action_pressed("interact")
+		if shots_mode:
+			holding = phase == "snore" and phase_t > 0.15
+		if phase == "snore":
+			cue.text = "ZZZ… SNORING — GO!" if phase_t > 0.45 else "zzz… (slowing down)"
+			cue.add_theme_color_override("font_color", Color("#7dff8a") if phase_t > 0.45 else Color("#ffd84a"))
+			if holding:
+				prog += d * 24.0
+		else:
+			cue.text = "…inhale… FREEZE"
+			cue.add_theme_color_override("font_color", Color("#ff6a5a"))
+			if holding and grace <= 0.0:
+				heat += d * 70.0
+		heat = max(0.0, heat - d * 4.0)
+		prog_bar.value = prog
+		heat_bar.value = heat
+		for i in party.size():
+			party[i].global_position = start_pos[i].lerp(Vector3(start_pos[i].x + 4.0, 0, -9.0), prog / 100.0)
+		if prog >= 100.0:
+			won = true
+			break
+		if heat >= 100.0:
+			break
+	mini_running = false
+	cue.text = "MADE IT ACROSS!" if won else "…he felt that."
+	await wait(1.2)
+	col.get_parent().queue_free()
+	if won:
+		for i in party.size():
+			party[i].global_position = Vector3(5.0 + i * 1.3, 0, -8.0)
+	dialogue.show_box()
+	return won
+
+# ---- C: Lore Session — pick how each page truly continues. One wrong answer and he knows.
+func _lore_game() -> bool:
+	dialogue.hide_box()
+	var won := true
+	for k in PS.LORE.size():
+		var L: Dictionary = PS.LORE[k]
+		var col := _panel(40, 560, 900)
+		var head := _label("DELOYE LORE · Page %d of %d · %s" % [k + 1, PS.LORE.size(), L["where"]], Vector2.ZERO, 16, Color("#a49cc4"), 4)
+		col.add_child(head)
+		var title := _label(L["title"], Vector2.ZERO, 30, Color("#ffd27a"), 6)
+		col.add_child(title)
+		var body := RichTextLabel.new()
+		body.bbcode_enabled = true
+		body.fit_content = true
+		body.scroll_active = false
+		body.custom_minimum_size = Vector2(850, 0)
+		body.add_theme_font_size_override("normal_font_size", 19)
+		body.add_theme_font_size_override("italics_font_size", 19)
+		body.text = "[i]%s[/i]" % L["text"]
+		col.add_child(body)
+		col.add_child(_label("How does it truly continue?  (W/S to choose, E to read it aloud)", Vector2.ZERO, 16, Color("#e8b923"), 4))
+		var opts: Array = [L["right"]] + L["wrong"]
+		opts.shuffle()
+		mini_opts = opts
+		mini_labels = []
+		for o in opts:
+			var l := _label("", Vector2.ZERO, 19, Color.WHITE, 4)
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			l.custom_minimum_size = Vector2(850, 0)
+			col.add_child(l)
+			mini_labels.append(l)
+		mini_sel = 0
+		mini_pick = -1
+		_render_opts()
+		mini_running = true
+		while mini_pick < 0:
+			await get_tree().process_frame
+			if shots_mode:
+				await wait(0.8)
+				mini_pick = opts.find(L["right"])
+		mini_running = false
+		var correct: bool = opts[mini_pick] == L["right"]
+		mini_labels[mini_pick].add_theme_color_override("font_color", Color("#7dff8a") if correct else Color("#ff6a5a"))
+		mini_opts = []
+		await wait(0.9)
+		col.get_parent().queue_free()
+		if not correct:
+			won = false
+			break
+		_zzz()
+		show_toast("He sinks deeper into sleep… (%d / %d)" % [k + 1, PS.LORE.size()], 1.0)
+		await wait(0.6)
+	dialogue.show_box()
+	return won
+
+func _render_opts() -> void:
+	for i in mini_labels.size():
+		mini_labels[i].text = ("> " if i == mini_sel else "   ") + mini_opts[i]
+		mini_labels[i].add_theme_color_override("font_color", Color("#e8b923") if i == mini_sel else Color.WHITE)
+
+# ---------------------------------------------------------------- automated screenshots (PASS_CHOICE=0..4)
+func _shot_tour() -> void:
+	var choice := int(OS.get_environment("PASS_CHOICE")) if OS.get_environment("PASS_CHOICE") != "" else 3
+	Game.set_flag("hasMidtocy")
+	if choice == 4:
+		Game.set_flag("goblinAllies")
+	var tag := "abcde"[choice]
+	fade.color.a = 0.0
+	busy = false
+	await wait(1.5)
+	await shot("p_01_enter")
+	place_party(Vector3(0, 0, 4.0), Vector3(0, 0, -1))
+	await wait(1.6)
+	await advance(1)
+	await wait(1.0)
+	await shot("p_02_mattias")
+	await advance(4)
+	await wait(1.5)
+	place_party(Vector3(0, 0, -4.0), Vector3(0, 0, -1))
+	await wait(2.5)
+	await shot("p_03_giant")
+	await advance(3)
+	await wait(1.0)
+	await shot("p_04_choice")
+	dialogue._picked.emit(min(choice, dialogue._choices.size() - 1))
+	await wait(1.0)
+	for k in 24:
+		await advance(1, 0.7)
+		if k == 3:
+			await shot("p_05_%s_mid" % tag)
+		if not dialogue.panel.visible and dialogue.active:
+			await wait(3.0)
+			await shot("p_06_%s_action" % tag)
+			await wait(8.0)
+		if k == 9:
+			await shot("p_07_%s_late" % tag)
+	await wait(2.0)
+	await shot("p_08_%s_after" % tag)
+	place_party(EXIT_POS + Vector3(-2.5, 0, 0), Vector3(1, 0, 0))
+	await wait(3.0)
+	await shot("p_09_%s_end" % tag)
+	get_tree().quit()

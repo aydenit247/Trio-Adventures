@@ -165,10 +165,12 @@ func _level_process(_delta: float) -> void:
 		_arrive()
 	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.0:
 		stage = "end"
-		var lines := ["TO BE CONTINUED", "", "Next stop: The Pass — the Diddy Chud Giant (coming to Godot soon)", ""]
-		lines += story_so_far()
-		lines += ["", "Press E to play again from the camp"]
-		end_card(lines, "res://main.tscn")
+		_to_pass()
+
+func _to_pass() -> void:
+	busy = true
+	await fade_out(1.0)
+	Game.goto("res://pass.tscn")
 
 func _level_interactables() -> Array:
 	if stage == "arrived":

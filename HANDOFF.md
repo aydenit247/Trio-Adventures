@@ -198,7 +198,7 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   (clearing + path points per area). Directional views: `<id>_back.png` / `<id>_side.png` (side faces right).
 - **Code:** `scripts/level.gd` = shared engine (environment day/night, ground, `card()`, party/NPCs, camera,
   interactions, dialogue, HUD, joke labels `char_label()`, `knock()`, `walk_to()`, test helpers).
-  Areas extend it: `camp.gd` (Scene 1, night) → `village.gd` (Scene 2, day) → `mart.gd` (Scene 3, evening). `game.gd` autoload = flags + items
+  Areas extend it: `camp.gd` (Scene 1, night) → `village.gd` (Scene 2, day) → `mart.gd` (Scene 3, evening) → `pass.gd` (Scene 4, lava). `game.gd` autoload = flags + items
   across areas. Dialogue data: `camp_script.gd`, `village_script.gd` (`# Ebain` / `# DRAFT`, same format as web).
 - **Scene 1 (camp):** fire out → bag → map → burn it → rest of Scene 1 → free roam → north path → "next morning" →
   village. (Mattias moved out of camp; his lines wait for Scene 4.)
@@ -211,11 +211,20 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   go inside (room built at x=300: plank-floor shader + painted interior backdrop, swaps to the trip version) →
   choice A all trip / B Skorn trips (both → reveal, demon transform, placeholder fight) · C refuse → kicked out, pass
   sign · D Xylo's Deloye Lore inspection → deal · E (only if goblinAllies) goblins take Dulbers out. Flags: hasMidtocy,
-  skornTripped, dulbersEscaped, dulbersDead; skornKing → Skorn bursts in. Exit east → "To be continued: The Pass".
+  skornTripped, dulbersEscaped, dulbersDead; skornKing → Skorn bursts in. Exit east → The Pass.
   Test: `MART_CHOICE=0..4 ... res://mart.tscn -- --shots`.
+- **Scene 4 (The Pass, `pass.gd` + `pass_script.gd`), as Skorn:** new `lava` mood in level.gd (red ambient/fog/sky,
+  burnt ground). Painted `giant_pass.jpg` backdrop with the giant asleep (floating Zzz at `GIANT_HEAD`), framed by big
+  dark cliff cards. Walk up → Metocin Mattias poofs in (blue light) and vanishes → giant → choice: A throw midtocy (if
+  hasMidtocy) → he wakes geeked → placeholder boss fight · B **Snore Sneak** minigame (hold E only while he snores; fill
+  the snore meter and he wakes → fight) → +2 bowls · C **Lore Session** minigame (5 Deloye Lore pages, pick the true
+  continuation; one miss → fight) → he rolls over · D Skorn slaps him → fight · E (goblinAllies) the chief's cousin, he
+  leaves calmly. Waking swaps the backdrop to `mountain_path.jpg` and Ebain's awake giant (`giant_angry`, 7 m) stands up.
+  Mattias's voice echoes → exit east → "END OF CHAPTER 1" card → back to the camp. Flags: sneakWon, loreWon.
+  Test: `PASS_CHOICE=0..4 ... res://pass.tscn -- --shots`.
 - **Placeholders:** goblin huts (tinted tent art) and the throne (built from shapes) until Ebain sends art.
-  Mart uses painted backdrops instead of props (edges show from far back). Fights in village E and Mart A/B are
-  scripted wins until combat is ported.
+  Mart uses painted backdrops instead of props (edges show from far back). Fights in village E, Mart A/B and the Pass giant
+  are scripted wins until combat is ported.
   The goblin fight in path E is a placeholder until combat is ported (Combat 2.0 engine → GDScript is the plan).
 - **Art pipeline:** props `python3 tools/key_props.py <src> godot/assets/props`; character views
   `python3 tools/key_chars.py <src> godot/assets/characters`. Set `mipmaps/generate=true` in new `.import` files.
