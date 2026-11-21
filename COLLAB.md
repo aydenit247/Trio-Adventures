@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Crash/freeze reports: game writes an in-depth report to a "Crash Reports" folder next to the exe (crash, freeze watchdog, force-close), repo gets a `Crash Reports/` folder — files: new godot/scripts/crash_reporter.gd, godot/scripts/game.gd (1 line in _ready to start it), new Crash Reports/README.md — branch: asar/crash-reports — started 2026-11-21
 - [ebain] Voice import pipeline: tools/import_voices.py (studio export zip → OGG in assets/voices/, updates voice_lines.gd) +
   voice_lines.gd takes file extensions + inner thoughts can play voice files — files: godot/scripts/voice_lines.gd,
   godot/scripts/dialogue.gd (1 line in _speak), new godot/scripts/voice_index.gd, new tools/import_voices.py, VOICE_LINES.md —
@@ -48,6 +49,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/game.gd (1 line), crash_reporter.gd (new), Crash Reports/ (new)
 - [ebain] godot/scripts/voice_lines.gd, godot/scripts/dialogue.gd (_speak only), voice_index.gd (new), tools/import_voices.py (new), VOICE_LINES.md
 
 ## Log (newest first)
