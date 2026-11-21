@@ -10,7 +10,6 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Throne "bones" look like white sticks → real bone shapes · crickets → Ebain's real cricket recording — files: godot/scripts/village.gd, godot/scripts/ambience.gd, new godot/assets/sounds/crickets.ogg — branch: ebain/bones-crickets — started 2026-11-21
-- [asar] FIX: game hard-freezes during dialogue on Windows (Godot TTS deadlock) — files: godot/scripts/dialogue.gd — branch: asar/tts-freeze — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -21,6 +20,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Fixed the Windows hard freeze during dialogue (Godot TTS deadlock)
 - 2026-11-21 [ebain] Metocy Mart + The Pass are real 3D places now (no painted backdrops), texture sweep, F1 dev/test mode
 - 2026-11-21 [ebain] Automatic Windows builds via GitHub Actions → Releases (`latest-windows`)
 - 2026-11-21 [asar] Goblin + Chief voice lines: 37 of Asar's recordings replace TTS for those lines
@@ -34,11 +34,16 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/dialogue.gd
 - [ebain] godot/scripts/village.gd, godot/scripts/ambience.gd, godot/assets/sounds/crickets.ogg (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **Windows hard-freeze fix** (Asar hit it in the bar and elsewhere: box stuck, game needed Task
+  Manager). Cause is Godot 4.7's Windows OneCore TTS driver: tts_stop()/interrupt landing just as a line finishes
+  makes the MediaEnded callback and the stop close the same MediaPlayer from two threads → deadlock. dialogue.gd now
+  NEVER calls DisplayServer.tts_stop() or speaks with interrupt=true; if the robot is still reading, the next line's
+  TTS is skipped. stop_voice() only stops recorded lines now (dev_mode.gd's call is fine). **Please don't add
+  tts_stop()/interrupt anywhere** — comment in dialogue.gd explains. Sandbox can't test Windows TTS; Asar is checking.
 - 2026-11-21 [ebain] Merged: **Mart + Pass rebuilt in 3D**, texture sweep, and **dev mode (F1)**. Details in HANDOFF
   ("Dev mode", code map). Shared-file changes:
   **level.gd**: new `dev_menu` key (F1); `run_dialogue()` goes through `DevMode.run()` when a dev dialogue mode is on;
