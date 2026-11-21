@@ -3,4 +3,17 @@
 class_name VoiceIndex
 
 const LINES := {
+	"aightbet": "giant/giant_aight_bet.ogg",  # Aight. Bet.
+	"chudstomp": "giant/giant_chud_stomp.ogg",  # Chud stomp.
+	"cousinbogdrinker": "giant/giant_cousin_bogdrinker.ogg",  # …Cousin Bogdrinker?
+	"didyoujustslapdiddychud": "giant/giant_did_you_just_slap_diddy_chud.ogg",  # …Did you just… slap… Diddy Chud?
+	"diddychudissomadrightnow": "giant/giant_diddy_chud_is_so_mad_right_now.ogg",  # DIDDY CHUD IS SO MAD RIGHT NOW.
+	"hmmsmall": "giant/giant_hmm_small.ogg",  # Hmm. Small.
+	"okayokayokaymyfaultiaintknowyallwassomecrashouts": "giant/giant_okay_okay_okay_my_fault_i_ain_t_know_y_a.ogg",  # Okay, okay, okay, my fault. I ain't know y'all was some crashouts.
+	"thataintcanon": "giant/giant_that_ain_t_canon.ogg",  # …THAT AIN'T CANON.
+	"ughfineforfamily": "giant/giant_ugh_fine_for_family.ogg",  # …Ugh. Fine. For family.
+	"waitwhyaretherocksbreathing": "giant/giant_wait_why_are_the_rocks_breathing.ogg",  # Wait… why are the rocks… breathing…
+	"whoisondiddychudsbelly": "giant/giant_who_is_on_diddy_chud_s_belly.ogg",  # …WHO IS ON DIDDY CHUD'S BELLY.
+	"whothrewmidtocyatdiddychud": "giant/giant_who_threw_midtocy_at_diddy_chud.ogg",  # WHO. THREW. MIDTOCY. AT DIDDY CHUD.
+	"yalldisturbinmynap": "giant/giant_y_all_disturbin_my_nap.ogg",  # Y'all disturbin' my nap.
 }
