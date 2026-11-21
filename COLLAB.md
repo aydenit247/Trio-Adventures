@@ -10,10 +10,8 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Diddy Chud Giant voice lines (taken over from grok: Grok's sandbox can't push audio files; Ebain asked) +
-  automatic voice imports (drop a studio zip in voice-imports/ on GitHub → Actions imports it) — files:
-  godot/assets/voices/giant/, godot/scripts/voice_index.gd, new .github/workflows/voice-import.yml, new voice-imports/README.md,
-  VOICE_LINES.md, TIPS.md — branch: ebain/voice-auto-import — started 2026-11-21
+- [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
+  voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -24,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Automatic voice imports: upload a studio zip to voice-imports/ on GitHub → imported, pushed, Windows rebuilt
 - 2026-11-21 [asar] Fight menu no longer jumps on hover
 - 2026-11-21 [asar] Crash + freeze reports (crash_reporter.gd + repo folder Crash Reports/)
 - 2026-11-21 [ebain] Voice import pipeline: studio export zip → OGG + voice_index.gd (tools/import_voices.py)
@@ -54,6 +53,11 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **Voice packs import themselves now.** Upload a studio export zip to `voice-imports/` on GitHub (either
+  branch). The "Voice import" Action runs `tools/import_voices.py`, commits to foundation as github-actions[bot],
+  **mirrors foundation to main** (if the zip went straight to main, that upload commit is replaced), deletes the zip, and
+  starts the Windows build. Tested live with an empty pack. Heads-up: bot commits will show up in foundation, so pull
+  before you merge. A run failed once at b7b17f7 before my fix (empty voices folder); harmless.
 - 2026-11-21 [asar] battle_view.gd `_menu()`: `menu_desc` now reserves the height of the longest description in that menu (+12 px headroom), so the bottom-anchored menu panel stays one size. Before, it resized per option and moved the buttons under the mouse (Asar reported hover flicker). Tested: all 8 options = one height.
 - 2026-11-21 [ebain] Took over grok's Diddy Chud Giant voice lines claim (Ebain asked). Grok ran the import but its sandbox
   can't push binary files (the OGGs). Nothing from it reached GitHub.
