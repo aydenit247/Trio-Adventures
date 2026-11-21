@@ -56,6 +56,7 @@ var paper: Sprite3D
 var objective_lbl: Label
 var shake := 0.0
 var fire_base := 0.0
+var auto_dir := Vector3.ZERO   # test mode: walk the leader without a keyboard
 
 func _ready() -> void:
 	rng.seed = 7
@@ -74,7 +75,9 @@ func _ready() -> void:
 	amb.fire_player.volume_db = -80.0
 	cam_target = leader.global_position
 	shots_mode = "--shots" in OS.get_cmdline_user_args()
-	if shots_mode:
+	if "--views" in OS.get_cmdline_user_args():
+		_views_tour()
+	elif shots_mode:
 		_shot_tour()
 	else:
 		_intro()
@@ -642,6 +645,9 @@ func _process(delta: float) -> void:
 	if not busy:
 		input = Input.get_vector("move_left", "move_right", "move_back", "move_forward")
 	var dir := cam_right * input.x + cam_fwd * input.y
+	if auto_dir != Vector3.ZERO:
+		var ad := cam_right * auto_dir.x + cam_fwd * auto_dir.z
+		dir = ad.normalized()
 	if dir.length() > 1.0:
 		dir = dir.normalized()
 	leader.drive(dir, Input.is_action_pressed("run"), cam_right, delta)
@@ -981,6 +987,23 @@ func _advance(n := 1) -> void:
 	for i in n:
 		await _wait(0.5)
 		dialogue._next.emit()
+
+func _views_tour() -> void:
+	dialogue.tts_on = false
+	stage = "lit"
+	fire_base = 3.0
+	flames.emitting = true
+	embers.emitting = true
+	_set_leader(party[0])
+	_place_party(Vector3(0, 0, 4.5))
+	target_yaw = 0.0
+	zoom = 7.0
+	await _wait(1.5)
+	for d in [["away", Vector3(0, 0, 1)], ["right", Vector3(1, 0, 0)], ["toward", Vector3(0, 0, -1)], ["left", Vector3(-1, 0, 0)]]:
+		auto_dir = d[1]
+		await _wait(2.4)
+		await _shot("view_" + d[0])
+	get_tree().quit()
 
 func _shot_tour() -> void:
 	busy = true

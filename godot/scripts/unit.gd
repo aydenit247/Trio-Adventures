@@ -18,6 +18,10 @@ var frozen := false
 var follow_slot := 0          # 0 = leader, 1/2 = followers
 var trail: Array[Vector3] = []  # leader's breadcrumb trail (newest first)
 
+# Directional views: "front" (toward camera), "back" (walking away), "side" (art faces right; flipped for left)
+var views := {}
+var view := "front"
+
 var _bob := 0.0
 var _idle := randf() * TAU
 var _last_step_sign := 1.0
@@ -30,6 +34,11 @@ func setup(_id: String, _name: String, tex: Texture2D, h: float) -> void:
 	collision_layer = 2   # units don't push each other
 	collision_mask = 1    # but do bump into the world
 
+	views["front"] = tex
+	for v in ["back", "side"]:
+		var p := "res://assets/characters/%s_%s.png" % [_id, v]
+		if ResourceLoader.exists(p):
+			views[v] = load(p)
 	sprite = Sprite3D.new()
 	sprite.texture = tex
 	sprite.pixel_size = h / float(tex.get_height())
@@ -70,12 +79,26 @@ func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> voi
 	var flat := Vector2(velocity.x, velocity.z).length()
 	moving = flat > 0.4
 
-	# Face left/right relative to the camera
-	var side := Vector3(velocity.x, 0, velocity.z).dot(cam_right)
-	if side < -0.6:
-		sprite.flip_h = true
-	elif side > 0.6:
-		sprite.flip_h = false
+	# Pick the view from the walking direction relative to the camera (with a little hysteresis)
+	var flat_v := Vector3(velocity.x, 0, velocity.z)
+	var side := flat_v.dot(cam_right)
+	var away := flat_v.dot(Vector3.UP.cross(cam_right))
+	if moving:
+		var want := view
+		if abs(side) > abs(away) * 1.3:
+			want = "side"
+		elif abs(away) > abs(side) * 1.3:
+			want = "back" if away > 0.0 else "front"
+		set_view(want)
+		if view == "side":
+			sprite.flip_h = side < 0.0
+		elif view == "front":
+			if side < -0.6:
+				sprite.flip_h = true
+			elif side > 0.6:
+				sprite.flip_h = false
+		else:
+			sprite.flip_h = false
 
 	# Bouncy cutout walk + idle breathing
 	if moving:
@@ -91,6 +114,17 @@ func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> voi
 		_idle += delta * 2.0
 		sprite.position.y = lerp(sprite.position.y, 0.0, delta * 10.0)
 		sprite.scale = Vector3(1.0, 1.0 + sin(_idle) * 0.008, 1.0)
+
+func set_view(v: String) -> void:
+	if not views.has(v):
+		v = "front"
+	if v == view:
+		return
+	view = v
+	var tex: Texture2D = views[v]
+	sprite.texture = tex
+	sprite.pixel_size = height_m / float(tex.get_height())
+	sprite.offset = Vector2(0, tex.get_height() / 2.0)
 
 # Leader keeps a breadcrumb trail; followers walk to a point on it
 func record_trail() -> void:
