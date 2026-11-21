@@ -151,6 +151,27 @@ func _build_village() -> void:
 	s.position = Vector3(13.5, 0.75, -4.0)
 	add_child(s)
 
+func _bone(parent: Node3D, pos: Vector3, yaw: float, size: float, m: Material) -> void:
+	var b := Node3D.new()
+	b.position = pos + Vector3(0, 0.06 * size, 0)
+	b.rotation.y = yaw
+	b.scale = Vector3.ONE * size
+	parent.add_child(b)
+	var shaft := CylinderMesh.new()
+	shaft.top_radius = 0.035
+	shaft.bottom_radius = 0.04
+	shaft.height = 0.55
+	shaft.radial_segments = 10
+	Util.add_mesh(b, shaft, m, Vector3.ZERO, Vector3(0, 0, PI / 2.0))
+	var knob := SphereMesh.new()
+	knob.radius = 0.06
+	knob.height = 0.11
+	knob.radial_segments = 10
+	knob.rings = 6
+	for end in [-0.28, 0.28]:
+		for side in [-0.04, 0.04]:
+			Util.add_mesh(b, knob, m, Vector3(end, 0.0, side))
+
 # The throne: a real chair, one (1) rusty wagon wheel, a fan of giant spoons, and bones (Poly Haven models + shapes)
 func _build_throne() -> void:
 	var root := Node3D.new()
@@ -165,13 +186,13 @@ func _build_throne() -> void:
 	for k in 7:
 		var sp := Models.place(self, "wooden_spoon", THRONE_POS + Vector3(-0.9 + k * 0.3, 2.25 - absi(k - 3) * 0.12, -0.55), 0.0, 5.0)
 		sp.rotation = Vector3(PI / 2.0, 0, (k - 3) * 0.16)
-	var bone := Util.mat(Color(0.86, 0.82, 0.72))
-	var b := CylinderMesh.new()
-	b.top_radius = 0.05
-	b.bottom_radius = 0.05
-	b.height = 0.9
-	for k in 6:
-		Util.add_mesh(root, b, bone, Vector3(rng.randf_range(-1.2, 1.2), 0.3, rng.randf_range(0.2, 1.0)), Vector3(PI / 2.0, rng.randf() * TAU, 0))
+	# old bones scattered around the stage: a shaft with two knobs at each end, aged and dirty
+	var bone := Models.mat("clay_plaster", 6.0, Color(0.78, 0.7, 0.55))
+	var spots := [Vector3(-1.45, 0, 0.55), Vector3(1.4, 0, 0.4), Vector3(-0.7, 0, 1.15), Vector3(0.85, 0, 1.2),
+		Vector3(-1.25, 0, -0.5), Vector3(0.25, 0.24, 0.55)]
+	for p in spots:
+		_bone(root, p, rng.randf() * TAU, rng.randf_range(0.8, 1.15), bone)
+	_bone(root, Vector3(-0.9, 0.09, 1.2), 0.9, 0.9, bone)   # one crossed over another, for that throne-room look
 	Util.static_box(self, THRONE_POS + Vector3(0, 0.6, -0.3), Vector3(1.4, 1.2, 1.0))
 	char_label(root, "Throne (Spoons, Bones, 1 Wheel)", -1.0, 3.3)
 
