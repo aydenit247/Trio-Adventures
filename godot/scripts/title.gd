@@ -5,6 +5,8 @@ extends Node
 var bg: Node        # the camp, running in title mode
 var ui: CanvasLayer
 var menu: MenuUI
+var music: AudioStreamPlayer   # "Prophecy of Metocy" (Ebain's track), loops on the title
+const MUSIC_DB := -3.0
 
 func _ready() -> void:
 	Game.title_mode = true
@@ -13,10 +15,34 @@ func _ready() -> void:
 	ui = CanvasLayer.new()
 	ui.layer = 30
 	add_child(ui)
+	_start_music()
 	_logo()
 	_open_menu()
 	if "--shots" in OS.get_cmdline_user_args():
 		_shot_tour()
+
+func _start_music() -> void:
+	var stream: AudioStreamOggVorbis = load("res://assets/music/prophecy_of_metocy.ogg")
+	stream.loop = true
+	music = AudioStreamPlayer.new()
+	music.stream = stream
+	music.volume_db = -40.0
+	add_child(music)
+	music.play()
+	create_tween().tween_property(music, "volume_db", MUSIC_DB, 2.0)
+	if bg and "amb" in bg and bg.amb:   # let the choir sit on top of the campfire + crickets
+		bg.amb.cricket_player.volume_db = -16.0
+
+func _process(delta: float) -> void:
+	# loading out of the title some other way (e.g. Load Game menu): duck the music fast
+	if Game.changing and music and music.volume_db > -40.0:
+		music.volume_db -= delta * 140.0
+
+func _fade_music(secs := 0.9) -> void:
+	if music:
+		var tw := create_tween()
+		tw.tween_property(music, "volume_db", -40.0, secs)
+		await tw.finished
 
 # Settings → Graphics calls this on the current scene
 func apply_graphics() -> void:
@@ -59,7 +85,9 @@ func _logo() -> void:
 func _open_menu() -> void:
 	var latest := Game.latest_slot()
 	var rows := [
-		{ "text": "Continue", "enabled": latest != "", "pick": func(): Game.load_game(Game.latest_slot()),
+		{ "text": "Continue", "enabled": latest != "", "pick": func():
+			await _fade_music()
+			Game.load_game(Game.latest_slot()),
 		  "note": _continue_note(latest) },
 		{ "text": "New Game", "pick": func(): _new_game() },
 		{ "text": "Load Game", "enabled": latest != "", "pick": func(): await _sub(MenuUI.open_slots(ui, "load")) },
@@ -81,6 +109,7 @@ func _new_game() -> void:
 	if Game.latest_slot() != "":
 		if not await MenuUI.confirm(ui, "Start a new game? Your autosave gets replaced when you reach the camp (Slots 1–3 are kept).", "Start", "Cancel"):
 			return
+	await _fade_music()
 	Game.new_game()
 
 func _sub(m: MenuUI) -> void:
