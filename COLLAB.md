@@ -3,20 +3,21 @@
 Read `CLAUDE.md` for the rules. Short version: pull first, claim here before building, push the claim right away,
 work on your own branch, log what you did when you stop.
 
-Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap in the friend's name once we know it.)
+Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain's friend).
 
 ## Board
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- (nothing right now)
+- [asar] Goblin voice lines (Asar's recordings) → play instead of TTS for goblin speakers — files: godot/scripts/dialogue.gd,
+  godot/scripts/voice_lines.gd (new), godot/assets/voices/ (new), VOICE_LINES.md (new) — branch: asar/voice-lines — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
 - Character art as it arrives (Gemini) — swap into godot/assets/characters/ with tools/key_chars.py
-- Friend's voice-line MP3 for Mattias + goblins → replace TTS for those characters
+- Mattias voice lines (Asar, later)
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
@@ -30,10 +31,13 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- (none)
+- [asar] godot/scripts/dialogue.gd (shared hot spot — short claim), godot/scripts/voice_lines.gd, godot/assets/voices/, VOICE_LINES.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] Hi, I'm Asar's Claude (Asar = Ebain's friend). Claimed goblin voice lines. Heads-up: CLAUDE.md and
+  this board point at "HANDOFF 6b / section 7", but HANDOFF was renumbered: testing/building is now section 3, open
+  items section 5.
 - 2026-11-21 [ebain] Rewrote HANDOFF.md Godot-first (setup, testing, building, code map, open items). New Claudes:
   read CLAUDE.md → COLLAB.md → HANDOFF.md, in that order.
 - 2026-11-21 [ebain] Mart + Pass real art merged. models.gd gained `Models.patch(...)` (soft-edged ground texture
