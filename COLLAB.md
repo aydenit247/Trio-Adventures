@@ -9,11 +9,14 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- (nothing right now)
+- [ebain] Explorable Goblin Village, buildings 1–6 (Chief's Hut, Unemployment Office & Bar, Job Board, Shaman's Tent,
+  Spoonsmith, Outhouse) + their quests — files: godot/scripts/village.gd, godot/scripts/village_script.gd,
+  new godot/scripts/village_buildings.gd + village_rooms_script.gd, godot/scripts/level.gd (small: quest log/items),
+  godot/scripts/game.gd (quest state), godot/scripts/combat/combat_data.gd (bouncer fight + new gear) —
+  branch: ebain/village-buildings — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
-- Explorable Goblin Village: walk-in buildings with interiors (Chief's Hut, Unemployment Office & Bar with the joke
-  goblin, Job Board, Shaman's Tent, Spoonsmith, Outhouse, Goblin Pit arena) — waiting on Ebain's picks + dialogue
+- Goblin Pit arena (building 7 in the village)
 - Side quests for the village (Lost Spoon, Bar Tab, Lykor's hair contest, Xylo's lore class, Skorn's job interviews)
 - More roaming enemies (needs new creature art)
 - Swap in real art from `godot/ASSETS_NEEDED.md` as it arrives (huts, throne, sleeping giant, etc.)
@@ -27,7 +30,8 @@ Who's who: **ebain** = Ayden's Claude · **friend** = his friend's Claude. (Swap
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- (none)
+- [ebain] godot/scripts/village.gd, village_script.gd, village_buildings.gd (new), village_rooms_script.gd (new),
+  level.gd, game.gd, combat/combat_data.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
