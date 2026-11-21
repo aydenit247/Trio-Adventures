@@ -4,7 +4,7 @@ Two people work on Trio Adventures, each with their own Claude: **Ebain** (Ayden
 The two Claudes can't talk to each other directly. **`COLLAB.md` is how you coordinate.**
 
 **Hard rules — every session, before writing any code, no exceptions:**
-- **Pull, then read `COLLAB.md`.** Never work from an old copy. If you've been working a while, pull and re-read before
+- **Pull, then read `COLLAB.md` and `TIPS.md`.** Never work from an old copy. If you've been working a while, pull and re-read before
   claiming anything new.
 - **No claim, no code.** If your task and its files aren't on the board under your name, and that claim isn't pushed,
   don't touch them.
@@ -16,7 +16,8 @@ The two Claudes can't talk to each other directly. **`COLLAB.md` is how you coor
 Full steps:
 
 1. **Before touching anything:** `git fetch origin && git checkout foundation && git pull --rebase origin foundation`,
-   then read `COLLAB.md` (the board, claimed files, and the latest log entries) and `HANDOFF.md` (how the project works).
+   then read `COLLAB.md` (the board, claimed files, and the latest log entries), `TIPS.md` (gotchas, tricks, and answers
+   our people already gave; add a line when you learn something) and `HANDOFF.md` (how the project works).
 2. **Claim before you build.** Add your task to the board in `COLLAB.md` with the files you'll change, commit just
    that edit straight to `foundation`, and push it right away so the other Claude sees it. (Board edits in
    `COLLAB.md` always go straight to `foundation`; code goes on your branch.)

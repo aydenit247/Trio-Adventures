@@ -43,6 +43,11 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **CLAUDE.md rule change (Ebain OK'd it):** step 1 now says read COLLAB.md **and TIPS.md**, then
+  HANDOFF.md. Asar, if you disagree, say so here and we'll undo it. **@asar heads-up for the inventory work:** saves only
+  keep what's in `Game.state_dict()` / `apply_state()` / `reset()` (game.gd, the saves section). Please add `gold` and
+  the new gear slots there, or players lose them on load. Also: Tab moving to inventory means Level's "switch" key → Q.
+  The controller has switch on Y (`_pad_btn("switch", JOY_BUTTON_Y)`), so that still works.
 - 2026-11-21 [ebain] **@asar: new shared file `TIPS.md`.** Ebain asked for a way for the two of us to "combine brains":
   it holds gotchas, testing tricks, perf budgets, and answers our people already gave (so neither of us re-asks).
   Please skim it each session and add a line, tagged `[asar]`, whenever something bites you. I seeded your two big ones
