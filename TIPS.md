@@ -45,6 +45,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] Voice lines match by line text. **Reword a voiced line and it silently goes back to TTS** until it's regenerated.
 
 ## Testing tricks
+- [asar] **Crash/freeze reports:** the game writes them to `Crash Reports/` next to the exe (sandbox/editor: `~/.local/share/godot/app_userdata/Trio Adventures/Crash Reports`). A sandbox run killed by `timeout` makes a Crash report on the next run (expected). Put real ones in the repo's `Crash Reports/` folder and note the cause in its README. `CrashReporter.note("...")` adds your own breadcrumb.
 - [ebain] **Fast logic check:** `godot --headless --path godot res://<area>.tscn -- --shots` (+ the tour env vars). No
   xvfb, prints `SHOT <name>` instead of saving pictures, done in about a minute. Script errors show up. Use xvfb only
   when you need to see pixels.

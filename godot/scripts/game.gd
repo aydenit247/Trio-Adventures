@@ -250,6 +250,7 @@ var cam_speed := 1.0              # camera turn speed multiplier (0.4 .. 2.0)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(load("res://scripts/crash_reporter.gd").new())   # crash/freeze reports (see crash_reporter.gd)
 	load_settings()
 	apply_settings()
 
