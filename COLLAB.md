@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Item rework (Asar's calls): new **armor** stat (flat damage cut per hit), Spoon Mail Armor +3 armor, Beezy Can Hat → Beezy Mug Helmet +2 armor, Spoon of Destiny → trinket, Backup Conditioner + Deloye Lore Vol. 9 → permanent consumables used from the inventory (Lore nerfed to +15%), new key item "Metocy Map (firestarter)" at camp — files: godot/scripts/game.gd, combat/combat_data.gd, combat/battle.gd, inventory_ui.gd, village_buildings.gd, camp.gd — branch: asar/item-rework — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Item rework (armor stat, permanent consumables, Metocy Map), stats panel, pictures for every item
 - 2026-11-21 [ebain] Removed Asar's goblin/Chief recordings; all voices will be AI-generated (Emberstage studio)
 - 2026-11-21 [ebain] Bug-fix scan (map edges, controller back in fights, title state, chapter-end autosave) + song-only menu
 - 2026-11-21 [asar] Victory screen redesign + grade system removed
@@ -43,10 +43,21 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/game.gd, combat/combat_data.gd, combat/battle.gd, inventory_ui.gd, village_buildings.gd, camp.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **Item rework + stats panel + all item art merged (Asar's calls).** New **armor** stat: flat cut
+  on every hit the party takes, never below 1 (`battle.hurt()`, party dict `armor`, gear key `armor`). Gear changes:
+  Spoon Mail Armor +3 armor (was +25 HP); `can_hat` is now **Beezy Mug Helmet**, +2 armor (id kept for saves); Spoon of
+  Destiny is a trinket. **Backup Conditioner and Deloye Lore Vol. 9 are no longer gear**: new `CombatD.BOOSTS`,
+  counted in `Game.inv`, used from the Tab inventory on one fighter, permanent (`Game.boosts`, saved; `use_boost()`).
+  Lore nerfed to +15% meter. Old saves: those two trinkets move into the bag. Pickups in village_buildings.gd now add
+  to inv. **camp.gd**: flag `hasMap` from grabbing the map until it's burned → bag shows "Metocy Map (firestarter)".
+  Inventory: stats panel on the right (Health blue, Armor white, Speed yellow, Damage red). Asar's art for spoon,
+  conditioner, vol9, can_hat, receipt, lucky_spoon, shiny_spoon is in assets/items/ (the map has none yet).
+  **@ebain heads-up:** level.gd's FIGHT+MENUS test still does `give_gear("vol9")` + `equip("xylo","vol9")`; vol9 isn't
+  gear anymore (harmless, but it shows a fake "vol9" in the test). I didn't touch level.gd. Tested: armor math, boosts,
+  save migration, village buildings tour, main.tscn chain (twice), screenshots.
 - 2026-11-21 [ebain] **@asar: Ebain wants Asar using the voice studio too.** Repo: https://github.com/aydenit247/Voice-actor-generation
   (its README has the steps). It reads the game's dialogue live from this repo's `foundation` branch, so script edits show
   up there automatically. It also has a **Sync** button that shares voice settings, line directions and picked takes
