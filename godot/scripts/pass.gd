@@ -52,11 +52,18 @@ func _configure() -> void:
 func _build_level() -> void:
 	backdrop_mat = backdrop("res://assets/backdrops/giant_pass.jpg", 26.0, Vector3(0, -0.5, -14.0), Color(0.95, 0.9, 0.9))
 	# big dark cliffs framing the painted set so its edges never show
-	var cliff := Color(0.32, 0.2, 0.19)
-	for side in [-1.0, 1.0]:
+	var cliff := Color(0.3, 0.2, 0.18)
+	for side in [-1.0, 1.0]:   # tall cliff cutouts frame the painting so its edges never show…
 		card("rock_1", 15.0, Vector3(side * 14.5, 0, -12.6), side > 0, false, 0.0, "props", cliff)
 		card("rock_4", 11.0, Vector3(side * 18.5, 0, -10.5), side < 0, false, 0.0, "props", cliff * 0.9)
-		card("rock_2", 8.0, Vector3(side * 15.0, 0, -6.0), side > 0, false, 0.0, "props", cliff * 0.85)
+	for side in [-1.0, 1.0]:   # …and real rock faces (Poly Haven) sit in front of them, darkened and lava-lit
+		Models.place(self, "rock_face_01", Vector3(side * 14.0, -0.3, -11.5), (0.0 if side < 0 else PI) + side * 0.5, 3.0, false, cliff)
+		Models.place(self, "rock_face_01", Vector3(side * 17.5, -0.3, -6.0), (0.0 if side < 0 else PI) + side * 1.2, 2.4, false, cliff * 0.9)
+		Models.place(self, "namaqualand_boulder_03", Vector3(side * 12.0, 0, -4.5), randf() * TAU, 1.8, true, cliff)
+	# burnt ground + dark rock patches over the path
+	Models.patch(self, Vector3(0.5, 0, -2.0), Vector2(20, 28), "burned_ground_01", 2.5, Color(0.55, 0.42, 0.38), 0.0, 0.3)
+	Models.patch(self, Vector3(-4.0, 0, -7.5), Vector2(8, 6), "dark_rock", 2.0, Color(0.5, 0.38, 0.34), 0.7, 0.45)
+	Models.patch(self, Vector3(5.0, 0, 5.0), Vector2(7, 6), "dark_rock", 2.0, Color(0.5, 0.38, 0.34), 2.1, 0.45)
 	# lava glow along the edges
 	for p in [Vector3(-8, 0.5, -9), Vector3(8, 0.5, -8), Vector3(-7, 0.5, 4), Vector3(9, 0.5, 6)]:
 		var l := OmniLight3D.new()
@@ -66,13 +73,22 @@ func _build_level() -> void:
 		l.position = p
 		add_child(l)
 		add_glow(p, Color(1.0, 0.55, 0.3), 7.0, func(): return 1.0)
-	var rock_tint := Color(0.5, 0.33, 0.3)
+	var rock_tint := Color(0.42, 0.3, 0.27)
 	for k in 16:
 		var side := -1.0 if k % 2 == 0 else 1.0
 		var p := Vector3(side * rng.randf_range(6.5, 13.0), 0, rng.randf_range(-11, 13))
 		if p.x > 0 and abs(p.z) < 3.2:
 			continue
-		card("rock_%d" % [1, 2, 4][rng.randi() % 3], rng.randf_range(1.6, 3.4), p, rng.randf() < 0.5, true, 0.5, "props", rock_tint)
+		match k % 3:
+			0: Models.place(self, "namaqualand_boulder_03", p, rng.randf() * TAU, rng.randf_range(0.6, 1.1), true, rock_tint)
+			1: Models.place(self, "rock_07", p, rng.randf() * TAU, rng.randf_range(7.0, 12.0), true, rock_tint)
+			_: Models.place(self, "boulder_01", p, rng.randf() * TAU, rng.randf_range(0.8, 1.5), true, rock_tint)
+	# burnt logs + charred branches
+	var burnt := Color(0.16, 0.12, 0.1)
+	Models.place(self, "dead_tree_trunk_02", Vector3(-6.8, 0.1, 2.5), 0.5, 0.9, true, burnt)
+	Models.place(self, "dead_tree_trunk_02", Vector3(7.4, 0.1, -3.6), 2.4, 0.8, true, burnt)
+	for p in [Vector3(-3.5, 0, 6.5), Vector3(4.2, 0, 1.0), Vector3(-5.0, 0, -4.0), Vector3(3.0, 0, 9.5)]:
+		Models.place(self, "dry_branches_medium_01", p, randf() * TAU, 1.1, false, burnt)
 	_ash()
 	_walls()
 	mattias = spawn_npc("mattias", "Metocin Mattias", "mattias", 1.95, Vector3(0, 0, 0.5))

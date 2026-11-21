@@ -236,6 +236,11 @@ game looks a bit better than the test shots. New textures: VRAM compressed (comp
   sign · D Xylo's Deloye Lore inspection → deal · E (only if goblinAllies) goblins take Dulbers out. Flags: hasMidtocy,
   skornTripped, dulbersEscaped, dulbersDead; skornKing → Skorn bursts in. Exit east → The Pass.
   Test: `MART_CHOICE=0..4 ... res://mart.tscn -- --shots`.
+- **Mart + Pass real art (Nov 2026):** Mart street: cobblestone ground patch (`Models.patch` = soft-edged textured
+  ground decal), barrels/crates/sacks/bucket by the painted shop, two lantern posts with real light; shop room: a 3D
+  counter with candlesticks in front of the painted one, barrels, sacks, crates, a bookshelf with bottles, pots.
+  Pass: real rock faces + boulders (darkened, lava-lit) in front of the framing cliff cutouts, burnt-ground and
+  dark-rock patches, charred logs and branches.
 - **Scene 4 (The Pass, `pass.gd` + `pass_script.gd`), as Skorn:** new `lava` mood in level.gd (red ambient/fog/sky,
   burnt ground). Painted `giant_pass.jpg` backdrop with the giant asleep (floating Zzz at `GIANT_HEAD`), framed by big
   dark cliff cards. Walk up → Metocin Mattias poofs in (blue light) and vanishes → giant → choice: A throw midtocy (if

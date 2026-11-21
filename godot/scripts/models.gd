@@ -86,3 +86,50 @@ static func cylinder(parent: Node, pos: Vector3, r_bottom: float, r_top: float, 
 	cm.height = h
 	cm.radial_segments = sides
 	return Util.add_mesh(parent, cm, material, pos + Vector3(0, h / 2.0, 0))
+
+# A patch of real ground texture laid on the terrain with soft, ragged edges (cobblestones in front of a shop,
+# burnt ground at the Pass…). size = metres, tile = metres per texture repeat.
+static func patch(parent: Node, center: Vector3, size: Vector2, id: String, tile := 2.0, tint := Color.WHITE, rot_y := 0.0, soft := 0.35) -> MeshInstance3D:
+	var sm := ShaderMaterial.new()
+	sm.shader = _patch_shader()
+	var dir := "res://assets/textures/%s/" % id
+	sm.set_shader_parameter("albedo", load(dir + "albedo.jpg"))
+	if ResourceLoader.exists(dir + "normal.jpg"):
+		sm.set_shader_parameter("normal_tex", load(dir + "normal.jpg"))
+	sm.set_shader_parameter("tile", tile)
+	sm.set_shader_parameter("tint", tint)
+	sm.set_shader_parameter("soft", soft)
+	var pm := PlaneMesh.new()
+	pm.size = size
+	return Util.add_mesh(parent, pm, sm, center + Vector3(0, 0.015, 0), Vector3(0, rot_y, 0))
+
+static var _patch_sh: Shader
+static func _patch_shader() -> Shader:
+	if _patch_sh == null:
+		_patch_sh = Shader.new()
+		_patch_sh.code = """
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_disabled;
+uniform sampler2D albedo : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D normal_tex : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform float tile = 2.0;
+uniform vec4 tint : source_color = vec4(1.0);
+uniform float soft = 0.35;
+varying vec3 wpos;
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float n2(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+void fragment() {
+	vec2 uv = wpos.xz / tile;
+	vec4 c = texture(albedo, uv);
+	ALBEDO = c.rgb * tint.rgb;
+	NORMAL_MAP = texture(normal_tex, uv).rgb;
+	ROUGHNESS = 0.9;
+	vec2 e = abs(UV - 0.5) * 2.0;
+	float d = length(max(e - 0.35, 0.0)) / 0.65;
+	d += (n2(wpos.xz * 0.9) - 0.5) * 0.35;
+	ALPHA = 1.0 - smoothstep(1.0 - soft, 1.0, d);
+}
+"""
+	return _patch_sh

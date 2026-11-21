@@ -68,8 +68,12 @@ func _build_level() -> void:
 		var p := Vector3(side * rng.randf_range(6.5, 9.0), 0, rng.randf_range(-9, 12))
 		if p.x > 0 and abs(p.z) < 3.0:
 			continue
-		card("bush_%d" % (rng.randi() % 3 + 1) if rng.randf() < 0.7 else "rock_%d" % [1, 4][rng.randi() % 2], rng.randf_range(1.2, 2.0), p, rng.randf() < 0.5, true)
+		if rng.randf() < 0.7:
+			card("bush_%d" % (rng.randi() % 3 + 1), rng.randf_range(1.2, 2.0), p, rng.randf() < 0.5, true)
+		else:
+			Models.place(self, "namaqualand_boulder_05", p, rng.randf() * TAU, rng.randf_range(1.0, 1.6), true, Color(0.6, 0.62, 0.7))
 	_walls(Vector3.ZERO, 9.5, -11.5, 14.0, true)
+	_mart_props()
 	# ---- inside: the shop room
 	_build_room()
 	dulbers = spawn_npc("dulbers", "Dulbers Frint", "dulbers", 1.3, DOOR_OUT + Vector3(0, 0, -0.5))
@@ -98,6 +102,61 @@ func _walls(c: Vector3, half_x: float, back_z: float, front_z: float, east_gap: 
 	Util.static_box(self, c + Vector3(0, 1, back_z), Vector3(half_x * 2, 2, 0.5))
 	Util.static_box(self, c + Vector3(0, 1, front_z), Vector3(half_x * 2, 2, 0.5))
 
+# Real props in front of the painted shop (Poly Haven, CC0): cobblestones, barrels, crates, sacks, lantern posts
+func _mart_props() -> void:
+	Models.patch(self, Vector3(-0.5, 0, -8.0), Vector2(19, 9), "cobblestone_floor_04", 2.2, Color(0.32, 0.33, 0.4))
+	var sack := Color(0.95, 0.8, 0.6)
+	Models.place(self, "wine_barrel_01", Vector3(-7.4, 0, -10.0), 0.4, 1.0, true)
+	Models.place(self, "wine_barrel_01", Vector3(-6.6, 0, -9.3), 1.7, 0.95, true)
+	Models.place(self, "wooden_crate_02", Vector3(-5.6, 0, -10.2), 1.5, 1.0, true)
+	Models.place(self, "wooden_crate_01", Vector3(-5.6, 0.46, -10.2), 1.4, 0.95)
+	Models.place(self, "compost_bag_02", Vector3(-6.0, 0, -8.9), 0.6, 1.1, false, sack)
+	Models.place(self, "compost_bag_02", Vector3(-6.4, 0, -8.5), 2.3, 1.0, false, sack)
+	Models.place(self, "wine_barrel_01", Vector3(6.4, 0, -10.0), 0.9, 1.0, true)
+	Models.place(self, "wooden_crate_02", Vector3(7.6, 0, -9.4), 0.2, 1.0, true)
+	Models.place(self, "compost_bag_02", Vector3(5.6, 0, -9.0), 1.2, 1.1, false, sack)
+	Models.place(self, "wooden_crate_01", Vector3(4.6, 0, -9.8), 0.3, 1.0, true)
+	Models.place(self, "wooden_bucket_01", Vector3(5.0, 0, -8.6), 0.0, 1.0)
+	var post := Models.mat("weathered_planks", 1.0, Color(0.6, 0.5, 0.42))
+	for x in [-4.6, 1.6]:   # lantern posts flanking the path to the door
+		Models.block(self, Vector3(x, 1.1, -8.4), Vector3(0.16, 2.2, 0.16), post, 0.0, true)
+		Models.block(self, Vector3(x + 0.25, 2.15, -8.4), Vector3(0.6, 0.1, 0.1), post)
+		Models.place(self, "wooden_lantern_01", Vector3(x + 0.5, 1.65, -8.4), 0.0, 0.9)
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.7, 0.4)
+		l.light_energy = 1.2
+		l.omni_range = 5.0
+		l.position = Vector3(x + 0.5, 1.9, -8.4)
+		add_child(l)
+		add_glow(l.position, Color(1.0, 0.7, 0.4), 4.0, func(): return 0.8)
+
+func _room_props() -> void:
+	var dark := Models.mat("weathered_planks", 1.0, Color(0.55, 0.45, 0.4))
+	Models.block(self, INT + Vector3(0, 0.5, -3.45), Vector3(3.4, 1.0, 0.7), dark, 0.0, true)       # the counter
+	Models.block(self, INT + Vector3(0, 1.03, -3.45), Vector3(3.6, 0.06, 0.85), Models.mat("weathered_planks", 1.0))
+	Models.place(self, "wooden_candlestick", INT + Vector3(-1.4, 1.06, -3.5), 0.0, 1.3)
+	Models.place(self, "wooden_candlestick", INT + Vector3(1.3, 1.06, -3.4), 0.0, 1.3)
+	for x in [-1.4, 1.3]:
+		var c := OmniLight3D.new()
+		c.light_color = Color(1.0, 0.72, 0.4)
+		c.light_energy = 0.9
+		c.omni_range = 3.0
+		c.position = INT + Vector3(x, 1.5, -3.3)
+		add_child(c)
+	Models.place(self, "wine_barrel_01", INT + Vector3(-5.6, 0, -3.3), 0.3, 1.0, true)
+	Models.place(self, "wine_barrel_01", INT + Vector3(-5.8, 0, -2.2), 1.4, 0.95, true)
+	Models.place(self, "wine_barrel_01", INT + Vector3(5.7, 0, -3.1), 2.0, 1.0, true)
+	Models.place(self, "wooden_candlestick", INT + Vector3(5.7, 0.87, -3.1), 0.0, 1.3)
+	Models.place(self, "compost_bag_02", INT + Vector3(-5.4, 0, 0.4), 0.4, 1.1, false, Color(0.95, 0.8, 0.6))
+	Models.place(self, "compost_bag_02", INT + Vector3(-5.9, 0, 1.0), 1.9, 1.0, false, Color(0.95, 0.8, 0.6))
+	Models.place(self, "wooden_crate_02", INT + Vector3(5.4, 0, 1.6), 0.0, 1.0, true)
+	Models.place(self, "wooden_crate_01", INT + Vector3(5.4, 0.46, 1.6), 0.3, 0.95)
+	Models.place(self, "wooden_bookshelf_worn", INT + Vector3(-6.0, 0, -0.9), PI / 2.0, 1.0, true)
+	Models.place(self, "wine_bottles_01", INT + Vector3(-5.95, 0.95, -1.2), PI / 2.0, 1.0)
+	Models.place(self, "wine_bottles_01", INT + Vector3(-5.95, 1.45, -1.3), PI / 2.0, 1.0)
+	Models.place(self, "brass_pot_01", INT + Vector3(-1.2, 0, 2.6), 0.0, 1.2)
+	Models.place(self, "ceramic_pot", INT + Vector3(3.9, 0, -3.6), 0.6, 1.0)
+
 func _build_room() -> void:
 	var floor_body := StaticBody3D.new()
 	var cs := CollisionShape3D.new()
@@ -125,6 +184,7 @@ func _build_room() -> void:
 	Util.add_mesh(self, shell, wall_m, INT + Vector3(0, 6, -5.3), Vector3(PI / 2.0, 0, 0))
 	Util.add_mesh(self, shell, wall_m, INT + Vector3(0, 7.6, 0), Vector3(PI, 0, 0))
 	_walls(INT, 6.5, -4.2, 5.5, false)
+	_room_props()
 	add_glow(INT + Vector3(0, 1, -1), Color(1.0, 0.72, 0.45), 10.0, func(): return 0.75, true)
 	for p in [INT + Vector3(-4.5, 2, -3.5), INT + Vector3(4.5, 2, -3.5), INT + Vector3(0, 3, 0)]:
 		var l := OmniLight3D.new()
