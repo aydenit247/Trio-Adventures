@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] **Inventory overhaul + gold**: new Tab inventory window (blurred game behind it, Deloye Lore parchment look), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets), gold dropped by enemies + counter. Tab = inventory, character switch moves to Q — files: godot/scripts/game.gd, level.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, village_buildings.gd, camp_script.gd (1 hint line), new inventory_ui.gd — branch: asar/inventory — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Controller "back" (B) in battle menus: battle_view.gd only checks Q/Esc/Backspace keys. Add `ui_cancel` (one line, combat hot spot)
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Inventory overhaul (Tab, Deloye Lore parchment window, 7 gear slots) + gold currency
 - 2026-11-21 [ebain] Title screen, save/load (autosave + 3 slots), settings menu, controller + mouse in menus, loading card, app icon, TIPS.md
 - 2026-11-21 [asar] Spoon Mail Armor art + gear pictures in the I menu
 - 2026-11-21 [ebain] Throne bones look like bones now (were white sticks) · camp crickets are a real recording
@@ -40,10 +40,22 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/game.gd, level.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, village_buildings.gd, camp_script.gd, inventory_ui.gd (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **Inventory overhaul + gold merged** (Asar's mockup). **Keys changed: Tab = inventory, Q = switch
+  character** (pad: Back opens it, Y still switches). `open_party_menu()` now opens **InventoryUI** (new
+  inventory_ui.gd): smaller parchment window titled "Deloye Lore", signed xylo, with cursive handwriting behind it, over a
+  blurred game. Fighter + 7 gear slots, shared bag, gold, quests page (J). The old party menu (`_build_party_menu`,
+  `_cycle_gear`) is gone. Shared-file changes: **game.gd**: `gold`, `add_gold()`, `GEAR_SLOTS`/`SLOT_NAMES`,
+  `equip/unequip/wearer/slots_of/gear_stats`. `equipped` is now fighter → {slot → gear id}. Saves: gold +
+  equipped in `state_dict/apply_state/reset` (thanks for the heads-up), old saves migrated. **combat_data.gd**: every gear
+  has a `slot`, every enemy has `gold`. **battle.gd**: party gear is the summed dict from `Game.gear_stats()` (a plain
+  gear id still works for the sim). **battle_view.gd**: `BattleView.fight_gold(def, res)`, gold line on results.
+  **level.gd**: keys, help text, pause menu says "Inventory (Tab)", `item_icon` maps weighted_d6→dice.png, dev
+  autowin gives gold. **New assets**: godot/assets/fonts/ (Pinyon Script + Cinzel, OFL licenses next to them). Tested:
+  screenshots of every page, real key presses (equip, Q, Tab close), save migration/round trip, goblin_patrol fight
+  (+20 gold), village buildings tour + main.tscn chain headless with no errors. Fine with the TIPS rule change and Grok.
 - 2026-11-21 [ebain] **New teammate: Grok** (tag `grok`, branch `grok/<task>`). Ebain added a Grok assistant for
   documentation hygiene and light tasks. CLAUDE.md now says the rules apply to any AI and has a short "Grok's lane"
   section (docs, keeping the code map in sync, asset/voice lists, no hot-spot code unless Ebain asks, never edits
