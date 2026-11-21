@@ -42,6 +42,7 @@ func _configure() -> void:
 	switch_enabled = false
 	talk = CampScript.TALK
 	noise.frequency = 1.0
+	bounds = Rect2(-17, -28, 34, 45)   # camp clearing + the path north (exit at z = -25)
 
 func _build_level() -> void:
 	_build_fire()   # first, so props near the fire know they get its light

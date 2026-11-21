@@ -68,6 +68,14 @@ var cam_height := 0.6           # camera height as a fraction of zoom (lower = f
 var cam_look_h := 1.1           # how high above the leader the camera aims
 var _tex_cache := {}
 var world_env: WorldEnvironment
+var bounds := Rect2()           # walkable area in x/z (position = min x,z). Zero size = no limit. Set in _configure.
+var _bounds_toast_t := 0.0
+const BOUNDS_LINES := [   # DRAFT
+	"Nah. Nothing out there but trees.",
+	"That's the edge of the map, bro.",
+	"The forest said no.",
+	"Ain't nobody walkin' that far.",
+]
 var sun_light: DirectionalLight3D
 
 func _ready() -> void:
@@ -119,6 +127,8 @@ func _on_action(_n: String) -> void: pass
 func _level_process(_delta: float) -> void: pass
 # Saves: return true when the area is in free roam and can be resumed exactly where you stand.
 func can_resume() -> bool: return false
+# Return true while the party is somewhere the area bounds shouldn't apply (e.g. inside a village building).
+func bounds_exempt() -> bool: return false
 # Can this area put you back where a save left you? (default: same rule as can_resume, but checked before the story runs)
 func can_resume_saved() -> bool: return false
 # Restore free roam from a save. Areas override to rebuild their free-roam state, then call super._resume(r).
@@ -727,6 +737,7 @@ func _process(delta: float) -> void:
 			var lc := light_at(c[1] + Vector3(0, 0.5, 0))
 			c[0].albedo_color = Color(min(lc.r, 0.92), min(lc.g, 0.8), min(lc.b, 0.78)) * 0.88 * c[3]
 
+	_keep_in_bounds(delta)
 	_roam_process(delta)
 	_level_process(delta)
 
@@ -769,6 +780,20 @@ func _process(delta: float) -> void:
 		dialogue.tts_on = not dialogue.tts_on
 		Game.tts_on = dialogue.tts_on
 		show_toast("Voices: %s" % ("ON" if dialogue.tts_on else "OFF"))
+
+# Invisible edge of the area: stops you wandering off past the scenery into nothing.
+func _keep_in_bounds(delta: float) -> void:
+	_bounds_toast_t -= delta
+	if bounds.size == Vector2.ZERO or Game.title_mode or bounds_exempt():
+		return
+	for u in party:
+		var p := u.global_position
+		var c := Vector3(clampf(p.x, bounds.position.x, bounds.end.x), p.y, clampf(p.z, bounds.position.y, bounds.end.y))
+		if not c.is_equal_approx(p):
+			u.global_position = c
+			if u == leader and not busy and _bounds_toast_t <= 0.0:
+				_bounds_toast_t = 6.0
+				show_toast(BOUNDS_LINES[randi() % BOUNDS_LINES.size()], 1.8)
 
 func _goal_dir(u: Unit) -> Vector3:
 	var to: Vector3 = u.get_meta("goal") - u.global_position
@@ -882,6 +907,8 @@ func end_card(lines: Array, next_scene: String) -> void:
 		await get_tree().process_frame
 	if next_scene == "res://main.tscn":
 		Game.reset()
+	if next_scene == "res://title.tscn":
+		Game.title_mode = true
 	Game.goto(next_scene)
 
 # Lines summing up the story so far (for end cards)

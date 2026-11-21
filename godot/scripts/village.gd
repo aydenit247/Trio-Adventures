@@ -40,6 +40,7 @@ func _configure() -> void:
 	subtitle = "Scene 2 — Goblin Village (later that morning)"
 	party_ids = ["lykor", "xylo", "skorn"]
 	party_start = [Vector3(0, 0, 27), Vector3(-1.0, 0, 29), Vector3(1.0, 0, 29)]
+	bounds = Rect2(-21, -22, 57, 55)   # x -21..36 (exit east at x = 30), z -22..33 (entrance road at z = 27-29)
 	leader_id = "lykor"
 	switch_enabled = false
 	noise.frequency = 1.0
@@ -628,6 +629,9 @@ func _leave() -> void:
 	if roam_group.is_empty():
 		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)
 		checkpoint = THRONE_POS + Vector3(0, 0, 4.0)
+
+func bounds_exempt() -> bool:
+	return vb != null and vb.room != ""   # building interiors are built far away (x = 400+)
 
 # ---------------------------------------------------------------- saves: resume village free roam
 func can_resume() -> bool:

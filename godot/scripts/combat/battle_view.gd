@@ -1109,6 +1109,8 @@ func _input(ev: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _is_back(ev: InputEvent) -> bool:
+	if ev is InputEventJoypadButton and ev.pressed and ev.button_index == JOY_BUTTON_B:   # controller B = back
+		return true
 	return ev is InputEventKey and ev.pressed and ev.physical_keycode in [KEY_Q, KEY_ESCAPE, KEY_BACKSPACE]
 
 # Pick a unit with A/D (or W/S), E to confirm, Q to go back. Returns the battle unit or null.
@@ -1143,7 +1145,7 @@ func _pick_target(list: Array, allies: bool):
 			_point(target_marker, null)
 			menu_panel.visible = false
 			return opts[i]
-		elif Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_ESCAPE) or Input.is_key_pressed(KEY_BACKSPACE):
+		elif Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_ESCAPE) or Input.is_key_pressed(KEY_BACKSPACE) or Input.is_joy_button_pressed(0, JOY_BUTTON_B):
 			_point(target_marker, null)
 			menu_panel.visible = false
 			await lv.wait(0.15)

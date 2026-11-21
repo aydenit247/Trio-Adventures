@@ -50,6 +50,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Chaining: camp's tour runs into village → Mart → Pass, so `main.tscn --shots` exercises all of Chapter 1.
 - [ebain] For a one-off logic test, write a temp `extends SceneTree` script, run it with `--script`, and delete it. The
   `Game` autoload is at `root.get_node("Game")`. That's how saves were round-trip tested.
+- [ebain] **Bug-scan trick:** tours teleport the party, so they never find walk-off-the-map bugs. A temp SceneTree script
+  that sets `lv.auto_dir` and walks in 6 directions for 14 s each does (that's how the camp/village edges were found).
+- [ebain] Open areas need `bounds = Rect2(...)` in `_configure` (Level clamps the party and shows a joke toast).
+  Interiors far away? Override `bounds_exempt()` (village does it for rooms).
 - [ebain] Dev mode `DEV_DIALOGUE=skip` + `DEV_PICK=n` runs any tour with no dialogue: quick "does this path still finish".
 
 ## Performance (players have laptops)

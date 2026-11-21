@@ -10,6 +10,8 @@ const MUSIC_DB := -3.0
 
 func _ready() -> void:
 	Game.title_mode = true
+	Game.reset()   # unsaved progress from a game you quit is gone anyway; keeps the menu's camp clean (no forehead text etc.)
+	Game.pending_resume = {}
 	bg = load("res://main.tscn").instantiate()
 	add_child(bg)
 	ui = CanvasLayer.new()
@@ -30,8 +32,10 @@ func _start_music() -> void:
 	add_child(music)
 	music.play()
 	create_tween().tween_property(music, "volume_db", MUSIC_DB, 2.0)
-	if bg and "amb" in bg and bg.amb:   # let the choir sit on top of the campfire + crickets
-		bg.amb.cricket_player.volume_db = -16.0
+	if bg and "amb" in bg and bg.amb:   # menu = just the song (Ebain): no campfire crackle, no crickets
+		bg.amb.cricket_player.stop()
+		bg.amb.fire_player.stop()
+		bg.amb.set_process(false)
 
 func _process(delta: float) -> void:
 	# loading out of the title some other way (e.g. Load Game menu): duck the music fast

@@ -260,8 +260,8 @@ func _level_process(delta: float) -> void:
 		stage = "end"
 		var lines := ["END OF CHAPTER 1", "", "Trio Adventures — by Ebain", ""]
 		lines += story_so_far()
-		lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to play again from the camp"]
-		end_card(lines, "res://main.tscn")
+		lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to return to the title screen"]
+		end_card(lines, "res://title.tscn")
 
 func _zzz() -> void:
 	var l := Label3D.new()
