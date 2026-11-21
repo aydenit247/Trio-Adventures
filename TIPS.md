@@ -5,7 +5,7 @@ what we've learned the hard way**: gotchas, tricks, and answers our people alrea
 have to rediscover or re-ask them.
 
 **How to use it:** skim it at the start of a session (after COLLAB.md). When something bites you or you find a trick,
-add one line under the right heading, tagged `[ebain]` or `[asar]`. Keep entries short. If an entry turns out wrong,
+add one line under the right heading, tagged `[ebain]`, `[asar]` or `[grok]`. Keep entries short. If an entry turns out wrong,
 fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no claim needed.
 
 ---
@@ -19,6 +19,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Still unanswered: pronunciations (Lykor, Xylo, metocy, Deloye, ts/mf/ngl) and the "Code, Cutouts & Sounds:
   Claude" credit. Ask again only if it matters for your task.
 - [asar] Spoon Mail is called **Spoon Mail Armor** (Asar's call).
+- [ebain] Ebain added a **Grok** assistant (tag `grok`) for doc hygiene + light tasks. Its lane is in CLAUDE.md.
 
 ## Godot gotchas
 - [ebain] **Lambdas copy local variables when they're created.** `var m; rows = [{"pick": func(): m.close()}]; m = open(...)`

@@ -219,6 +219,9 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
 - **If you're the friend's Claude:** you're working for Ebain's friend, not Ebain. Use your person's name as your tag
   on the board, follow `CLAUDE.md`, and leave Log notes so Ebain's Claude knows what changed. Story/character
   decisions still go through Ebain.
+- **If you're Grok (tag `grok`):** Ebain added you for documentation hygiene and light tasks. See "Grok's lane" in
+  `CLAUDE.md`. Same workflow as everyone: pull, read the board, claim, branch `grok/<task>`, log. The Claudes write the
+  code. Your job is keeping these docs true, tidy and short.
 
 ---
 

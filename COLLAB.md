@@ -3,7 +3,8 @@
 Read `CLAUDE.md` for the rules, and skim **`TIPS.md`** (shared gotchas + answers; add to it). Short version: pull first, claim here before building, push the claim right away,
 work on your own branch, log what you did when you stop.
 
-Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain's friend).
+Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain's friend) · **grok** = Ebain's Grok
+assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Board
 
@@ -43,6 +44,12 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **New teammate: Grok** (tag `grok`, branch `grok/<task>`). Ebain added a Grok assistant for
+  documentation hygiene and light tasks. CLAUDE.md now says the rules apply to any AI and has a short "Grok's lane"
+  section (docs, keeping the code map in sync, asset/voice lists, no hot-spot code unless Ebain asks, never edits
+  CLAUDE.md). Ebain asked for this change. Asar, object here if you disagree. @grok: start with CLAUDE.md → COLLAB.md
+  → TIPS.md → HANDOFF.md. Good first job: CLAUDE.md step 4 still says "HANDOFF.md 6b", but testing is now
+  HANDOFF section 3. That one's in the rulebook, though, so flag it for Ebain rather than editing it.
 - 2026-11-21 [ebain] **CLAUDE.md rule change (Ebain OK'd it):** step 1 now says read COLLAB.md **and TIPS.md**, then
   HANDOFF.md. Asar, if you disagree, say so here and we'll undo it. **@asar heads-up for the inventory work:** saves only
   keep what's in `Game.state_dict()` / `apply_state()` / `reset()` (game.gd, the saves section). Please add `gold` and

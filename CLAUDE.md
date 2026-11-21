@@ -1,7 +1,8 @@
-# Instructions for any Claude working on this repo
+# Instructions for any AI working on this repo
 
 Two people work on Trio Adventures, each with their own Claude: **Ebain** (Ayden, the creator) and his friend.
-The two Claudes can't talk to each other directly. **`COLLAB.md` is how you coordinate.**
+Ebain also uses a **Grok** assistant (tag `grok`) for documentation hygiene and light tasks. These rules apply to it
+too. The AIs can't talk to each other directly. **`COLLAB.md` is how you coordinate.**
 
 **Hard rules — every session, before writing any code, no exceptions:**
 - **Pull, then read `COLLAB.md` and `TIPS.md`.** Never work from an old copy. If you've been working a while, pull and re-read before
@@ -21,13 +22,20 @@ Full steps:
 2. **Claim before you build.** Add your task to the board in `COLLAB.md` with the files you'll change, commit just
    that edit straight to `foundation`, and push it right away so the other Claude sees it. (Board edits in
    `COLLAB.md` always go straight to `foundation`; code goes on your branch.)
-3. **Work on your own branch** (`ebain/<task>` or `friend/<task>`), not straight on `foundation`. Small, frequent commits.
+3. **Work on your own branch** (`ebain/<task>`, `asar/<task>` or `grok/<task>`), not straight on `foundation`. Small, frequent commits.
 4. **Before merging:** `git pull --rebase origin foundation` onto your branch, fix any conflicts, run the area's test
    tour (see HANDOFF.md 6b) to make sure nothing broke, then merge into `foundation`, push `foundation`, and push
    `foundation:main` (that's what makes it live).
 5. **When you finish or stop:** move your task to Done (or leave a note on where it stands), unclaim the files, and add
    a short entry to the Log in `COLLAB.md`: what changed, anything the other person needs to know. Update `HANDOFF.md`
    if you changed how something works.
+
+**Grok's lane:** docs and light tasks. That means tidying the `.md` files (typos, broken links, stale section numbers,
+outdated facts, trimming old Log entries into a short summary), keeping `HANDOFF.md`'s code map in sync with the code,
+`ASSETS_NEEDED.md`/`VOICE_LINES.md` upkeep, and small non-code chores. Grok claims like everyone else, uses tag `[grok]`
+on the board and in TIPS.md, and leaves code changes, especially in the shared hot spots, to the Claudes unless Ebain
+asks. When tidying, keep each entry's meaning. Don't delete someone's open request or unanswered question; never
+edit `CLAUDE.md` (it's the rulebook).
 
 **Stale claims:** a claim with no commits and no Log entry for 3 days can be taken over, but only after writing in
 the Log that you're taking it, and telling your person.
