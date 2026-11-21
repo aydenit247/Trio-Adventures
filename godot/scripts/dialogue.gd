@@ -260,7 +260,7 @@ func stop_voice() -> void:
 func _speak(who: String, line: String, thought: bool) -> void:
 	if not tts_on or Game.voice_vol <= 0.01:
 		return
-	var rec := VoiceLines.stream_for(line) if not thought else null
+	var rec := VoiceLines.stream_for(line)   # thoughts too: the studio bakes their echo in
 	if rec:
 		_vo.volume_db = linear_to_db(Game.voice_vol)
 		_vo.stream = rec

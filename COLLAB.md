@@ -11,10 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Crash/freeze reports: game writes an in-depth report to a "Crash Reports" folder next to the exe (crash, freeze watchdog, force-close), repo gets a `Crash Reports/` folder — files: new godot/scripts/crash_reporter.gd, godot/scripts/game.gd (1 line in _ready to start it), new Crash Reports/README.md — branch: asar/crash-reports — started 2026-11-21
-- [ebain] Voice import pipeline: tools/import_voices.py (studio export zip → OGG in assets/voices/, updates voice_lines.gd) +
-  voice_lines.gd takes file extensions + inner thoughts can play voice files — files: godot/scripts/voice_lines.gd,
-  godot/scripts/dialogue.gd (1 line in _speak), new godot/scripts/voice_index.gd, new tools/import_voices.py, VOICE_LINES.md —
-  branch: ebain/voice-import — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -25,6 +21,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Voice import pipeline: studio export zip → OGG + voice_index.gd (tools/import_voices.py)
 - 2026-11-21 [asar] Inventory right-click → View (big item picture)
 - 2026-11-21 [asar] Item rework (armor stat, permanent consumables, Metocy Map), stats panel, pictures for every item
 - 2026-11-21 [ebain] Removed Asar's goblin/Chief recordings; all voices will be AI-generated (Emberstage studio)
@@ -50,10 +47,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/scripts/game.gd (1 line), crash_reporter.gd (new), Crash Reports/ (new)
-- [ebain] godot/scripts/voice_lines.gd, godot/scripts/dialogue.gd (_speak only), voice_index.gd (new), tools/import_voices.py (new), VOICE_LINES.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **Voice import pipeline merged.** `python3 tools/import_voices.py <studio export zip>` converts the
+  studio's WAVs to OGG in `godot/assets/voices/<character>/` and writes the generated `godot/scripts/voice_index.gd`
+  (don't hand-edit it). Shared-file changes: **voice_lines.gd** now reads VoiceIndex first and hand-added `LINES` entries
+  can include an extension (none = .mp3, as before). **dialogue.gd** `_speak()`: one line, inner thoughts now play a
+  voice file too (the studio bakes their echo in; robot TTS for thoughts is unchanged). Tested: import → `--import` →
+  stream_for returns AudioStreamOggVorbis for imported lines, null for the rest; camp tour headless, no errors.
 - 2026-11-21 [asar] Inventory: right-click any item (bag or equipped) → "View" pops its picture up big (Asar's ask). inventory_ui.gd only: `_open_item_menu`, `_view_item`, `popup_layer` swallows keys while open. Tested with real right-click/E/Esc/click events.
 - 2026-11-21 [asar] Asset only: Asar's Metocy Map art → `godot/assets/items/metocy_map.png` (bag id `metocy_map`, shows automatically). No code touched.
 - 2026-11-21 [asar] **Item rework + stats panel + all item art merged (Asar's calls).** New **armor** stat: flat cut

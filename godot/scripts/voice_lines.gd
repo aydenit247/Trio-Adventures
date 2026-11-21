@@ -1,9 +1,10 @@
-# Recorded voice lines: a line in the scripts with a recording plays that file instead of the robot TTS.
-# Lines are matched by their text (case, punctuation and spacing ignored), so the same recording works
-# wherever that line is used. If someone rewords a line, it falls back to TTS until it's re-recorded.
+# Voice lines: a line in the scripts with a voice file plays it instead of the robot TTS.
+# Lines are matched by their text (case, punctuation and spacing ignored), so the same file works
+# wherever that line is used. If someone rewords a line, it falls back to TTS until it's regenerated.
 #
-# To add a recording: drop the mp3 in res://assets/voices/<group>/ and add  "line text": "<group>/<file>"  below.
-# How voices get made: VOICE_LINES.md (repo root).
+# AI voices from the Emberstage studio are listed in voice_index.gd (made by tools/import_voices.py).
+# For a one-off file by hand: drop it in res://assets/voices/<group>/ and add  "line text": "<group>/<file>"  below
+# (no extension = .mp3). How voices get made: VOICE_LINES.md (repo root).
 class_name VoiceLines
 
 const DIR := "res://assets/voices/"
@@ -22,8 +23,11 @@ static func key(line: String) -> String:
 # Returns the AudioStream for this line, or null if it has no recording.
 static func stream_for(line: String) -> AudioStream:
 	if _index.is_empty():
-		for l in LINES:
-			_index[key(l)] = DIR + LINES[l] + ".mp3"
+		for k in VoiceIndex.LINES:
+			_index[k] = DIR + VoiceIndex.LINES[k]
+		for l in LINES:   # hand-added lines win
+			var f: String = LINES[l]
+			_index[key(l)] = DIR + (f if f.get_extension() != "" else f + ".mp3")
 	var p: String = _index.get(key(line), "")
 	if p == "" or not ResourceLoader.exists(p):
 		return null
