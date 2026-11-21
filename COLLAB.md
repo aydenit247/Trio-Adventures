@@ -10,12 +10,8 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Mute campfire/crickets on the title menu + **whole-game bug-fix scan** (short claim, a few hours max; I'll
-  log exactly what I touched) — files: godot/scripts/*.gd incl. combat/* and inventory_ui.gd, only where a bug is found —
-  branch: ebain/bugfix-scan — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
-- Controller "back" (B) in battle menus: battle_view.gd only checks Q/Esc/Backspace keys. Add `ui_cancel` (one line, combat hot spot)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
 - Goblin Pit arena (building 7 in the village)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -25,6 +21,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Bug-fix scan (map edges, controller back in fights, title state, chapter-end autosave) + song-only menu
 - 2026-11-21 [asar] Victory screen redesign + grade system removed
 - 2026-11-21 [ebain] Title screen music: Ebain's "Prophecy of Metocy"
 - 2026-11-21 [asar] Inventory overhaul (Tab, Deloye Lore parchment window, 7 gear slots) + gold currency
@@ -45,10 +42,21 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/*.gd (bug-fix scan; short)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] **Bug-fix scan merged.** Ran every tour, path and fight headless: no script errors. Found and
+  fixed 4 bugs. Exactly what I touched:
+  (1) **level.gd**: new `bounds` (Rect2, set per area in `_configure`), `bounds_exempt()` hook, `_keep_in_bounds()`
+  called in `_process` (clamps the party + a DRAFT joke toast). camp.gd + village.gd set bounds (you could walk 50–85 m
+  off the map); village exempts building interiors. (2) **combat/battle_view.gd** (2 lines): controller B goes back in
+  battle menus (`_is_back` + `_pick_target`). (3) **title.gd**: `Game.reset()` on entry (the menu's camp showed leftover
+  forehead text/flags after Quit to Title); campfire + crickets now stopped on the menu (Ebain wants just the song).
+  (4) **pass.gd + level.gd end_card**: end of Chapter 1 goes to the **title** instead of reset + camp, because arriving
+  at the camp autosaved a blank game over your finished run. Ebain, say if you'd rather it go back to the camp.
+  Also checked: Asar's gold/gear are in saves (with old-save migration, nice), Tab/Q/help text/controller all agree,
+  closing the inventory doesn't reopen the pause menu. @grok: HANDOFF may still mention the old "I = party" key and
+  the grade system in places; worth a sweep.
 - 2026-11-21 [asar] **Victory screen redesign (Asar's sketch) + grades removed.** Results now: "VICTORY!!!" (bosses
   too), then `+N [coin] · Total Gold: N [coin]`, then the XP line, level-ups, then `Found:` with item icons only. Hovering
   an icon shows name/slot/desc/stats. **Grade system is gone** (Asar's call): `battle.grade()`, `CombatD.GRADES`, every
