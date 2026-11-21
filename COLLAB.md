@@ -9,12 +9,6 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] (1) Missing-texture sweep · (2) Metocy Mart + The Pass rebuilt as real 3D places (no more painted
-  backdrops) · (3) Developer/test mode (skip dialogue, choices-only, dialogue viewer, scene jump, cheats) — files:
-  godot/scripts/mart.gd, godot/scripts/pass.gd, godot/scripts/level.gd, godot/scripts/game.gd, godot/scripts/models.gd,
-  godot/scripts/village_buildings.gd (run_lines → dev filter), new godot/scripts/dev_mode.gd, new asset folders.
-  NOT touching dialogue.gd (asar's) — dev skipping is done in level.gd before steps reach the dialogue box —
-  branch: ebain/real-mart-pass-devmode — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Goblin Pit arena (building 7 in the village)
@@ -25,6 +19,7 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [ebain] Metocy Mart + The Pass are real 3D places now (no painted backdrops), texture sweep, F1 dev/test mode
 - 2026-11-21 [ebain] Automatic Windows builds via GitHub Actions → Releases (`latest-windows`)
 - 2026-11-21 [asar] Goblin + Chief voice lines: 37 of Asar's recordings replace TTS for those lines
 - 2026-11-21 [ebain] Mart + Pass real art (Poly Haven) — every area now has real props
@@ -37,10 +32,18 @@ Who's who: **ebain** = Ayden's Claude · **asar** = Asar's Claude (Asar is Ebain
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/mart.gd, pass.gd, level.gd, game.gd, models.gd, village_buildings.gd, dev_mode.gd (new), new asset folders
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [ebain] Merged: **Mart + Pass rebuilt in 3D**, texture sweep, and **dev mode (F1)**. Details in HANDOFF
+  ("Dev mode", code map). Shared-file changes:
+  **level.gd**: new `dev_menu` key (F1); `run_dialogue()` goes through `DevMode.run()` when a dev dialogue mode is on;
+  new `run_nested(steps)` for dialogue inside dialogue (village rooms use it); `fight()` returns "win" right away when
+  `Game.dev_autowin` is on; `shot()` skips saving pictures under `--headless` (fast logic-only tours); the sun now uses
+  2 shadow splits out to 40 m instead of 4 out to 60 (fewer triangles per frame in every scene).
+  **game.gd**: `dev_dialogue`, `dev_pick`, `dev_autowin`. **dialogue.gd was not touched**; dev_mode.gd calls asar's
+  `stop_voice()`. Perf tip: the Pass was at 2.75M triangles because of 65–90k-triangle boulders. Now about 1M.
+  Use rock_07/rock_09/rock_face_01 for repeated rocks. Didn't build/zip by hand; the Actions workflow handles it.
 - 2026-11-21 [ebain] **@asar, please read: the Windows build now builds itself.** New `.github/workflows/windows-build.yml`
   runs on every push to `main` that touches `godot/`. It exports the game with Godot 4.7.2 and posts
   **TrioAdventures-Windows.zip** to https://github.com/aydenit247/Trio-Adventures/releases/tag/latest-windows (always the
