@@ -165,7 +165,7 @@ After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crasho
   2. He replies with edits.
   3. **I apply his wording verbatim.** I only clean up grammar and spelling, never rewrite his jokes.
   4. His lines get tagged `// Ebain` and my drafts `// DRAFT`.
-- **Art:** he makes images and videos with Grok (realistic style) on green screen. I cut them out with numpy/scipy chroma-key scripts: edge flood fill, chroma distance, a spill key and dark-haze cleanup. The goblins are keyed without the spill pass.
+- **Art:** he makes images and videos with Gemini (realistic style) on green screen. I cut them out with numpy/scipy chroma-key scripts: edge flood fill, chroma distance, a spill key and dark-haze cleanup. The goblins are keyed without the spill pass.
 - **Music:** Gregorian chant on the menu. **He'll add more music later**; the plan is AI-generated tracks, or a Claude-in-Chrome agent pulling from Pixabay with the handoff list in section 8.
 - **Voice acting:** real voice acting is shelved. TTS robot voices are in instead, and he thinks they're funny.
 - **The 6-7** happens once per game, and the dice are "on some dice shi."
@@ -193,7 +193,7 @@ After the fight: "Okay, okay, okay, my fault. I ain't know y'all was some crasho
 Ebain decided (Nov 2026) to go all-in on Godot; the Phaser version is no longer worked on.
 Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `godot --headless --path godot
 --export-release "Web" ../play3d/index.html`, single-threaded export, needs Godot 4.7.2 web templates).
-- **Style: 2.5D.** 3D world; characters AND props are green-screen cutout cards (billboards) from Ebain's Grok art,
+- **Style: 2.5D.** 3D world; characters AND props are green-screen cutout cards (billboards) from Ebain's Gemini art,
   tinted per frame by `light_at()` (glows registered with `add_glow`). Photo ground textures blended by a shader
   (clearing + path points per area). Directional views: `<id>_back.png` / `<id>_side.png` (side faces right).
 - **Code:** `scripts/level.gd` = shared engine (environment day/night, ground, `card()`, party/NPCs, camera,
@@ -206,8 +206,13 @@ Live web build: https://aydenit247.github.io/Trio-Adventures/play3d/ (rebuild: `
   choice: A speech (+3 beezy) · B chug-off mash minigame (chugWon / foreheadLoser) · C crown Skorn (skornKing, Skorn
   stays) · D sneak — player really sneaks, gets caught, goblins follow (goblinAllies) · E Skorn fights (placeholder
   win, lykorDethroned). Then east exit → "To be continued" card.
-- **Explorable village (after the throne scene), `village_buildings.gd` + `village_rooms_script.gd`:** six places,
-  all placeholder art. Doors fade you into rooms built at x = 400/440/480/520 (sun + ambient dim indoors).
+- **Real environment art (Nov 2026):** `scripts/models.gd` (`Models.place(parent, id, pos, rot_y, scale, collide,
+  recolor)`, `Models.mat(texture_id, tile_m, tint)` = world-space triplanar PBR material for any box/cylinder,
+  `Models.block`, `Models.cylinder`). Assets in `godot/assets/models/<id>/` (glTF) and `godot/assets/textures/<id>/`
+  (albedo/normal/rough.jpg), fetched with `tools/fetch_polyhaven.py`. Characters stay Gemini cutouts.
+- **Explorable village (after the throne scene), `village_buildings.gd` + `village_rooms_script.gd`:** six places:
+  round 3D huts (clay / log / stone walls, thatched roofs), a cloth tent, plank outhouse + job board, and a throne
+  kitbashed from a real chair, rusty wheel rim and giant wooden spoons. Doors fade you into rooms built at x = 400/440/480/520 (sun + ambient dim indoors).
   1 Chief's Hut (Chief is home if he's not following you; belt, self-portrait, chest → Backup Conditioner, hay-bed nap) ·
   2 Unemployment Office & Bar (Sludge's **Bar Tab** quest: pay 3 Beezy / Lykor's mog → `bouncer` fight / fight; Gorbo's
   open mic: laugh or heckle; Gulpo **Chug Rematch** reusing the chug minigame; clerk window gag) · 3 Job Board + Grubnik

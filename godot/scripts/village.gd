@@ -151,51 +151,29 @@ func _build_village() -> void:
 	s.position = Vector3(13.5, 0.75, -4.0)
 	add_child(s)
 
-# PLACEHOLDER throne: spoons + bones + one (1) wagon wheel, built from shapes until there's throne art
+# The throne: a real chair, one (1) rusty wagon wheel, a fan of giant spoons, and bones (Poly Haven models + shapes)
 func _build_throne() -> void:
-	var wood := Util.mat(Color(0.35, 0.24, 0.15))
-	var metal := Util.mat(Color(0.75, 0.75, 0.78), 0.35)
-	metal.metallic = 0.8
-	var bone := Util.mat(Color(0.86, 0.82, 0.72))
 	var root := Node3D.new()
 	root.position = THRONE_POS
 	add_child(root)
-	var seat := BoxMesh.new()
-	seat.size = Vector3(1.3, 0.55, 0.9)
-	Util.add_mesh(root, seat, wood, Vector3(0, 0.28, 0))
-	var back := BoxMesh.new()
-	back.size = Vector3(1.3, 1.5, 0.2)
-	Util.add_mesh(root, back, wood, Vector3(0, 1.0, -0.4))
-	var wheel := TorusMesh.new()
-	wheel.inner_radius = 0.7
-	wheel.outer_radius = 0.82
-	Util.add_mesh(root, wheel, wood, Vector3(0, 1.75, -0.55), Vector3(PI / 2.0, 0, 0))
-	var spoke := CylinderMesh.new()
-	spoke.top_radius = 0.03
-	spoke.bottom_radius = 0.03
-	spoke.height = 1.4
-	for k in 4:
-		Util.add_mesh(root, spoke, wood, Vector3(0, 1.75, -0.55), Vector3(0, 0, k * PI / 4.0))
-	var handle := CylinderMesh.new()
-	handle.top_radius = 0.025
-	handle.bottom_radius = 0.025
-	handle.height = 1.3
-	var bowl := SphereMesh.new()
-	bowl.radius = 0.11
-	bowl.height = 0.08
+	var planks := Models.mat("weathered_planks", 1.0, Color(0.75, 0.65, 0.55))
+	Models.block(self, THRONE_POS + Vector3(0, 0.12, 0), Vector3(2.2, 0.24, 1.6), planks)   # little stage
+	var chair := Models.place(self, "painted_wooden_chair_01", THRONE_POS + Vector3(0, 0.24, 0), PI, 1.5, false, Color(0.42, 0.3, 0.2))
+	chair.name = "ThroneChair"
+	var wheel := Models.place(self, "rusted_wheel_rim_01", THRONE_POS + Vector3(0, 1.85, -0.7), 0.0, 4.2)
+	wheel.rotation.z = 0.12
 	for k in 7:
-		var x := -0.75 + k * 0.25
-		var hh: float = 1.9 - absi(k - 3) * 0.12
-		Util.add_mesh(root, handle, metal, Vector3(x, hh - 0.6, -0.5), Vector3(0, 0, (k - 3) * 0.08))
-		Util.add_mesh(root, bowl, metal, Vector3(x + (k - 3) * 0.05, hh + 0.08, -0.5), Vector3(PI / 2.0, 0, 0), Vector3(1, 1.4, 1))
+		var sp := Models.place(self, "wooden_spoon", THRONE_POS + Vector3(-0.9 + k * 0.3, 2.25 - absi(k - 3) * 0.12, -0.55), 0.0, 5.0)
+		sp.rotation = Vector3(PI / 2.0, 0, (k - 3) * 0.16)
+	var bone := Util.mat(Color(0.86, 0.82, 0.72))
 	var b := CylinderMesh.new()
 	b.top_radius = 0.05
 	b.bottom_radius = 0.05
 	b.height = 0.9
 	for k in 6:
-		Util.add_mesh(root, b, bone, Vector3(rng.randf_range(-1.1, 1.1), 0.08, rng.randf_range(-0.2, 0.9)), Vector3(PI / 2.0, rng.randf() * TAU, 0))
+		Util.add_mesh(root, b, bone, Vector3(rng.randf_range(-1.2, 1.2), 0.3, rng.randf_range(0.2, 1.0)), Vector3(PI / 2.0, rng.randf() * TAU, 0))
 	Util.static_box(self, THRONE_POS + Vector3(0, 0.6, -0.3), Vector3(1.4, 1.2, 1.0))
-	char_label(root, "Throne (Spoons, Bones, 1 Wheel)", -1.0, 2.85)
+	char_label(root, "Throne (Spoons, Bones, 1 Wheel)", -1.0, 3.3)
 
 # ---------------------------------------------------------------- per frame
 func _level_process(_delta: float) -> void:

@@ -1,6 +1,11 @@
 # Art wishlist for the Godot version
 
-All props: Grok, realistic fantasy style, **one object per image, full object visible, centered, solid bright green
+**Environment art now comes from Poly Haven (CC0, free, no credit needed):** `python3 tools/fetch_polyhaven.py
+model|texture <id>` downloads straight into the project (Claude's workspace is allowed to reach polyhaven.com /
+api.polyhaven.com / dl.polyhaven.org / ambientcg.com). Use 1K, shrink small-prop textures to 512px.
+**Only characters and creatures still need Gemini art.**
+
+All props: Gemini, realistic fantasy style, **one object per image, full object visible, centered, solid bright green
 background, soft even lighting, no shadow on the background.** Make 2–3 versions of anything that repeats.
 
 Reusable prompt: *"Realistic [THING], fantasy style, full object visible, centered, isolated on solid bright green
@@ -25,15 +30,10 @@ Textures: Poly Haven → texture page → **Download → 1K → Diffuse** (squar
 - [ ] Crooked wooden fence section ×2
 - [ ] (Optional) back views of a regular goblin and Chief Bogdrinker
 
-### Village buildings (explorable now, all placeholder shapes)
-Room backdrops work like the Mart interior: one wide painted image of the back of the room, 16:9, eye level, no characters.
-- **Chief's Hut interior** — messy goblin royal hut: hay bed, a chest, red banners, a self-portrait of the Chief with fake abs, a rusty champion belt on a stand
-- **Unemployment Office & Bar interior** — tavern + government office mashup: bar counter with beer mugs, little open-mic stage with a spotlight, a "TAKE A NUMBER" window, round tables
-- **Shaman's Tent interior** — purple fabric tent: crystal ball on a table, candles, skulls, hanging herbs, a rug
-- **Clank's Spoonsmithy interior** — forge with fire, anvil, a wall rack of spoons, a barrel of spoons
-- **Outhouse** (green screen prop) — wooden goblin outhouse with a moon carved in the door
-- **Job Board** (green screen prop) — wooden notice board covered in papers and spoon drawings
-- Optional extra goblins (green screen): a bartender, a stand-up comedian with a tiny mic, a huge muscly bouncer, a hooded shaman with glasses, a blacksmith goblin in an apron
+### Village buildings — DONE with real CC0 models/textures (no art needed)
+Huts, throne, outhouse, job board and all four rooms are built from Poly Haven models + textures now.
+Still nice to have (Gemini, green screen): a bartender goblin, a stand-up comedian goblin with a tiny mic, a huge
+muscly bouncer goblin, a hooded shaman goblin with glasses, a blacksmith goblin in an apron.
 
 ## Scene 3 — Metocy Mart (painted backdrops in game now; real props would replace them)
 - [ ] The Metocy Mart building by itself on green screen (front view, crooked shop, glowing blue window, wooden sign)

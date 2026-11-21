@@ -48,62 +48,108 @@ func build() -> void:
 	_smith_room()
 
 func _outside() -> void:
-	var hut := Color(0.72, 0.6, 0.46)
-	# Chief's Hut: the biggest hut, with royal banners
+	var clay := Models.mat("clay_plaster", 2.5)
+	var logs := Models.mat("wood_trunk_wall", 2.0)
+	var stone := Models.mat("rustic_stone_wall", 2.0)
+	var planks := Models.mat("weathered_planks", 1.5)
+	# Chief's Hut: biggest round hut, log walls, royal banners
 	var c: Dictionary = BUILDINGS["chief"]
-	lv.card("tent_green", 3.4, c["pos"], false, false, 0.0, "props", hut * Color(1.05, 0.95, 0.85))
-	Util.static_box(lv, c["pos"] + Vector3(0, 1, -0.3), Vector3(4.4, 2, 2.6))
+	_round_hut(c["pos"], 2.3, 2.5, logs, c["door"])
 	for s in [-1.0, 1.0]:
-		_quad(c["pos"] + Vector3(s * 2.0, 1.6, 1.0), Vector2(0.55, 1.5), Color(0.6, 0.12, 0.1))
-	# Bar: hut + a hanging sign
+		_quad(c["pos"] + Vector3(s * 1.5, 1.7, 2.0), Vector2(0.55, 1.4), Color(0.6, 0.12, 0.1))
+	Models.place(lv, "wooden_lantern_01", c["door"] + Vector3(1.0, 0, 0.2), 0.0, 1.0)
+	# Bar: round clay hut, barrels and crates out front, a hanging sign
 	var b: Dictionary = BUILDINGS["bar"]
-	lv.card("tent_green", 2.9, b["pos"], true, false, 0.0, "props", hut)
-	Util.static_box(lv, b["pos"] + Vector3(0, 1, 0), Vector3(3.6, 2, 2.4), 0.7)
-	_label3d("OPEN 24/7\n(nobody has anywhere to be)", b["pos"] + Vector3(2.2, 2.3, 1.2), 30, Color("#ffdf8a"))
-	# Shaman: the purple tent, with a spooky glow
+	_round_hut(b["pos"], 2.6, 2.3, clay, b["door"])
+	Models.place(lv, "wine_barrel_01", b["door"] + Vector3(-0.2, 0, 1.4), 0.4, 1.0, true)
+	Models.place(lv, "wine_barrel_01", b["door"] + Vector3(0.6, 0, 1.7), 1.2, 1.0, true)
+	Models.place(lv, "wooden_crate_02", b["door"] + Vector3(-1.4, 0, 1.0), 0.3, 1.0, true)
+	Models.block(lv, b["door"] + Vector3(1.0, 2.2, -0.6), Vector3(1.5, 0.6, 0.06), planks)
+	_label3d("OPEN 24/7\n(nobody has anywhere to be)", b["door"] + Vector3(1.0, 2.2, -0.55), 26, Color("#ffdf8a"), false)
+	# Shaman: a purple cloth tent with a spooky glow
 	var sh: Dictionary = BUILDINGS["shaman"]
-	lv.card("tent_purple", 3.0, sh["pos"], false, false, 0.0)
-	Util.static_box(lv, sh["pos"] + Vector3(0, 1, -0.2), Vector3(3.8, 2, 2.4))
+	Models.cylinder(lv, sh["pos"], 2.4, 0.06, 3.6, Models.mat("fabric_pattern_07", 1.2, Color(0.5, 0.3, 0.68)), 12)
+	Util.static_cyl(lv, sh["pos"], 2.2, 2.5)
+	_door(sh["pos"], 2.15, sh["door"], 1.0)
 	var gl := OmniLight3D.new()
 	gl.light_color = Color(0.6, 0.3, 1.0)
 	gl.light_energy = 1.4
 	gl.omni_range = 4.0
-	gl.position = sh["pos"] + Vector3(0, 1.0, 1.8)
+	gl.position = sh["door"] + Vector3(0, 1.0, 0.3)
 	lv.add_child(gl)
-	# Spoonsmith: hut + forge glow + chimney smoke + an anvil out front
+	Models.place(lv, "ceramic_pot", sh["door"] + Vector3(1.3, 0, 0.0), 0.5, 1.0)
+	Models.place(lv, "wicker_basket_01", sh["door"] + Vector3(-1.2, 0, 0.3), 0.0, 1.4)
+	# Spoonsmith: stone hut, chimney with smoke, forge glow, an anvil + buckets out front
 	var sm: Dictionary = BUILDINGS["smith"]
-	lv.card("tent_green", 2.7, sm["pos"], false, false, 0.0, "props", hut * Color(0.85, 0.8, 0.75))
-	Util.static_box(lv, sm["pos"] + Vector3(0, 1, 0), Vector3(3.6, 2, 2.4), 1.2)
+	_round_hut(sm["pos"], 2.3, 2.3, stone, sm["door"])
+	Models.cylinder(lv, sm["pos"] + Vector3(-0.8, 0, -0.9), 0.45, 0.4, 4.2, stone, 10)
+	_smoke(sm["pos"] + Vector3(-0.8, 4.4, -0.9))
 	var fl := OmniLight3D.new()
 	fl.light_color = Color(1.0, 0.5, 0.2)
 	fl.light_energy = 1.6
 	fl.omni_range = 4.5
-	fl.position = sm["pos"] + Vector3(1.6, 1.0, -0.6)
+	fl.position = sm["door"] + Vector3(0, 1.0, 0.4)
 	lv.add_child(fl)
-	_smoke(sm["pos"] + Vector3(0.3, 3.0, -0.4))
-	_box(sm["door"] + Vector3(1.4, 0.35, 0.6), Vector3(0.7, 0.7, 0.4), Color(0.25, 0.25, 0.27), true)
+	_box(sm["door"] + Vector3(1.4, 0.35, 0.6), Vector3(0.7, 0.7, 0.4), Color(0.22, 0.22, 0.24), true)
+	Models.place(lv, "cross_pein_hammer", sm["door"] + Vector3(1.4, 0.73, 0.6), 0.0, 1.6).rotation = Vector3(PI / 2.0, 0.4, 0)
+	Models.place(lv, "wooden_bucket_01", sm["door"] + Vector3(-1.1, 0, 0.9), 0.0, 1.0)
 	# Locked house
-	lv.card("tent_green", 2.6, HOUSE_POS, true, false, 0.0, "props", hut)
-	Util.static_box(lv, HOUSE_POS + Vector3(0, 1, 0), Vector3(3.6, 2, 2.4), -0.7)
-	# Outhouse (shapes)
-	_box(OUTHOUSE_POS + Vector3(0, 1.15, 0), Vector3(1.3, 2.3, 1.3), Color(0.36, 0.25, 0.15), true)
-	_box(OUTHOUSE_POS + Vector3(0, 2.4, 0), Vector3(1.6, 0.2, 1.6), Color(0.28, 0.19, 0.11))
-	_box(OUTHOUSE_POS + Vector3(0, 1.05, 0.66), Vector3(0.8, 1.9, 0.04), Color(0.45, 0.32, 0.19))
+	_round_hut(HOUSE_POS, 1.9, 2.1, clay, HOUSE_POS + Vector3(-1.3, 0, 1.6))
+	# Outhouse: weathered planks, a little roof, a door with a moon
+	Models.block(lv, OUTHOUSE_POS + Vector3(0, 1.15, 0), Vector3(1.3, 2.3, 1.3), planks, 0.0, true)
+	Models.block(lv, OUTHOUSE_POS + Vector3(0, 2.4, 0), Vector3(1.7, 0.16, 1.7), Models.mat("weathered_planks", 1.0, Color(0.7, 0.6, 0.5)))
+	Models.block(lv, OUTHOUSE_POS + Vector3(0, 1.05, 0.66), Vector3(0.82, 1.9, 0.05), Models.mat("weathered_planks", 0.8, Color(1.1, 1.0, 0.9)))
 	_label3d("(moon)", OUTHOUSE_POS + Vector3(0, 1.75, 0.7), 26, Color(0.12, 0.07, 0.03), false)
-	# Job Board
-	lv.card("sign", 2.4, BOARD_POS)
-	Util.static_cyl(lv, BOARD_POS, 0.25)
-	_label3d("JOB BOARD\n(no jobs)", BOARD_POS + Vector3(0, 1.75, 0.15), 34, Color(0.15, 0.08, 0.03), false)
+	# Job Board: two posts, a plank board, papers pinned all over it
+	for s in [-0.75, 0.75]:
+		Models.block(lv, BOARD_POS + Vector3(s, 0.95, 0), Vector3(0.14, 1.9, 0.14), planks)
+	Models.block(lv, BOARD_POS + Vector3(0, 1.35, 0), Vector3(1.8, 1.0, 0.08), planks)
+	Util.static_box(lv, BOARD_POS + Vector3(0, 1, 0), Vector3(1.8, 2, 0.4))
+	var paper := Color(0.72, 0.66, 0.52)
+	for k in 7:
+		var q := QuadMesh.new()
+		q.size = Vector2(randf_range(0.22, 0.34), randf_range(0.26, 0.38))
+		Util.add_mesh(lv, q, Util.mat(paper * randf_range(0.85, 1.0)), BOARD_POS + Vector3(-0.65 + k * 0.22, 1.35 + randf_range(-0.25, 0.25), 0.05), Vector3(0, 0, randf_range(-0.2, 0.2)))
+	_label3d("JOB BOARD", BOARD_POS + Vector3(0, 2.05, 0.06), 34, Color("#ffdf8a"))
 	npc["grubnik"] = _goblin("grubnik", "Grubnik (Lost His Lucky Spoon)", BOARD_POS + Vector3(1.3, 0, 0.9), 1.05, Color(0.9, 1.0, 0.85))
+	# little bits of village life
+	Models.place(lv, "wooden_crate_01", Vector3(2.0, 0, 6.2), 0.6, 1.0, true)
+	Models.place(lv, "wooden_bucket_01", Vector3(7.8, 0, 4.4), 0.0, 1.0)
+	Models.place(lv, "wine_barrel_01", Vector3(-7.4, 0, 7.6), 0.0, 1.0, true)
+	Models.place(lv, "wooden_crate_02", Vector3(9.0, 0, -9.6), 1.1, 1.0, true)
 	# name signs over every building
 	for id in BUILDINGS:
 		var d: Dictionary = BUILDINGS[id]
-		_label3d(d["name"], d["pos"] + Vector3(0, 3.8 if id == "chief" else 3.3, 0.5), 40, Color("#f3e3b0"))
+		_label3d(d["name"], d["pos"] + Vector3(0, 4.6 if id != "smith" else 4.9, 0), 40, Color("#f3e3b0"))
 	_label3d("Outhouse (Smells)", OUTHOUSE_POS + Vector3(0, 3.0, 0), 36, Color("#f3e3b0"))
-	_label3d("Goblin House (Locked) (Napping)", HOUSE_POS + Vector3(0, 3.1, 0.4), 34, Color("#f3e3b0"))
+	_label3d("Goblin House (Locked) (Napping)", HOUSE_POS + Vector3(0, 3.9, 0), 34, Color("#f3e3b0"))
 	# shiny spoons lying around
 	for i in SPOONS.size():
 		spoon_nodes.append(_spoon(SPOONS[i]))
+
+# A round goblin hut: walls, a thatched cone roof with overhang, a doorway facing `door_to`
+func _round_hut(c: Vector3, r: float, wall_h: float, wall_mat: Material, door_to: Vector3) -> void:
+	Models.cylinder(lv, c, r, r, wall_h, wall_mat, 20)
+	Models.cylinder(lv, c + Vector3(0, wall_h - 0.2, 0), r * 1.32, 0.07, r * 0.9 + 0.7, Models.mat("thatch_roof_angled", 1.4, Color(0.78, 0.64, 0.46)), 20)
+	Util.static_cyl(lv, c, r + 0.05, wall_h)
+	_door(c, r, door_to, 1.0)
+
+func _door(c: Vector3, r: float, door_to: Vector3, w: float) -> void:
+	var d := door_to - c
+	d.y = 0.0
+	d = d.normalized()
+	var yaw := atan2(d.x, d.z)
+	var dp := c + d * (r + 0.03)
+	var dark := Util.mat(Color(0.03, 0.02, 0.015))
+	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var q := QuadMesh.new()
+	q.size = Vector2(w, 1.75)
+	Util.add_mesh(lv, q, dark, dp + Vector3(0, 0.875, 0), Vector3(0, yaw, 0))
+	var frame := Models.mat("weathered_planks", 1.0, Color(0.8, 0.7, 0.6))
+	var side := Vector3(cos(yaw), 0, -sin(yaw))
+	for s in [-1.0, 1.0]:
+		Models.block(lv, dp + side * s * (w / 2.0 + 0.06) + Vector3(0, 0.95, 0), Vector3(0.12, 1.9, 0.12), frame, yaw)
+	Models.block(lv, dp + Vector3(0, 1.85, 0), Vector3(w + 0.36, 0.14, 0.14), frame, yaw)
 
 func _room_shell(id: String) -> void:
 	var o := origin(id)
@@ -115,19 +161,18 @@ func _room_shell(id: String) -> void:
 	cs.position = o + Vector3(0, -0.5, 0)
 	floor_body.add_child(cs)
 	lv.add_child(floor_body)
-	var fm := ShaderMaterial.new()
-	fm.shader = Shader.new()
-	fm.shader.code = PLANK_SHADER
-	var pm := PlaneMesh.new()
-	pm.size = Vector2(ROOM_W + 2, 12)
-	Util.add_mesh(lv, pm, fm, o + Vector3(0, 0.002, 0))
-	var tint: Color = { "chief": Color(0.42, 0.28, 0.17), "bar": Color(0.36, 0.24, 0.15), "shaman": Color(0.3, 0.14, 0.38), "smith": Color(0.3, 0.27, 0.25) }[id]
+	var fm: Material = Models.mat("rustic_stone_wall", 2.0, Color(0.8, 0.75, 0.7)) if id == "smith" else Models.mat("old_wooden_floor_01", 2.0)
+	var pm := PlaneMesh.new()   # floor runs on toward the camera so there's no black band at the bottom
+	pm.size = Vector2(ROOM_W + 2, 24)
+	Util.add_mesh(lv, pm, fm, o + Vector3(0, 0.002, 6))
 	var dark := Util.mat(Color(0.05, 0.035, 0.03))
 	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var wm := ShaderMaterial.new()
-	wm.shader = Shader.new()
-	wm.shader.code = WALL_SHADER
-	wm.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+	var wm: Material = {
+		"chief": Models.mat("wood_trunk_wall", 2.2),
+		"bar": Models.mat("raw_plank_wall", 2.0),
+		"shaman": Models.mat("fabric_pattern_07", 1.4, Color(0.42, 0.25, 0.58)),
+		"smith": Models.mat("rustic_stone_wall", 2.2),
+	}[id]
 	var back := PlaneMesh.new()
 	back.size = Vector2(ROOM_W + 2, 7)
 	Util.add_mesh(lv, back, wm, o + Vector3(0, 3.5, BACK_Z - 0.3), Vector3(PI / 2.0, 0, 0))
@@ -166,6 +211,7 @@ func _room_shell(id: String) -> void:
 
 func _chief_room() -> void:
 	var o := origin("chief")
+	var planks := Models.mat("weathered_planks", 1.2)
 	_label3d("BOGDRINKER MANOR\n(it's a hut)", o + Vector3(0, 4.6, BACK_Z), 46, Color("#ffdf4a"))
 	for x in [-5.5, 5.5]:
 		_quad(o + Vector3(x, 3.0, BACK_Z + 0.05), Vector2(1.0, 2.8), Color(0.6, 0.12, 0.1))
@@ -178,46 +224,59 @@ func _chief_room() -> void:
 	pic.modulate = Color(1.1, 1.0, 0.9)
 	pic.position = o + Vector3(0, 2.4, BACK_Z + 0.12)
 	lv.add_child(pic)
-	# the belt, on a little stand
-	_box(o + Vector3(-3.2, 0.6, BACK_Z + 0.6), Vector3(1.2, 1.2, 0.6), Color(0.3, 0.2, 0.12), true)
+	# the belt, on a little plank stand
+	Models.block(lv, o + Vector3(-3.2, 0.6, BACK_Z + 0.6), Vector3(1.2, 1.2, 0.6), planks, 0.0, true)
 	_box(o + Vector3(-3.2, 1.45, BACK_Z + 0.6), Vector3(0.9, 0.3, 0.12), Color(0.8, 0.65, 0.2))
 	_label3d("CHUG CHAMP", o + Vector3(-3.2, 1.45, BACK_Z + 0.7), 22, Color(0.2, 0.1, 0.02), false)
-	# royal chest
-	_box(o + Vector3(4.2, 0.4, BACK_Z + 1.0), Vector3(1.4, 0.8, 0.8), Color(0.45, 0.28, 0.12), true)
-	_box(o + Vector3(4.2, 0.82, BACK_Z + 1.0), Vector3(1.45, 0.06, 0.85), Color(0.8, 0.65, 0.2))
-	# hay bed
-	_box(o + Vector3(-4.8, 0.25, 0.8), Vector3(2.0, 0.5, 2.6), Color(0.78, 0.66, 0.3), true)
-	# spoon pile
-	for k in 14:
-		_cyl(o + Vector3(2.6 + randf_range(-0.6, 0.6), 0.05, 1.8 + randf_range(-0.4, 0.4)), 0.025, 0.5, Color(0.8, 0.8, 0.85), Vector3(PI / 2.0, randf() * TAU, 0))
+	# royal chest (a real one)
+	Models.place(lv, "treasure_chest", o + Vector3(4.2, 0, BACK_Z + 1.0), 0.0, 1.3, true)
+	# hay bed on a plank frame + crates of royal junk
+	Models.block(lv, o + Vector3(-4.8, 0.15, 0.8), Vector3(2.1, 0.3, 2.7), planks, 0.0, true)
+	Models.block(lv, o + Vector3(-4.8, 0.42, 0.8), Vector3(1.9, 0.25, 2.5), Models.mat("thatch_roof_angled", 0.8, Color(1.1, 1.0, 0.75)))
+	Models.place(lv, "wooden_crate_02", o + Vector3(5.6, 0, 1.6), 0.2, 1.0, true)
+	Models.place(lv, "wooden_crate_01", o + Vector3(5.5, 0.46, 1.6), 0.5, 0.9)
+	Models.place(lv, "wooden_lantern_01", o + Vector3(-2.0, 0, BACK_Z + 0.7), 0.0, 1.0)
+	Models.place(lv, "wooden_lantern_01", o + Vector3(2.2, 0, BACK_Z + 0.7), 0.0, 1.0)
+	# the emergency spoon pile (real spoons)
+	for k in 12:
+		var sp := Models.place(lv, "wooden_spoon", o + Vector3(2.6 + randf_range(-0.55, 0.55), 0.02 + k * 0.012, 1.8 + randf_range(-0.35, 0.35)), randf() * TAU, 1.6)
+		sp.rotation.z = randf_range(-0.2, 0.2)
 	_label3d("Emergency Spoons", o + Vector3(2.6, 0.7, 1.8), 24, Color("#f3e3b0"))
 
 func _bar_room() -> void:
 	var o := origin("bar")
+	var planks := Models.mat("weathered_planks", 1.2)
+	var dark_planks := Models.mat("weathered_planks", 1.2, Color(0.65, 0.55, 0.5))
 	_label3d("THE UNEMPLOYMENT OFFICE & BAR\n\"You're not fired. You're FREE.\"", o + Vector3(0, 4.7, BACK_Z), 44, Color("#ffdf8a"))
-	# counter + shelf with beezy
-	_box(o + Vector3(-3.2, 0.55, -2.4), Vector3(5.0, 1.1, 0.8), Color(0.3, 0.18, 0.1), true)
-	_box(o + Vector3(-3.2, 1.12, -2.4), Vector3(5.2, 0.08, 0.95), Color(0.42, 0.27, 0.15))
-	_box(o + Vector3(-3.2, 1.9, BACK_Z + 0.25), Vector3(5.0, 0.08, 0.4), Color(0.3, 0.18, 0.1))
+	# counter + back shelf with real bottles
+	Models.block(lv, o + Vector3(-3.2, 0.55, -2.4), Vector3(5.0, 1.1, 0.8), dark_planks, 0.0, true)
+	Models.block(lv, o + Vector3(-3.2, 1.13, -2.4), Vector3(5.2, 0.08, 0.95), planks)
+	Models.block(lv, o + Vector3(-3.2, 1.9, BACK_Z + 0.25), Vector3(5.0, 0.07, 0.42), planks)
+	Models.block(lv, o + Vector3(-3.2, 2.7, BACK_Z + 0.25), Vector3(5.0, 0.07, 0.42), planks)
+	for x in [-5.0, -3.6, -2.2]:
+		Models.place(lv, "wine_bottles_01", o + Vector3(x, 1.94, BACK_Z + 0.25), 0.0, 1.0)
+		Models.place(lv, "wine_bottles_01", o + Vector3(x + 0.2, 2.74, BACK_Z + 0.25), 0.0, 1.0)
 	var mug_tex: Texture2D = load("res://assets/items/beer.png")
-	for k in 9:
+	for k in 5:   # beezy mugs on the counter
 		var m := Sprite3D.new()
 		m.texture = mug_tex
-		m.pixel_size = 0.32 / mug_tex.get_height()
+		m.pixel_size = 0.26 / mug_tex.get_height()
 		m.shaded = false
-		m.position = o + Vector3(-5.4 + k * 0.55, 2.1, BACK_Z + 0.3)
+		m.position = o + Vector3(-5.2 + k * 0.9, 1.3, -2.3)
 		lv.add_child(m)
 	# barrels
-	for p in [Vector3(-6.0, 0, -0.5), Vector3(-6.0, 0, 0.6), Vector3(-5.2, 0, 2.6)]:
-		_cyl(o + p + Vector3(0, 0.55, 0), 0.45, 1.1, Color(0.38, 0.24, 0.12), Vector3.ZERO, true)
+	Models.place(lv, "wine_barrel_01", o + Vector3(-6.0, 0, -0.6), 0.3, 1.0, true)
+	Models.place(lv, "wine_barrel_01", o + Vector3(-6.0, 0, 0.5), 1.4, 1.0, true)
+	Models.place(lv, "wine_barrel_01", o + Vector3(-5.2, 0, 2.7), 0.0, 1.0, true)
+	Models.place(lv, "wooden_crate_01", o + Vector3(-0.2, 0, -3.8), 0.1, 1.0)
+	Models.place(lv, "wooden_crate_02", o + Vector3(6.0, 0, 2.6), 0.0, 1.0, true)
 	# tables + stools
-	for p in [Vector3(-1.5, 0, 0.8), Vector3(1.2, 0, 1.6), Vector3(3.8, 0, 0.6)]:
-		_cyl(o + p + Vector3(0, 0.75, 0), 0.6, 0.08, Color(0.36, 0.22, 0.12))
-		_cyl(o + p + Vector3(0, 0.37, 0), 0.08, 0.74, Color(0.3, 0.18, 0.1), Vector3.ZERO, true)
+	for p in [Vector3(-1.5, 0, 0.8), Vector3(1.2, 0, 1.8), Vector3(3.8, 0, 0.6)]:
+		Models.place(lv, "round_wooden_table_01", o + p, randf() * TAU, 0.8, true)
 		for a in [0.4, 2.5, 4.4]:
-			_cyl(o + p + Vector3(cos(a) * 0.95, 0.22, sin(a) * 0.95), 0.2, 0.44, Color(0.3, 0.18, 0.1))
+			Models.place(lv, "wooden_stool_01", o + p + Vector3(cos(a) * 0.95, 0, sin(a) * 0.95), randf() * TAU, 1.0)
 	# stage
-	_box(o + Vector3(4.2, 0.2, -3.0), Vector3(3.6, 0.4, 2.2), Color(0.25, 0.14, 0.1), true)
+	Models.block(lv, o + Vector3(4.2, 0.2, -3.0), Vector3(3.6, 0.4, 2.2), dark_planks, 0.0, true)
 	_label3d("OPEN MIC NIGHT\n(every night)", o + Vector3(4.2, 3.3, BACK_Z + 0.1), 32, Color("#ff9ad5"))
 	var spot := SpotLight3D.new()
 	spot.light_color = Color(1.0, 0.85, 0.6)
@@ -228,25 +287,25 @@ func _bar_room() -> void:
 	lv.add_child(spot)
 	spot.look_at(o + Vector3(4.2, 0.4, -3.0), Vector3.UP)
 	# unemployment window
-	_box(o + Vector3(-6.2, 1.0, 1.9), Vector3(0.6, 2.0, 1.6), Color(0.5, 0.48, 0.42), true)
+	Models.block(lv, o + Vector3(-6.2, 1.0, 1.9), Vector3(0.6, 2.0, 1.6), Models.mat("clay_plaster", 1.5), 0.0, true)
 	_label3d("UNEMPLOYMENT\nTAKE A NUMBER\nNOW SERVING: 3", o + Vector3(-5.85, 2.4, 1.9), 22, Color("#ffffff"))
 	# people
 	npc["sludge"] = _goblin("sludge", "Sludge (Bartender) (Waters Down Everything)", o + Vector3(-3.4, 0, -3.3), 1.15, Color(0.95, 0.9, 0.8))
 	npc["gorbo"] = _goblin("gorbo", "Gorbo (Open Mic) (Nobody Asked)", o + Vector3(4.2, 0.5, -3.0), 1.1, Color(1.05, 0.95, 1.1))
 	npc["thumbs"] = _goblin("thumbs", "Big Thumbs (Bouncer) (Has a Gym Membership)", o + Vector3(-2.6, 0, 3.3), 1.75, Color(0.85, 0.95, 0.85), "goblin_fight")
-	npc["gulpo"] = _goblin("gulpo", "Gulpo (Bar Champion) (Liver of Steel)", o + Vector3(1.9, 0, 1.0), 1.25, Color(1.0, 0.92, 0.75))
+	npc["gulpo"] = _goblin("gulpo", "Gulpo (Bar Champion) (Liver of Steel)", o + Vector3(2.1, 0, 0.9), 1.25, Color(1.0, 0.92, 0.75))
 	npc["clerk"] = _goblin("clerk", "Unemployment Clerk (On Break Since 1987)", o + Vector3(-5.3, 0, 1.6), 1.1, Color(0.85, 0.85, 0.9))
-	npc["patron"] = _goblin("patron", "Goblin (Regular) (Very Regular)", o + Vector3(-1.0, 0, 1.7), 1.15, Color.WHITE)
+	npc["patron"] = _goblin("patron", "Goblin (Regular) (Very Regular)", o + Vector3(-1.0, 0, 1.9), 1.15, Color.WHITE)
 
 func _shaman_room() -> void:
 	var o := origin("shaman")
-	_label3d("SHAMAN WUZZLE\nFORTUNES · PROPHECIES · NO REFUNDS EITHER", o + Vector3(0, 4.6, BACK_Z), 40, Color("#d6a8ff"))
+	_label3d("SHAMAN WUZZLE\nFORTUNES · PROPHECIES · NO REFUNDS EITHER", o + Vector3(0, 4.3, BACK_Z), 40, Color("#d6a8ff"))
 	_box(o + Vector3(0, 0.02, -0.4), Vector3(5.0, 0.03, 3.4), Color(0.4, 0.12, 0.35))   # rug
-	_cyl(o + Vector3(0, 0.45, -1.3), 0.75, 0.9, Color(0.2, 0.12, 0.08), Vector3.ZERO, true)  # table
+	Models.place(lv, "round_wooden_table_01", o + Vector3(0, 0, -1.3), 0.0, 0.65, true)
 	var ball := MeshInstance3D.new()
 	var sp := SphereMesh.new()
-	sp.radius = 0.3
-	sp.height = 0.6
+	sp.radius = 0.24
+	sp.height = 0.48
 	ball.mesh = sp
 	var bm := StandardMaterial3D.new()
 	bm.albedo_color = Color(0.5, 0.8, 1.0, 0.7)
@@ -255,7 +314,7 @@ func _shaman_room() -> void:
 	bm.emission_energy_multiplier = 2.5
 	bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	ball.material_override = bm
-	ball.position = o + Vector3(0, 1.2, -1.3)
+	ball.position = o + Vector3(0, 0.9, -1.3)
 	lv.add_child(ball)
 	var bl := OmniLight3D.new()
 	bl.light_color = Color(0.4, 0.7, 1.0)
@@ -263,19 +322,27 @@ func _shaman_room() -> void:
 	bl.omni_range = 4.0
 	bl.position = ball.position
 	lv.add_child(bl)
-	for p in [Vector3(-4.5, 0, -3.6), Vector3(-3.6, 0, -3.8), Vector3(4.4, 0, -3.7), Vector3(5.2, 0, -3.2)]:   # candles
-		_cyl(o + p + Vector3(0, 0.3, 0), 0.07, 0.6, Color(0.9, 0.86, 0.75))
+	Models.place(lv, "wooden_bookshelf_worn", o + Vector3(4.6, 0, BACK_Z + 0.4), 0.0, 1.0, true)
+	Models.place(lv, "wooden_bookshelf_worn", o + Vector3(-4.6, 0, BACK_Z + 0.4), 0.0, 1.0, true)
+	Models.place(lv, "brass_pot_01", o + Vector3(-1.2, 0, -2.2), 0.0, 1.2)
+	Models.place(lv, "ceramic_pot", o + Vector3(5.6, 0, 0.6), 1.0, 1.0)
+	Models.place(lv, "ceramic_pot", o + Vector3(-5.6, 0, 1.8), 2.2, 0.9)
+	Models.place(lv, "wicker_basket_01", o + Vector3(1.5, 0, -2.4), 0.6, 1.4)
+	Models.place(lv, "wooden_lantern_01", o + Vector3(2.2, 0, -2.6), 0.0, 1.0)
+	Models.place(lv, "wooden_lantern_01", o + Vector3(-2.4, 0, -2.6), 0.0, 1.0)
+	for p in [Vector3(-3.4, 0, -3.8), Vector3(-3.0, 0, -3.9), Vector3(3.2, 0, -3.8), Vector3(3.6, 0, -3.6)]:   # candles
+		_cyl(o + p + Vector3(0, 0.3, 0), 0.06, 0.6, Color(0.9, 0.86, 0.75))
 		var c := OmniLight3D.new()
 		c.light_color = Color(1.0, 0.7, 0.4)
 		c.light_energy = 0.8
 		c.omni_range = 2.5
 		c.position = o + p + Vector3(0, 0.75, 0)
 		lv.add_child(c)
-	for p in [Vector3(-5.8, 0.2, -1.0), Vector3(5.9, 0.2, 0.4), Vector3(-5.6, 0.2, 2.0)]:   # skulls
+	for p in [Vector3(-5.8, 0.2, -1.0), Vector3(5.9, 0.2, -0.6), Vector3(-5.6, 0.2, 0.4)]:   # skulls
 		var sk := MeshInstance3D.new()
 		var sm := SphereMesh.new()
-		sm.radius = 0.22
-		sm.height = 0.4
+		sm.radius = 0.2
+		sm.height = 0.36
 		sk.mesh = sm
 		sk.material_override = Util.mat(Color(0.86, 0.82, 0.72))
 		sk.position = o + p
@@ -286,9 +353,12 @@ func _shaman_room() -> void:
 
 func _smith_room() -> void:
 	var o := origin("smith")
+	var planks := Models.mat("weathered_planks", 1.2)
+	var stone := Models.mat("rustic_stone_wall", 1.5, Color(0.8, 0.75, 0.72))
 	_label3d("CLANK'S SPOONSMITHY\nSPOONS ONLY. DON'T ASK.", o + Vector3(0, 4.6, BACK_Z), 44, Color("#ffcf9a"))
-	# forge
-	_box(o + Vector3(-4.2, 0.7, -3.4), Vector3(2.2, 1.4, 1.4), Color(0.32, 0.3, 0.3), true)
+	# stone forge with a fire in it
+	Models.block(lv, o + Vector3(-4.2, 0.7, -3.4), Vector3(2.2, 1.4, 1.4), stone, 0.0, true)
+	Models.block(lv, o + Vector3(-4.2, 3.4, -3.8), Vector3(1.2, 4.0, 0.8), stone)
 	var fl := Fx.flames(0.6)
 	fl.position = o + Vector3(-4.2, 1.45, -3.0)
 	lv.add_child(fl)
@@ -298,16 +368,24 @@ func _smith_room() -> void:
 	fo.omni_range = 6.0
 	fo.position = o + Vector3(-4.2, 2.0, -2.6)
 	lv.add_child(fo)
-	# anvil
-	_box(o + Vector3(-1.4, 0.35, -1.6), Vector3(0.5, 0.7, 0.5), Color(0.2, 0.2, 0.22), true)
-	_box(o + Vector3(-1.4, 0.8, -1.6), Vector3(1.0, 0.25, 0.45), Color(0.25, 0.25, 0.28))
-	# spoon rack on the back wall
-	_box(o + Vector3(3.2, 2.0, BACK_Z + 0.08), Vector3(4.0, 1.8, 0.1), Color(0.35, 0.22, 0.12))
+	# anvil on a stump-block, hammers on it
+	Models.block(lv, o + Vector3(-1.4, 0.32, -1.6), Vector3(0.6, 0.64, 0.6), planks, 0.0, true)
+	_box(o + Vector3(-1.4, 0.75, -1.6), Vector3(1.0, 0.24, 0.42), Color(0.18, 0.18, 0.2))
+	Models.place(lv, "cross_pein_hammer", o + Vector3(-1.2, 0.88, -1.55), 0.0, 1.3).rotation = Vector3(PI / 2.0, 0.6, 0)
+	Models.place(lv, "sledgehammer_01", o + Vector3(-0.5, 0.75, -1.9), 0.3, 1.0)
+	Models.place(lv, "wooden_bucket_01", o + Vector3(-2.6, 0, -1.2), 0.0, 1.0)
+	# spoon rack on the back wall, hung with real spoons
+	Models.block(lv, o + Vector3(3.2, 2.0, BACK_Z + 0.08), Vector3(4.0, 1.8, 0.1), planks)
 	for k in 12:
-		_cyl(o + Vector3(1.6 + k * 0.29, 2.0, BACK_Z + 0.2), 0.03, 1.2, Color(0.82, 0.82, 0.88))
+		var s := Models.place(lv, "wooden_spoon", o + Vector3(1.6 + k * 0.29, 2.0, BACK_Z + 0.2), 0.0, 2.2)
+		s.rotation = Vector3(-PI / 2.0, 0, randf_range(-0.12, 0.12))
 	_label3d("FOR SALE", o + Vector3(3.2, 3.15, BACK_Z + 0.15), 28, Color("#ffdf8a"))
-	_cyl(o + Vector3(5.6, 0.45, 0.2), 0.45, 0.9, Color(0.38, 0.24, 0.12), Vector3.ZERO, true)
-	_label3d("Barrel of Spoons", o + Vector3(5.6, 1.3, 0.2), 24, Color("#f3e3b0"))
+	Models.place(lv, "wine_barrel_01", o + Vector3(5.6, 0, 0.2), 0.0, 1.0, true)
+	for k in 6:
+		var s2 := Models.place(lv, "wooden_spoon", o + Vector3(5.6 + randf_range(-0.15, 0.15), 0.9, 0.2 + randf_range(-0.15, 0.15)), randf() * TAU, 2.0)
+		s2.rotation.x = -PI / 2.0 + randf_range(-0.3, 0.3)
+	_label3d("Barrel of Spoons", o + Vector3(5.6, 1.6, 0.2), 24, Color("#f3e3b0"))
+	Models.place(lv, "wooden_crate_02", o + Vector3(5.8, 0, 2.6), 0.0, 1.0, true)
 	npc["clank"] = _goblin("clank", "Clank (Spoonsmith) (Only Makes Spoons)", o + Vector3(-2.4, 0, -2.4), 1.2, Color(0.95, 0.85, 0.75))
 
 # ================================================================ little builders
@@ -870,39 +948,3 @@ func tour() -> void:
 		lv._close_menu()
 	print("TOUR DONE  xp=", Game.xp, " level=", Game.level, " gear=", Game.gear_owned, " quests=", Game.quests, " inv=", Game.inv)
 	get_tree().quit()
-
-const PLANK_SHADER := """
-shader_type spatial;
-varying vec3 wpos;
-void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
-float h(float n) { return fract(sin(n * 91.345) * 47453.12); }
-void fragment() {
-	vec2 p = wpos.xz;
-	float row = floor(p.y / 0.35);
-	float x = p.x + h(row) * 3.0;
-	float board = floor(x / 2.2);
-	float grain = sin((p.y * 40.0) + sin(x * 3.0) * 2.0) * 0.5 + 0.5;
-	vec3 base = mix(vec3(0.20, 0.13, 0.08), vec3(0.30, 0.20, 0.12), h(row * 7.0 + board));
-	base *= 0.85 + grain * 0.15;
-	float seam = smoothstep(0.0, 0.02, fract(p.y / 0.35)) * smoothstep(0.0, 0.02, fract(x / 2.2));
-	ALBEDO = base * mix(0.4, 1.0, seam);
-	ROUGHNESS = 0.8;
-}
-"""
-
-const WALL_SHADER := """
-shader_type spatial;
-uniform vec3 tint = vec3(0.35, 0.24, 0.15);
-varying vec3 wpos;
-void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
-float h(float n) { return fract(sin(n * 91.345) * 47453.12); }
-void fragment() {
-	float u = wpos.x + wpos.z;
-	float plank = floor(u / 0.45);
-	float grain = sin(wpos.y * 30.0 + sin(u * 6.0) * 2.0) * 0.5 + 0.5;
-	vec3 base = tint * (0.8 + h(plank) * 0.35) * (0.88 + grain * 0.12);
-	float seam = smoothstep(0.0, 0.04, fract(u / 0.45));
-	ALBEDO = base * mix(0.45, 1.0, seam);
-	ROUGHNESS = 0.9;
-}
-"""
