@@ -499,8 +499,8 @@ func enter(id: String) -> void:
 	room = id
 	var o := origin(id)
 	lv.place_party(o + Vector3(0, 0, FRONT_Z - 1.2), Vector3(0, 0, -1))
-	for u in lv.npcs:   # goblins following you come in too
-		if u.has_meta("follow") and u.get_meta("follow"):
+	for u in lv.npcs:   # goblins following you come in too (the band waits outside the door)
+		if u.has_meta("follow") and u.get_meta("follow") and not u.has_meta("band"):
 			u.global_position = o + Vector3(randf_range(-2, 2), 0, FRONT_Z - 2.0)
 	if id == "chief" and lv.chief.visible and not lv.chief.has_meta("follow"):
 		chief_outside = lv.chief.global_position
@@ -529,7 +529,7 @@ func leave() -> void:
 	out.y = 0.0
 	lv.place_party(d["door"] + out * 1.2, out)
 	for u in lv.npcs:
-		if u.has_meta("follow") and u.get_meta("follow"):
+		if u.has_meta("follow") and u.get_meta("follow") and not u.has_meta("band"):
 			u.global_position = d["door"] + out * 2.5
 	if lv.chief.has_meta("at_home"):
 		lv.chief.global_position = chief_outside
