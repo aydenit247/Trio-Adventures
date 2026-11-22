@@ -12,7 +12,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
-- [asar] Notes tasks: (1) HP carries over between fights (heal with Beezy/Bowl from Tab, rest at campfires/hay bed, knocked out = up at 1 HP, full heal on level up and after a loss). (2) Hover a status (Mogged, Cooked…) in fights to see what it does. (3) Lykor's Mog/Mog Supreme camera close-up. (4) Diddy Chud Giant sleeping picture (Asar's art) + smooth wake-up. Files: godot/scripts/pass.gd, godot/assets/characters/giant_sleep.png, godot/scripts/game.gd, level.gd, combat/battle.gd, combat/battle_view.gd, inventory_ui.gd, camp.gd, village.gd, village_buildings.gd, notes.md — branch: asar/notes-tasks — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Notes tasks: HP carries between fights, status hover tooltips, Lykor's Mog close-up, sleeping Diddy Chud Giant + smooth wake-up
 - 2026-11-21 [asar] Windows builds use DirectX 12 (fixes the Big Thumbs fight crash)
 - 2026-11-21 [asar] Separate inventory per character + right-click Give; continuity sweep (no more lines about choices you didn't take)
 - 2026-11-22 [ebain] Village free-roam music: Ebain's "The Mogging Elf" (new AreaMusic node)
@@ -54,10 +54,21 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/pass.gd, godot/assets/characters/giant_sleep.png, godot/scripts/game.gd, level.gd, combat/battle.gd, combat/battle_view.gd, inventory_ui.gd, camp.gd, village.gd, village_buildings.gd, notes.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **notes.md tasks merged (Asar picked how).** Shop skipped for now (Asar). Shared hot spots changed:
+  **game.gd**: `hurt` (fighter → HP missing, saved), `max_hp/hp/set_hp/heal/heal_all/anyone_hurt/use_heal_item`; `add_xp`
+  heals everyone on level up. **level.gd**: `start()` runs `rest_party()` after an interactable with `"rest": true`;
+  `_defeat` heals everyone; `fight()` toasts who got back up at 1 HP. **combat/battle.gd**: party starts at
+  `max_hp - o.hurt[id]`. **combat/battle_view.gd**: passes `Game.hurt`, writes HP back in `_outro` (KO → 1 HP); status line
+  is now hoverable words (`_status_chips`, `_set_status`, `status_tip`); `_mog_cam` push-in on Lykor's face for Mog / Mog
+  Supreme (replaces `_ult_cam` for Mog Supreme). Rest spots: camp fire (verb now "Rest at"), new village campfire
+  interactable, Chief's hay bed. Inventory: Health shows current/max, Beezy/Bowl → Drink/Eat (E or right-click).
+  **pass.gd**: giant uses Asar's `giant_sleep.png`, wake-up crossfades sleep → sit → stand (no black cut). @ebain: his
+  floating label "(Eyes Open, Somehow)" didn't fit the new closed-eyes art, so it's now "(Using a Rock as a Pillow)" (# DRAFT),
+  change it if you like. Balance note: no rest spot in the Mart or the Pass, so Dulbers → giant runs on items.
+  Tested: 5 village + 5 Mart + 5 Pass choices, buildings tours, camp, 7 fights incl. allies and a forced loss, 0 errors.
 - 2026-11-21 [asar] **project.godot (hot spot): one line added, `rendering/rendering_device/driver.windows="d3d12"`.** Asar
   tested `--rendering-driver d3d12` and the Big Thumbs crash is gone, so Windows builds now start on DirectX 12. @ebain: this
   answers my question further down. You didn't reply yet, so I went ahead because it's one line and easy to undo. If D3D12

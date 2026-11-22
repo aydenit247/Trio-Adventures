@@ -6,7 +6,7 @@
 extends Level
 
 const PS = preload("res://scripts/pass_script.gd")
-const GIANT_HEAD := Vector3(4.2, 2.7, -10.0)      # his head, at the right end of where he's lying
+const GIANT_HEAD := Vector3(4.2, 2.8, -10.0)      # his head, at the right end of where he's lying
 const GIANT_STAND := Vector3(3.5, 0, -9.5)
 const EXIT_POS := Vector3(14, 0, 0)
 
@@ -153,18 +153,17 @@ func _canyon() -> void:
 		add_glow(p, Color(1.0, 0.5, 0.25), 6.0, func(): return 1.0)
 	# the sleeping giant, lying across the path (real 3D figure, not a painting)
 	giant_lying = Sprite3D.new()
-	giant_lying.texture = load("res://assets/characters/giant_angry.png")
-	giant_lying.pixel_size = 6.4 / giant_lying.texture.get_height()
+	giant_lying.texture = load("res://assets/characters/giant_sleep.png")   # Asar's sleeping picture (head on the right, rock pillow)
+	giant_lying.pixel_size = 8.0 / giant_lying.texture.get_width()           # 8 m from feet to pillow
 	giant_lying.shaded = false
 	giant_lying.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-	giant_lying.modulate = Color(1.0, 0.78, 0.72)
-	giant_lying.rotation.z = -PI / 2.0
-	giant_lying.position = GIANT_LIE + Vector3(0, giant_lying.texture.get_width() * giant_lying.pixel_size * 0.42, 0)
+	giant_lying.modulate = Color(1.0, 0.88, 0.84)
+	giant_lying.position = GIANT_LIE + Vector3(0, giant_lying.texture.get_height() * giant_lying.pixel_size * 0.5 - 0.15, 0)
 	add_child(giant_lying)
 	Util.static_box(self, GIANT_LIE + Vector3(0, 1.5, 0), Vector3(6.6, 3.0, 2.0))
 	for p in [Vector3(-1.8, 0, 0.9), Vector3(3.9, 0, 0.7), Vector3(-3.4, 0, -0.4), Vector3(5.2, 0, -0.6)]:   # rocks he's lying on
 		Models.place(self, "rock_07", GIANT_LIE + p, randf() * TAU, randf_range(6.0, 9.0), false, rock2)
-	char_label_at(GIANT_LIE + Vector3(0, 6.0, 0.4), "Diddy Chud Giant (Asleep) (Eyes Open, Somehow)", 6.0)
+	char_label_at(GIANT_LIE + Vector3(0, 6.0, 0.4), "Diddy Chud Giant (Asleep) (Using a Rock as a Pillow)", 6.0)   # DRAFT (old art had his eyes open)
 
 # Far scenery doesn't need to cast shadows (big savings on lower-end PCs).
 func _no_shadow(n: Node) -> void:
@@ -373,7 +372,7 @@ func _on_action(n: String) -> void:
 			whoosh_sfx.play()
 			await fade_out(0.5)
 			giant_lying.position += Vector3(7.5, 0, -3.0)   # rolls off into the rocks
-			giant_lying.rotation.z = -PI / 2.0 - 0.4
+			giant_lying.rotation.z = -0.25
 			_clear_giant_block()
 			giant_awake = true    # stops the Zzz (he's rolled off the path)
 			fade_in(0.6)
@@ -437,18 +436,51 @@ func _throw_midtocy() -> void:
 	shake = 0.3
 	await wait(0.5)
 
+# Wake-up, no cut to black: he stirs, sits up (sitting picture), then rises into the standing giant.
 func _giant_wakes(angry: bool) -> void:
 	giant_awake = true
-	shake = 1.0 if angry else 0.4
-	_sfx(Util.noise_burst(900, 0.03, 1.0), 0.0).play()
-	await fade_out(0.35)
-	giant_lying.visible = false
 	_clear_giant_block()
-	giant.global_position = GIANT_STAND
-	giant.visible = true
-	fade_in(0.35)
 	focus_override = Vector3(1.5, 0, -6.0)
 	zoom = 13.0
+	# 1. stirs
+	shake = 0.35 if angry else 0.15
+	_sfx(Util.noise_burst(260, 0.4, 0.5), -4.0).play()
+	var tw := create_tween()
+	tw.tween_property(giant_lying, "rotation:z", 0.05, 0.12)
+	tw.tween_property(giant_lying, "rotation:z", -0.04, 0.12)
+	tw.tween_property(giant_lying, "rotation:z", 0.0, 0.1)
+	await tw.finished
+	# 2. sits up
+	var sit := Sprite3D.new()
+	sit.texture = load("res://assets/characters/giant_sit.png")
+	sit.pixel_size = 4.8 / sit.texture.get_height()
+	sit.shaded = false
+	sit.modulate = Color(1.0, 0.88, 0.84, 0.0)
+	sit.position = Vector3((GIANT_LIE.x + GIANT_STAND.x) * 0.5, 2.4, GIANT_LIE.z + 0.1)
+	add_child(sit)
+	giant_lying.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED   # so it can fade
+	tw = create_tween().set_parallel(true)
+	tw.tween_property(giant_lying, "modulate:a", 0.0, 0.35)
+	tw.tween_property(sit, "modulate:a", 1.0, 0.3)
+	tw.tween_property(sit, "position:y", 2.6, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await tw.finished
+	giant_lying.visible = false
+	await wait(0.45 if angry else 0.7)
+	# 3. stands up
+	_sfx(Util.noise_burst(900, 0.03, 1.0), 0.0).play()
+	giant.global_position = GIANT_STAND
+	giant.sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+	giant.sprite.scale = Vector3(1.0, 0.7, 1.0)   # grows up from the ground (sprite is anchored at the feet)
+	giant.set_meta("tint", Color(1, 1, 1, 0))
+	giant.visible = true
+	tw = create_tween().set_parallel(true)
+	tw.tween_method(func(a: float): giant.set_meta("tint", Color(1, 1, 1, a)), 0.0, 1.0, 0.3)
+	tw.tween_property(sit, "modulate:a", 0.0, 0.3)
+	tw.tween_property(giant.sprite, "scale:y", 1.0, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await tw.finished
+	sit.queue_free()
+	giant.sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	giant.set_meta("tint", Color.WHITE)
 	hop(giant, 0.8)
 	shake = 0.8 if angry else 0.2
 	if angry:

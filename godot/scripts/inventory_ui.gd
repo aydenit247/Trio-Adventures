@@ -192,13 +192,14 @@ func _draw_gear() -> void:
 		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		pf.add_child(t)
 	var S: Dictionary = Game.gear_stats(fid)
-	var hp := int(round((P["hp"] + S["hp"]) * (1.0 + 0.1 * (Game.level - 1))))
+	var hp_now := Game.hp(fid)
+	var hp_max := Game.max_hp(fid)
 	# stats panel (right of the shoes/shield): Health blue · Armor white · Speed yellow · Damage red
 	var sp := _framed(Rect2(726, 86, 226, 196), Color(0.16, 0.13, 0.1, 0.9))
 	var head := _txt("STATS", Vector2(0, 8), 18, GOLD, serif_bold, sp)
 	head.size = Vector2(226, 24); head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var rows := [
-		["Health", str(hp), Color("#5ab4ff")],
+		["Health", "%d/%d" % [hp_now, hp_max], Color("#ff6a5a") if hp_now <= hp_max * 0.3 else Color("#5ab4ff")],
 		["Armor", str(S["armor"]), Color.WHITE],
 		["Speed", str(P["spd"] + S["spd"]), Color("#ffd84a")],
 		["Damage", "+%d%%" % int(round(S["power"] * 100)), Color("#ff5a4a")],
@@ -406,6 +407,11 @@ func _describe(i: int) -> Array:   # [name, description, what E does]
 			var t := Game.gear_type(it["id"])
 			return [it["name"], "%s\n\n%s" % [t.capitalize(), it["desc"]], "[E] Equip on %s" % fname]
 		"use":
+			var heal_n := int(CombatD.ITEMS.get(it["id"], {}).get("heal", 0))
+			if heal_n > 0:
+				var full := Game.hp(fighters[who]) >= Game.max_hp(fighters[who])
+				return ["%s ×%d" % [it["name"], it["count"]], it["desc"] + "\n\nWorks here too: heals %d outside fights." % heal_n,
+					("%s is at full HP" % fname) if full else "[E] %s (+%d HP to %s)" % [_heal_verb(it["id"]), heal_n, fname]]
 			return ["%s ×%d" % [it["name"], it["count"]], it["desc"] + "\n\nUse it during fights (Items).", ""]
 		"boost":
 			return [it["name"] + ((" ×%d" % it["count"]) if it["count"] > 1 else ""), it["desc"], "[E] Use on %s (permanent)" % fname]
@@ -432,12 +438,26 @@ func _activate() -> void:
 			if s != "":
 				note = "%s equipped %s (%s)." % [fname, it["name"], Game.SLOT_NAMES[s]]
 				_click()
+		elif it["kind"] == "use" and int(CombatD.ITEMS.get(it["id"], {}).get("heal", 0)) > 0:
+			_heal_with(fid, it)
 		elif it["kind"] == "boost":
 			if Game.use_boost(fid, it["id"]):
 				note = "%s used %s. %s" % [fname, it["name"], ", ".join(gear_stat_lines(CombatD.BOOSTS[it["id"]]))]
 				_click()
 	_rebuild()
 	note = ""
+
+func _heal_verb(id: String) -> String:
+	return "Drink" if id == "beer" else "Eat"
+
+func _heal_with(fid: String, it: Dictionary) -> void:
+	var fname: String = CombatD.PARTY[fid]["name"]
+	var got := Game.use_heal_item(fid, it["id"])
+	if got > 0:
+		note = "%s %s %s. +%d HP (%d/%d)." % [fname, "drank a" if it["id"] == "beer" else "ate a", it["name"], got, Game.hp(fid), Game.max_hp(fid)]
+		_click()
+	else:
+		note = "%s is already at full HP." % fname
 
 func _switch(d: int) -> void:
 	if fighters.size() < 2:
@@ -605,6 +625,17 @@ func _open_item_menu(i: int, at: Vector2) -> void:
 		_close_popup()
 		_view_item(i)))
 	var it := _item_at(i)
+	var heal_n := int(CombatD.ITEMS.get(it.get("id", ""), {}).get("heal", 0))
+	if it.get("kind", "") == "use" and heal_n > 0:
+		var fid: String = fighters[who]
+		var hb := _menu_button("%s (+%d HP)" % [_heal_verb(it["id"]), heal_n], func():
+			_close_popup()
+			_heal_with(fid, _item_at(i))
+			_rebuild()
+			note = "")
+		if Game.hp(fid) >= Game.max_hp(fid):
+			hb.text = "%s (full HP)" % _heal_verb(it["id"]); hb.disabled = true
+		col.add_child(hb)
 	var n: int = int(it.get("count", 1))
 	for to in _give_targets():
 		var nm: String = CombatD.PARTY[to]["name"]

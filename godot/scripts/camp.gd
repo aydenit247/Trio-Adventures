@@ -233,7 +233,7 @@ func _level_process(delta: float) -> void:
 func _level_interactables() -> Array:
 	if stage == "lit":
 		return [
-			{ "id": "fire", "label": "Campfire", "verb": "Look at", "pos": FIRE_POS, "h": 1.8, "r": 2.9, "steps": CampScript.OBJECTS["fire"] },
+			{ "id": "fire", "label": "Campfire", "verb": "Rest at", "pos": FIRE_POS, "h": 1.8, "r": 2.9, "steps": CampScript.OBJECTS["fire"], "rest": true },
 			{ "id": "map", "label": "Charred paper", "verb": "Look at", "pos": Vector3(1.5, 0, 1.4), "h": 0.7, "r": 1.4, "steps": CampScript.OBJECTS["map"] },
 			{ "id": "bag", "label": "Lykor's bag", "verb": "Look at", "pos": Vector3(-2.7, 0, -1.6), "h": 1.0, "r": 1.6, "steps": CampScript.OBJECTS["bag"] },
 			{ "id": "tent", "label": "Tent", "verb": "Look at", "pos": SKORN_TENT, "h": 3.2, "r": 3.4, "steps": CampScript.OBJECTS["tent"] },

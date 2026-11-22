@@ -111,6 +111,13 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   character first), `Game.count(id, who)` (who "" = party total), `Game.give_item(from, to, id, n)`. When a story line
   names who gets it ("Skorn got…"), pass that fighter. Gear has an owner (`Game.gear_owner`), and key items have
   `Game.key_owner` (map/midtocy default to Skorn). In fights, each fighter only uses their own items (`b.item_count(id, k)`).
+- [asar] **HP carries between fights** (Asar). `Game.hurt` = fighter → HP missing (missing, not current, so level/gear changes
+  don't break it). Use `Game.hp(f)`, `Game.max_hp(f)`, `Game.heal(f, n)`, `Game.heal_all()`, `Game.use_heal_item(f, id)`.
+  Battle starts from `o.hurt`; `BattleView._outro` writes it back (knocked out → 1 HP). Full heal on level up
+  (`add_xp`), after a loss (`Level._defeat`) and at rest spots: give an interactable `"rest": true` (camp fire, village
+  campfire, Chief's hay bed). Beezy/Bowl heal outside fights from Tab (E or right-click). Mart and Pass have no rest spot.
+- [asar] **Status words in fights are hoverable**: `_status_chips()` → `[label, desc, good]`; new statuses only need a
+  `desc` in `CombatD.STATUS`.
 - [asar] **Continuity:** the village opens after all 5 throne choices. Skorn is NOT in the party when `skornKing` (he's on
   the throne until he bursts into the Mart). Gate path-specific lines with `if`/`if_not` (`chugWon`, `foreheadLoser`,
   `skornKing`, `goblinAllies`, `lykorDethroned`), and run `tools/check_continuity.gd`. Talk options can use

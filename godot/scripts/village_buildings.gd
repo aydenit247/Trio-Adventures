@@ -590,7 +590,7 @@ func interactables() -> Array:
 			list.append({ "id": "belt", "label": "the belt", "verb": "Look at", "pos": o + Vector3(-3.2, 0, BACK_Z + 1.2), "h": 2.0, "r": 1.5, "steps": R.BELT })
 			list.append({ "id": "portrait", "label": "the portrait", "verb": "Look at", "pos": o + Vector3(0, 0, BACK_Z + 0.9), "h": 3.8, "r": 1.6, "steps": R.PORTRAIT })
 			list.append({ "id": "chest", "label": "the royal chest", "verb": "Open", "pos": o + Vector3(4.2, 0, BACK_Z + 1.6), "h": 1.4, "r": 1.5, "steps": R.CHEST_EMPTY if Game.flag("chestLooted") else R.CHEST })
-			list.append({ "id": "bed", "label": "the hay bed", "verb": "Lie on", "pos": o + Vector3(-4.8, 0, 2.3), "h": 1.1, "r": 1.6, "steps": R.HAY_BED_AGAIN if Game.flag("xyloNapped") else R.HAY_BED })
+			list.append({ "id": "bed", "label": "the hay bed", "verb": "Lie on", "pos": o + Vector3(-4.8, 0, 2.3), "h": 1.1, "r": 1.6, "steps": R.HAY_BED_AGAIN if Game.flag("xyloNapped") else R.HAY_BED, "rest": true })
 		"bar":
 			list.append({ "id": "sludge", "label": "Sludge", "verb": "Talk to", "node": npc["sludge"], "h": 1.6, "r": 2.2, "steps": _sludge_steps() })
 			list.append({ "id": "gorbo", "label": "Gorbo", "verb": "Watch", "node": npc["gorbo"], "h": 2.0, "r": 2.4, "steps": R.GORBO_AGAIN if Game.flag("gorboSeen") else R.GORBO_SET })

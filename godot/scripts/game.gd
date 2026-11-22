@@ -21,6 +21,7 @@ var level := 1
 var gear_owned: Array = []        # gear ids found so far
 var equipped := {}                # fighter id -> { slot -> gear id }   (slots: GEAR_SLOTS below; gear slot types in CombatD.GEAR)
 var boosts := {}                  # fighter id -> { hp, meter } from used BOOSTS items (permanent)
+var hurt := {}                    # fighter id -> HP missing. Damage carries between fights (see max_hp/hp/heal)
 var gold := 0                     # currency, dropped by enemies (see "gold" on each enemy in CombatD.FIGHTS)
 var used67 := false               # the 6-7 happens once per game
 var forehead := ""                # funny penalty text written on the leader's forehead
@@ -52,6 +53,7 @@ func reset() -> void:
 	gear_owned = []
 	equipped = {}
 	boosts = {}
+	hurt = {}
 	gold = 0
 	used67 = false
 	forehead = ""
@@ -64,6 +66,8 @@ func add_xp(n: int) -> Array:
 	while level + 1 < LEVELS.size() and xp >= LEVELS[level + 1]:
 		level += 1
 		out.append(level)
+	if not out.is_empty():
+		heal_all()   # leveling up refills everyone
 	return out
 
 func xp_to_next() -> int:
@@ -214,6 +218,49 @@ func gear_stats(fighter: String) -> Dictionary:
 	out["hp"] += bo.get("hp", 0)
 	out["meter"] *= bo.get("meter", 1.0)
 	return out
+
+# ---- HP between fights. Stored as HP missing, so max HP can change (level, gear) without breaking it.
+# battle.gd computes max HP the same way: (base + gear hp) * (1 + 0.1 per level above 1).
+func max_hp(fighter: String) -> int:
+	var P: Dictionary = CombatD.PARTY.get(fighter, {})
+	if P.is_empty():
+		return 0
+	return int(round((P["hp"] + gear_stats(fighter).get("hp", 0)) * (1.0 + 0.1 * (level - 1))))
+
+func hp(fighter: String) -> int:
+	var m := max_hp(fighter)
+	return clampi(m - int(hurt.get(fighter, 0)), 1, m)
+
+func set_hp(fighter: String, value: int) -> void:
+	var m := max_hp(fighter)
+	var missing := clampi(m - value, 0, m - 1)   # never below 1 HP outside a fight
+	if missing <= 0:
+		hurt.erase(fighter)
+	else:
+		hurt[fighter] = missing
+
+# Heals up to n, returns how much it actually healed
+func heal(fighter: String, n: int) -> int:
+	var before := hp(fighter)
+	set_hp(fighter, before + n)
+	return hp(fighter) - before
+
+func heal_all() -> void:
+	hurt = {}
+
+func anyone_hurt() -> bool:
+	for f in hurt:
+		if int(hurt[f]) > 0:
+			return true
+	return false
+
+# Drink/eat a healing item (beer, bowl) outside a fight, from the fighter's own bag. Returns HP healed (0 = not used).
+func use_heal_item(fighter: String, id: String) -> int:
+	var n := int(CombatD.ITEMS.get(id, {}).get("heal", 0))
+	if n <= 0 or count(id, fighter) <= 0 or hp(fighter) >= max_hp(fighter):
+		return 0
+	take_item(id, 1, fighter)
+	return heal(fighter, n)
 
 # Use a BOOSTS item (Backup Conditioner, Deloye Lore Vol. 9) on a fighter: used up, bonus is permanent.
 func use_boost(fighter: String, item_id: String) -> bool:
@@ -399,7 +446,7 @@ var title_mode := false           # the title screen is showing the camp in the 
 func state_dict() -> Dictionary:
 	return {
 		"flags": flags.duplicate(true), "bags": bags.duplicate(true), "gear_owner": gear_owner.duplicate(), "key_owner": key_owner.duplicate(), "xp": xp, "level": level,
-		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "boosts": boosts.duplicate(true), "gold": gold, "used67": used67,
+		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "boosts": boosts.duplicate(true), "hurt": hurt.duplicate(), "gold": gold, "used67": used67,
 		"forehead": forehead, "quests": quests.duplicate(true),
 	}
 
@@ -419,6 +466,7 @@ func apply_state(d: Dictionary) -> void:
 	equipped = _migrate_equipped(d.get("equipped", {}))
 	gold = int(d.get("gold", 0))
 	boosts = d.get("boosts", {}).duplicate(true)
+	hurt = d.get("hurt", {}).duplicate()
 	for old_id in CombatD.BOOSTS:   # older saves had these as trinkets: put them in the bag instead
 		if gear_owned.has(old_id):
 			gear_owned.erase(old_id)

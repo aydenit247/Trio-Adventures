@@ -71,6 +71,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	cinematic = fdef.get("boss", false)
 	speed = 1.0 if cinematic else 0.7
 	auto_play = lv.shots_mode
+	mog_cam_test = auto_play
 	var party_units: Array = o.get("party", [])
 	var ids := []
 	for u in party_units:
@@ -81,7 +82,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 			gear[id] = Game.gear_stats(id)   # all 7 slots added up
 	b = BattleT.new(key, {
 		"party": ids, "mods": o.get("mods", {}), "level": Game.level, "inv": Game.fight_bags(ids),
-		"difficulty": Game.difficulty, "used67": Game.used67, "gear": gear,
+		"difficulty": Game.difficulty, "used67": Game.used67, "gear": gear, "hurt": Game.hurt,
 	})
 	if auto_play and OS.get_environment("AUTO_LOSE") != "":
 		for p in b.party:
@@ -244,7 +245,7 @@ func _build_ui() -> void:
 		hp.max_value = e["max_hp"]
 		hp.value = e["hp"]
 		col.add_child(hp)
-		var st := lv._label("", Vector2.ZERO, 14, PURPLE, 4)
+		var st := _status_row(14)
 		col.add_child(st)
 		enemy_box.add_child(col)
 		ebars[e["key"]] = { "hp": hp, "st": st, "name": nm, "col": col }
@@ -281,7 +282,7 @@ func _build_ui() -> void:
 		var meter := _bar(Color("#ffb13a"), Vector2(120, 7))
 		meter.max_value = 100
 		col.add_child(meter)
-		var st := lv._label("", Vector2.ZERO, 12, PURPLE, 3)
+		var st := _status_row(12)
 		col.add_child(st)
 		party_box.add_child(card)
 		pbars[p["key"]] = { "hp": hp, "hp_lbl": hp_lbl, "meter": meter, "st": st, "card": card }
@@ -380,29 +381,85 @@ func _refresh() -> void:
 		pb["hp_lbl"].text = "%s %d/%d" % [p["P"]["hp_label"], p["hp"], p["max_hp"]]
 		create_tween().tween_property(pb["meter"], "value", p["meter"], 0.3)
 		pb["meter"].tooltip_text = p["P"]["meter_label"]
-		pb["st"].text = _status_text(p) if p["hp"] > 0 else "KNOCKED OUT"
+		_set_status(pb["st"], _status_chips(p) if p["hp"] > 0 else [["KNOCKED OUT", "Out cold. A Beezy or a Chipotle Bowl from Items brings them back.", false]])
 		var fill: StyleBoxFlat = pb["meter"].get_theme_stylebox("fill")
 		fill.bg_color = Color("#fff07a") if p["meter"] >= 100 else Color("#ffb13a")
 		pb["card"].modulate = Color(1, 1, 1, 1) if p["hp"] > 0 else Color(0.6, 0.6, 0.6, 0.8)
 	for e in b.enemies:
 		var eb: Dictionary = ebars[e["key"]]
 		create_tween().tween_property(eb["hp"], "value", e["hp"], 0.35)
-		var s := _status_text(e)
-		if e.get("sit_pending", false): s = "GETTING READY TO SIT  " + s
-		if e.get("eat_pending", false): s = "HOLDING A CHIPOTLE BOWL  " + s
-		eb["st"].text = s
+		var chips := _status_chips(e)
+		if e.get("eat_pending", false): chips.push_front(["HOLDING A CHIPOTLE BOWL", "He's about to eat it and heal. Stun or charm him first and he drops it.", false])
+		if e.get("sit_pending", false): chips.push_front(["GETTING READY TO SIT", "He sits on someone next turn. Stun or charm him first and he sits on his own foot.", false])
+		_set_status(eb["st"], chips)
 		eb["col"].modulate = Color(1, 1, 1, 1) if e["hp"] > 0 else Color(1, 1, 1, 0.35)
 	_timeline()
 
-func _status_text(u: Dictionary) -> String:
-	var bits := []
+# ---- status chips: each status is its own word you can hover to see what it does
+func _status_chips(u: Dictionary) -> Array:   # [[label, description, good], ...]
+	var out := []
 	for k in u["st"]:
 		if D.STATUS.has(k):
-			bits.append(D.STATUS[k]["label"])
-	if u.get("defending", false): bits.append("DEFENDING")
-	if u.get("tripping", false): bits.append("TRIPPING")
-	if u["side"] == "party" and b.hype > 0: bits.append("HYPED ×%d" % b.hype)
-	return " · ".join(bits)
+			out.append([D.STATUS[k]["label"], D.STATUS[k]["desc"], D.STATUS[k]["good"]])
+	if u.get("defending", false): out.append(["DEFENDING", "Bracing. Takes half damage, but enemies usually go after them.", true])
+	if u.get("tripping", false): out.append(["TRIPPING", "Moves can misfire (22%), but sometimes land a Tweak Crit for double damage.", false])
+	if u["side"] == "party" and b.hype > 0: out.append(["HYPED ×%d" % b.hype, "The party's next %d attacks hit 50%% harder." % b.hype, true])
+	return out
+
+func _status_row(size: int) -> HFlowContainer:
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override("h_separation", 8)
+	row.add_theme_constant_override("v_separation", 0)
+	row.set_meta("size", size)
+	return row
+
+func _set_status(row: HFlowContainer, chips: Array) -> void:
+	var sig := str(chips)
+	if row.get_meta("sig", "") == sig:
+		return
+	row.set_meta("sig", sig)
+	for c in row.get_children():
+		c.queue_free()
+	for c in chips:
+		var l := lv._label(c[0], Vector2.ZERO, row.get_meta("size"), GREEN if c[2] else PURPLE, 3)
+		l.mouse_filter = Control.MOUSE_FILTER_STOP
+		l.mouse_default_cursor_shape = Control.CURSOR_HELP
+		var chip: Array = c
+		l.mouse_entered.connect(func(): _show_status_tip(l, chip))
+		l.mouse_exited.connect(func(): if status_tip: status_tip.visible = false)
+		row.add_child(l)
+
+var status_tip: PanelContainer
+
+func _show_status_tip(over: Control, chip: Array) -> void:
+	if not is_instance_valid(over):
+		return
+	if status_tip == null:
+		status_tip = PanelContainer.new()
+		status_tip.add_theme_stylebox_override("panel", _box(Color(0.08, 0.06, 0.12, 0.97), GOLD, 2))
+		status_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		status_tip.z_index = 20
+		var tc := VBoxContainer.new()
+		tc.add_theme_constant_override("separation", 2)
+		status_tip.add_child(tc)
+		tc.add_child(lv._label("", Vector2.ZERO, 18, GOLD, 4))
+		var d := lv._label("", Vector2.ZERO, 15, Color.WHITE, 3)
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(260, 0)
+		tc.add_child(d)
+		root.add_child(status_tip)
+	var tc: VBoxContainer = status_tip.get_child(0)
+	tc.get_child(0).text = chip[0]
+	tc.get_child(0).add_theme_color_override("font_color", GREEN if chip[2] else PURPLE)
+	tc.get_child(1).text = chip[1]
+	status_tip.visible = true
+	status_tip.reset_size()
+	var vp := get_viewport().get_visible_rect().size
+	var at := over.global_position + Vector2(0, -status_tip.size.y - 6)   # party (bottom left): above the word
+	if over.global_position.x > vp.x * 0.5:   # enemies (right side): to the left, so it doesn't cover their name/bar
+		at = Vector2(over.get_parent().global_position.x - status_tip.size.x - 12, over.global_position.y - status_tip.size.y * 0.5 + over.size.y * 0.5)
+	if at.y < 8: at.y = over.global_position.y + over.size.y + 6
+	status_tip.global_position = at.clamp(Vector2(8, 8), vp - status_tip.size - Vector2(8, 8))
 
 func _portrait_tex(u: Dictionary) -> Texture2D:
 	var n: String = u["id"] if u["side"] == "party" else PORTRAIT.get(u["ai"], "goblin")
@@ -517,9 +574,12 @@ func _party_turn(u: Dictionary) -> void:
 				if rolls[0] == 6 and rolls[1] == 6 and not b.used67:
 					o["accept67"] = await _ask_67()
 			await _windup(u, move, a.get("target", {}))
+			var mog: bool = move.get("fx", "") == "mog" or move["kind"] == "mogsupreme"
+			if mog:
+				await _mog_cam(u, move, a["slot"] == "ult")   # Lykor's jawline close-up (Ebain's note)
 			if move.get("timed", false) and not a.get("target", {}).is_empty():
 				o["timing"] = await _timed(nodes[a["target"]["key"]], "attack")
-			if a["slot"] == "ult":
+			if a["slot"] == "ult" and not mog:
 				await _ult_cam(u, move)
 		"combo":
 			await _combo_cam(a["combo"])
@@ -667,6 +727,39 @@ func _ult_cam(u: Dictionary, move: Dictionary) -> void:
 	await _banner(move["name"], Color("#ffdf4a"), 1.0 if cinematic else 0.7)
 	lv.focus_override = keep_f
 	lv.zoom = keep
+
+# Push the camera right up to Lykor's face for about a second, then back to the fight.
+var mog_cam_test := false   # set by the --shots tour: takes a screenshot at the close-up
+func _mog_cam(u: Dictionary, move: Dictionary, ult: bool) -> void:
+	var n: Unit = nodes[u["key"]]
+	var keep := { "zoom": lv.zoom, "cam_height": lv.cam_height, "cam_look_h": lv.cam_look_h }
+	var keep_f = lv.focus_override
+	var face_h: float = n.height_m * 0.86
+	var close := 1.35
+	lv.focus_override = n.global_position
+	var tw := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lv, "zoom", close, 0.3)
+	tw.tween_property(lv, "cam_height", face_h / close, 0.3)
+	tw.tween_property(lv, "cam_look_h", face_h, 0.3)
+	for box in [party_box, enemy_box, menu_panel]:
+		if box: tw.tween_property(box, "modulate:a", 0.0, 0.2)
+	sfx("sparkle", 0.7)
+	await tw.finished
+	flash(0.25, Color(1, 1, 1))
+	sfx("mog", 1.0)
+	_banner(move["name"] if ult else "*chiseled jawline*", Color("#ffdf4a"), 0.9 if ult else 0.7)
+	if mog_cam_test:
+		await lv.wait(0.35)
+		await lv.shot("fight_%s_mog_cam" % key)
+		mog_cam_test = false   # one picture per fight
+	await lv.wait((1.0 if cinematic or ult else 0.75) * speed)
+	lv.focus_override = keep_f
+	var back := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	for k in keep:
+		back.tween_property(lv, k, keep[k], 0.3)
+	for box in [party_box, enemy_box, menu_panel]:
+		if box: back.tween_property(box, "modulate:a", 1.0, 0.25)
+	await back.finished
 
 func _combo_cam(c: Dictionary) -> void:
 	for id in c["who"]:
@@ -1262,7 +1355,16 @@ func _ask_67() -> bool:
 	return v
 
 # ================================================================== the end
+var knocked_out: Array = []   # names knocked out when the fight ended (Level.fight tells you they got up at 1 HP)
+
 func _outro(res: String) -> void:
+	# carry HP back out: damage stays, knocked out = back up at 1 HP (a loss heals everyone in Level._defeat,
+	# and a level up in _results refills everyone)
+	for p in b.party:
+		if p["hp"] <= 0: knocked_out.append(p["name"])
+		if Game.max_hp(p["id"]) > 0:
+			Game.hurt[p["id"]] = p["max_hp"] - maxi(1, p["hp"])
+			if Game.hurt[p["id"]] <= 0: Game.hurt.erase(p["id"])
 	# carry items back out
 	for id in b.bags:   # what's left in each fighter's bag
 		Game.set_count(id, "beer", b.bags[id]["beer"])
@@ -1404,6 +1506,7 @@ static func fight_gold(def: Dictionary, res: String) -> int:
 func _results(res: String) -> void:
 	var xp: int = int(round(fdef["xp"] * (1.0 if res == "win" else 0.5)))
 	var ups := Game.add_xp(xp)
+	if not ups.is_empty(): knocked_out.clear()   # level up refilled everyone
 	var gold := fight_gold(fdef, res)
 	Game.add_gold(gold)
 	var found: Array = []   # gear ids picked up this fight
@@ -1439,7 +1542,7 @@ func _results(res: String) -> void:
 		col.add_child(row)
 	line.call("+%d XP   ·   Level %d   (%s)" % [xp, Game.level, "%d to next" % Game.xp_to_next() if Game.xp_to_next() > 0 else "max"], 20, Color.WHITE)
 	for lvn in ups:
-		line.call("LEVEL UP! The trio is now Level %d. (+10%% HP and damage)" % lvn, 20, GREEN)
+		line.call("LEVEL UP! The trio is now Level %d. (+10%% HP and damage, everyone fully healed)" % lvn, 20, GREEN)
 		if lvn == 3:
 			line.call("New moves: Belly Bump · Conditioner Mist · Citation Needed", 18, Color("#fff07a"))
 	if not found.is_empty():   # Found: [icon] [icon]  (hover for details)

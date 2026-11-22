@@ -884,6 +884,18 @@ func start(it: Dictionary) -> void:
 	prompt.visible = false
 	ui_sfx.play()
 	await run_dialogue(it["steps"])
+	if it.get("rest", false):   # campfires, beds: everyone back to full HP
+		rest_party()
+
+func rest_party() -> void:
+	if not Game.anyone_hurt():
+		show_toast("Everyone's already at full HP.", 1.8)
+		return
+	Game.heal_all()
+	var p := _sfx(Util.chime(784, 350, 0.22), -6.0)
+	p.finished.connect(p.queue_free)
+	p.play()
+	show_toast("You rest for a bit. Everyone's back to full HP.", 2.4)
 
 # "To be continued" style card. next_scene = scene to load when E is pressed.
 func end_card(lines: Array, next_scene: String) -> void:
@@ -1081,6 +1093,8 @@ func fight(key: String, opts := {}) -> String:
 		var view := BattleView.new()
 		add_child(view)
 		var res: String = await view.run(key, { "party": units, "enemies": opts.get("enemies", []), "center": opts.get("center", null), "mods": opts.get("mods", {}) })
+		if res != "lose" and not view.knocked_out.is_empty():
+			show_toast("%s got back up with 1 HP. Heal up: Beezy or a Chipotle Bowl (Tab), or rest at a campfire." % " and ".join(view.knocked_out), 3.5)
 		if res == "win" and Game.forehead != "":
 			Game.forehead = ""
 			_show_forehead()
@@ -1135,6 +1149,7 @@ func _defeat(story: bool) -> void:
 	await fade_out(0.8)
 	ui.queue_free()
 	l.queue_free()
+	Game.heal_all()   # you wake up rested (the penalty is the punishment)
 	# the penalty
 	var opts := []
 	for P in CombatD.PENALTIES:

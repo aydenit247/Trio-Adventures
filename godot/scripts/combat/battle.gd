@@ -54,6 +54,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 	var oi: Dictionary = o.get("inv", {})
 	used67 = o.get("used67", false)
 	var gear: Dictionary = o.get("gear", {})
+	var hurt: Dictionary = o.get("hurt", {})   # HP missing from earlier fights (Game.hurt); empty = full HP
 
 	var ids: Array = o.get("party", def.get("party", ["skorn", "lykor", "xylo"]))
 	for i in ids.size():
@@ -67,7 +68,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 			if level >= at:
 				moves["extra"] = P["learn"][at]
 		party.append({
-			"side": "party", "id": id, "key": id, "P": P, "moves": moves, "name": P["name"], "max_hp": max_hp, "hp": max_hp,
+			"side": "party", "id": id, "key": id, "P": P, "moves": moves, "name": P["name"], "max_hp": max_hp, "hp": clampi(max_hp - int(hurt.get(id, 0)), 1, max_hp),
 			"spd": P["spd"] + g.get("spd", 0), "order": i, "meter": g.get("start", 0), "cds": { "special": 0, "bonus": 0, "extra": 0 },
 			"st": {}, "defending": false, "gear": g, "armor": int(g.get("armor", 0)), "low_warned": false,
 			"tripping": mods.get("tripping", "") == "party" or (mods.get("tripping", "") == "skorn" and id == "skorn"),
