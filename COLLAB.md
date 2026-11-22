@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Skorn voice lines import — files: godot/assets/voices/skorn/, godot/scripts/voice_index.gd — branch: ebain/skorn-voices — started 2026-11-22
 - [asar] Dulbers turns into a demon on the Mart refuse path; Diddy Chud snore (Asar's recording, louder as you get closer, used in Snore Sneak) — files: godot/scripts/mart_script.gd, godot/scripts/pass.gd, godot/assets/sounds/giant_snore.ogg — branch: asar/dulbers-snore — started 2026-11-22
 - [asar] Goblin band follows you playing the village song (notes.md) — files: godot/scripts/goblin_band.gd (new), godot/scripts/village.gd, godot/scripts/village_buildings.gd, godot/scripts/area_music.gd, godot/assets/characters/band_*.png — branch: asar/goblin-band — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
