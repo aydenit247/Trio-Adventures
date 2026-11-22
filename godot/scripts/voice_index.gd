@@ -16,4 +16,77 @@ const LINES := {
 	"whoisondiddychudsbelly": "giant/giant_who_is_on_diddy_chud_s_belly.ogg",  # …WHO IS ON DIDDY CHUD'S BELLY.
 	"whothrewmidtocyatdiddychud": "giant/giant_who_threw_midtocy_at_diddy_chud.ogg",  # WHO. THREW. MIDTOCY. AT DIDDY CHUD.
 	"yalldisturbinmynap": "giant/giant_y_all_disturbin_my_nap.ogg",  # Y'all disturbin' my nap.
+	"actnatural": "skorn/skorn_act_natural.ogg",  # Act natural.
+	"aightfuckallatwakeupchud": "skorn/skorn_aight_fuck_allat_wake_up_chud.ogg",  # Aight, fuck allat. WAKE UP, CHUD!
+	"aightnowimmad": "skorn/skorn_aight_now_i_m_mad.ogg",  # Aight now I'm mad.
+	"aightthatslowkeyconvenient": "skorn/skorn_aight_that_s_lowkey_convenient.ogg",  # …Aight, that's lowkey convenient.
+	"aintnofirestarterinthetentjustxyloslorebookstooheavytoburn": "skorn/skorn_ain_t_no_fire_starter_in_the_tent_just_x.ogg",  # Ain't no fire starter in the tent. Just Xylo's lore books. Too heavy to burn.
+	"alreadytoucheditoncethatsenoughforonenight": "skorn/skorn_already_touched_it_once_that_s_enough_fo.ogg",  # Already touched it once. That's enough for one night.
+	"alrightwherethefuckissomefirestarterimtrynagetthisbitchgoing": "skorn/skorn_alright_where_the_fuck_is_some_fire_star.ogg",  # Alright, where the fuck is some fire starter? I'm tryna get this bitch going.
+	"balrightiainteverpopmetocyandhaveajitturnintoagotdamndemonthissomewhitepeopleshit": "skorn/skorn_balright_i_ain_t_ever_pop_metocy_and_hav.ogg",  # Balright. I ain't ever pop metocy and have a jit turn into a got damn demon. This some white people shit.
+	"bestfirestarterieverused": "skorn/skorn_best_fire_starter_i_ever_used.ogg",  # Best fire starter I ever used.
+	"betimkeepingthis": "skorn/skorn_bet_i_m_keeping_this.ogg",  # Bet. I'm keeping this.
+	"betletmepeepts": "skorn/skorn_bet_let_me_peep_ts.ogg",  # Bet, let me peep ts.
+	"betmyfaultimdumbashell": "skorn/skorn_bet_my_fault_i_m_dumb_as_hell.ogg",  # Bet, my fault. I'm dumb as hell.
+	"broineedabeezy": "skorn/skorn_bro_i_need_a_beezy.ogg",  # Bro I need a beezy.
+	"broliterallychugsbogsandswampsitsinhisnamedumbass": "skorn/skorn_bro_literally_chugs_bogs_and_swamps_it_s.ogg",  # Bro literally chugs bogs and swamps. It's in his NAME, dumbass.
+	"broreallyjustkickedusoutofastore": "skorn/skorn_bro_really_just_kicked_us_out_of_a_store.ogg",  # Bro really just kicked us out of a store.
+	"bunchofsquigglyasslinesyeahthatsfirestarter": "skorn/skorn_bunch_of_squiggly_ass_lines_yeah_that_s.ogg",  # Bunch of squiggly ass lines. Yeah, that's fire starter.
+	"cantstartafirewithnothingneedsomefirestarter": "skorn/skorn_can_t_start_a_fire_with_nothing_need_som.ogg",  # Can't start a fire with nothing. Need some fire starter.
+	"diddyslapsupremacy": "skorn/skorn_diddy_slap_supremacy.ogg",  # Diddy slap supremacy.
+	"doitlooklikewegotalight": "skorn/skorn_do_it_look_like_we_got_a_light.ogg",  # Do it LOOK like we got a light?
+	"dontjudgeme": "skorn/skorn_don_t_judge_me.ogg",  # Don't judge me.
+	"finallysomebodyinthisforestgottaste": "skorn/skorn_finally_somebody_in_this_forest_got_tast.ogg",  # Finally. Somebody in this forest got taste.
+	"freesayless": "skorn/skorn_free_say_less.ogg",  # Free?? Say less.
+	"goodriddanceikindamissem": "skorn/skorn_good_riddance_i_kinda_miss_em.ogg",  # Good riddance. …I kinda miss 'em.
+	"hedontgotnofirestarterhegotabook": "skorn/skorn_he_don_t_got_no_fire_starter_he_got_a_bo.ogg",  # …He don't got no fire starter. He got a book.
+	"hewassleepingonitthatsbasicallyadonation": "skorn/skorn_he_was_sleeping_on_it_that_s_basically_a.ogg",  # He was sleeping on it. That's basically a donation.
+	"hellnah": "skorn/skorn_hell_nah.ogg",  # Hell nah.
+	"hellnahwhytheyaintbowingtomeimtheonewitharmor": "skorn/skorn_hell_nah_why_they_ain_t_bowing_to_me_i_m.ogg",  # Hell nah. Why they ain't bowing to ME? I'm the one with armor.
+	"hellyupandwhat": "skorn/skorn_hell_yup_and_what.ogg",  # Hell yup. And what?
+	"holdupimkeepingonebeforeyalleatemall": "skorn/skorn_hold_up_i_m_keeping_one_before_y_all_eat.ogg",  # Hold up. I'm keeping one before y'all eat 'em all.
+	"idranktoomuchbeezyandcrackedontoomanygoblinbiddiestheygotpissed": "skorn/skorn_i_drank_too_much_beezy_and_cracked_on_to.ogg",  # I drank too much beezy and cracked on too many goblin biddies. They got pissed.
+	"ifellasleeptoongl": "skorn/skorn_i_fell_asleep_too_ngl.ogg",  # I fell asleep too, ngl.
+	"ima72chadorcwithacosignfromclavicularinmetalarmorbro": "skorn/skorn_i_m_a_7_2_chad_orc_with_a_cosign_from_cl.ogg",  # I'm a 7'2 Chad Orc (with a cosign from Clavicular) in metal armor, bro.
+	"imcrashingout": "skorn/skorn_i_m_crashing_out.ogg",  # I'M CRASHING OUT!
+	"imgoodimgoodimnotgood": "skorn/skorn_i_m_good_i_m_good_i_m_not_good.ogg",  # I'm good. I'm good. I'm not good.
+	"imkeepingoneofthese": "skorn/skorn_i_m_keeping_one_of_these.ogg",  # I'm keeping one of these.
+	"istillkindaseecolors": "skorn/skorn_i_still_kinda_see_colors.ogg",  # …I still kinda see colors.
+	"lookwhatwasinhispocket": "skorn/skorn_look_what_was_in_his_pocket.ogg",  # Look what was in his pocket.
+	"makewaypurplegodofthegoblinscomingthroughnobigdeal": "skorn/skorn_make_way_purple_god_of_the_goblins_comin.ogg",  # Make way. Purple god of the goblins, coming through. No big deal.
+	"manfuckthisjitlykorheprobablygotsomegasfirestarterinhisbag": "skorn/skorn_man_fuck_this_jit_lykor_he_probably_got.ogg",  # Man, fuck this jit Lykor. He probably got some gas fire starter in his bag.
+	"manicantbelievethisjitgottheleadnow": "skorn/skorn_man_i_can_t_believe_this_jit_got_the_lea.ogg",  # Man, I can't believe this jit got the lead now.
+	"manitsaboutcoldasamotherfuckerwecouldgetthefiregoingthough": "skorn/skorn_man_it_s_about_cold_as_a_motherfucker_we.ogg",  # Man, it's about cold as a motherfucker. We could get the fire going, though.
+	"meneith": "skorn/skorn_me_neith.ogg",  # Me neith—
+	"myfault": "skorn/skorn_my_fault.ogg",  # My fault…
+	"nahtheygotmyboy": "skorn/skorn_nah_they_got_my_boy.ogg",  # NAH THEY GOT MY BOY!
+	"nahthisdontfeellikemetocythisfeellikesomebullshitonmydeadorcs": "skorn/skorn_nah_this_don_t_feel_like_metocy_this_fee.ogg",  # Nah, this don't feel like metocy. This feel like some bullshit, on my dead orcs.
+	"nobody": "skorn/skorn_nobody.ogg",  # …Nobody.
+	"notnomore": "skorn/skorn_not_no_more.ogg",  # Not no more.
+	"owbro": "skorn/skorn_ow_bro.ogg",  # Ow, bro.
+	"raaaah": "skorn/skorn_raaaah.ogg",  # RAAAAH!
+	"respect": "skorn/skorn_respect.ogg",  # …Respect.
+	"saywhatnow": "skorn/skorn_say_what_now.ogg",  # Say what now?
+	"sohowwegettingpastthisbigmf": "skorn/skorn_so_how_we_getting_past_this_big_mf.ogg",  # So how we getting past this big mf?
+	"stepasideprettyboyletaprofessionalnegotiate": "skorn/skorn_step_aside_pretty_boy_let_a_professional.ogg",  # Step aside, pretty boy. Let a professional negotiate.
+	"thatswhatimtalkinbout": "skorn/skorn_that_s_what_i_m_talkin_bout.ogg",  # That's what I'm talkin' bout!
+	"thattickleditdidnottickle": "skorn/skorn_that_tickled_it_did_not_tickle.ogg",  # That tickled. It did not tickle.
+	"thedragondidit": "skorn/skorn_the_dragon_did_it.ogg",  # …The dragon did it.
+	"thenrunitshortstuff": "skorn/skorn_then_run_it_short_stuff.ogg",  # Then run it, short stuff.
+	"thenwhythefuckyouleaveitinabagbagsisforfirestarter": "skorn/skorn_then_why_the_fuck_you_leave_it_in_a_bag.ogg",  # Then why the fuck you leave it in a bag?! Bags is for fire starter!
+	"theyhadkickedmeout": "skorn/skorn_they_had_kicked_me_out.ogg",  # THEY HAD KICKED ME OUT.
+	"waitdisbihtufflowkeyicouldfwthis": "skorn/skorn_wait_dis_bih_tuff_lowkey_i_could_fw_this.ogg",  # Wait, dis bih tuff lowkey. I could fw this.
+	"watchthiswakeupcallbigdawg": "skorn/skorn_watch_this_wake_up_call_big_dawg.ogg",  # Watch this. Wake up call, big dawg.
+	"whatitsayaboutthemetocy": "skorn/skorn_what_it_say_about_the_metocy.ogg",  # What it say about the metocy?
+	"whatwhatareyoutalkingaboutmud": "skorn/skorn_what_what_are_you_talking_about_mud.ogg",  # What? What are you talking about, mud?
+	"whyhegetthebeezy": "skorn/skorn_why_he_get_the_beezy.ogg",  # Why HE get the beezy?
+	"whytheyalwayspickhimbro": "skorn/skorn_why_they_always_pick_him_bro.ogg",  # Why they always pick HIM, bro.
+	"whywoulditouchyobagmud": "skorn/skorn_why_would_i_touch_yo_bag_mud.ogg",  # Why would I touch yo bag, mud?
+	"yallbackup": "skorn/skorn_y_all_back_up.ogg",  # Y'ALL BACK UP!
+	"yallodashellforfollowingusstill": "skorn/skorn_y_all_od_as_hell_for_following_us_still.ogg",  # Y'all OD as hell for following us still.
+	"yeahijustusedthepaperthatwasinyourbagidontknowwhyyousaidicouldntuseyourbag": "skorn/skorn_yeah_i_just_used_the_paper_that_was_in_y.ogg",  # Yeah, I just used the paper that was in your bag. I don't know why you said I couldn't use your bag.
+	"yowhylykorgotthreeheadswhichoneitalkto": "skorn/skorn_yo_why_lykor_got_three_heads_which_one_i.ogg",  # …Yo, why Lykor got three heads? Which one I talk to?
+	"yoyowhythefloorbreathing": "skorn/skorn_yo_yo_why_the_floor_breathing.ogg",  # Yo. YO. Why the floor breathing?
+	"youlaceduswithmidtocy": "skorn/skorn_you_laced_us_with_midtocy.ogg",  # YOU LACED US WITH MIDTOCY?!
+	"youthinktheygotsnacks": "skorn/skorn_you_think_they_got_snacks.ogg",  # You think they got snacks?
 }
