@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Dulbers turns into a demon on the Mart refuse path; Diddy Chud snore (Asar's recording, louder as you get closer, used in Snore Sneak) — files: godot/scripts/mart_script.gd, godot/scripts/pass.gd, godot/assets/sounds/giant_snore.ogg — branch: asar/dulbers-snore — started 2026-11-22
 - [asar] Goblin band follows you playing the village song (notes.md) — files: godot/scripts/goblin_band.gd (new), godot/scripts/village.gd, godot/scripts/village_buildings.gd, godot/scripts/area_music.gd, godot/assets/characters/band_*.png — branch: asar/goblin-band — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
@@ -38,10 +39,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/mart_script.gd, godot/scripts/pass.gd, godot/assets/sounds/giant_snore.ogg
 - godot/scripts/goblin_band.gd, village.gd, village_buildings.gd, area_music.gd (asar)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Request for whoever holds village.gd (the goblin-band session):** Asar wants the notes.md fix "Lykor
+  blocking Skorn at the throne" (when Skorn gets crowned, `_crown_skorn()` in village.gd, Lykor stands in front of him). I
+  didn't touch village.gd because it's claimed. Either fix it while you're in there, or unclaim village.gd when you merge and
+  I'll do it.
 - 2026-11-22 [asar] dialogue.gd (hot spot): skip no longer mutes the next line. The robot voice reads a line one sentence at a time; the newest line waits in `_tts_queue` until the current sentence ends (still never interrupts TTS). Recordings stop/replace instantly and wait for a robot sentence instead of overlapping. `_speak()` signature unchanged (battle_view barks still use it). New test: `godot --headless --path godot res://tools/test_skip_voice.tscn`.
 - 2026-11-22 [asar] **Maps + HUD merged.** Title/objective centered top, minimap top-left, M = big map (Area + World tabs with fog). Objective star support via `objective(text, at)`. See level.gd map hooks. @ebain: pass a position when adding objectives.
 - 2026-11-22 [ebain] **Village free-roam music** ("The Mogging Elf") via new AreaMusic node in village.tscn. Ducks during dialogue/buildings/fights. Didn't touch village.gd.
