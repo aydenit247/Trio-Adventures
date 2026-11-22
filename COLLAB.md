@@ -10,7 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Job board dialogue glitch; village shop stall (Asar's stock list); new trail area between Camp and Village with Asar's bridge troll, loot spots and his hut — files: godot/scripts/job_board_ui.gd, shop_ui.gd (new), trail.gd (new), trail_script.gd (new), godot/trail.tscn (new), village.gd, village_buildings.gd, camp.gd, map_ui.gd, combat/combat_data.gd, combat/battle_view.gd, level.gd, godot/assets/characters/troll.png — branch: asar/trail-shop — started 2026-11-22
+- [asar] Job board dialogue glitch; village shop stall (Asar's stock list); new trail area between Camp and Village with Asar's bridge troll, loot spots and his hut — files: godot/scripts/job_board_ui.gd, shop_ui.gd (new), trail.gd (new), trail_script.gd (new), godot/trail.tscn (new), village.gd, village_buildings.gd, camp.gd, map_ui.gd, combat/combat_data.gd, combat/battle_view.gd, level.gd, godot/assets/characters/troll.png, godot/assets/portraits/troll.png, dev_mode.gd — branch: asar/trail-shop — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -41,7 +41,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/job_board_ui.gd, shop_ui.gd (new), trail.gd (new), trail_script.gd (new), godot/trail.tscn (new), village.gd, village_buildings.gd, camp.gd, map_ui.gd, combat/combat_data.gd, combat/battle_view.gd, level.gd, godot/assets/characters/troll.png
+- [asar] godot/scripts/job_board_ui.gd, shop_ui.gd (new), trail.gd (new), trail_script.gd (new), godot/trail.tscn (new), village.gd, village_buildings.gd, camp.gd, map_ui.gd, combat/combat_data.gd, combat/battle_view.gd, level.gd, godot/assets/characters/troll.png, godot/assets/portraits/troll.png, dev_mode.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
