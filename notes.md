@@ -18,4 +18,4 @@ Quick notes and workshop ideas from Ebain. These are not claimed work, they're p
 
 ## Done (summarized)
 
-- Status hover tooltips, Lykor Mog + "on some type shi" close-ups, sleeping Diddy Chud Giant (smooth wake-up), Metocy Map in inventory, Skorn facing direction, HP carries between fights + rest spots, voice no longer goes quiet after skipping a line (11/22)., Dulbers turns into a demon on the Mart refuse path + Diddy Chud snore sound, louder the closer you get (11/22).
+- Status hover tooltips, Lykor Mog + "on some type shi" close-ups, sleeping Diddy Chud Giant (smooth wake-up), Metocy Map in inventory, Skorn facing direction, HP carries between fights + rest spots, voice no longer goes quiet after skipping a line, Dulbers turns into a demon on the Mart refuse path, Diddy Chud snore sound that gets louder the closer you get (11/22).
