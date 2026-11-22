@@ -36,6 +36,10 @@ var _choices: Array = []
 var _sel := 0
 var _voices: PackedStringArray = []
 var _vo: AudioStreamPlayer   # plays recorded voice lines
+# Robot-voice queue (see "Voices" at the bottom). Newest line wins; older queued lines are dropped.
+var _tts_queue: Array = []          # sentences of the newest line still to speak: [{text, voice, vol, pitch, rate}]
+var _pending_rec: AudioStream       # a recording waiting for the robot to finish its current sentence
+var _tts_grace_until := 0           # msec: treat the robot as talking right after tts_speak (is_speaking can lag)
 
 func _ready() -> void:
 	layer = 10
@@ -248,33 +252,98 @@ func _portrait(who: String, mood: String) -> Texture2D:
 			return load(p)
 	return null
 
+# ---------------------------------------------------------------- Voices
 # NEVER call DisplayServer.tts_stop() or tts_speak(..., interrupt=true) here.
 # Godot 4.7's Windows TTS driver (OneCore) can deadlock when a line is cut off at the same moment it finishes
 # playing on its own: the "playback ended" callback and the stop both close the same MediaPlayer from two threads.
-# The whole game hangs (needs Task Manager). So the robot voice is never interrupted: a line it's still reading
-# just finishes, and the next line's robot voice is skipped. Recorded lines (AudioStreamPlayer) are safe to stop.
+# The whole game hangs (needs Task Manager). So the robot voice is never interrupted.
+#
+# Skipping used to leave the next line silent: the robot was still reading the skipped line, so the next one was
+# dropped. Now the robot reads a line one sentence at a time, and the newest line waits in _tts_queue until the
+# current sentence ends. After a skip you hear at most the rest of one sentence, then the new line. Skipping
+# several lines quickly only queues the last one. Recorded lines (AudioStreamPlayer) are safe to stop, so they
+# cut each other off instantly; a recording that arrives mid robot-sentence waits for that sentence to end.
 func stop_voice() -> void:
+	_tts_queue.clear()
+	_pending_rec = null
 	if _vo:
 		_vo.stop()
 
 func _speak(who: String, line: String, thought: bool) -> void:
+	_tts_queue.clear()   # newest line wins
+	_pending_rec = null
+	if _vo:
+		_vo.stop()
 	if not tts_on or Game.voice_vol <= 0.01:
 		return
 	var rec := VoiceLines.stream_for(line)   # thoughts too: the studio bakes their echo in
 	if rec:
 		_vo.volume_db = linear_to_db(Game.voice_vol)
-		_vo.stream = rec
-		_vo.play()
+		_pending_rec = rec
+		_pump()
 		return
-	if _vo:
-		_vo.stop()
-	if _voices.is_empty() or DisplayServer.tts_is_speaking():
-		return   # still reading the previous line: skip this one rather than interrupt it (see stop_voice)
+	if _voices.is_empty():
+		return
 	var clean := line.replace("…", ", ").replace("*", "")
 	for pair in [["\\bshi\\b", "shee"], ["\\bdoe\\b", "dough"], ["\\by'all\\b", "yall"]]:
 		var re := RegEx.create_from_string("(?i)" + pair[0])
 		clean = re.sub(clean, pair[1], true)
-	if not clean.strip_edges().is_empty() and clean.strip_edges() != ",":
-		var c: Dictionary = CHARS.get(who, CHARS["narrator"])
-		var v := _voices[CHARS.keys().find(who) % _voices.size()]
-		DisplayServer.tts_speak(clean, v, int((45 if thought else 80) * Game.voice_vol), c["pitch"], c["rate"], 0, false)
+	var c: Dictionary = CHARS.get(who, CHARS["narrator"])
+	var v := _voices[CHARS.keys().find(who) % _voices.size()]
+	var vol := int((45 if thought else 80) * Game.voice_vol)
+	for part in sentences(clean):
+		_tts_queue.append({ "text": part, "voice": v, "vol": vol, "pitch": c["pitch"], "rate": c["rate"] })
+	_pump()
+
+func _process(_dt: float) -> void:
+	if _pending_rec or not _tts_queue.is_empty():
+		_pump()
+
+# Starts the next queued voice piece once the robot is quiet.
+func _pump() -> void:
+	if _tts_busy():
+		return
+	if _pending_rec:
+		_vo.stream = _pending_rec
+		_pending_rec = null
+		_tts_queue.clear()
+		_vo.play()
+	elif not _tts_queue.is_empty():
+		var q: Dictionary = _tts_queue.pop_front()
+		_tts_say(q)
+
+func _tts_busy() -> bool:
+	return Time.get_ticks_msec() < _tts_grace_until or DisplayServer.tts_is_speaking()
+
+func _tts_say(q: Dictionary) -> void:
+	_tts_grace_until = Time.get_ticks_msec() + 150
+	DisplayServer.tts_speak(q["text"], q["voice"], q["vol"], q["pitch"], q["rate"], 0, false)
+
+# Splits a line into speakable pieces: sentences, with very long ones split at commas and tiny ones ("Aight.")
+# glued to the next so the robot doesn't pause after every word.
+static func sentences(text: String) -> PackedStringArray:
+	var raw: PackedStringArray = []
+	for m in RegEx.create_from_string("[^.!?]+[.!?]*|[.!?]+").search_all(text):
+		var sen := m.get_string().strip_edges()
+		if sen.length() > 90:
+			for bit in sen.split(", "):
+				raw.append(bit.strip_edges())
+		else:
+			raw.append(sen)
+	var out: PackedStringArray = []
+	var carry := ""
+	for r in raw:
+		var t := (carry + " " + r).strip_edges() if carry != "" else r
+		if t.replace(",", "").strip_edges().is_empty():
+			continue
+		if t.length() < 14:
+			carry = t
+		else:
+			out.append(t)
+			carry = ""
+	if carry != "" and not carry.replace(",", "").strip_edges().is_empty():
+		if out.is_empty():
+			out.append(carry)
+		else:
+			out[out.size() - 1] += " " + carry
+	return out
