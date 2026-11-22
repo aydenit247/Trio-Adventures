@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Polish pass: real wooden signs instead of floating village labels, Escape ends optional talks, chapter title once at New Game, music play-once option, keep your character when walking between areas, Skorn-on-throne lines after the Mart, Pass rest spot — files: godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, dialogue.gd, level.gd, game.gd, title.gd, camp.gd, area_music.gd, goblin_band.gd, menu_ui.gd, pass.gd — branch: asar/polish — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -40,6 +41,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, dialogue.gd, level.gd, game.gd, title.gd, camp.gd, area_music.gd, goblin_band.gd, menu_ui.gd, pass.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
