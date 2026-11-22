@@ -12,12 +12,10 @@ Quick notes and workshop ideas from Ebain. These are not claimed work, they're p
   - "Dat bih fire mud" → keep playing
   - "Y'all could get lost?" → they leave
 - **Exit non-major dialogues with Escape**: Optional/non-major dialogues should be skippable with Escape.
-- **Dulbers refuse path**: In the Metocy Mart refuse option, Dulbers does not turn into a demon (he should).
-- **Diddy Chud Giant snore SFX**: Add snore sound for the sleeping giant and the Snore Sneak minigame.
 - **Main menu chapter text**: Remove "Chapter 1 - Quest for the metocy" from the main menu; show it once when starting the game instead.
 - **Deloye Lore map area**: Section of the map (possibly left of the village) focused on Xylo's Deloye Lore + a Deloye Lore song for that area.
 - General tips / ways to work more efficiently on this project
 
 ## Done (summarized)
 
-- Status hover tooltips, Lykor Mog + "on some type shi" close-ups, sleeping Diddy Chud Giant (smooth wake-up), Metocy Map in inventory, Skorn facing direction, HP carries between fights + rest spots, voice no longer goes quiet after skipping a line (11/22).
+- Status hover tooltips, Lykor Mog + "on some type shi" close-ups, sleeping Diddy Chud Giant (smooth wake-up), Metocy Map in inventory, Skorn facing direction, HP carries between fights + rest spots, voice no longer goes quiet after skipping a line (11/22)., Dulbers turns into a demon on the Mart refuse path + Diddy Chud snore sound, louder the closer you get (11/22).
