@@ -122,6 +122,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   Battle starts from `o.hurt`; `BattleView._outro` writes it back (knocked out → 1 HP). Full heal on level up
   (`add_xp`), after a loss (`Level._defeat`) and at rest spots: give an interactable `"rest": true` (camp fire, village
   campfire, Chief's hay bed). Beezy/Bowl heal outside fights from Tab (E or right-click). Mart and Pass have no rest spot.
+- [asar] **Moving the leader in a cutscene:** `walk_to(leader, …)` can leave him where he is (Lykor stayed on the throne
+  under Skorn). Set `leader.global_position` after the walk to be sure, and clear a spot before someone else walks into it.
 - [asar] **Maps (minimap top-left, M = big map)**: `objective(text, at)`: pass a Vector3 to put the gold star on the maps
   (leave it out = no star). Areas override `map_buildings()` (blue dots), `map_extra()` (e.g. the pass's giant star),
   `map_place()`/`map_place_door()` (inside a building), `map_skip(u)`. Interactables with `"rest": true` show green.
