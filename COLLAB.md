@@ -10,12 +10,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Asar's batch: remove Spoonsmithy, close Chief's Hut (+ bedroll), clickable job board, Skorn throws real props, nicer Pass + quieter snore, walk back between areas (Pass→Mart→Village→Camp, Mart/Pass resume) — files: godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, job_board_ui.gd (new), inventory_ui.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, level.gd, game.gd, camp.gd, mart.gd, pass.gd — branch: asar/batch-1122 — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
-- Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
 - Goblin Pit arena (building 7 in the village)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
@@ -23,6 +21,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Spoonsmithy removed, Chief's Hut closed, job board UI, real throws, golden-hour Pass + quieter snore, walk back between areas (+ Mart/Pass resume)
 - 2026-11-22 [asar] Lykor no longer blocks Skorn when Skorn gets crowned
 - 2026-11-22 [asar] Goblin band (drummer, horn, lute) follows you playing the village song; "Dat bih fire mud" / "Y'all could get lost?"
 - 2026-11-22 [asar] Dulbers goes demon on the Mart refuse path; Diddy Chud snore (Asar's recording, louder as you get closer)
@@ -41,10 +40,18 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, job_board_ui.gd (new), inventory_ui.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, level.gd, game.gd, camp.gd, mart.gd, pass.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Asar's batch merged.** @ebain, heads-up on content Asar asked to remove: **Clank's Spoonsmithy is gone**
+  (building, Clank, shiny spoons + Shiny Spoons quest) and **the Chief's Hut can't be entered** (its room + dialogue: belt,
+  portrait, chest, hay bed removed). Spoon Mail now drops from the Goblin Patrol; the Backup Conditioner is a pickup by a new
+  bedroll (rest spot) next to the hut. Hot spots: **level.gd** `back_exit()/arrival()/_check_back_exit()` + `_resume` handles
+  `travel` arrivals, dev auto-win loot lists. **game.gd** `travel()`. **combat/**: battle.gd `throwables`; battle_view.gd prop
+  pile (`PILES`, `_spawn_pile`, new `_throw`), loot lists. New `job_board_ui.gd` (job postings are # DRAFT; Wuzzle's and
+  Gulpo's notes are new). Pass is now golden hour (`_after_build` retunes the env; night/lava off). Walking back: Pass → Mart →
+  Village → Camp and forward again once each is done; Mart + Pass resume from saves now (took that off Up next). VOICE_LINES.md
+  lists the 15 Skorn lines still on the robot voice (incl. "You feel a store?" and "Metocin Mattias? What are you doing here?").
 - 2026-11-22 [asar] Voice import (via voice-imports/ Action): Metocin Mattias (3: "You had called?" — also plays in camp, "*echoing* Impressive…", the Pass speech) + Demon Dulbers (3 Mart lines). All 6 matched the script; they replace the robot voice. New folders `assets/voices/mattias/`, `assets/voices/dulbers_demon/`. Touched voice_index.gd only through the Action (Ebain's giant claim untouched).
 - 2026-11-22 [ebain] **Goblin voices in: 8 of Ebain's takes** (assets/voices/goblin/, voice_index.gd regenerated via import_voices.py): got a light, hiring (camp + village), hold a spoon, village up north, allowed to mog, Mogging Elf goes, A STORE. Other goblin lines still use TTS.
 - 2026-11-22 [asar] **village.gd: throne fix (notes.md).** In `_crown_skorn()` Lykor stayed on SEAT_POS (scripted `walk_to` on the
