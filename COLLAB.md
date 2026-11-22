@@ -12,6 +12,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
+- [asar] Title/objective to top middle (hidden in fights); minimap top-left (dots: Xylo red, Skorn purple, Lykor yellow, buildings blue, NPCs white, heal spots green, objective star, pulsing giant star); M = big map with Area + World tabs and fog on unexplored places — files: godot/scripts/level.gd, game.gd, combat/battle_view.gd, camp.gd, village.gd, village_buildings.gd, mart.gd, pass.gd, minimap.gd (new), map_ui.gd (new) — branch: asar/minimap — started 2026-11-22
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -55,6 +56,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/level.gd, game.gd, combat/battle_view.gd, camp.gd, village.gd, village_buildings.gd, mart.gd, pass.gd, minimap.gd, map_ui.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
