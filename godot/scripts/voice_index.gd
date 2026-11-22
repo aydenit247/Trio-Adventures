@@ -23,6 +23,7 @@ const LINES := {
 	"aintnofirestarterinthetentjustxyloslorebookstooheavytoburn": "skorn/skorn_ain_t_no_fire_starter_in_the_tent_just_x.ogg",  # Ain't no fire starter in the tent. Just Xylo's lore books. Too heavy to burn.
 	"alreadytoucheditoncethatsenoughforonenight": "skorn/skorn_already_touched_it_once_that_s_enough_fo.ogg",  # Already touched it once. That's enough for one night.
 	"alrightwherethefuckissomefirestarterimtrynagetthisbitchgoing": "skorn/skorn_alright_where_the_fuck_is_some_fire_star.ogg",  # Alright, where the fuck is some fire starter? I'm tryna get this bitch going.
+	"andwhytherocksbreathingohthatsstillthemidtocymybad": "skorn/skorn_and_why_the_rocks_breathing_oh_that_s_st.ogg",  # …And why the rocks breathing? Oh, that's still the midtocy. My bad.
 	"balrightiainteverpopmetocyandhaveajitturnintoagotdamndemonthissomewhitepeopleshit": "skorn/skorn_balright_i_ain_t_ever_pop_metocy_and_hav.ogg",  # Balright. I ain't ever pop metocy and have a jit turn into a got damn demon. This some white people shit.
 	"bestfirestarterieverused": "skorn/skorn_best_fire_starter_i_ever_used.ogg",  # Best fire starter I ever used.
 	"betimkeepingthis": "skorn/skorn_bet_i_m_keeping_this.ogg",  # Bet. I'm keeping this.
@@ -52,11 +53,14 @@ const LINES := {
 	"imgoodimgoodimnotgood": "skorn/skorn_i_m_good_i_m_good_i_m_not_good.ogg",  # I'm good. I'm good. I'm not good.
 	"imkeepingoneofthese": "skorn/skorn_i_m_keeping_one_of_these.ogg",  # I'm keeping one of these.
 	"istillkindaseecolors": "skorn/skorn_i_still_kinda_see_colors.ogg",  # …I still kinda see colors.
+	"lethimwatchshortyaintscary": "skorn/skorn_let_him_watch_shorty_ain_t_scary.ogg",  # Let him watch. Shorty ain't scary.
 	"lookwhatwasinhispocket": "skorn/skorn_look_what_was_in_his_pocket.ogg",  # Look what was in his pocket.
 	"makewaypurplegodofthegoblinscomingthroughnobigdeal": "skorn/skorn_make_way_purple_god_of_the_goblins_comin.ogg",  # Make way. Purple god of the goblins, coming through. No big deal.
 	"manfuckthisjitlykorheprobablygotsomegasfirestarterinhisbag": "skorn/skorn_man_fuck_this_jit_lykor_he_probably_got.ogg",  # Man, fuck this jit Lykor. He probably got some gas fire starter in his bag.
 	"manicantbelievethisjitgottheleadnow": "skorn/skorn_man_i_can_t_believe_this_jit_got_the_lea.ogg",  # Man, I can't believe this jit got the lead now.
+	"manimfinnaslapthisoldheadtoo": "skorn/skorn_man_i_m_finna_slap_this_old_head_too.ogg",  # Man, I'm finna slap this old head too.
 	"manitsaboutcoldasamotherfuckerwecouldgetthefiregoingthough": "skorn/skorn_man_it_s_about_cold_as_a_motherfucker_we.ogg",  # Man, it's about cold as a motherfucker. We could get the fire going, though.
+	"manitshotashellouthere": "skorn/skorn_man_it_s_hot_as_hell_out_here.ogg",  # Man, it's hot as hell out here.
 	"meneith": "skorn/skorn_me_neith.ogg",  # Me neith—
 	"myfault": "skorn/skorn_my_fault.ogg",  # My fault…
 	"nahtheygotmyboy": "skorn/skorn_nah_they_got_my_boy.ogg",  # NAH THEY GOT MY BOY!
