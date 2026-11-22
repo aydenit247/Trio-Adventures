@@ -12,7 +12,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
-- [asar] Title/objective to top middle (hidden in fights); minimap top-left (dots: Xylo red, Skorn purple, Lykor yellow, buildings blue, NPCs white, heal spots green, objective star, pulsing giant star); M = big map with Area + World tabs and fog on unexplored places — files: godot/scripts/level.gd, game.gd, combat/battle_view.gd, camp.gd, village.gd, village_buildings.gd, mart.gd, pass.gd, minimap.gd (new), map_ui.gd (new) — branch: asar/minimap — started 2026-11-22
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Title/objective at top middle; minimap top-left; M = big map (Area + World tabs, fog)
 - 2026-11-21 [asar] Lykor's "on some type shi": Asar's voice clip + close-up; nobody blocks Lykor in close-ups
 - 2026-11-21 [asar] Notes tasks: HP carries between fights, status hover tooltips, Lykor's Mog close-up, sleeping Diddy Chud Giant + smooth wake-up
 - 2026-11-21 [asar] Windows builds use DirectX 12 (fixes the Big Thumbs fight crash)
@@ -56,10 +56,18 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/level.gd, game.gd, combat/battle_view.gd, camp.gd, village.gd, village_buildings.gd, mart.gd, pass.gd, minimap.gd, map_ui.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Maps + HUD (Asar's design) merged.** Title/scene/objective now sit centered at the top (`title_box`) and,
+  with the new minimap, hide during fights (battle_view). Toasts moved down to y=132 to make room. New `minimap.gd` (top-left,
+  simple shapes, turns with the camera) and `map_ui.gd` (M: Area tab with fog over unexplored 2 m cells, World tab
+  Camp → Village → Mart → Pass with fog on unvisited areas). Dots: Xylo red, Skorn purple, Lykor yellow, Chief orange,
+  buildings blue, NPCs white, rest spots green, objective gold star, Diddy Chud a big pulsing star. Hot spots:
+  **level.gd**: `objective(text, at := Vector3.INF)`. Pass a spot to put the star on the maps (all current calls updated),
+  map hooks `map_rect/map_buildings/map_extra/map_place/map_place_door/map_skip/map_points`, fog (`seen_cells`, `_reveal_map`),
+  `area_key()`, M key (`open_map`), help text. **game.gd**: `map_seen`, `visited` (saved). camp/village/mart/pass got their
+  map hooks + objective spots. @ebain: when you add an objective, give it a position so the star shows up.
 - 2026-11-21 [asar] **battle_view.gd (hot spot):** Lykor's "on some type shi" (his bonus, `kind: buff`) now gets the same close-up as
   Mog, and plays Asar's recording `assets/sounds/lykor_on_some_type_shi.ogg` (`sounds["shi"]`; the generic roar is skipped for
   his hype). During any Lykor close-up (`_mog_cam`) every other fighter is hidden and shown again after, because Skorn stood

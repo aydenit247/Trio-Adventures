@@ -56,6 +56,10 @@ var leader_lbl: Label
 var leader_por: TextureRect
 var toast: Label
 var objective_lbl: Label
+var title_box: VBoxContainer
+var minimap: Minimap
+var objective_at := Vector3.INF   # objective() star on the minimap / M map
+var _seen_t := 0.0
 var help_lbl: Label
 var hud: CanvasLayer
 var shake := 0.0
@@ -90,6 +94,8 @@ func _ready() -> void:
 	_after_build()
 	apply_graphics()
 	_show_forehead()
+	if not Game.title_mode and not Game.visited.has(area_key()):
+		Game.visited.append(area_key())
 	cam_target = leader.global_position
 	_update_camera(1.0)
 	var args := OS.get_cmdline_user_args()
@@ -180,6 +186,7 @@ func _setup_input() -> void:
 	_key("cam_right", [KEY_RIGHT])
 	_key("tts", [KEY_V])
 	_key("party_menu", [KEY_TAB])
+	_key("map", [KEY_M])
 	_key("pause", [KEY_ESCAPE])
 	_key("dev_menu", [KEY_F1])
 	# controller: left stick / d-pad move, right stick camera, A talk, B run (hold), Y switch, Back party, Start menu
@@ -533,11 +540,23 @@ func _build_ui() -> void:
 	hud = CanvasLayer.new()
 	hud.layer = 5
 	add_child(hud)
-	var title := _label("TRIO ADVENTURES", Vector2(24, 16), 30, Color("#e8b923"), 8)
-	hud.add_child(title)
-	hud.add_child(_label(subtitle, Vector2(26, 54), 16, Color("#c9c0e8"), 5))
-	objective_lbl = _label("", Vector2(26, 80), 19, Color("#ffdf8a"), 6)
-	hud.add_child(objective_lbl)
+	# title + scene + objective, centered at the top (Asar). Hidden in fights (BattleView) so the turn order has room.
+	title_box = VBoxContainer.new()
+	title_box.anchor_left = 0.5; title_box.anchor_right = 0.5
+	title_box.offset_left = -330; title_box.offset_right = 330; title_box.offset_top = 10
+	title_box.add_theme_constant_override("separation", -2)
+	title_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(title_box)
+	for l in [_label("TRIO ADVENTURES", Vector2.ZERO, 30, Color("#e8b923"), 8), _label(subtitle, Vector2.ZERO, 16, Color("#c9c0e8"), 5)]:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title_box.add_child(l)
+	objective_lbl = _label("", Vector2.ZERO, 19, Color("#ffdf8a"), 6)
+	objective_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	objective_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_box.add_child(objective_lbl)
+	minimap = Minimap.new()
+	minimap.lv = self
+	hud.add_child(minimap)
 
 	var box := HBoxContainer.new()
 	box.anchor_left = 1.0; box.anchor_right = 1.0
@@ -555,7 +574,7 @@ func _build_ui() -> void:
 	box.add_child(leader_por)
 	set_leader(leader)
 
-	help_lbl = _label("WASD walk · Shift run · E talk · Q switch · ←/→ or right-drag camera · Tab inventory · Esc menu (save/settings) · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
+	help_lbl = _label("WASD walk · Shift run · E talk · Q switch · ←/→ or right-drag camera · Tab inventory · M map · Esc menu (save/settings) · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
 	help_lbl.anchor_top = 1.0; help_lbl.anchor_bottom = 1.0; help_lbl.anchor_right = 1.0
 	help_lbl.offset_top = -30; help_lbl.offset_left = 20; help_lbl.offset_right = -20
 	help_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -563,7 +582,7 @@ func _build_ui() -> void:
 
 	toast = _label("", Vector2.ZERO, 22, Color.WHITE, 6)
 	toast.anchor_left = 0.5; toast.anchor_right = 0.5
-	toast.offset_left = -360; toast.offset_right = 360; toast.offset_top = 96
+	toast.offset_left = -360; toast.offset_right = 360; toast.offset_top = 132
 	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	toast.modulate.a = 0.0
 	hud.add_child(toast)
@@ -637,7 +656,9 @@ func show_toast(msg: String, secs := 1.6) -> void:
 	tw.tween_interval(secs)
 	tw.tween_property(toast, "modulate:a", 0.0, 0.4)
 
-func objective(text: String) -> void:
+# at = where the objective is (gold star on the maps); leave it out for no star
+func objective(text: String, at := Vector3.INF) -> void:
+	objective_at = at if text != "" else Vector3.INF
 	objective_lbl.text = ("Objective: " + text) if text != "" else ""
 	objective_lbl.modulate.a = 0.0
 	create_tween().tween_property(objective_lbl, "modulate:a", 1.0, 0.4)
@@ -684,6 +705,10 @@ func hop(u: Node3D, height := 0.5) -> void:
 # ---------------------------------------------------------------- loop
 func _process(delta: float) -> void:
 	t += delta
+	_seen_t -= delta
+	if _seen_t <= 0.0:
+		_seen_t = 0.25
+		_reveal_map()
 	_update_camera(delta)
 	var cam_right := cam.global_transform.basis.x
 	cam_right.y = 0.0
@@ -768,6 +793,9 @@ func _process(delta: float) -> void:
 			show_toast("Now controlling %s" % leader.display_name)
 	if Input.is_action_just_pressed("party_menu"):
 		open_party_menu()
+		return
+	if Input.is_action_just_pressed("map"):
+		open_map()
 		return
 	if Input.is_action_just_pressed("pause"):
 		open_pause_menu()
@@ -1390,6 +1418,97 @@ func party_ids_for_menu() -> Array:
 	if Game.flag("goblinAllies"):
 		ids.append("chief")
 	return ids
+
+func open_map() -> void:   # M: big map (area + world tabs)
+	busy = true
+	freeze_all(true)
+	_menu_kind = "map"
+	var m := MapUI.open(hud, self)
+	await m.closed
+	if _menu_kind == "map":
+		_close_menu()
+
+# ---------------------------------------------------------------- maps (Minimap top-left, MapUI on M)
+# Areas override these: map_buildings() (blue dots + names), map_extra() (e.g. the giant), map_place() (inside a building).
+const AREA_KEYS := { "main": "camp", "village": "village", "mart": "mart", "pass": "pass" }
+func area_key() -> String:
+	return AREA_KEYS.get(scene_file_path.get_file().get_basename(), scene_file_path.get_file().get_basename())
+
+# The part of the world the maps cover (x/z): the area bounds, or the paths + clearing with some room around them.
+func map_rect() -> Rect2:
+	if bounds.size != Vector2.ZERO:
+		return bounds
+	var r := Rect2(clear_center - Vector2.ONE * clear_radius, Vector2.ONE * clear_radius * 2.0)
+	for p in path_pts:
+		r = r.expand(p)
+	return r.grow(9.0)
+
+func map_buildings() -> Array: return []   # [{ "pos": Vector3, "name": String }]
+func map_skip(_u: Unit) -> bool: return false   # npcs the maps shouldn't draw as a white dot (pass: the giant is a star)
+func map_extra() -> Array: return []       # [{ "pos": Vector3, "kind": "giant"/..., "name": String }]
+func map_place() -> String: return ""       # e.g. "Chief's Hut" while inside it (the maps show that instead)
+func map_place_door() -> Vector3: return Vector3.INF   # that building's door (the M map shows the party there)
+
+# Everything the maps draw as dots: party (kind = their id), npcs, heal spots, buildings, objective, extras.
+func map_points() -> Array:
+	var out := []
+	for b in map_buildings():
+		out.append({ "pos": b["pos"], "kind": "building", "name": b.get("name", "") })
+	for it in _level_interactables():
+		if it.get("rest", false):
+			out.append({ "pos": _it_pos(it), "kind": "heal", "name": it.get("label", "Rest") })
+	var party_set := {}
+	for u in party:
+		party_set[u] = true
+	for u in npcs:
+		if is_instance_valid(u) and u.visible and u.is_inside_tree() and not party_set.has(u) and not map_skip(u):
+			out.append({ "pos": u.global_position, "kind": "npc", "name": u.display_name, "unit": u })
+	out.append_array(map_extra())
+	if objective_at != Vector3.INF:
+		out.append({ "pos": objective_at, "kind": "objective", "name": "Objective" })
+	for u in party:
+		if is_instance_valid(u) and u.visible:
+			out.append({ "pos": u.global_position, "kind": u.id, "name": u.display_name, "unit": u, "leader": u == leader })
+	return out
+
+# Fog: the map remembers 2 m cells you've been near (Game.map_seen, saved).
+const SEEN_CELL := 2.0
+const SEEN_RADIUS := 11.0
+func seen_grid() -> Vector2i:
+	var r := map_rect()
+	return Vector2i(int(ceil(r.size.x / SEEN_CELL)), int(ceil(r.size.y / SEEN_CELL)))
+
+func seen_cells() -> PackedByteArray:
+	var g := seen_grid()
+	var k := area_key()
+	var a: PackedByteArray = Game.map_seen.get(k, PackedByteArray())
+	if a.size() != g.x * g.y:
+		a = PackedByteArray()
+		a.resize(g.x * g.y)
+		Game.map_seen[k] = a
+	return a
+
+func _reveal_map() -> void:
+	if leader == null or Game.title_mode or map_place() != "":
+		return
+	var r := map_rect()
+	var g := seen_grid()
+	var a := seen_cells()
+	var p := leader.global_position
+	var c0 := Vector2i(int((p.x - r.position.x) / SEEN_CELL), int((p.z - r.position.y) / SEEN_CELL))
+	var n := int(ceil(SEEN_RADIUS / SEEN_CELL))
+	var changed := false
+	for dy in range(-n, n + 1):
+		for dx in range(-n, n + 1):
+			var c := c0 + Vector2i(dx, dy)
+			if c.x < 0 or c.y < 0 or c.x >= g.x or c.y >= g.y or dx * dx + dy * dy > n * n:
+				continue
+			var i := c.y * g.x + c.x
+			if a[i] == 0:
+				a[i] = 1
+				changed = true
+	if changed:
+		Game.map_seen[area_key()] = a
 
 func open_party_menu() -> void:   # (name kept: the pause menu and tours call it) opens the Tab inventory
 	busy = true

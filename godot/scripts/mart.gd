@@ -512,6 +512,16 @@ func _to_pass() -> void:
 	await fade_out(1.0)
 	Game.goto("res://pass.tscn")
 
+# maps: the shop is the one building; inside it (built off to the side at INT) the maps say so
+func map_buildings() -> Array:
+	return [{ "pos": Vector3(SHOP_X, 0, SHOP_FRONT - 3.0), "name": "Metocy Mart" }]
+
+func map_place() -> String:
+	return "Metocy Mart" if leader and leader.global_position.x > 200.0 else ""
+
+func map_place_door() -> Vector3:
+	return DOOR_OUT
+
 func _level_interactables() -> Array:
 	if stage == "arrived":
 		return [
@@ -526,13 +536,13 @@ func _begin() -> void:
 	fade_in(1.5)
 	await wait(0.8)
 	await run_dialogue(MS.INTRO)
-	objective("Walk up to the shop.")
+	objective("Walk up to the shop.", DOOR_OUT)
 
 func _arrive() -> void:
 	focus_override = Vector3(-1.5, 0, -6.5)
 	await run_dialogue(MS.ARRIVE)
 	focus_override = null
-	objective("Go inside the Metocy Mart.")
+	objective("Go inside the Metocy Mart.", DOOR_OUT)
 
 func _on_action(n: String) -> void:
 	match n:
@@ -848,7 +858,7 @@ func _leave() -> void:
 	if pass_sign == null:
 		_show_pass_sign()
 		focus_override = null
-	objective("Head east toward the Giant's Pass.")
+	objective("Head east toward the Giant's Pass.", EXIT_POS)
 
 # ---------------------------------------------------------------- automated screenshots (MART_CHOICE=0..4)
 func _shot_tour() -> void:

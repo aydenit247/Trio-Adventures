@@ -113,6 +113,8 @@ func _save_state() -> void:
 	lv.cam_locked = true
 	lv.objective_lbl.visible = false
 	lv.help_lbl.visible = false
+	lv.title_box.visible = false   # title + minimap step aside in fights (the turn order uses the top middle)
+	lv.minimap.visible = false
 	lv.prompt.visible = false
 	if saved["box"]:
 		lv.dialogue.hide_box()
@@ -1431,6 +1433,8 @@ func _outro(res: String) -> void:
 	lv.cam_locked = saved["locked"]
 	lv.objective_lbl.visible = saved["objective"]
 	lv.help_lbl.visible = true
+	lv.title_box.visible = true
+	lv.minimap.visible = true
 	if saved["box"]:
 		lv.dialogue.show_box()
 	queue_free()

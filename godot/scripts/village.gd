@@ -217,6 +217,21 @@ func _level_process(_delta: float) -> void:
 		stage = "end"
 		_end_card()
 
+# maps: the buildings you can walk into, the throne and the outhouse; inside one, the maps say where you are
+func map_buildings() -> Array:
+	var out := []
+	for id in VB.BUILDINGS:
+		out.append({ "pos": VB.BUILDINGS[id]["pos"], "name": VB.BUILDINGS[id]["name"] })
+	out.append({ "pos": THRONE_POS, "name": "The Throne" })
+	out.append({ "pos": VB.OUTHOUSE_POS, "name": "Outhouse" })
+	return out
+
+func map_place() -> String:
+	return VB.BUILDINGS[vb.room]["name"] if vb and vb.room != "" else ""
+
+func map_place_door() -> Vector3:
+	return VB.BUILDINGS[vb.room]["door"] if vb and vb.room != "" else Vector3.INF
+
 func _level_interactables() -> Array:
 	var list: Array = []
 	if stage == "ambushed":
@@ -246,13 +261,13 @@ func _begin() -> void:
 	target_yaw = 0.0
 	await wait(0.8)
 	await run_dialogue(VS.INTRO)
-	objective("Head into the goblin village.")
+	objective("Head into the goblin village.", Vector3(0, 0, 11))
 
 func _ambush() -> void:
 	focus_override = leader.global_position + Vector3(0, 0, -2.5)
 	await run_dialogue(VS.AMBUSH)
 	focus_override = null
-	objective("Follow Chief Bogdrinker to the throne.")
+	objective("Follow Chief Bogdrinker to the throne.", THRONE_POS)
 
 func _on_action(n: String) -> void:
 	match n:
@@ -624,7 +639,7 @@ func _leave() -> void:
 	for g in goblins:
 		if g.visible and not Game.flag("skornKing"):
 			g.set_pose(stand, rng.randf_range(1.1, 1.3))
-	objective("Explore the village (Tab = inventory & quests) · or head east to the Metocy Mart.")
+	objective("Explore the village (Tab = inventory & quests) · or head east to the Metocy Mart.", EXIT_POS)
 	if not Game.flag("villageOpen"):
 		Game.set_flag("villageOpen")
 		if not shots_mode:

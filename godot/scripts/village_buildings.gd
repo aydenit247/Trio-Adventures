@@ -745,13 +745,13 @@ func on_action(n: String) -> void:
 		# ---- Job Board
 		"start_lucky_spoon":
 			Game.start_quest("lucky_spoon", R.QUESTS["lucky_spoon"][0], R.QUESTS["lucky_spoon"][1])
-			lv.objective("Get Grubnik's lucky spoon back from the Goblin Patrol (east road).")
+			lv.objective("Get Grubnik's lucky spoon back from the Goblin Patrol (east road).", Vector3(21, 0, -1.5))
 		"finish_lucky_spoon":
 			Game.start_quest("lucky_spoon", R.QUESTS["lucky_spoon"][0], R.QUESTS["lucky_spoon"][1])
 			Game.finish_quest("lucky_spoon")
 			Game.give_gear("weighted_d6")
 			reward(30, "Got: Weighted d6 (Crash Out can't roll a 1)")
-			lv.objective("Head east to the Metocy Mart.")
+			lv.objective("Head east to the Metocy Mart.", Vector3(30, 0, -2))   # village EXIT_POS
 			await lv.wait(0.6)
 		# ---- Shaman
 		"start_lore_off":

@@ -278,6 +278,17 @@ func _zzz() -> void:
 	tw.tween_property(l, "modulate:a", 0.0, 2.4)
 	tw.chain().tween_callback(l.queue_free)
 
+# maps: Diddy Chud Giant is a big pulsing star (Asar), asleep across the path or standing once he's up
+func map_extra() -> Array:
+	if not giant_awake:
+		return [{ "pos": GIANT_LIE + Vector3(1.0, 0, 0), "kind": "giant", "name": "Diddy Chud Giant (asleep)" }]
+	if giant and is_instance_valid(giant) and giant.visible:
+		return [{ "pos": giant.global_position, "kind": "giant", "name": "Diddy Chud Giant" }]
+	return []
+
+func map_skip(u: Unit) -> bool:
+	return u == giant
+
 func _level_interactables() -> Array:
 	return []
 
@@ -287,7 +298,7 @@ func _begin() -> void:
 	fade_in(1.5)
 	await wait(0.8)
 	await run_dialogue(PS.INTRO)
-	objective("Head up the pass.")
+	objective("Head up the pass.", Vector3(1.0, 0, -5.0))
 
 func _mattias() -> void:
 	focus_override = leader.global_position + Vector3(0.8, 0, -1.0)
@@ -297,7 +308,7 @@ func _mattias() -> void:
 	focus_override = null
 	zoom = 11.0
 	cam_look_h = 2.8
-	objective("Get past the giant.")
+	objective("Get past the giant.", EXIT_POS)
 
 func _giant_scene() -> void:
 	focus_override = Vector3(1.5, 0, -6.0)
@@ -508,7 +519,7 @@ func _leave() -> void:
 	for g in allies:
 		g.remove_meta("goal")
 		g.set_meta("follow", true)
-	objective("Climb on past the giant.")
+	objective("Climb on past the giant.", EXIT_POS)
 
 # ---------------------------------------------------------------- minigame UI helpers
 func _panel(top: float, height: float, width := 760.0) -> VBoxContainer:

@@ -230,6 +230,10 @@ func _level_process(delta: float) -> void:
 		leaving = true
 		_leave_camp()
 
+# maps: the two tents are the camp's "buildings"
+func map_buildings() -> Array:
+	return [{ "pos": SKORN_TENT, "name": "Skorn's Tent" }, { "pos": LYKOR_TENT, "name": "Lykor's Tent" }]
+
 func _level_interactables() -> Array:
 	if stage == "lit":
 		return [
@@ -273,7 +277,7 @@ func _on_action(n: String) -> void:
 			follow_enabled = true
 			switch_enabled = true
 			set_leader(party[0])
-			objective("Explore the camp, then head north up the path. (The goblins are up north.)")
+			objective("Explore the camp, then head north up the path. (The goblins are up north.)", EXIT_POS)
 			Game.set_flag("campLit")
 			if not shots_mode:
 				Game.save_game("auto", self)   # free roam starts: checkpoint
@@ -307,7 +311,7 @@ func _grab_map() -> void:
 	ui_sfx.play()
 	stage = "has_map"
 	Game.set_flag("hasMap")   # shows as "Metocy Map (firestarter)" in the inventory until it's burned
-	objective("Put the paper in the fire pit.")
+	objective("Put the paper in the fire pit.", FIRE_POS)
 	await wait(0.3)
 	ui_sfx.pitch_scale = 1.0
 
@@ -371,7 +375,7 @@ func _resume(r: Dictionary) -> void:
 	stage = "lit"
 	follow_enabled = true
 	switch_enabled = true
-	objective("Explore the camp, then head north up the path. (The goblins are up north.)")
+	objective("Explore the camp, then head north up the path. (The goblins are up north.)", EXIT_POS)
 	await super._resume(r)
 
 func _leave_camp() -> void:
@@ -391,7 +395,7 @@ func _begin() -> void:
 	create_tween().tween_property(self, "target_yaw", 0.0, 4.5).set_trans(Tween.TRANS_SINE)
 	await wait(1.6)
 	await run_dialogue(CampScript.INTRO)
-	objective("Get the fire going.")
+	objective("Get the fire going.", FIRE_POS)
 
 # ---------------------------------------------------------------- automated screenshots
 func _shot_tour() -> void:
@@ -413,7 +417,7 @@ func _shot_tour() -> void:
 		return
 	busy = true
 	fade.color.a = 0.0
-	objective("Get the fire going.")
+	objective("Get the fire going.", FIRE_POS)
 	target_yaw = 0.7
 	await wait(2.0)
 	await shot("camp_01_unlit")

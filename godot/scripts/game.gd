@@ -21,6 +21,8 @@ var level := 1
 var gear_owned: Array = []        # gear ids found so far
 var equipped := {}                # fighter id -> { slot -> gear id }   (slots: GEAR_SLOTS below; gear slot types in CombatD.GEAR)
 var boosts := {}                  # fighter id -> { hp, meter } from used BOOSTS items (permanent)
+var map_seen := {}                # area key -> PackedByteArray of explored map cells (Minimap/MapUI fog)
+var visited: Array = []           # area keys you've been to (world map fog)
 var hurt := {}                    # fighter id -> HP missing. Damage carries between fights (see max_hp/hp/heal)
 var gold := 0                     # currency, dropped by enemies (see "gold" on each enemy in CombatD.FIGHTS)
 var used67 := false               # the 6-7 happens once per game
@@ -54,6 +56,8 @@ func reset() -> void:
 	equipped = {}
 	boosts = {}
 	hurt = {}
+	map_seen = {}
+	visited = []
 	gold = 0
 	used67 = false
 	forehead = ""
@@ -446,7 +450,7 @@ var title_mode := false           # the title screen is showing the camp in the 
 func state_dict() -> Dictionary:
 	return {
 		"flags": flags.duplicate(true), "bags": bags.duplicate(true), "gear_owner": gear_owner.duplicate(), "key_owner": key_owner.duplicate(), "xp": xp, "level": level,
-		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "boosts": boosts.duplicate(true), "hurt": hurt.duplicate(), "gold": gold, "used67": used67,
+		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "boosts": boosts.duplicate(true), "hurt": hurt.duplicate(), "map_seen": map_seen.duplicate(true), "visited": visited.duplicate(), "gold": gold, "used67": used67,
 		"forehead": forehead, "quests": quests.duplicate(true),
 	}
 
@@ -467,6 +471,8 @@ func apply_state(d: Dictionary) -> void:
 	gold = int(d.get("gold", 0))
 	boosts = d.get("boosts", {}).duplicate(true)
 	hurt = d.get("hurt", {}).duplicate()
+	map_seen = d.get("map_seen", {}).duplicate(true)
+	visited = d.get("visited", []).duplicate()
 	for old_id in CombatD.BOOSTS:   # older saves had these as trinkets: put them in the bag instead
 		if gear_owned.has(old_id):
 			gear_owned.erase(old_id)
