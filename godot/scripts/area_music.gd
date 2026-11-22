@@ -1,0 +1,76 @@
+# AreaMusic: background music for an area's free roam.
+# Add it to an area's .tscn as a child of the root node and set the exports. It watches its parent (the Level)
+# instead of being called, so the area's script doesn't need to change:
+#  - plays while the parent's `stage` is one of `stages` (and you're not inside a village building)
+#  - ducks under dialogue boxes, goes quiet for fights / building interiors, fades out on scene changes
+#  - keeps running silently while it's out, so walking back outside picks the song up where it was (no restart)
+# Loop points live in the track's .import file (loop=true, loop_offset = where the loop starts after the intro).
+class_name AreaMusic
+extends Node
+
+@export var track: AudioStream
+@export var stages: PackedStringArray = ["after"]
+@export var volume_db := -9.0          # full volume (title song is -3; this sits under voices + ambience)
+@export var duck_db := -20.0           # while a dialogue box is open (about 30% loudness)
+@export var fade_in_db_per_s := 10.0   # first start and coming back: a slow swell
+@export var fade_out_db_per_s := 40.0
+@export var duck_release_s := 0.7      # wait this long after a box closes before swelling back (no pumping between lines)
+
+const SILENT := -60.0
+var player: AudioStreamPlayer
+var lv: Node
+var state := "silent"                  # silent / full / ducked / out: what it's aiming for (tests + dev)
+var _since_dialogue := 99.0
+
+func _ready() -> void:
+	lv = get_parent()
+	player = AudioStreamPlayer.new()
+	player.stream = track
+	player.volume_db = SILENT
+	add_child(player)
+
+func _process(delta: float) -> void:
+	if track == null:
+		return
+	if _dialogue_open():
+		_since_dialogue = 0.0
+	else:
+		_since_dialogue += delta
+	state = _wanted()
+	var target := SILENT
+	match state:
+		"full": target = volume_db
+		"ducked": target = duck_db
+	# the song starts the first time it's wanted (so it begins at the top when free roam opens), then never stops
+	if not player.playing:
+		if state == "full" or state == "ducked":
+			player.play()
+		else:
+			return
+	if state == "out":   # leaving the area: drop fast, like the title song does
+		player.volume_db = max(SILENT, player.volume_db - delta * 140.0)
+	elif target > player.volume_db:
+		player.volume_db = min(target, player.volume_db + delta * fade_in_db_per_s)
+	else:
+		player.volume_db = max(target, player.volume_db - delta * fade_out_db_per_s)
+
+func _wanted() -> String:
+	if Game.changing:
+		return "out"
+	if lv == null or not (str(lv.get("stage")) in stages):
+		return "silent"
+	var vb = lv.get("vb")   # village buildings: interiors are separate rooms
+	if vb != null and str(vb.get("room")) != "":
+		return "silent"
+	for c in lv.get_children():
+		if c is BattleView:
+			return "silent"
+	if _since_dialogue < duck_release_s:
+		return "ducked"
+	return "full"
+
+func _dialogue_open() -> bool:
+	if lv == null:
+		return false
+	var d = lv.get("dialogue")
+	return d != null and d.panel != null and d.panel.visible
