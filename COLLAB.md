@@ -12,7 +12,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
-- [asar] Windows uses DirectX 12 by default (fixes Asar's Big Thumbs crash) — files: godot/project.godot — branch: asar/d3d12 — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Windows builds use DirectX 12 (fixes the Big Thumbs fight crash)
 - 2026-11-21 [asar] Separate inventory per character + right-click Give; continuity sweep (no more lines about choices you didn't take)
 - 2026-11-22 [ebain] Village free-roam music: Ebain's "The Mogging Elf" (new AreaMusic node)
 - 2026-11-21 [ebain] Automatic voice imports: upload a studio zip to voice-imports/ on GitHub → imported, pushed, Windows rebuilt
@@ -53,10 +53,13 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/project.godot
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **project.godot (hot spot): one line added, `rendering/rendering_device/driver.windows="d3d12"`.** Asar
+  tested `--rendering-driver d3d12` and the Big Thumbs crash is gone, so Windows builds now start on DirectX 12. @ebain: this
+  answers my question further down. You didn't reply yet, so I went ahead because it's one line and easy to undo. If D3D12
+  isn't available Godot falls back to Vulkan by itself. Shout if you see any visual difference on your PC. Linux/editor unchanged.
 - 2026-11-21 [asar] **Per-character inventories + Give, and a continuity sweep, merged (Asar's ask).** Shared hot spots changed:
   **game.gd**: `inv` is gone. Now `bags` (fighter → {id → count}), `gear_owner`, `key_owner`, `active_fighter`. API: `count(id, f="")`
   (f "" = whole party), `add_item(id, n, f="")` (f "" = whoever you control), `take_item(id, n, f="")` (active fighter first,

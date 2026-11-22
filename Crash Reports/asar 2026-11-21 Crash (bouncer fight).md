@@ -36,4 +36,6 @@ every time". Not a game-script bug. Overwolf's overlay and the dual-GPU setup ar
    on the NVIDIA GPU (Settings → Display → Graphics → TrioAdventures.exe → High performance).
 
 ## Status
-Open, waiting on Asar's DirectX 12 test.
+**Fixed (2026-11-21).** Asar confirmed the bouncer fight no longer crashes with DirectX 12. The project now uses
+`rendering/rendering_device/driver.windows="d3d12"`, so every Windows build starts on DirectX 12 (the .bat isn't needed
+anymore). If a PC can't run D3D12, Godot falls back to Vulkan on its own (`fallback_to_vulkan`, on by default).

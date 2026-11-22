@@ -33,6 +33,9 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   text, write manifests and docs.
 
 ## Godot gotchas
+- [asar] **Windows runs on DirectX 12, not Vulkan** (`driver.windows="d3d12"` in project.godot). Vulkan crashed in the
+  GPU driver's shader compiler on Asar's PC (NVIDIA + Overwolf overlay) mid-fight. Don't switch it back without testing a
+  Windows fight. Crash report: `Crash Reports/asar 2026-11-21 Crash (bouncer fight).md`.
 - [ebain] **Lambdas copy local variables when they're created.** `var m; rows = [{"pick": func(): m.close()}]; m = open(...)`
   → `m` is null inside the lambda. Share through a dictionary/array instead: `var box := {}; ... box["m"].close()`.
 - [ebain] **Polling `Input.is_action_just_pressed` after a UI closed in the same frame sees the key again.**
