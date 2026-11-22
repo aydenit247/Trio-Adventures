@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Goblin band follows you playing the village song (notes.md) — files: godot/scripts/goblin_band.gd (new), godot/scripts/village.gd, godot/scripts/village_buildings.gd, godot/scripts/area_music.gd, godot/assets/characters/band_*.png — branch: asar/goblin-band — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Goblin band (drummer, horn, lute) follows you playing the village song; "Dat bih fire mud" / "Y'all could get lost?"
 - 2026-11-22 [asar] Dulbers goes demon on the Mart refuse path; Diddy Chud snore (Asar's recording, louder as you get closer)
 - 2026-11-22 [asar] Voice no longer goes quiet after skipping a line (robot reads per sentence, newest line queued)
 - 2026-11-22 [asar] Maps + HUD (minimap, big map with fog, objective star)
@@ -39,10 +39,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- godot/scripts/goblin_band.gd, village.gd, village_buildings.gd, area_music.gd (asar)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] Goblin band: new `scripts/goblin_band.gd` (GoblinBand), added by village.gd `_leave()`. They show up when free roam starts (every visit / loaded save), follow behind the trio (after goblin allies), wait at the door while you're in a building (village_buildings.gd skips units with meta `band` when teleporting followers). Talk → Ebain's "Dat bih fire mud" (keep playing) / "Y'all could get lost?" (walk into the bar, song fades out, gone until the next visit). The village song only plays while the band is around: AreaMusic got `gain_db` (village sets it from `band.gain_db`). Art: Asar's marching-band image cut into `band_drummer/horn/lute.png`. Goblin replies + labels are # DRAFT. Test: `VILLAGE_TOUR=band`.
 - 2026-11-22 [asar] **Dulbers + snore merged.** mart_script.gd: the refuse path runs `{do: transform}` before Dulbers' demon
   line (notes.md). pass.gd: `snore` player loops Asar's `assets/sounds/giant_snore.ogg` while the giant sleeps, volume by
   the leader's distance to GIANT_HEAD (4 m = full, 34 m = silent, squared curve), fades out when he wakes; Snore Sneak plays

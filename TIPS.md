@@ -88,6 +88,9 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   api.sketchfab.com plus an API token.
 - [ebain] Sounds go in `godot/assets/sounds/` as `.ogg` (e.g. crickets.ogg, a seamless loop cut with ffmpeg + numpy).
   Set `loop=true` in the `.import` file.
+- [asar] **Followers with meta `band` (the goblin band) don't get teleported into buildings** with the other followers;
+  GoblinBand walks them to the door instead. To mute/fade an area's song from code, set its AreaMusic `gain_db` every
+  frame (0 = normal, -60 = silent); the song keeps running silently so it picks up where it was.
 - [ebain] **Area music = an `AreaMusic` node** in the area's .tscn (see village.tscn), not code in the area script. It ducks under
   dialogue and goes quiet for fights/interiors by itself.
 - [ebain] **Looping a Flow song:** Flow songs have an intro and an outro. Keep the intro, cut before the outro on a bar line

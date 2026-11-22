@@ -75,6 +75,7 @@ too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "
 - The goblins are all unemployed. "Hella bad for J-O-B" (spelled out as a chant) and "The Mogging Elf" are in the village song.
 - Catchphrases: "Aight. Bet." (the giant waking up) · "Y'all could hear me doe?" (Dulbmeethus) · "hey guys its your boy
   dulbers frint" · "You had called?" (Mattias).
+- **"Dat bih fire mud"** and **"Y'all could get lost?"**: what you tell the goblin band to keep them playing or send them away (Ebain, notes.md).
 - **John's orb:** a lore term from the title music. Meaning not given yet. Ask Ebain before using it.
 
 ---
@@ -100,6 +101,7 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
 `$SHOT_DIR`. Useful env vars:
 - `VILLAGE_CHOICE=0..4`, `MART_CHOICE=0..4`, `PASS_CHOICE=0..4` — which choice path the tour takes
 - `VILLAGE_TOUR=buildings TOUR_PART=1|2` — walks every village building and quest
+- `VILLAGE_TOUR=band` — the goblin band: arrives, follows, waits at the bar door, keeps playing, then gets sent away
 - `FIGHT=goblins|dulbers|giant|goblin_patrol|bouncer` (+ `LEVEL=2`, `ALLIES=1`, `AUTO_LOSE=1`, `MENUS=1`) — runs one fight
 - `LOOK="x,z,yaw;..."` (camp) — close-up screenshots of spots with the fire lit
 - `--views` instead of `--shots` walks the trio in 4 directions
@@ -158,7 +160,8 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 |---|---|
 | `project.godot` | autoload `Game`, main scene **`title.tscn`** (title screen), Forward+, 1280×720, icon + boot splash (`icon.png`, `icon.ico`, `splash.png`) |
 | `scripts/title.gd` + `title.tscn` | title screen: the camp runs in "title mode" behind the logo (fire lit, slow camera orbit). Continue / New Game / Load / Settings / Quit. Music: Ebain's **"Prophecy of Metocy"** (`assets/music/prophecy_of_metocy.ogg`, Gregorian chant, loops, fades out when you start) |
-| `scripts/area_music.gd` | **AreaMusic**: an area's free-roam music. Add it as a child node in the area's `.tscn` and set `track` (+ `stages`, volumes). It watches the parent Level, so the area script doesn't change: plays while `stage` is in `stages`, ducks under dialogue, goes quiet in building interiors (`vb.room`) and fights (a BattleView child), fades out on `Game.changing`. Keeps playing silently while out, so the song continues instead of restarting. Village: Ebain's **"The Mogging Elf"** (`assets/music/the_mogging_elf.ogg`) in free roam |
+| `scripts/goblin_band.gd` | **GoblinBand**: the village goblin band (follows you playing the village song, sets the song's `gain_db`, talk options, waits at building doors). See section 4 "The explorable village" |
+| `scripts/area_music.gd` | **AreaMusic**: an area's free-roam music. Add it as a child node in the area's `.tscn` and set `track` (+ `stages`, volumes). It watches the parent Level, so the area script doesn't change: plays while `stage` is in `stages`, ducks under dialogue, goes quiet in building interiors (`vb.room`) and fights (a BattleView child), fades out on `Game.changing`. Keeps playing silently while out, so the song continues instead of restarting. `gain_db` lets the area turn it down (the village mutes it when the goblin band is gone). Village: Ebain's **"The Mogging Elf"** (`assets/music/the_mogging_elf.ogg`) in free roam |
 | `scripts/menu_ui.gd` | **MenuUI**: every menu (title, pause, settings, save/load, yes/no). Keyboard, controller and mouse. `MenuUI.open(parent, title, rows, opts)`, `MenuUI.confirm()`, `open_settings()`, `open_slots()` |
 | `scripts/game.gd` | **Game** autoload: story `flags`, per-character `bags`, XP/level, gear, HP between fights (`hurt`, `hp()`, `heal()`), `quests`; `goto(scene)` (shows a loading card with a joke tip); **settings** (saved in `user://settings.cfg`; F11/Alt+Enter fullscreen); **saves** (`user://saves/<auto/1/2/3>.sav`: `save_game`, `load_game`, `latest_slot`, `new_game`) |
 | `scripts/level.gd` | **Level** base class every area extends: environment (night/day/lava), ground shader, `card()`, `backdrop()`, party + NPCs (`spawn_npc`, `add_to_party`, `walk_to`, `hop`, `knock`), camera (`cam_locked`, `zoom`, `cam_height`, `cam_look_h`, `focus_override`), interactions, `run_dialogue()`, HUD (`objective`, `show_toast`, `char_label`), `fight()`, roaming enemies (`spawn_roamers`), the defeat penalty, Esc pause menu, Tab inventory (`open_party_menu()` → InventoryUI), `item_icon(id)`, test helpers. Hooks: `_configure`, `_build_level`, `_after_build`, `_begin`, `_level_interactables`, `_on_action`, `_level_process`, `_shot_tour` |
@@ -212,6 +215,12 @@ Tab** → bouncer fight, Gorbo's open mic, Gulpo **Chug Rematch**) · 3 Job Boar
 Goblin Patrol → Weighted d6) · 4 Shaman's Tent (fortunes, **Lore-Off** → Deloye Lore Vol. 9) · 5 Clank's Spoonsmithy
 (**Shiny Spoons**, 5 hidden around → Spoon of Destiny / Spoon Mail) · 6 Outhouse (each of the trio goes in once).
 All this dialogue is `# DRAFT` — Ebain may rewrite it. The rooms are built from Poly Haven props.
+
+**Goblin band** (`scripts/goblin_band.gd`, art `band_drummer/horn/lute.png`): a drummer, horn player and lute player
+run in from the bar when free roam starts and follow the trio playing "The Mogging Elf" (the song only plays while
+they're around). Talk to one: "Dat bih fire mud" (# Ebain) keeps them playing; "Y'all could get lost?" (# Ebain) sends
+them into the bar and the song fades out. They're back on the next visit or a loaded save (not saved). While you're
+in a building they wait by its door. Their replies and joke labels are # DRAFT.
 
 ---
 
