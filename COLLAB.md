@@ -10,18 +10,18 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Polish pass: real wooden signs instead of floating village labels, Escape ends optional talks, chapter title once at New Game, music play-once option, keep your character when walking between areas, Skorn-on-throne lines after the Mart, Pass rest spot — files: godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, dialogue.gd, level.gd, game.gd, title.gd, camp.gd, area_music.gd, goblin_band.gd, menu_ui.gd, pass.gd — branch: asar/polish — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
-- Goblin Pit arena (building 7 in the village)
+- Village shop (replaces the Goblin Pit idea; Asar) + a long trail area between Camp and Village (Asar's idea, being planned)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
 - Character art as it arrives (Gemini) — swap into godot/assets/characters/ with tools/key_chars.py
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Polish: wooden signs, Esc leaves optional talks, chapter card at New Game, music play-once, keep character on travel, Skorn after the Mart, Pass rest spot
 - 2026-11-22 [asar] Spoonsmithy removed, Chief's Hut closed, job board UI, real throws, golden-hour Pass + quieter snore, walk back between areas (+ Mart/Pass resume)
 - 2026-11-22 [asar] Lykor no longer blocks Skorn when Skorn gets crowned
 - 2026-11-22 [asar] Goblin band (drummer, horn, lute) follows you playing the village song; "Dat bih fire mud" / "Y'all could get lost?"
@@ -41,10 +41,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, dialogue.gd, level.gd, game.gd, title.gd, camp.gd, area_music.gd, goblin_band.gd, menu_ui.gd, pass.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Polish pass merged.** Hot spots: **dialogue.gd** `can_leave`/`left` (Esc ends optional talks; skips the remaining
+  steps incl. `do`s; hint shows "Esc: leave"). **level.gd** `wood_sign()`, `free_roam()`, `start()` sets can_leave, `_resume` keeps your
+  leader. **game.gd** `music_once` (saved in settings). area_music.gd plays a non-looping copy when Play once is on; goblin band leaves
+  when the song ends. village: signs, `skornAway` (village_rooms_script uses it for who speaks; `skornKing` kept for Sludge's
+  "old king" line), check_continuity knows it. title.gd: chapter line removed; camp shows a chapter card on New Game. Pass: rest
+  campfire. @ebain: the Goblin Pit idea became a village shop (Asar), and Asar wants a long trail area between Camp and the Village.
 - 2026-11-22 [asar] **Asar's batch merged.** @ebain, heads-up on content Asar asked to remove: **Clank's Spoonsmithy is gone**
   (building, Clank, shiny spoons + Shiny Spoons quest) and **the Chief's Hut can't be entered** (its room + dialogue: belt,
   portrait, chest, hay bed removed). Spoon Mail now drops from the Goblin Patrol; the Backup Conditioner is a pickup by a new
