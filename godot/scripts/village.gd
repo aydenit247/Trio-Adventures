@@ -558,10 +558,16 @@ func _wake_outside() -> void:
 func _crown_skorn() -> void:
 	Game.set_flag("skornKing")
 	var sk := _member("skorn")
+	# Lykor gets off the throne FIRST and stands to its left (Asar: he used to stay on the seat, right on top of Skorn).
+	# Left side, because the Chief stands on the right and Xylo further left in front.
+	var lykor_spot := SEAT_POS + Vector3(-1.9, 0, 0.7)
+	hop(leader, 0.4)
+	await walk_to(leader, lykor_spot, 1.2, 1.2)
+	leader.global_position = lykor_spot   # make sure, even if the walk got stuck
+	leader.set_view("front")
 	await walk_to(sk, SEAT_POS + Vector3(0, 0, 0.3), 1.0, 3.0)
 	sk.global_position = SEAT_POS
 	sk.set_view("front")
-	await walk_to(leader, SEAT_POS + Vector3(1.4, 0, 1.8), 1.0, 2.0)
 	ui_sfx.play()
 	char_label(sk, "The Purple King (Downgrade)", 4.0)
 	if king_label:
