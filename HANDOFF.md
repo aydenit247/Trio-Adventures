@@ -62,6 +62,21 @@ set up to come back as a villain.
   from the friend later.
 - **The 6-7** happens once per game (combat easter egg).
 
+
+### Ebain's slang and humor (keep this list updated: add new terms as Ebain uses them)
+Humor: dumb, deadpan, absurd, committed. Joke labels over people's heads. Lots of internet slang (ts/mf/ngl). Nothing is
+too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "Lie-core" for songs and voice generators).
+- **Mogging / mogged:** out-looking someone. Lykor is "the Mogging Elf." **Mog** is his combat move (camera pushes onto his jawline).
+- **On some type shi:** Lykor's buff move, also a chant in the title music.
+- **Cooked / "YOU GOT COOKED":** the defeat screen. **Locked In, Mogged, Cooked** are combat status effects.
+- **Beezy:** beer. Chief Bogdrinker hands it out. **Metocy:** the mystical herb (blue oval capsule), the whole quest.
+  **Midtocy:** the fake one.
+- **Big Thumbs:** the bouncer fight at the village bar. **Deloye Lore:** Xylo's huge book about a universe with almost no lore.
+- The goblins are all unemployed. "Hella bad for J-O-B" (spelled out as a chant) and "The Mogging Elf" are in the village song.
+- Catchphrases: "Aight. Bet." (the giant waking up) · "Y'all could hear me doe?" (Dulbmeethus) · "hey guys its your boy
+  dulbers frint" · "You had called?" (Mattias).
+- **John's orb:** a lore term from the title music. Meaning not given yet. Ask Ebain before using it.
+
 ---
 
 ## 3. Working in this repo (technical setup)
