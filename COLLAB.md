@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Asar's batch: remove Spoonsmithy, close Chief's Hut (+ bedroll), clickable job board, Skorn throws real props, nicer Pass + quieter snore, walk back between areas (Pass→Mart→Village→Camp, Mart/Pass resume) — files: godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, job_board_ui.gd (new), inventory_ui.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, level.gd, game.gd, camp.gd, mart.gd, pass.gd — branch: asar/batch-1122 — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -40,6 +41,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/village.gd, village_buildings.gd, village_rooms_script.gd, job_board_ui.gd (new), inventory_ui.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, level.gd, game.gd, camp.gd, mart.gd, pass.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
