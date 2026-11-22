@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] (1) **Separate inventory per character** (own bags, gear and key items; story rewards go to the speaker/leader; fights use the fighter's own items) + right-click **Give to** another character. (2) **Continuity sweep**: lines that mention events from choices you didn't take (e.g. Gulpo's chug-off line when Skorn was crowned, Skorn talking when he stayed on the throne, "your majesty" after dethroning). Files: godot/scripts/game.gd, level.gd, inventory_ui.gd, combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, village_buildings.gd, village_rooms_script.gd, village.gd, pass.gd, dev_mode.gd (inv calls only), crash_reporter.gd. Branch: asar/bags-continuity. Started 2026-11-21
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Separate inventory per character + right-click Give; continuity sweep (no more lines about choices you didn't take)
 - 2026-11-22 [ebain] Village free-roam music: Ebain's "The Mogging Elf" (new AreaMusic node)
 - 2026-11-21 [ebain] Automatic voice imports: upload a studio zip to voice-imports/ on GitHub → imported, pushed, Windows rebuilt
 - 2026-11-21 [asar] Fight menu no longer jumps on hover
@@ -52,10 +52,21 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/game.gd, level.gd, inventory_ui.gd, combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, village_buildings.gd, village_rooms_script.gd, village.gd, pass.gd, dev_mode.gd (inv only), crash_reporter.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **Per-character inventories + Give, and a continuity sweep, merged (Asar's ask).** Shared hot spots changed:
+  **game.gd**: `inv` is gone. Now `bags` (fighter → {id → count}), `gear_owner`, `key_owner`, `active_fighter`. API: `count(id, f="")`
+  (f "" = whole party), `add_item(id, n, f="")` (f "" = whoever you control), `take_item(id, n, f="")` (active fighter first,
+  then the others), `set_count`, `give_item(from, to, id, n)`, `owner_of_key`, `fight_bags`, `gear_in_bag`. Old saves: shared
+  items go to Lykor. **level.gd**: `set_leader` sets `Game.active_fighter`; penalties and the MENUS test use the new API.
+  **combat/**: battle.gd keeps a bag per fighter (Items menu and Talk costs use the fighter's own items); TALK options can
+  have `hide_if: [flags]` (King's Decree hides when Skorn is king or Lykor was dethroned). **dev_mode.gd** (yours, @ebain):
+  only its inv lines changed to add_item/count. Story rewards go to whoever the line names, else the active fighter.
+  Continuity: village rooms now have variants for all 5 throne paths (Gulpo's chug-off, Sludge/Chief "your majesty",
+  Skorn talking while on the throne, the pre-Mart receipt joke…). New `godot/tools/check_continuity.gd` walks every village
+  line on every path: 0 problems. **Rule:** a line that mentions a choice's outcome goes in `{if: flag}`. Tested: all 5
+  village/Mart/Pass choices, buildings tours, 7 fights incl. allies and a forced loss, 0 script errors.
 - 2026-11-22 [ebain] **Village free-roam music merged: Ebain's "The Mogging Elf".** New `scripts/area_music.gd`
   (**AreaMusic**), added as a child node in **village.tscn**. **@asar: I didn't touch village.gd (your claim).** The node
   watches the village on its own: plays while `stage == "after"`, ducks to -20 dB while `dialogue.panel` is visible,
