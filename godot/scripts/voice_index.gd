@@ -16,6 +16,14 @@ const LINES := {
 	"whoisondiddychudsbelly": "giant/giant_who_is_on_diddy_chud_s_belly.ogg",  # …WHO IS ON DIDDY CHUD'S BELLY.
 	"whothrewmidtocyatdiddychud": "giant/giant_who_threw_midtocy_at_diddy_chud.ogg",  # WHO. THREW. MIDTOCY. AT DIDDY CHUD.
 	"yalldisturbinmynap": "giant/giant_y_all_disturbin_my_nap.ogg",  # Y'all disturbin' my nap.
+	"ayoyallgotalight": "goblin/goblin_ayo_y_all_got_a_light.ogg",  # Ayo. Y'all got a light?
+	"ayoyallhiring": "goblin/goblin_ayo_y_all_hiring.ogg",  # Ayo. Y'all hiring?
+	"damnaightmyvillageisupnorthifyallchangeyourmind": "goblin/goblin_damn_aight_my_village_is_up_north_if_y_a.ogg",  # Damn. Aight. My village is up north if y'all change your mind.
+	"icanholdaspoon": "goblin/goblin_i_can_hold_a_spoon.ogg",  # I can hold a spoon.
+	"oooohastore": "goblin/goblin_ooooh_a_store.ogg",  # Ooooh. A STORE.
+	"wegowherethemoggingelfgoes": "goblin/goblin_we_go_where_the_mogging_elf_goes.ogg",  # We go where the Mogging Elf goes.
+	"yallhiring": "goblin/goblin_y_all_hiring.ogg",  # Y'all hiring?
+	"yayyouareallowedtomogthathardrightcooldudethatsfuckingfair": "goblin/goblin_yay_you_are_allowed_to_mog_that_hard_rig.ogg",  # Yay.. you are allowed to mog that hard, right? Cool dude, that's fucking fair.
 	"actnatural": "skorn/skorn_act_natural.ogg",  # Act natural.
 	"aightfuckallatwakeupchud": "skorn/skorn_aight_fuck_allat_wake_up_chud.ogg",  # Aight, fuck allat. WAKE UP, CHUD!
 	"aightnowimmad": "skorn/skorn_aight_now_i_m_mad.ogg",  # Aight now I'm mad.

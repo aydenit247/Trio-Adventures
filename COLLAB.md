@@ -12,7 +12,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
-- [ebain] Goblin voice lines (8 of Ebain's takes) — files: godot/assets/voices/goblin/, godot/scripts/voice_index.gd — branch: ebain/goblin-voices — started 2026-11-22
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -44,6 +43,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [ebain] **Goblin voices in: 8 of Ebain's takes** (assets/voices/goblin/, voice_index.gd regenerated via import_voices.py): got a light, hiring (camp + village), hold a spoon, village up north, allowed to mog, Mogging Elf goes, A STORE. Other goblin lines still use TTS.
 - 2026-11-22 [asar] **village.gd: throne fix (notes.md).** In `_crown_skorn()` Lykor stayed on SEAT_POS (scripted `walk_to` on the
   leader doesn't always move him) and Skorn sat right on top of him. Now Lykor steps off first, gets placed to the throne's left
   (SEAT_POS + (-1.9, 0, 0.7)), then Skorn walks up and sits. Gotcha in TIPS. My request above is done.
