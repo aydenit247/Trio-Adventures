@@ -72,6 +72,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	speed = 1.0 if cinematic else 0.7
 	auto_play = lv.shots_mode
 	mog_cam_test = auto_play
+	shi_cam_test = auto_play
 	var party_units: Array = o.get("party", [])
 	var ids := []
 	for u in party_units:
@@ -189,6 +190,7 @@ func _make_sounds() -> void:
 	}
 	for k in defs:
 		sounds[k] = lv._sfx(defs[k], -4.0)
+	sounds["shi"] = lv._sfx(load("res://assets/sounds/lykor_on_some_type_shi.ogg"), 0.0)   # Asar's recording for Lykor's "on some type shi"
 
 func sfx(k: String, pitch := 1.0) -> void:
 	if sounds.has(k):
@@ -574,9 +576,10 @@ func _party_turn(u: Dictionary) -> void:
 				if rolls[0] == 6 and rolls[1] == 6 and not b.used67:
 					o["accept67"] = await _ask_67()
 			await _windup(u, move, a.get("target", {}))
-			var mog: bool = move.get("fx", "") == "mog" or move["kind"] == "mogsupreme"
+			var shi: bool = u["id"] == "lykor" and move["kind"] == "buff"   # "on some type shi"
+			var mog: bool = move.get("fx", "") == "mog" or move["kind"] == "mogsupreme" or shi
 			if mog:
-				await _mog_cam(u, move, a["slot"] == "ult")   # Lykor's jawline close-up (Ebain's note)
+				await _mog_cam(u, move, a["slot"] == "ult", shi)   # Lykor's close-up (Ebain's note; Asar added the shi one)
 			if move.get("timed", false) and not a.get("target", {}).is_empty():
 				o["timing"] = await _timed(nodes[a["target"]["key"]], "attack")
 			if a["slot"] == "ult" and not mog:
@@ -730,8 +733,15 @@ func _ult_cam(u: Dictionary, move: Dictionary) -> void:
 
 # Push the camera right up to Lykor's face for about a second, then back to the fight.
 var mog_cam_test := false   # set by the --shots tour: takes a screenshot at the close-up
-func _mog_cam(u: Dictionary, move: Dictionary, ult: bool) -> void:
+var shi_cam_test := false
+func _mog_cam(u: Dictionary, move: Dictionary, ult: bool, shi := false) -> void:
 	var n: Unit = nodes[u["key"]]
+	var hidden := []   # everyone else steps out of the shot so nobody (Skorn) blocks Lykor
+	for k in nodes:
+		var o: Unit = nodes[k]
+		if is_instance_valid(o) and o != n and o.visible:
+			o.visible = false
+			hidden.append(o)
 	var keep := { "zoom": lv.zoom, "cam_height": lv.cam_height, "cam_look_h": lv.cam_look_h }
 	var keep_f = lv.focus_override
 	var face_h: float = n.height_m * 0.86
@@ -743,16 +753,24 @@ func _mog_cam(u: Dictionary, move: Dictionary, ult: bool) -> void:
 	tw.tween_property(lv, "cam_look_h", face_h, 0.3)
 	for box in [party_box, enemy_box, menu_panel]:
 		if box: tw.tween_property(box, "modulate:a", 0.0, 0.2)
-	sfx("sparkle", 0.7)
+	if shi:
+		sounds["shi"].pitch_scale = 1.0
+		sounds["shi"].play()
+	else:
+		sfx("sparkle", 0.7)
 	await tw.finished
 	flash(0.25, Color(1, 1, 1))
-	sfx("mog", 1.0)
-	_banner(move["name"] if ult else "*chiseled jawline*", Color("#ffdf4a"), 0.9 if ult else 0.7)
-	if mog_cam_test:
+	if not shi:
+		sfx("mog", 1.0)
+	_banner(move["name"] if ult or shi else "*chiseled jawline*", Color("#ffdf4a"), 0.9 if ult or shi else 0.7)
+	if mog_cam_test or (shi and shi_cam_test):
 		await lv.wait(0.35)
-		await lv.shot("fight_%s_mog_cam" % key)
-		mog_cam_test = false   # one picture per fight
-	await lv.wait((1.0 if cinematic or ult else 0.75) * speed)
+		await lv.shot("fight_%s_%s_cam" % [key, "shi" if shi else "mog"])
+		if shi: shi_cam_test = false
+		else: mog_cam_test = false   # one picture per fight
+	var hold := 1.0 if cinematic or ult else 0.75
+	if shi: hold = maxf(hold, sounds["shi"].stream.get_length() - 0.3)   # let the line finish while we're close
+	await lv.wait(hold * speed)
 	lv.focus_override = keep_f
 	var back := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	for k in keep:
@@ -760,6 +778,8 @@ func _mog_cam(u: Dictionary, move: Dictionary, ult: bool) -> void:
 	for box in [party_box, enemy_box, menu_panel]:
 		if box: back.tween_property(box, "modulate:a", 1.0, 0.25)
 	await back.finished
+	for o in hidden:
+		if is_instance_valid(o): o.visible = true
 
 func _combo_cam(c: Dictionary) -> void:
 	for id in c["who"]:
@@ -923,7 +943,7 @@ func _event(ev: Dictionary) -> void:
 				lv.hop(nodes[p["key"]], 0.7)
 		"hype":
 			_say(ev["text"])
-			sfx("roar", 1.4)
+			if ev["u"].get("id", "") != "lykor": sfx("roar", 1.4)   # Lykor's own voice line already played in the close-up
 			for p in b.alive(b.party):
 				_float(nodes[p["key"]], "HYPED", GOLD, 0.8, 0.3)
 				flash_unit(nodes[p["key"]], Color(1.6, 1.4, 0.8), 0.3)

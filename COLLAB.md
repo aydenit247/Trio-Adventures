@@ -12,7 +12,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
-- [asar] Lykor's "on some type shi": Asar's audio + camera close-up; nobody blocks Lykor in his close-ups — files: godot/scripts/combat/battle_view.gd, godot/assets/sounds/lykor_on_some_type_shi.ogg — branch: asar/lykor-shi — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -23,6 +22,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-21 [asar] Lykor's "on some type shi": Asar's voice clip + close-up; nobody blocks Lykor in close-ups
 - 2026-11-21 [asar] Notes tasks: HP carries between fights, status hover tooltips, Lykor's Mog close-up, sleeping Diddy Chud Giant + smooth wake-up
 - 2026-11-21 [asar] Windows builds use DirectX 12 (fixes the Big Thumbs fight crash)
 - 2026-11-21 [asar] Separate inventory per character + right-click Give; continuity sweep (no more lines about choices you didn't take)
@@ -55,10 +55,13 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/combat/battle_view.gd, godot/assets/sounds/lykor_on_some_type_shi.ogg
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-21 [asar] **battle_view.gd (hot spot):** Lykor's "on some type shi" (his bonus, `kind: buff`) now gets the same close-up as
+  Mog, and plays Asar's recording `assets/sounds/lykor_on_some_type_shi.ogg` (`sounds["shi"]`; the generic roar is skipped for
+  his hype). During any Lykor close-up (`_mog_cam`) every other fighter is hidden and shown again after, because Skorn stood
+  in front of him (Asar's report). Ebain's notes.md banter item is marked done with Asar's clip.
 - 2026-11-21 [asar] **notes.md tasks merged (Asar picked how).** Shop skipped for now (Asar). Shared hot spots changed:
   **game.gd**: `hurt` (fighter → HP missing, saved), `max_hp/hp/set_hp/heal/heal_all/anyone_hurt/use_heal_item`; `add_xp`
   heals everyone on level up. **level.gd**: `start()` runs `rest_party()` after an interactable with `"rest": true`;
