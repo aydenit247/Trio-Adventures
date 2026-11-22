@@ -41,6 +41,8 @@ func _configure() -> void:
 	subtitle = "Scene 2 — Goblin Village (later that morning)"
 	party_ids = ["lykor", "xylo", "skorn"]
 	party_start = [Vector3(0, 0, 27), Vector3(-1.0, 0, 29), Vector3(1.0, 0, 29)]
+	if not Game.title_mode:
+		Game.set_flag("campDone")   # reaching the village means camp is finished (also fixes older saves)
 	bounds = Rect2(-21, -22, 57, 55)   # x -21..36 (exit east at x = 30), z -22..33 (entrance road at z = 27-29)
 	leader_id = "lykor"
 	switch_enabled = false
@@ -646,7 +648,7 @@ func _leave() -> void:
 	focus_override = null
 	follow_enabled = true
 	switch_enabled = true
-	if Game.flag("skornKing"):
+	if Game.flag("skornKing") and not Game.flag("martDone"):   # after the Mart he travels with you again
 		var sk := remove_from_party("skorn")
 		sk.global_position = SEAT_POS
 	var stand: Texture2D = load("res://assets/characters/goblin.png")
@@ -699,8 +701,25 @@ func _resume(r: Dictionary) -> void:
 	await super._resume(r)
 
 func _end_card() -> void:
+	if Game.flag("martDone"):   # been to the Mart already: walk straight back into it
+		await fade_out(0.6)
+		Game.travel("res://mart.tscn", "village", leader.id)
+		return
 	await fade_out(1.0)
 	Game.goto("res://mart.tscn")
+
+# ---- walking between areas: the entrance road leads back to camp; arriving from the Mart puts you at the east exit
+func back_exit() -> Dictionary:
+	if stage == "after" and vb.room == "":
+		return { "pos": Vector3(0, 0, 31.0), "r": 2.4, "scene": "res://main.tscn", "name": "The Camp" }
+	return {}
+
+func arrival(from: String) -> Array:
+	if from == "camp":
+		return [Vector3(0, 0, 25.0), Vector3(0, 0, -1)]
+	if from == "mart":
+		return [EXIT_POS + Vector3(-1.5, 0, 4.5), Vector3(-1, 0, 0)]   # outside the exit trigger, clear of the Goblin Patrol's spot (21, -1.5)
+	return super.arrival(from)
 
 # ---------------------------------------------------------------- automated screenshots
 # Pick a path with env var VILLAGE_CHOICE=0..4 (A..E)

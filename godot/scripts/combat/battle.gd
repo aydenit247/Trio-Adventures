@@ -38,12 +38,14 @@ var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 
 var party: Array = []
 var enemies: Array = []
 var dmg_scale := 1.0
+var throwables: Array = []        # names of the real props piled next to the party (BattleView); empty = D.THROWABLES
 var ended := ""          # "fled" / "talked" when the fight ends without a winner
 
 func _init(fight: String, o: Dictionary = {}) -> void:
 	key = fight
 	def = D.FIGHTS[fight]
 	mods = o.get("mods", {})
+	throwables = o.get("throwables", [])
 	if o.has("seed"):
 		rng.seed = o["seed"]
 	else:
@@ -393,7 +395,7 @@ func do_move(m: Dictionary, move: Dictionary, t: Dictionary, h: Dictionary, o: D
 			if move.get("strip", false):
 				ev += strip_buffs(t)
 		"throw":
-			var thing: String = pick(D.THROWABLES)
+			var thing: String = pick(throwables if not throwables.is_empty() else D.THROWABLES)
 			ev.append({ "t": "throw_thing", "u": m, "target": t, "thing": thing })
 			ev += damage_enemy(m, t, move["power"], h.merged({ "text": "%s throws %s at %s!" % [m["name"], thing, t["name"]] }))
 			if t["hp"] > 0 and rnd() < move["downbad"]:

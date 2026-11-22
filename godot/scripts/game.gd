@@ -318,6 +318,12 @@ var _load_lbl: Label
 var _load_tip: Label
 var changing := false
 
+# Walk to another area you've already finished (Asar: go back and forth between areas). The next area resumes in free roam
+# at the edge you came from (Level.arrival). If that area isn't finished yet, its story just starts normally.
+func travel(path: String, from_key: String, leader_id: String) -> void:
+	pending_resume = { "pos": Vector3.INF, "from": from_key, "leader": leader_id, "travel": true }
+	goto(path)
+
 func goto(path: String) -> void:
 	if changing:
 		return

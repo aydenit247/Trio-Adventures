@@ -366,9 +366,6 @@ func _bag_items() -> Array:   # what the fighter on screen carries (everyone has
 		keys.append({ "id": "midtocy", "kind": "key", "name": "Midtocy", "desc": "The fake metocy. Skorn swears it's fine. It is not fine.", "count": 1 })
 	if Game.flag("luckySpoonFound") and Game.quest_state("lucky_spoon") == "active":
 		keys.append({ "id": "lucky_spoon", "kind": "key", "name": "Grubnik's Lucky Spoon", "desc": "Covered in patrol grease. Grubnik misses it.", "count": 1 })
-	var spoons := int(Game.flags.get("spoons_found", 0))
-	if spoons > 0 and not Game.gear_owned.has("spoon_mail"):
-		keys.append({ "id": "shiny_spoon", "kind": "key", "name": "Shiny Spoons", "desc": "For Clank the Spoonsmith. 3 = a weapon, 5 = armor.", "count": spoons })
 	for k in keys:
 		if Game.owner_of_key(k["id"]) == fid:
 			out.append(k)

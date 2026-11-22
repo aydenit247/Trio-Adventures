@@ -30,9 +30,12 @@ var mini_opts: Array = []
 var mini_labels: Array = []
 
 func _configure() -> void:
-	night = true
-	lava = true
-	light_dir = Vector3(-0.3, 0.3, -0.9)
+	if not Game.title_mode:
+		Game.set_flag("martDone")   # reaching the pass means the Mart is finished (also fixes older saves)
+	# Golden-hour canyon (Asar: the old all-red lava haze was too much). Lava stays as glowing channels; see _after_build.
+	night = false
+	lava = false
+	light_dir = Vector3(-0.55, 0.28, -0.8)
 	clear_center = Vector2(0, -3)
 	clear_radius = 6.0
 	path_pts = PackedVector2Array([Vector2(0, 16), Vector2(0.5, 6), Vector2(0, 0), Vector2(2.5, -8), Vector2(0, 0), Vector2(8, 0), Vector2(16, 0)])
@@ -50,27 +53,58 @@ func _configure() -> void:
 		"xylo": [{ "who": "xylo", "mood": "vision", "line": "Deloye Lore speaks of a giant. It does not say anything else about him. Classic Deloye." }], # DRAFT
 	}
 
+# Golden hour: warm low sun, soft blue-violet shade, light dusty haze instead of thick red fog
+func _after_build() -> void:
+	var env: Environment = world_env.environment
+	env.ambient_light_color = Color(0.62, 0.6, 0.72)
+	env.ambient_light_energy = 0.8
+	env.tonemap_exposure = 1.0
+	env.glow_intensity = 0.6
+	env.glow_hdr_threshold = 1.1
+	env.fog_light_color = Color(0.82, 0.68, 0.58)
+	env.fog_density = 0.007
+	env.volumetric_fog_density = 0.003
+	env.volumetric_fog_albedo = Color(1.0, 0.9, 0.82)
+	env.adjustment_saturation = 1.05
+	sun_light.light_color = Color(1.0, 0.8, 0.58)
+	sun_light.light_energy = 1.45
+	# matte rocks: their shiny material mirrored the blue sky and looked like ice in daylight
+	for m in find_children("*", "MeshInstance3D", true, false):
+		for i in m.get_surface_override_material_count():
+			var om = m.get_surface_override_material(i)
+			if om is BaseMaterial3D:
+				om.roughness = maxf(om.roughness, 0.95)
+				om.metallic = 0.0
+				om.metallic_specular = 0.15
+				om.roughness_texture = null
+	# canyon floor: dry sandstone instead of grass
+	for m in find_children("*", "MeshInstance3D", false, false):
+		var sm = m.material_override if m.material_override else (m.mesh.surface_get_material(0) if m.mesh and m.mesh.get_surface_count() > 0 else null)
+		if sm is ShaderMaterial and sm.get_shader_parameter("dirt_tint") != null:
+			sm.set_shader_parameter("dirt_tint", Color(0.82, 0.66, 0.5))
+			sm.set_shader_parameter("grass_tint", Color(0.62, 0.5, 0.38))
+
 func _build_level() -> void:
-	var cliff := Color(0.3, 0.2, 0.18)
+	var cliff := Color(0.58, 0.45, 0.36)
 	_canyon()
 	for side in [-1.0, 1.0]:   # …and real rock faces (Poly Haven) sit in front of them, darkened and lava-lit
 		Models.place(self, "rock_face_01", Vector3(side * 14.0, -0.3, -11.5), (0.0 if side < 0 else PI) + side * 0.5, 3.0, false, cliff)
 		Models.place(self, "rock_face_01", Vector3(side * 17.5, -0.3, -6.0), (0.0 if side < 0 else PI) + side * 1.2, 2.4, false, cliff * 0.9)
-		Models.place(self, "rock_07", Vector3(side * 12.0, 0, -4.5), randf() * TAU, 20.0, true, cliff)
+		Models.place(self, "rock_07", Vector3(side * 12.0, 0, -4.5), randf() * TAU, 20.0, true, cliff * Color(0.9, 0.85, 0.8))
 	# burnt ground + dark rock patches over the path
-	Models.patch(self, Vector3(0.5, 0, -2.0), Vector2(20, 28), "burned_ground_01", 2.5, Color(0.55, 0.42, 0.38), 0.0, 0.3)
-	Models.patch(self, Vector3(-4.0, 0, -7.5), Vector2(8, 6), "dark_rock", 2.0, Color(0.5, 0.38, 0.34), 0.7, 0.45)
-	Models.patch(self, Vector3(5.0, 0, 5.0), Vector2(7, 6), "dark_rock", 2.0, Color(0.5, 0.38, 0.34), 2.1, 0.45)
+	Models.patch(self, Vector3(0.5, 0, -2.0), Vector2(20, 28), "burned_ground_01", 2.5, Color(0.85, 0.72, 0.6), 0.0, 0.3)
+	Models.patch(self, Vector3(-4.0, 0, -7.5), Vector2(8, 6), "dark_rock", 2.0, Color(0.75, 0.62, 0.52), 0.7, 0.45)
+	Models.patch(self, Vector3(5.0, 0, 5.0), Vector2(7, 6), "dark_rock", 2.0, Color(0.75, 0.62, 0.52), 2.1, 0.45)
 	# lava glow along the edges
 	for p in [Vector3(-8, 0.5, -9), Vector3(8, 0.5, -8), Vector3(-7, 0.5, 4), Vector3(9, 0.5, 6)]:
 		var l := OmniLight3D.new()
-		l.light_color = Color(1.0, 0.4, 0.12)
-		l.light_energy = 2.2
+		l.light_color = Color(1.0, 0.5, 0.2)
+		l.light_energy = 1.1
 		l.omni_range = 8.0
 		l.position = p
 		add_child(l)
 		add_glow(p, Color(1.0, 0.55, 0.3), 7.0, func(): return 1.0)
-	var rock_tint := Color(0.42, 0.3, 0.27)
+	var rock_tint := Color(0.56, 0.4, 0.3)   # rock_07/09 textures are pale grey: tint them warm
 	for k in 16:
 		var side := -1.0 if k % 2 == 0 else 1.0
 		var p := Vector3(side * rng.randf_range(6.5, 13.0), 0, rng.randf_range(-11, 13))
@@ -81,7 +115,7 @@ func _build_level() -> void:
 			1: Models.place(self, "rock_07", p, rng.randf() * TAU, rng.randf_range(7.0, 12.0), true, rock_tint)
 			_: Models.place(self, "rock_09", p, rng.randf() * TAU, rng.randf_range(14.0, 22.0), true, rock_tint)
 	# burnt logs + charred branches
-	var burnt := Color(0.16, 0.12, 0.1)
+	var burnt := Color(0.32, 0.25, 0.2)
 	Models.place(self, "dead_tree_trunk_02", Vector3(-6.8, 0.1, 2.5), 0.5, 0.9, true, burnt)
 	Models.place(self, "dead_tree_trunk_02", Vector3(7.4, 0.1, -3.6), 2.4, 0.8, true, burnt)
 	for p in [Vector3(-3.5, 0, 6.5), Vector3(4.2, 0, 1.0), Vector3(-5.0, 0, -4.0), Vector3(3.0, 0, 9.5)]:
@@ -116,8 +150,8 @@ const GIANT_LIE := Vector3(1.6, 0, -10.2)          # where he's sleeping across 
 var giant_lying: Sprite3D
 
 func _canyon() -> void:
-	var rock := Color(0.24, 0.16, 0.14)
-	var rock2 := Color(0.3, 0.2, 0.17)
+	var rock := Color(0.6, 0.47, 0.38)    # warm sandstone (was near-black red)
+	var rock2 := Color(0.56, 0.42, 0.32)
 	# canyon walls: real rock faces stacked into tall dark cliffs on both sides and behind
 	for i in 7:
 		var z := -16.0 + i * 4.6
@@ -147,8 +181,8 @@ func _canyon() -> void:
 	_lava(Vector3(7.0, 0.02, -17.5), Vector2(6.0, 2.5))
 	for p in [Vector3(-9.6, 0.6, -10), Vector3(-9.6, 0.6, 2), Vector3(9.8, 0.6, -8), Vector3(9.8, 0.6, 8), Vector3(-2, 0.8, -15.5), Vector3(7, 0.8, -17.5)]:
 		var l := OmniLight3D.new()
-		l.light_color = Color(1.0, 0.38, 0.1)
-		l.light_energy = 2.4
+		l.light_color = Color(1.0, 0.45, 0.15)
+		l.light_energy = 1.3
 		l.omni_range = 7.5
 		l.position = p
 		add_child(l)
@@ -172,7 +206,8 @@ func _canyon() -> void:
 	Util.static_box(self, GIANT_LIE + Vector3(0, 1.5, 0), Vector3(6.6, 3.0, 2.0))
 	for p in [Vector3(-1.8, 0, 0.9), Vector3(3.9, 0, 0.7), Vector3(-3.4, 0, -0.4), Vector3(5.2, 0, -0.6)]:   # rocks he's lying on
 		Models.place(self, "rock_07", GIANT_LIE + p, randf() * TAU, randf_range(6.0, 9.0), false, rock2)
-	char_label_at(GIANT_LIE + Vector3(0, 6.0, 0.4), "Diddy Chud Giant (Asleep) (Using a Rock as a Pillow)", 6.0)   # DRAFT (old art had his eyes open)
+	if not Game.flag("giantDone"):   # coming back later: he's gone, no label
+		char_label_at(GIANT_LIE + Vector3(0, 6.0, 0.4), "Diddy Chud Giant (Asleep) (Using a Rock as a Pillow)", 6.0)   # DRAFT (old art had his eyes open)
 
 # Far scenery doesn't need to cast shadows (big savings on lower-end PCs).
 func _no_shadow(n: Node) -> void:
@@ -251,19 +286,20 @@ func _walls() -> void:
 
 # ---------------------------------------------------------------- per frame
 # Snore volume: quiet down the path, loud right next to his head (based on the character you control)
-const SNORE_NEAR := 4.0    # m from his head: full volume
-const SNORE_FAR := 34.0    # m: silent
+const SNORE_NEAR := 3.0    # m from his head: loudest
+const SNORE_FAR := 20.0    # m: silent (Asar: quiet from far away, only loud up close)
+const SNORE_MAX_DB := -9.0 # loudest it gets (Asar: generally quieter)
 func _update_snore(delta: float) -> void:
 	if snore == null:
 		return
 	var asleep := not giant_awake and stage != "after" and stage != "end"
 	var target := -60.0
 	if asleep and snore_sneak:
-		target = 0.0
+		target = SNORE_MAX_DB + 4.0   # Snore Sneak: you're on top of him, a bit louder so you can hear the rhythm
 	elif asleep and leader:
 		var d := Vector2(leader.global_position.x - GIANT_HEAD.x, leader.global_position.z - GIANT_HEAD.z).length()
 		var near := clampf(1.0 - (d - SNORE_NEAR) / (SNORE_FAR - SNORE_NEAR), 0.0, 1.0)
-		target = linear_to_db(maxf(near * near, 0.001)) - 1.0   # squared: it really ramps up as you get close
+		target = linear_to_db(maxf(near * near * near, 0.001)) + SNORE_MAX_DB   # cubed: faint until you're close, then it ramps up
 	snore.volume_db = move_toward(snore.volume_db, target, delta * 40.0)
 	if not asleep and snore.volume_db <= -59.0 and snore.playing:
 		snore.stop()
@@ -539,6 +575,7 @@ func _fight_giant() -> void:
 	giant.set_meta("tint", Color.WHITE)
 
 func _leave() -> void:
+	Game.set_flag("giantDone")   # the pass is open: you can walk back to the Mart and return (Asar)
 	stage = "after"
 	focus_override = null
 	follow_enabled = true
@@ -548,6 +585,41 @@ func _leave() -> void:
 		g.remove_meta("goal")
 		g.set_meta("follow", true)
 	objective("Climb on past the giant.", EXIT_POS)
+
+# ---------------------------------------------------------------- coming back later (Game.travel / saves)
+func can_resume() -> bool:
+	return stage == "after"
+
+func can_resume_saved() -> bool:
+	return Game.flag("giantDone")
+
+func _resume(r: Dictionary) -> void:
+	giant_awake = true          # no snoring, no Zzz
+	giant_lying.visible = false # he's gone home (or he's sulking somewhere else)
+	giant.visible = false
+	mattias.visible = false
+	_clear_giant_block()
+	stage = "after"
+	focus_override = null
+	follow_enabled = true
+	switch_enabled = true
+	zoom = 11.0
+	objective("Climb on past the giant.", EXIT_POS)
+	await super._resume(r)
+	for i in allies.size():
+		allies[i].visible = true
+		allies[i].set_meta("follow", true)
+		allies[i].global_position = leader.global_position + Vector3(-1.2 + i * 0.8, 0, 1.6)
+
+func back_exit() -> Dictionary:
+	if stage == "after":
+		return { "pos": Vector3(0, 0, 12.6), "r": 1.9, "scene": "res://mart.tscn", "name": "Metocy Mart" }
+	return {}
+
+func arrival(from: String) -> Array:
+	if from == "mart":
+		return [Vector3(0, 0, 8.0), Vector3(0, 0, -1)]
+	return super.arrival(from)
 
 # ---------------------------------------------------------------- minigame UI helpers
 func _panel(top: float, height: float, width := 760.0) -> VBoxContainer:

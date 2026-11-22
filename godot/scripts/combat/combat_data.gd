@@ -169,7 +169,7 @@ const FIGHTS := {
 			{ "name": "Goblin", "tag": "(Shift Manager)", "gold": 10, "hp": 36, "spd": 9, "tex": "goblin_fight", "h": 1.4, "ai": "goblin", "second_wind": true },
 		],
 		"talk": ["bribe_goblin", "job_offer", "roast"],
-		"loot": "can_hat",
+		"loot": ["can_hat", "spoon_mail"],   # Spoon Mail moved here when the Spoonsmithy was removed (Asar)
 	},
 }
 

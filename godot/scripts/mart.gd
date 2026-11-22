@@ -32,7 +32,7 @@ func _configure() -> void:
 	path_pts = PackedVector2Array([Vector2(0, 16), Vector2(0, 6), Vector2(-1.5, -4), Vector2(-2.9, -11), Vector2(0, -1), Vector2(8, 0), Vector2(16, 0)])
 	path_width = 1.8
 	subtitle = "Scene 3 — Metocy Mart"
-	party_ids = ["xylo", "lykor"] if Game.flag("skornKing") else ["xylo", "lykor", "skorn"]
+	party_ids = ["xylo", "lykor"] if Game.flag("skornKing") and not Game.flag("martDone") else ["xylo", "lykor", "skorn"]
 	party_start = [Vector3(0, 0, 10), Vector3(-1, 0, 12), Vector3(1, 0, 12)]
 	leader_id = "xylo"
 	cam_locked = true
@@ -509,6 +509,10 @@ func _level_process(_delta: float) -> void:
 
 func _to_pass() -> void:
 	busy = true
+	if Game.flag("giantDone"):   # the giant's already handled: walk straight back into the pass
+		await fade_out(0.6)
+		Game.travel("res://pass.tscn", "mart", leader.id)
+		return
 	await fade_out(1.0)
 	Game.goto("res://pass.tscn")
 
@@ -523,6 +527,10 @@ func map_place_door() -> Vector3:
 	return DOOR_OUT
 
 func _level_interactables() -> Array:
+	if stage == "after":
+		if inside:
+			return [{ "id": "shop_exit", "label": "outside", "verb": "Go", "pos": DOOR_IN, "h": 2.2, "r": 1.8, "steps": [{ "do": "shop_out" }] }]
+		return [{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 2.6, "steps": [{ "do": "shop_in" }] }]
 	if stage == "arrived":
 		return [
 			{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 3.0, "steps": [{ "do": "enter_shop" }] + MS.SHOP },
@@ -546,6 +554,10 @@ func _arrive() -> void:
 
 func _on_action(n: String) -> void:
 	match n:
+		"shop_in":
+			await _shop_in()
+		"shop_out":
+			await _shop_out()
 		"dulbers_appears":
 			dulbers.global_position = DOOR_OUT
 			dulbers.visible = true
@@ -859,6 +871,78 @@ func _leave() -> void:
 		_show_pass_sign()
 		focus_override = null
 	objective("Head east toward the Giant's Pass.", EXIT_POS)
+	Game.set_flag("martDone")
+
+# ---------------------------------------------------------------- coming back later (Game.travel / saves)
+# Dulbers is gone (escaped, beaten or vanished) in every ending, so the shop is just empty and you can walk in.
+func can_resume() -> bool:
+	return stage == "after" and not inside
+
+func can_resume_saved() -> bool:
+	return Game.flag("martDone")
+
+func _resume(r: Dictionary) -> void:
+	inside = false
+	dulbers.visible = false
+	pill.visible = false
+	pill_light.light_energy = 0.0
+	stage = "after"
+	focus_override = null
+	follow_enabled = true
+	switch_enabled = true
+	zoom = 11.0
+	cam_height = 0.3
+	cam_look_h = 2.6
+	if pass_sign == null:
+		_show_pass_sign()
+		focus_override = null
+	objective("Head east toward the Giant's Pass.", EXIT_POS)
+	await super._resume(r)
+	for i in allies.size():
+		allies[i].global_position = leader.global_position + Vector3(-1.2 + i * 0.8, 0, 1.6)
+
+func back_exit() -> Dictionary:
+	if stage == "after" and not inside:
+		return { "pos": Vector3(0, 0, 13.0), "r": 2.2, "scene": "res://village.tscn", "name": "Goblin Village" }
+	return {}
+
+func arrival(from: String) -> Array:
+	if from == "village":
+		return [Vector3(0, 0, 8.5), Vector3(0, 0, -1)]
+	if from == "pass":
+		return [EXIT_POS + Vector3(-5.5, 0, 0), Vector3(-1, 0, 0)]
+	return super.arrival(from)
+
+# the empty shop: walk in and out freely once Dulbers is gone
+func _shop_in() -> void:
+	busy = true
+	await fade_out(0.4)
+	inside = true
+	place_party(INT + Vector3(0, 0, 1.8), Vector3(0, 0, -1))
+	for i in allies.size():
+		allies[i].global_position = INT + Vector3(-4.5 + i * 1.2, 0, 3.6)
+	focus_override = null
+	zoom = 8.5
+	cam_height = 0.38
+	cam_look_h = 1.8
+	cam_target = leader.global_position
+	fade_in(0.4)
+	show_toast("Metocy Mart (Dulbers is gone) (still NO REFUNDS)", 2.0)
+	busy = false
+
+func _shop_out() -> void:
+	busy = true
+	await fade_out(0.4)
+	inside = false
+	place_party(DOOR_OUT + Vector3(0, 0, 1.6), Vector3(0, 0, 1))
+	for i in allies.size():
+		allies[i].global_position = DOOR_OUT + Vector3(-1.5 + i * 0.9, 0, 2.6)
+	zoom = 11.0
+	cam_height = 0.3
+	cam_look_h = 2.6
+	cam_target = leader.global_position
+	fade_in(0.4)
+	busy = false
 
 # ---------------------------------------------------------------- automated screenshots (MART_CHOICE=0..4)
 func _shot_tour() -> void:

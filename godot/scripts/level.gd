@@ -143,7 +143,13 @@ func _resume(r: Dictionary) -> void:
 		for u in party:
 			if u.id == r["leader"]:
 				set_leader(u)
-	place_party(r["pos"], Vector3(0, 0, -1))
+	var arrived_by_travel: bool = r.get("travel", false)
+	if arrived_by_travel or r["pos"] == Vector3.INF:   # walked in from another area: start at that edge
+		var a: Array = arrival(r.get("from", ""))
+		place_party(a[0], a[1])
+		r["yaw"] = r.get("yaw", 0.0)
+	else:
+		place_party(r["pos"], Vector3(0, 0, -1))
 	target_yaw = float(r.get("yaw", 0.0))
 	yaw = target_yaw
 	cam_target = leader.global_position
@@ -151,7 +157,7 @@ func _resume(r: Dictionary) -> void:
 	busy = false
 	freeze_all(false)
 	fade_in(0.8)
-	show_toast("Game loaded", 1.4)
+	show_toast(subtitle.get_slice("— ", 1) if arrived_by_travel else "Game loaded", 1.4)
 # Title screen: the area is just a pretty background (areas can add a _title_backdrop()).
 func _title_backdrop() -> void: pass
 func _title_mode() -> void:
@@ -709,6 +715,8 @@ func _process(delta: float) -> void:
 	if _seen_t <= 0.0:
 		_seen_t = 0.25
 		_reveal_map()
+		if not shots_mode:
+			_check_back_exit()
 	_update_camera(delta)
 	var cam_right := cam.global_transform.basis.x
 	cam_right.y = 0.0
@@ -1111,7 +1119,8 @@ func fight(key: String, opts := {}) -> String:
 		var g := BattleView.fight_gold(def, "win")
 		Game.add_gold(g)
 		if def.has("loot"):
-			Game.give_gear(def["loot"])
+			for gid in (def["loot"] if def["loot"] is Array else [def["loot"]]):
+				Game.give_gear(gid)
 		show_toast("(dev) auto-won: %s  (+%d XP, +%d Gold%s)" % [def["title"], def["xp"], g, ", LEVEL UP" if not ups.is_empty() else ""], 2.0)
 		await wait(0.6)
 		return "win"
@@ -1435,6 +1444,39 @@ func area_key() -> String:
 	return AREA_KEYS.get(scene_file_path.get_file().get_basename(), scene_file_path.get_file().get_basename())
 
 # The part of the world the maps cover (x/z): the area bounds, or the paths + clearing with some room around them.
+# ---------------------------------------------------------------- walking between areas (Game.travel)
+# Areas override: back_exit() = where to walk to go to the previous area (only once this area is finished, in free roam),
+# arrival(from) = where you appear when you walk in from area `from`.
+func back_exit() -> Dictionary: return {}   # { "pos": Vector3, "r": float, "scene": "res://x.tscn", "name": "Goblin Village" }
+func arrival(_from: String) -> Array: return [party_start[0], Vector3(0, 0, -1)]
+var _back_sign: Label3D
+
+func _check_back_exit() -> void:
+	if busy or Game.changing or Game.title_mode or leader == null or not can_resume():
+		if _back_sign: _back_sign.visible = false
+		return
+	var ex := back_exit()
+	if ex.is_empty():
+		if _back_sign: _back_sign.visible = false
+		return
+	if _back_sign == null:
+		_back_sign = Label3D.new()
+		_back_sign.font_size = 40
+		_back_sign.pixel_size = 0.008
+		_back_sign.outline_size = 12
+		_back_sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_back_sign.modulate = Color("#ffdf8a")
+		add_child(_back_sign)
+	_back_sign.text = "Back to %s" % ex["name"]
+	_back_sign.global_position = ex["pos"] + Vector3(0, 1.6, 0)
+	_back_sign.visible = true
+	var d := Vector2(leader.global_position.x - ex["pos"].x, leader.global_position.z - ex["pos"].z).length()
+	if d < float(ex.get("r", 2.2)):
+		busy = true
+		freeze_all(true)
+		await fade_out(0.6)
+		Game.travel(ex["scene"], area_key(), leader.id)
+
 func map_rect() -> Rect2:
 	if bounds.size != Vector2.ZERO:
 		return bounds

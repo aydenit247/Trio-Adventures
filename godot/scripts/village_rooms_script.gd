@@ -14,74 +14,17 @@ const THUMBS := "Big Thumbs (Bouncer)"
 const GULPO := "Gulpo (Bar Champion)"
 const GRUBNIK := "Grubnik"
 const WUZZLE := "Shaman Wuzzle"
-const CLANK := "Clank (Spoonsmith)"
 const CLERK := "Unemployment Clerk"
 
 # Quest log entries: id -> [title, how-to]
 const QUESTS := {
 	"bar_tab": ["The Bar Tab", "Your coronation party ran up a tab at the Unemployment Office & Bar. Pay it, or deal with Big Thumbs."],
 	"lucky_spoon": ["Grubnik's Lucky Spoon", "The Goblin Patrol on the east road took Grubnik's lucky spoon. Get it back."],
-	"shiny_spoons": ["Shiny Spoons", "Clank the Spoonsmith wants shiny spoons. They're lying around the village. 3 = a weapon, 5 = armor."],
 	"lore_off": ["The Lore-Off", "Shaman Wuzzle thinks his prophecies beat Deloye Lore. Xylo disagrees. Win the lore-off in the Shaman's Tent."],
 	"chug_rematch": ["Gulpo's Chug-Off", "Gulpo, the bar champion, thinks Lykor can't hold his beezy. Beat him at the bar."],
 }
 
-# ================================================================ 1. CHIEF'S HUT
-const CHIEF_HOME := [
-	{ "if_not": "lykorDethroned", "steps": [
-		{ "who": "chief", "line": "Mogging Elf! In my humble hut! Don't touch the belt. Do NOT touch the belt." }, # DRAFT
-	] },
-	{ "if": "lykorDethroned", "steps": [
-		{ "who": "chief", "line": "The ELF. In my hut. The purple one says I gotta be nice to you. Don't touch the belt." }, # DRAFT
-	] },
-	{ "who": "lykor", "mood": "smug", "line": "Humble? Bro, you got a portrait of yourself." }, # DRAFT
-	{ "who": "chief", "line": "Painted it myself. Took nine years. Captured my essence." }, # DRAFT
-	{ "if_not": "skornKing", "steps": [
-		{ "who": "chief", "line": "If you're staying a while, the village has work. Check the Job Board. And pay your tab at the bar. They put it on the king." }, # DRAFT
-		{ "who": "lykor", "mood": "angry", "line": "I was king for like ten minutes." }, # DRAFT
-		{ "who": "chief", "line": "Expensive ten minutes." }, # DRAFT
-	] },
-	{ "if": "skornKing", "steps": [
-		{ "who": "chief", "line": "If you're staying a while, the village has work. Check the Job Board. And pay your tab at the bar. The purple king says it's on the OLD king." }, # DRAFT
-		{ "who": "lykor", "mood": "angry", "line": "I was king for like ten minutes. And now I'm paying for HIS kingdom?" }, # DRAFT
-		{ "who": "chief", "line": "Expensive ten minutes." }, # DRAFT
-	] },
-]
-const CHIEF_HOME_AGAIN := [
-	{ "who": "chief", "line": "The belt is still watching you, Mogging Elf." }, # DRAFT
-]
-const BELT := [
-	{ "who": "narrator", "line": "A rusty belt. Engraved: \"CHUG CHAMPION — 400 YEARS RUNNING.\" There's a beezy stain on every single year." }, # DRAFT
-	{ "if": "chugWon", "steps": [
-		{ "who": "narrator", "line": "Someone has scratched out \"400 YEARS RUNNING\" and written \"UNTIL THE MOGGING ELF\" in very small, very sad letters." }, # DRAFT
-	] },
-	{ "who": "xylo", "mood": "smug", "line": "Four hundred years and he never washed it once. Respect." }, # DRAFT
-]
-const PORTRAIT := [
-	{ "who": "narrator", "line": "A portrait of Chief Bogdrinker, painted by Chief Bogdrinker. He gave himself abs." }, # DRAFT
-	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "confused", "line": "That's crazy, cause he do not got abs." }] }, # DRAFT
-	{ "if": "skornKing", "steps": [{ "who": "xylo", "mood": "unimpressed", "line": "Deloye Lore calls this \"artistic license.\" Deloye Lore calls everything that." }] }, # DRAFT
-]
-const CHEST := [
-	{ "who": "narrator", "line": "A royal chest. It's not locked. Goblins don't believe in locks. They believe in hoping." }, # DRAFT
-	{ "who": "lykor", "mood": "shocked", "line": "Hold on. HOLD ON. That's MY backup conditioner." }, # DRAFT
-	{ "who": "chief", "line": "Tribute." }, # DRAFT
-	{ "who": "lykor", "mood": "angry", "line": "You can't tribute something you STOLE out my bag." }, # DRAFT
-	{ "do": "take_conditioner" },
-	{ "who": "lykor", "mood": "flattered", "line": "We're back. The hair is back." }, # DRAFT
-]
-const CHEST_EMPTY := [
-	{ "who": "narrator", "line": "The chest is empty now, except for a note: \"I.O.U. one (1) conditioner — Chief.\"" }, # DRAFT
-]
-const HAY_BED := [
-	{ "who": "xylo", "mood": "vision", "line": "I must rest my eyes. The lore is calling." }, # DRAFT
-	{ "do": "xylo_nap" },
-	{ "who": "xylo", "mood": "vision", "line": "I saw it. I saw the lore. It was a blank page. I've never felt so seen." }, # DRAFT
-]
-const HAY_BED_AGAIN := [
-	{ "who": "narrator", "line": "It's a pile of hay with a Xylo-shaped dent in it now." }, # DRAFT
-]
-
+# (1. Chief's Hut: closed, its dialogue was removed 2026-11-22, Asar)
 # ================================================================ 2. UNEMPLOYMENT OFFICE & BAR
 const SLUDGE_FIRST := [
 	{ "who": "goblin", "name": SLUDGE, "line": "Welcome to the Unemployment Office & Bar. Fill out a form, have a drink. Or have a drink, forget the form." }, # DRAFT
@@ -301,29 +244,7 @@ const WUZZLE_DONE := [
 	{ "who": "goblin", "name": WUZZLE, "line": "Go away, lore dragon. I'm writing new prophecies. They're about how you cheated." }, # DRAFT
 ]
 
-# ================================================================ 5. SPOONSMITH
-const CLANK_FIRST := [
-	{ "who": "goblin", "name": CLANK, "line": "Welcome to Clank's Spoonsmithy. I make spoons. Spoon swords. Spoon armor. Spoon spoons." }, # DRAFT
-	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "confused", "line": "You got anything that ain't a spoon?" }] }, # DRAFT
-	{ "if": "skornKing", "steps": [{ "who": "xylo", "mood": "unimpressed", "line": "Do you have anything that is not a spoon?" }] }, # DRAFT
-	{ "who": "goblin", "name": CLANK, "line": "…Why would I have that." }, # DRAFT
-	{ "who": "goblin", "name": CLANK, "line": "Bring me shiny spoons. They're all over the village — goblins drop 'em everywhere. Three and I'll forge you a weapon. Five and I'll make you armor." }, # DRAFT
-	{ "do": "start_shiny_spoons" },
-]
-const CLANK_TURN_IN := [
-	{ "who": "goblin", "name": CLANK, "line": "Show me the spoons." }, # DRAFT
-	{ "do": "smith_turn_in" },
-]
-const CLANK_DONE := [
-	{ "who": "goblin", "name": CLANK, "line": "That's all the spoons in the village. I checked. I counted twice. I love counting spoons." }, # DRAFT
-]
-const FORGE := [
-	{ "who": "narrator", "line": "The forge is extremely hot. There's a spoon melting in it. Clank is crying a little." }, # DRAFT
-]
-const SPOON_RACK := [
-	{ "who": "narrator", "line": "A rack of spoons labeled FOR SALE. None of them have prices. One of them is labeled \"NOT FOR SALE (EMOTIONAL).\"" }, # DRAFT
-]
-
+# (5. Clank's Spoonsmithy: removed 2026-11-22, Asar)
 # ================================================================ 6. THE OUTHOUSE (outside, no going inside for the camera)
 const OUTHOUSE := [
 	{ "who": "narrator", "line": "The village outhouse. There's a moon carved in the door, and a smell carved into the air." }, # DRAFT
@@ -354,8 +275,4 @@ const OUTHOUSE_DONE := [
 # ---------------------------------------------------------------- doors, misc
 const LOCKED_HOUSE := [
 	{ "who": "narrator", "line": "You knock. A voice from inside: \"WE'RE NAPPING.\"" }, # DRAFT
-]
-const SHINY_SPOON := [
-	{ "who": "narrator", "line": "A shiny spoon! Clank the Spoonsmith would want this." }, # DRAFT
-	{ "do": "pick_spoon" },
 ]

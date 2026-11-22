@@ -73,6 +73,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	auto_play = lv.shots_mode
 	mog_cam_test = auto_play
 	shi_cam_test = auto_play
+	throw_test = auto_play
 	var party_units: Array = o.get("party", [])
 	var ids := []
 	for u in party_units:
@@ -94,6 +95,8 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	_make_sounds()
 	_save_state()
 	_place(party_units, o.get("enemies", []), o.get("center", null))
+	if "skorn" in ids:
+		_spawn_pile()   # real stuff for Skorn's Throw Anything (Asar: throw objects, not words)
 	_build_ui()
 	await _intro()
 	var res := await _loop()
@@ -736,6 +739,7 @@ func _ult_cam(u: Dictionary, move: Dictionary) -> void:
 # Push the camera right up to Lykor's face for about a second, then back to the fight.
 var mog_cam_test := false   # set by the --shots tour: takes a screenshot at the close-up
 var shi_cam_test := false
+var throw_test := false
 func _mog_cam(u: Dictionary, move: Dictionary, ult: bool, shi := false) -> void:
 	var n: Unit = nodes[u["key"]]
 	var hidden := []   # everyone else steps out of the shot so nobody (Skorn) blocks Lykor
@@ -1106,25 +1110,90 @@ func _banner(text: String, c: Color, secs: float) -> void:
 	await lv.wait(secs * (1.0 if cinematic else 0.8))
 	create_tween().tween_property(banner, "modulate:a", 0.0, 0.25)
 
+# ---- Throw Anything: a little pile of real props beside the party, themed to the area. Skorn picks one up and
+# throws it; it smashes on the enemy. When the pile runs out a new one appears.
+#   [model id, what the text calls it, longest side in meters]
+const PILES := {
+	"camp": [["wooden_bucket_01", "a bucket", 0.5], ["rock_07", "a rock that looked at him funny", 0.5], ["wooden_bowl_01", "an empty bowl", 0.35], ["dry_branches_medium_01", "a bundle of sticks", 0.7], ["tree_stump_01", "a tree stump", 0.7]],
+	"village": [["wooden_stool_01", "a goblin's stool", 0.6], ["wooden_bucket_02", "a bucket", 0.5], ["wooden_crate_02", "a crate", 0.6], ["wine_barrel_01", "a barrel", 0.8], ["wooden_spoon", "a spoon", 0.45]],
+	"mart": [["wine_bottles_01", "a crate of bottles", 0.5], ["ceramic_vase_01", "a vase (NO REFUNDS)", 0.5], ["brass_pot_01", "a brass pot", 0.45], ["wooden_crate_01", "a crate", 0.6], ["book_encyclopedia_set_01", "an encyclopedia", 0.45]],
+	"pass": [["rock_07", "a rock", 0.55], ["rock_09", "a chunk of the mountain", 0.7], ["rock_07", "a rock that looked at him funny", 0.45], ["dry_branches_medium_01", "a burnt branch", 0.8], ["boulder_01", "a boulder (small)", 0.7]],
+}
+var pile: Array = []   # [{ "node": Node3D, "name": String }]
+
+func _pile_defs() -> Array:
+	var k: String = lv.area_key() if lv.has_method("area_key") else "camp"
+	return PILES.get(k, PILES["camp"])
+
+func _spawn_pile() -> void:
+	for p in pile:
+		if is_instance_valid(p["node"]): p["node"].queue_free()
+	pile = []
+	var defs := _pile_defs()
+	var base: Vector3 = center - right * (1.9 + b.party.size() * 1.15 + 1.2) - fwd * 0.6
+	for i in defs.size():
+		var d: Array = defs[i]
+		var n: Node3D = Models.place(lv, d[0], Vector3.ZERO, randf() * TAU, 1.0, false, Color(0.75, 0.62, 0.5) if d[0].begins_with("rock") or d[0] == "boulder_01" else Color.WHITE)
+		var box := Models.aabb(n)
+		var sc: float = d[2] * 1.9 / maxf(0.01, maxf(box.size.x, maxf(box.size.y, box.size.z)))   # ×1.9: readable at fight zoom
+		n.scale = Vector3.ONE * sc
+		var at := base + right * ((i % 3) - 1) * 1.0 + fwd * (int(i / 3) * 1.1 + randf_range(-0.1, 0.1))
+		n.global_position = Vector3(at.x, -box.position.y * sc, at.z)
+		n.set_meta("rest_y", n.global_position.y)
+		pile.append({ "node": n, "name": d[1] })
+	b.throwables = pile.map(func(p): return p["name"])
+
 func _throw(from: Unit, to: Unit, thing: String) -> void:
-	var l := Label3D.new()
-	l.text = thing.to_upper()
-	l.font_size = 44
-	l.pixel_size = 0.006
-	l.outline_size = 10
-	l.no_depth_test = true
-	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.modulate = Color("#ffcf4a")
-	lv.add_child(l)
-	var a := from.global_position + Vector3(0, from.height_m * 0.8, 0)
-	var z := to.global_position + Vector3(0, to.height_m * 0.6, 0)
-	l.global_position = a
-	sfx("throw")
-	var tw := create_tween()
-	tw.tween_property(l, "global_position", a.lerp(z, 0.5) + Vector3(0, 1.5, 0), 0.25).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "global_position", z, 0.25).set_ease(Tween.EASE_IN)
+	var pick := -1
+	for i in pile.size():
+		if pile[i]["name"] == thing and is_instance_valid(pile[i]["node"]):
+			pick = i
+			break
+	if pick < 0 and not pile.is_empty():
+		pick = 0
+	if pick < 0:   # no pile (Skorn joined late?): fall back to a floating word
+		_float(to, thing.to_upper(), GOLD, 0.8, 0.2)
+		sfx("throw")
+		await lv.wait(0.4)
+		return
+	var n: Node3D = pile[pick]["node"]
+	pile.remove_at(pick)
+	b.throwables = pile.map(func(p): return p["name"])
+	var hand := from.global_position + Vector3(0, from.height_m * 0.85, 0) + right * 0.25
+	var z := to.global_position + Vector3(0, to.height_m * 0.55, 0)
+	# grab it
+	var tw := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(n, "global_position", hand, 0.2)
 	await tw.finished
-	l.queue_free()
+	sfx("throw")
+	# throw it: arc + spin
+	var spin := Vector3(randf_range(6, 10), randf_range(-4, 4), randf_range(6, 10))
+	var top := hand.lerp(z, 0.5) + Vector3(0, 1.6, 0)
+	tw = create_tween().set_parallel(true)
+	tw.tween_property(n, "rotation", n.rotation + spin, 0.5)
+	var arc := create_tween()
+	arc.tween_property(n, "global_position", top, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	arc.tween_property(n, "global_position", z, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	if throw_test:   # --shots tour: one picture mid-air
+		throw_test = false
+		await lv.wait(0.22)
+		await lv.shot("fight_%s_throw" % key)
+	await arc.finished
+	# smash
+	sfx("hit", 0.8)
+	lv.shake = maxf(lv.shake, 0.25)
+	var pop := create_tween().set_parallel(true)
+	pop.tween_property(n, "scale", n.scale * 1.4, 0.08)
+	pop.chain().tween_property(n, "scale", Vector3.ONE * 0.01, 0.14)
+	await pop.finished
+	n.queue_free()
+	if pile.is_empty():   # Skorn finds more junk
+		_spawn_pile()
+		for p in pile:
+			var pn: Node3D = p["node"]
+			var s0: Vector3 = pn.scale
+			pn.scale = Vector3.ONE * 0.01
+			create_tween().tween_property(pn, "scale", s0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _rally(count: int) -> void:
 	var tex: Texture2D = load("res://assets/characters/goblin.png")
@@ -1380,6 +1449,9 @@ func _ask_67() -> bool:
 var knocked_out: Array = []   # names knocked out when the fight ended (Level.fight tells you they got up at 1 HP)
 
 func _outro(res: String) -> void:
+	for p in pile:   # tidy up the throw pile
+		if is_instance_valid(p["node"]): p["node"].queue_free()
+	pile = []
 	# carry HP back out: damage stays, knocked out = back up at 1 HP (a loss heals everyone in Level._defeat,
 	# and a level up in _results refills everyone)
 	for p in b.party:
@@ -1534,8 +1606,11 @@ func _results(res: String) -> void:
 	var gold := fight_gold(fdef, res)
 	Game.add_gold(gold)
 	var found: Array = []   # gear ids picked up this fight
-	if res == "win" and fdef.has("loot") and Game.give_gear(fdef["loot"]):
-		found.append(fdef["loot"])
+	if res == "win" and fdef.has("loot"):   # one gear id, or a list of them
+		var loot: Array = fdef["loot"] if fdef["loot"] is Array else [fdef["loot"]]
+		for g in loot:
+			if Game.give_gear(g):
+				found.append(g)
 	sfx("ready", 0.9)
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.5; panel.anchor_right = 0.5; panel.anchor_top = 0.5; panel.anchor_bottom = 0.5

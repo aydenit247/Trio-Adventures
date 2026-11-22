@@ -1,6 +1,7 @@
 # The explorable Goblin Village (after the throne scene): six places to poke around.
-#   1 Chief's Hut (room)          2 Unemployment Office & Bar (room)   3 Job Board (outside)
-#   4 Shaman's Tent (room)        5 Spoonsmith (room)                  6 The Outhouse (outside, door only)
+#   1 Chief's Hut (outside only, closed: Asar)  2 Unemployment Office & Bar (room)   3 Job Board (outside, JobBoardUI)
+#   4 Shaman's Tent (room)                      5 The Outhouse (outside, door only)   + a bedroll by the Chief's Hut (rest)
+# (Clank's Spoonsmithy was removed 2026-11-22, Asar. Spoon Mail now drops from the Goblin Patrol.)
 # Rooms are built far off to the side (x = 400+) like the Mart interior; walking through a door fades you there.
 # Everything is PLACEHOLDER art (shapes + reused cutouts) until Ebain sends hut exteriors and room backdrops.
 #
@@ -15,23 +16,22 @@ const FRONT_Z := 4.6
 
 # Outside: where each building sits and where its door is
 const BUILDINGS := {
-	"chief": { "name": "Chief's Hut", "pos": Vector3(-5.5, 0, -14.5), "door": Vector3(-5.2, 0, -12.0), "room": 0 },
+	"chief": { "name": "Chief's Hut", "pos": Vector3(-5.5, 0, -14.5), "door": Vector3(-5.2, 0, -12.0), "room": 0, "closed": true },   # can't go in (Asar)
 	"bar": { "name": "Unemployment Office & Bar", "pos": Vector3(-11.0, 0, -5.0), "door": Vector3(-8.3, 0, -3.9), "room": 1 },
 	"shaman": { "name": "Shaman's Tent", "pos": Vector3(7.0, 0, -15.0), "door": Vector3(6.6, 0, -12.6), "room": 2 },
-	"smith": { "name": "Clank's Spoonsmithy", "pos": Vector3(-11.5, 0, 5.5), "door": Vector3(-9.2, 0, 4.4), "room": 3 },
 }
 const OUTHOUSE_POS := Vector3(12.8, 0, 7.8)
 const BOARD_POS := Vector3(4.2, 0, -4.6)
 const HOUSE_POS := Vector3(10.5, 0, -6.5)
-const SPOONS := [Vector3(-13.6, 0, -1.5), Vector3(8.4, 0, 0.6), Vector3(14.6, 0, 9.2), Vector3(-2.5, 0, -16.8), Vector3(11.8, 0, -10.6)]
+const BEDROLL_POS := Vector3(-2.2, 0, -11.6)       # rest spot by the Chief's Hut (replaces his hay bed)
+const CONDITIONER_POS := Vector3(-1.4, 0, -10.6)   # the Backup Conditioner used to be in the Chief's chest
 
 var lv          # the village (Level)
 var room := ""  # "" = outside, else a BUILDINGS key
 var npc := {}   # name -> Unit
-var chief_outside := Vector3.ZERO
 var gorbo_heckles := 0
 var lore_wrong := 0
-var spoon_nodes := []
+var conditioner_node: Node3D
 var _outdoor := {}   # saved sun/ambient while indoors
 
 func origin(id: String) -> Vector3:
@@ -41,11 +41,10 @@ func origin(id: String) -> Vector3:
 func build() -> void:
 	_outside()
 	for id in BUILDINGS:
-		_room_shell(id)
-	_chief_room()
+		if not BUILDINGS[id].get("closed", false):
+			_room_shell(id)
 	_bar_room()
 	_shaman_room()
-	_smith_room()
 
 func _outside() -> void:
 	var clay := Models.mat("clay_plaster", 2.5)
@@ -79,20 +78,6 @@ func _outside() -> void:
 	lv.add_child(gl)
 	Models.place(lv, "ceramic_pot", sh["door"] + Vector3(1.3, 0, 0.0), 0.5, 1.0)
 	Models.place(lv, "wicker_basket_01", sh["door"] + Vector3(-1.2, 0, 0.3), 0.0, 1.4)
-	# Spoonsmith: stone hut, chimney with smoke, forge glow, an anvil + buckets out front
-	var sm: Dictionary = BUILDINGS["smith"]
-	_round_hut(sm["pos"], 2.3, 2.3, stone, sm["door"])
-	Models.cylinder(lv, sm["pos"] + Vector3(-0.8, 0, -0.9), 0.45, 0.4, 4.2, stone, 10)
-	_smoke(sm["pos"] + Vector3(-0.8, 4.4, -0.9))
-	var fl := OmniLight3D.new()
-	fl.light_color = Color(1.0, 0.5, 0.2)
-	fl.light_energy = 1.6
-	fl.omni_range = 4.5
-	fl.position = sm["door"] + Vector3(0, 1.0, 0.4)
-	lv.add_child(fl)
-	Models.block(lv, sm["door"] + Vector3(1.4, 0.35, 0.6), Vector3(0.7, 0.7, 0.4), Models.mat("metal_plate", 0.6, Color(0.45, 0.45, 0.5)), 0.0, true)
-	Models.place(lv, "cross_pein_hammer", sm["door"] + Vector3(1.4, 0.73, 0.6), 0.0, 1.6).rotation = Vector3(PI / 2.0, 0.4, 0)
-	Models.place(lv, "wooden_bucket_01", sm["door"] + Vector3(-1.1, 0, 0.9), 0.0, 1.0)
 	# Locked house
 	_round_hut(HOUSE_POS, 1.9, 2.1, clay, HOUSE_POS + Vector3(-1.3, 0, 1.6))
 	# Outhouse: weathered planks, a little roof, a door with a moon
@@ -120,12 +105,12 @@ func _outside() -> void:
 	# name signs over every building
 	for id in BUILDINGS:
 		var d: Dictionary = BUILDINGS[id]
-		_label3d(d["name"], d["pos"] + Vector3(0, 4.6 if id != "smith" else 4.9, 0), 40, Color("#f3e3b0"))
+		_label3d(d["name"] + ("\n(Closed)" if d.get("closed", false) else ""), d["pos"] + Vector3(0, 4.6, 0), 40, Color("#f3e3b0"))
 	_label3d("Outhouse (Smells)", OUTHOUSE_POS + Vector3(0, 3.0, 0), 36, Color("#f3e3b0"))
 	_label3d("Goblin House (Locked) (Napping)", HOUSE_POS + Vector3(0, 3.9, 0), 34, Color("#f3e3b0"))
-	# shiny spoons lying around
-	for i in SPOONS.size():
-		spoon_nodes.append(_spoon(SPOONS[i]))
+	_bedroll(BEDROLL_POS)
+	if not Game.flag("conditionerFound"):
+		conditioner_node = Models.place(lv, "pot_enamel_01", CONDITIONER_POS, 0.3, 0.6, false, Color(0.75, 0.9, 1.1))
 
 # A round goblin hut: walls, a thatched cone roof with overhang, a doorway facing `door_to`
 func _round_hut(c: Vector3, r: float, wall_h: float, wall_mat: Material, door_to: Vector3) -> void:
@@ -208,40 +193,6 @@ func _room_shell(id: String) -> void:
 		lv.add_child(l)
 	# doormat by the exit
 	Models.block(lv, o + Vector3(0, 0.02, FRONT_Z - 0.7), Vector3(1.6, 0.03, 0.9), Models.mat("fabric_pattern_05", 0.6, Color(0.7, 0.35, 0.22)))
-
-func _chief_room() -> void:
-	var o := origin("chief")
-	var planks := Models.mat("weathered_planks", 1.2)
-	_label3d("BOGDRINKER MANOR\n(it's a hut)", o + Vector3(0, 4.6, BACK_Z), 46, Color("#ffdf4a"))
-	for x in [-5.5, 5.5]:
-		_quad(o + Vector3(x, 3.0, BACK_Z + 0.05), Vector2(1.0, 2.8), Color(0.6, 0.12, 0.1))
-	# portrait of the Chief, painted by the Chief (his cutout in a gold frame)
-	Models.block(lv, o + Vector3(0, 2.4, BACK_Z + 0.05), Vector3(1.9, 2.3, 0.08), Models.mat("metal_plate", 0.8, Color(1.0, 0.78, 0.35)))
-	var pic := Sprite3D.new()
-	pic.texture = load("res://assets/characters/goblin_chief.png")
-	pic.pixel_size = 2.0 / pic.texture.get_height()
-	pic.shaded = false
-	pic.modulate = Color(1.1, 1.0, 0.9)
-	pic.position = o + Vector3(0, 2.4, BACK_Z + 0.12)
-	lv.add_child(pic)
-	# the belt, on a little plank stand
-	Models.block(lv, o + Vector3(-3.2, 0.6, BACK_Z + 0.6), Vector3(1.2, 1.2, 0.6), planks, 0.0, true)
-	Models.block(lv, o + Vector3(-3.2, 1.45, BACK_Z + 0.6), Vector3(0.9, 0.3, 0.12), Models.mat("metal_plate", 0.5, Color(1.0, 0.8, 0.35)))
-	_label3d("CHUG CHAMP", o + Vector3(-3.2, 1.45, BACK_Z + 0.7), 22, Color(0.2, 0.1, 0.02), false)
-	# royal chest (a real one)
-	Models.place(lv, "treasure_chest", o + Vector3(4.2, 0, BACK_Z + 1.0), 0.0, 1.3, true)
-	# hay bed on a plank frame + crates of royal junk
-	Models.block(lv, o + Vector3(-4.8, 0.15, 0.8), Vector3(2.1, 0.3, 2.7), planks, 0.0, true)
-	Models.block(lv, o + Vector3(-4.8, 0.42, 0.8), Vector3(1.9, 0.25, 2.5), Models.mat("thatch_roof_angled", 0.8, Color(1.1, 1.0, 0.75)))
-	Models.place(lv, "wooden_crate_02", o + Vector3(5.6, 0, 1.6), 0.2, 1.0, true)
-	Models.place(lv, "wooden_crate_01", o + Vector3(5.5, 0.46, 1.6), 0.5, 0.9)
-	Models.place(lv, "wooden_lantern_01", o + Vector3(-2.0, 0, BACK_Z + 0.7), 0.0, 1.0)
-	Models.place(lv, "wooden_lantern_01", o + Vector3(2.2, 0, BACK_Z + 0.7), 0.0, 1.0)
-	# the emergency spoon pile (real spoons)
-	for k in 12:
-		var sp := Models.place(lv, "wooden_spoon", o + Vector3(2.6 + randf_range(-0.55, 0.55), 0.02 + k * 0.012, 1.8 + randf_range(-0.35, 0.35)), randf() * TAU, 1.6)
-		sp.rotation.z = randf_range(-0.2, 0.2)
-	_label3d("Emergency Spoons", o + Vector3(2.6, 0.7, 1.8), 24, Color("#f3e3b0"))
 
 func _bar_room() -> void:
 	var o := origin("bar")
@@ -351,43 +302,6 @@ func _shaman_room() -> void:
 		_box(o + Vector3(-5.0 + k * 1.6, 5.6, BACK_Z + 0.4), Vector3(0.12, 0.9, 0.12), Color(0.3, 0.45, 0.2))
 	npc["wuzzle"] = _goblin("wuzzle", "Shaman Wuzzle (Sees All) (Needs Glasses)", o + Vector3(0, 0, -2.6), 1.2, Color(1.05, 0.8, 1.25))
 
-func _smith_room() -> void:
-	var o := origin("smith")
-	var planks := Models.mat("weathered_planks", 1.2)
-	var stone := Models.mat("rustic_stone_wall", 1.5, Color(0.8, 0.75, 0.72))
-	_label3d("CLANK'S SPOONSMITHY\nSPOONS ONLY. DON'T ASK.", o + Vector3(0, 4.6, BACK_Z), 44, Color("#ffcf9a"))
-	# stone forge with a fire in it
-	Models.block(lv, o + Vector3(-4.2, 0.7, -3.4), Vector3(2.2, 1.4, 1.4), stone, 0.0, true)
-	Models.block(lv, o + Vector3(-4.2, 3.4, -3.8), Vector3(1.2, 4.0, 0.8), stone)
-	var fl := Fx.flames(0.6)
-	fl.position = o + Vector3(-4.2, 1.45, -3.0)
-	lv.add_child(fl)
-	var fo := OmniLight3D.new()
-	fo.light_color = Color(1.0, 0.45, 0.15)
-	fo.light_energy = 3.0
-	fo.omni_range = 6.0
-	fo.position = o + Vector3(-4.2, 2.0, -2.6)
-	lv.add_child(fo)
-	# anvil on a stump-block, hammers on it
-	Models.block(lv, o + Vector3(-1.4, 0.32, -1.6), Vector3(0.6, 0.64, 0.6), planks, 0.0, true)
-	Models.block(lv, o + Vector3(-1.4, 0.75, -1.6), Vector3(1.0, 0.24, 0.42), Models.mat("metal_plate", 0.6, Color(0.45, 0.45, 0.5)))
-	Models.place(lv, "cross_pein_hammer", o + Vector3(-1.2, 0.88, -1.55), 0.0, 1.3).rotation = Vector3(PI / 2.0, 0.6, 0)
-	Models.place(lv, "sledgehammer_01", o + Vector3(-0.5, 0.75, -1.9), 0.3, 1.0)
-	Models.place(lv, "wooden_bucket_01", o + Vector3(-2.6, 0, -1.2), 0.0, 1.0)
-	# spoon rack on the back wall, hung with real spoons
-	Models.block(lv, o + Vector3(3.2, 2.0, BACK_Z + 0.08), Vector3(4.0, 1.8, 0.1), planks)
-	for k in 12:
-		var s := Models.place(lv, "wooden_spoon", o + Vector3(1.6 + k * 0.29, 2.0, BACK_Z + 0.2), 0.0, 2.2)
-		s.rotation = Vector3(-PI / 2.0, 0, randf_range(-0.12, 0.12))
-	_label3d("FOR SALE", o + Vector3(3.2, 3.15, BACK_Z + 0.15), 28, Color("#ffdf8a"))
-	Models.place(lv, "wine_barrel_01", o + Vector3(5.6, 0, 0.2), 0.0, 1.0, true)
-	for k in 6:
-		var s2 := Models.place(lv, "wooden_spoon", o + Vector3(5.6 + randf_range(-0.15, 0.15), 0.9, 0.2 + randf_range(-0.15, 0.15)), randf() * TAU, 2.0)
-		s2.rotation.x = -PI / 2.0 + randf_range(-0.3, 0.3)
-	_label3d("Barrel of Spoons", o + Vector3(5.6, 1.6, 0.2), 24, Color("#f3e3b0"))
-	Models.place(lv, "wooden_crate_02", o + Vector3(5.8, 0, 2.6), 0.0, 1.0, true)
-	npc["clank"] = _goblin("clank", "Clank (Spoonsmith) (Only Makes Spoons)", o + Vector3(-2.4, 0, -2.4), 1.2, Color(0.95, 0.85, 0.75))
-
 # ================================================================ little builders
 func _box(p: Vector3, size: Vector3, c: Color, solid := false) -> void:
 	var m := BoxMesh.new()
@@ -459,37 +373,11 @@ func _goblin(id: String, label: String, p: Vector3, h: float, tint: Color, tex :
 	l.position = Vector3(0, h + 0.3, 0)
 	return u
 
-func _spoon(p: Vector3) -> Node3D:
-	var n := Node3D.new()
-	n.position = p
-	lv.add_child(n)
-	var m := CylinderMesh.new()
-	m.top_radius = 0.03
-	m.bottom_radius = 0.03
-	m.height = 0.45
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.9, 0.9, 0.95)
-	mat.metallic = 0.9
-	mat.roughness = 0.2
-	mat.emission_enabled = true
-	mat.emission = Color(0.9, 0.9, 1.0)
-	mat.emission_energy_multiplier = 0.6
-	Util.add_mesh(n, m, mat, Vector3(0, 0.05, 0), Vector3(PI / 2.0, 0.6, 0))
-	var sp := SphereMesh.new()
-	sp.radius = 0.08
-	sp.height = 0.05
-	Util.add_mesh(n, sp, mat, Vector3(0.12, 0.06, -0.18))
-	var sparkle := CPUParticles3D.new()
-	sparkle.amount = 6
-	sparkle.lifetime = 1.2
-	sparkle.mesh = Fx.quad(0.07, true)
-	sparkle.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	sparkle.emission_sphere_radius = 0.3
-	sparkle.gravity = Vector3(0, 0.3, 0)
-	sparkle.color_ramp = Fx.ramp([[0.0, Color(1, 1, 1, 0)], [0.3, Color(1, 1, 0.8, 1)], [1.0, Color(1, 1, 1, 0)]])
-	sparkle.position = Vector3(0, 0.3, 0)
-	n.add_child(sparkle)
-	return n
+# A bedroll on the ground: a rolled-up blanket and a flat one (rest spot)
+func _bedroll(p: Vector3) -> void:
+	var cloth := Models.mat("fabric_pattern_07", 0.8, Color(0.55, 0.35, 0.25))
+	Models.block(lv, p + Vector3(0, 0.06, 0), Vector3(0.9, 0.12, 1.9), cloth, 0.25)
+	Models.cylinder(lv, p + Vector3(-0.2, 0.0, -0.85), 0.2, 0.2, 0.95, Models.mat("fabric_pattern_07", 0.8, Color(0.7, 0.5, 0.3)), 10).rotation = Vector3(0, 0.25, PI / 2.0)
 
 # ================================================================ walking in and out
 func enter(id: String) -> void:
@@ -502,10 +390,6 @@ func enter(id: String) -> void:
 	for u in lv.npcs:   # goblins following you come in too (the band waits outside the door)
 		if u.has_meta("follow") and u.get_meta("follow") and not u.has_meta("band"):
 			u.global_position = o + Vector3(randf_range(-2, 2), 0, FRONT_Z - 2.0)
-	if id == "chief" and lv.chief.visible and not lv.chief.has_meta("follow"):
-		chief_outside = lv.chief.global_position
-		lv.chief.global_position = o + Vector3(1.2, 0, -2.0)
-		lv.chief.set_meta("at_home", true)
 	_indoor_light(true)
 	lv.cam_locked = true
 	lv.target_yaw = 0.0
@@ -531,9 +415,6 @@ func leave() -> void:
 	for u in lv.npcs:
 		if u.has_meta("follow") and u.get_meta("follow") and not u.has_meta("band"):
 			u.global_position = d["door"] + out * 2.5
-	if lv.chief.has_meta("at_home"):
-		lv.chief.global_position = chief_outside
-		lv.chief.remove_meta("at_home")
 	room = ""
 	_indoor_light(false)
 	lv.cam_locked = false
@@ -572,25 +453,22 @@ func interactables() -> Array:
 	if room == "":
 		for id in BUILDINGS:
 			var d: Dictionary = BUILDINGS[id]
+			if d.get("closed", false):
+				continue
 			list.append({ "id": "door_" + id, "label": d["name"], "verb": "Enter", "pos": d["door"], "h": 2.4, "r": 2.3, "steps": [{ "do": "enter_" + id }] })
 		list.append({ "id": "house", "label": "the door", "verb": "Knock on", "pos": HOUSE_POS + Vector3(-1.3, 0, 1.6), "h": 2.2, "r": 2.2, "steps": R.LOCKED_HOUSE })
 		list.append({ "id": "outhouse", "label": "the Outhouse", "verb": "Check out", "pos": OUTHOUSE_POS + Vector3(0, 0, 0.8), "h": 2.6, "r": 2.0, "steps": R.OUTHOUSE_DONE if _outhouse_all_done() else R.OUTHOUSE })
-		list.append({ "id": "board", "label": "the Job Board", "verb": "Read", "pos": BOARD_POS, "h": 2.6, "r": 2.0, "steps": R.JOB_BOARD })
+		list.append({ "id": "board", "label": "the Job Board", "verb": "Read", "pos": BOARD_POS, "h": 2.6, "r": 2.0, "steps": [{ "do": "job_board" }] })
+		list.append({ "id": "bedroll", "label": "the bedroll", "verb": "Rest on", "pos": BEDROLL_POS, "h": 0.9, "r": 1.6, "rest": true, "steps": [
+			{ "who": "narrator", "line": "Somebody's bedroll. It smells like beezy. You lie down anyway." }, # DRAFT
+		] })
+		if not Game.flag("conditionerFound"):
+			list.append({ "id": "conditioner", "label": "Backup Conditioner", "verb": "Pick up", "pos": CONDITIONER_POS, "h": 0.8, "r": 1.4, "steps": [{ "do": "take_conditioner" }] })
 		list.append({ "id": "grubnik", "label": "Grubnik", "verb": "Talk to", "node": npc["grubnik"], "h": 1.5, "r": 1.6, "steps": _grubnik_steps() })
-		for i in SPOONS.size():
-			if not Game.flag("spoon_%d" % i):
-				list.append({ "id": "spoon_%d" % i, "label": "Shiny Spoon", "verb": "Pick up", "pos": SPOONS[i], "h": 0.7, "r": 1.6, "steps": [R.SHINY_SPOON[0], { "do": "pick_spoon_%d" % i }] })
 		return list
 	var o := origin(room)
 	list.append({ "id": "exit", "label": "outside", "verb": "Go", "pos": o + Vector3(0, 0, FRONT_Z - 0.6), "h": 2.0, "r": 1.4, "steps": [{ "do": "leave_room" }] })
 	match room:
-		"chief":
-			if lv.chief.has_meta("at_home"):
-				list.append({ "id": "chief", "label": "Chief Bogdrinker", "verb": "Talk to", "node": lv.chief, "h": 1.9, "r": 1.9, "steps": R.CHIEF_HOME_AGAIN if Game.flag("chiefHomeSeen") else R.CHIEF_HOME + [{ "do": "chief_home_seen" }] })
-			list.append({ "id": "belt", "label": "the belt", "verb": "Look at", "pos": o + Vector3(-3.2, 0, BACK_Z + 1.2), "h": 2.0, "r": 1.5, "steps": R.BELT })
-			list.append({ "id": "portrait", "label": "the portrait", "verb": "Look at", "pos": o + Vector3(0, 0, BACK_Z + 0.9), "h": 3.8, "r": 1.6, "steps": R.PORTRAIT })
-			list.append({ "id": "chest", "label": "the royal chest", "verb": "Open", "pos": o + Vector3(4.2, 0, BACK_Z + 1.6), "h": 1.4, "r": 1.5, "steps": R.CHEST_EMPTY if Game.flag("chestLooted") else R.CHEST })
-			list.append({ "id": "bed", "label": "the hay bed", "verb": "Lie on", "pos": o + Vector3(-4.8, 0, 2.3), "h": 1.1, "r": 1.6, "steps": R.HAY_BED_AGAIN if Game.flag("xyloNapped") else R.HAY_BED, "rest": true })
 		"bar":
 			list.append({ "id": "sludge", "label": "Sludge", "verb": "Talk to", "node": npc["sludge"], "h": 1.6, "r": 2.2, "steps": _sludge_steps() })
 			list.append({ "id": "gorbo", "label": "Gorbo", "verb": "Watch", "node": npc["gorbo"], "h": 2.0, "r": 2.4, "steps": R.GORBO_AGAIN if Game.flag("gorboSeen") else R.GORBO_SET })
@@ -601,11 +479,6 @@ func interactables() -> Array:
 			var steps: Array = R.WUZZLE_DONE if Game.flag("loreOffWon") else (R.WUZZLE_MENU if Game.flag("loreOffOpen") else R.WUZZLE_FIRST + R.WUZZLE_MENU)
 			list.append({ "id": "wuzzle", "label": "Shaman Wuzzle", "verb": "Talk to", "node": npc["wuzzle"], "h": 1.7, "r": 2.4, "steps": steps })
 			list.append({ "id": "ball", "label": "the crystal ball", "verb": "Look into", "pos": o + Vector3(0, 0, -0.4), "h": 1.7, "r": 1.3, "steps": R.CRYSTAL_BALL })
-		"smith":
-			var cs: Array = R.CLANK_FIRST if not Game.flag("smithMet") else (R.CLANK_DONE if int(Game.flags.get("spoons_turned", 0)) >= SPOONS.size() else R.CLANK_TURN_IN)
-			list.append({ "id": "clank", "label": "Clank", "verb": "Talk to", "node": npc["clank"], "h": 1.7, "r": 2.0, "steps": cs })
-			list.append({ "id": "forge", "label": "the forge", "verb": "Look at", "pos": o + Vector3(-4.2, 0, -2.2), "h": 1.9, "r": 1.6, "steps": R.FORGE })
-			list.append({ "id": "rack", "label": "the spoon rack", "verb": "Look at", "pos": o + Vector3(3.2, 0, BACK_Z + 1.0), "h": 3.2, "r": 1.6, "steps": R.SPOON_RACK })
 	return list
 
 func _sludge_steps() -> Array:
@@ -635,12 +508,8 @@ func _skorn_here() -> bool:
 
 # ================================================================ per frame
 func process(_delta: float) -> void:
-	for i in spoon_nodes.size():
-		var n: Node3D = spoon_nodes[i]
-		if n.visible and Game.flag("spoon_%d" % i):
-			n.visible = false
-		elif n.visible:
-			n.rotation.y += _delta * 1.5
+	if conditioner_node and conditioner_node.visible and Game.flag("conditionerFound"):
+		conditioner_node.visible = false
 
 # ================================================================ actions from the dialogue
 func reward(xp: int, msg := "") -> void:
@@ -660,33 +529,17 @@ func on_action(n: String) -> void:
 	if n.begins_with("enter_"):
 		await enter(n.substr(6))
 		return
-	if n.begins_with("pick_spoon_"):
-		var i := int(n.substr(11))
-		Game.set_flag("spoon_%d" % i)
-		Game.flags["spoons_found"] = int(Game.flags.get("spoons_found", 0)) + 1
-		if not Game.key_owner.has("shiny_spoon"):
-			Game.key_owner["shiny_spoon"] = Game.active_fighter
-		reward(0, "Shiny Spoon (%d / %d)" % [Game.flags["spoons_found"], SPOONS.size()])
-		await lv.wait(0.3)
-		return
 	match n:
 		"leave_room":
 			await leave()
-		# ---- Chief's Hut
-		"chief_home_seen":
-			Game.set_flag("chiefHomeSeen")
+		"job_board":
+			await JobBoardUI.show_board(lv, self)
+		# ---- by the Chief's Hut (the hut itself is closed)
 		"take_conditioner":
-			Game.set_flag("chestLooted")
+			Game.set_flag("conditionerFound")
 			Game.add_item("conditioner", 1, "lykor")
-			reward(10, "Got: Backup Conditioner (use it in your inventory for +15 max HP)")
+			reward(10, "Lykor got: Backup Conditioner (use it in your inventory for +15 max HP)")
 			await lv.wait(0.6)
-		"xylo_nap":
-			Game.set_flag("xyloNapped")
-			await lv.fade_out(0.6)
-			await lv.wait(1.2)
-			lv.fade_in(0.6)
-			reward(10)
-			await lv.wait(0.5)
 		# ---- Bar
 		"start_bar_tab":
 			Game.set_flag("barTabStarted")
@@ -775,12 +628,6 @@ func on_action(n: String) -> void:
 			Game.finish_quest("lore_off")
 			reward(40, "Got: Deloye Lore Vol. 9 (Signed) (read it in your inventory for +15% meter gain)")
 			await lv.wait(0.5)
-		# ---- Spoonsmith
-		"start_shiny_spoons":
-			Game.set_flag("smithMet")
-			Game.start_quest("shiny_spoons", R.QUESTS["shiny_spoons"][0], R.QUESTS["shiny_spoons"][1])
-		"smith_turn_in":
-			await _smith_turn_in()
 		# ---- Outhouse
 		"outhouse_check":
 			Game.set_flag("outhouseSkorn", _skorn_here() and not Game.flag("outhouseSkornDone"))
@@ -824,38 +671,6 @@ func _outhouse_trip(id: String) -> void:
 	u.visible = true
 	lv.hop(u, 0.4)
 	lv.dialogue.show_box()
-
-func _smith_turn_in() -> void:
-	var found := int(Game.flags.get("spoons_found", 0))
-	var turned := int(Game.flags.get("spoons_turned", 0))
-	if found <= turned:
-		await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "No new spoons? Look around. Behind huts. By the fire. Near the outhouse. Wash that one." }]) # DRAFT
-		return
-	Game.flags["spoons_turned"] = found
-	await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "%d spoons! Beautiful. Each one a little shinier than the last. Let me work…" % found }]) # DRAFT
-	lv.dialogue.hide_box()
-	for k in 4:
-		var p: AudioStreamPlayer = lv._sfx(Util.chime(1200.0 + k * 80.0, 160, 0.3), -6.0)
-		p.play()
-		get_tree().create_timer(0.5).timeout.connect(p.queue_free)
-		lv.hop(npc["clank"], 0.2)
-		await lv.wait(0.35)
-	lv.dialogue.show_box()
-	if turned < 3 and found >= 3:
-		if Game.give_gear("spoon"):
-			reward(20, "Got: Spoon of Destiny (+10% damage)")
-			await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "The Spoon of Destiny. I forged destiny into a spoon. It's still a spoon." }]) # DRAFT
-		else:
-			var who2 := Game.add_item("bowl", 2)
-			reward(20, "%s got: Chipotle Bowl ×2" % who2.capitalize())
-			await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "You already got the Spoon of Destiny? Fine. I made you two bowls. They're spoon-shaped. Don't ask." }]) # DRAFT
-	if turned < 5 and found >= 5:
-		Game.give_gear("spoon_mail")
-		Game.finish_quest("shiny_spoons")
-		reward(30, "Got: Spoon Mail Armor (+3 armor)")
-		await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "SPOON MAIL. Armor made of spoons. Every time you get hit it goes 'clink.' That's the sound of protection." }]) # DRAFT
-	elif found < 5:
-		await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "Bring me %d more and I'll make you armor. Spoon armor. The best armor. The only armor I make." % (SPOONS.size() - found) }]) # DRAFT
 
 # ================================================================ automated tour (VILLAGE_TOUR=buildings)
 func find_it(id: String) -> Dictionary:
@@ -909,13 +724,8 @@ func tour() -> void:
 		await lv.shot("b_00_village")
 		await auto_talk("board", [], "b_01_board", 2)
 		await auto_talk("grubnik", [], "b_02_grubnik", 2)
-		await auto_talk("door_chief")
-		await lv.wait(1.0)
-		await lv.shot("b_03_chief_room")
-		await auto_talk("chief", [], "b_04_chief", 1)
-		await auto_talk("chest", [], "b_05_chest", 2)
-		await auto_talk("bed")
-		await auto_talk("exit")
+		await auto_talk("conditioner", [], "b_03_conditioner", 1)
+		await auto_talk("bedroll", [], "b_04_bedroll", 1)
 		await auto_talk("door_bar")
 		await lv.wait(1.0)
 		await lv.shot("b_06_bar_room")
@@ -931,15 +741,6 @@ func tour() -> void:
 		await lv.shot("b_11_shaman_room")
 		await auto_talk("wuzzle", [1, 0, 1, 2], "b_12_wuzzle", 2)
 		await auto_talk("ball")
-		await auto_talk("exit")
-		for i in SPOONS.size():
-			await auto_talk("spoon_%d" % i)
-		await lv.shot("b_13_spoons")
-		await auto_talk("door_smith")
-		await lv.wait(1.0)
-		await lv.shot("b_14_smith_room")
-		await auto_talk("clank", [], "b_15_clank", 2)
-		await auto_talk("clank")
 		await auto_talk("exit")
 		await auto_talk("outhouse", [0], "b_16_outhouse", 1)
 		await auto_talk("outhouse", [0])

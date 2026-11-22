@@ -379,9 +379,21 @@ func _resume(r: Dictionary) -> void:
 	await super._resume(r)
 
 func _leave_camp() -> void:
+	if Game.flag("campDone"):   # walked back here earlier: just head on to the village (no leaving scene again)
+		busy = true
+		await fade_out(0.6)
+		Game.travel("res://village.tscn", "camp", leader.id)
+		return
 	await run_dialogue(CampScript.LEAVE)
+	Game.set_flag("campDone")
 	await fade_out(1.0)
 	Game.goto("res://village.tscn")
+
+# walking back from the village: arrive at the top of the north path, facing back into camp
+func arrival(from: String) -> Array:
+	if from == "village":
+		return [EXIT_POS + Vector3(0, 0, 6.5), Vector3(0, 0, 1)]
+	return super.arrival(from)
 
 func _begin() -> void:
 	busy = true

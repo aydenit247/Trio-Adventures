@@ -17,3 +17,13 @@ game scripts, Ebain (and Asar) set each character's voice and each line's delive
 - **Reworded a line?** Its old voice file stops matching, and the line goes back to the robot voice until it's regenerated.
   The studio picks up script changes from GitHub (see its README).
 - Asar's 37 goblin/Chief recordings were removed on 2026-11-21 (Ebain's call).
+
+## Skorn lines still on the robot voice (checked 2026-11-22, Asar)
+These have no generated file yet, so they fall back to TTS. Generate + approve them in the studio and re-import:
+- camp: "Man, it's about cold as a motherfucker." · "Good thing I got the fire going though." · "Bunch of squiggly ass lines." ·
+  "I'm not tired. I'm finna stay up and guard the fire." · "From… other fires." · "Metocin Mattias? What are you doing here?"
+  (also used in the Pass)
+- mart: "Bro, it's a store. You feel a store?"
+- village: "Send your biggest guy." · "BOOOO. GET A JOB." · "BOOOO. Ain't nobody dumb enough to pay twenty spoons for a
+  receipt." · "Say less. We'll get your spoon, lil bro." · "Bro it's just a mirror ball." · "Found a Chipotle Bowl in
+  there. It was sealed. Don't worry about it." · "Smart." · "Don't worry about me. I'm a king now. I got spoons."
