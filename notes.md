@@ -1,11 +1,10 @@
 # Notes
 
-Quick notes and workshop ideas from Ebain. These are not claimed work — possible tasks for collab.md.
+Quick notes and workshop ideas from Ebain. These are not claimed work, they're possible tasks to be put on collab.md. Remove them when done and change it into weekly summary
 
 ## Open
 
 - **Metocy Mart shop**: Add buyable things at Metocy Mart. *(Asar: skip for now.)*
-- **Dialogue mute after skip feels clunky**: Skipping a line currently mutes the next one (crash-fix workaround). Want a more seamless solution.
 - **Building / Metocy Mart labels in Goblin Village**: Text labels are clunky and get blocked by structures. Better system needed (physical signs, different placement/UI, etc.).
 - **Lykor blocking Skorn at the throne**: When Skorn gets crowned, Lykor is standing in the way.
 - **Music non-loop option**: Let any song stop looping after the current playthrough (goblin village song gets annoying).
@@ -21,4 +20,4 @@ Quick notes and workshop ideas from Ebain. These are not claimed work — possib
 
 ## Done (summarized)
 
-- Status hover tooltips, Lykor Mog + "on some type shi" close-ups, sleeping Diddy Chud Giant (smooth wake-up), Metocy Map in inventory, Skorn facing direction, HP carries between fights + rest spots.
+- Status hover tooltips, Lykor Mog + "on some type shi" close-ups, sleeping Diddy Chud Giant (smooth wake-up), Metocy Map in inventory, Skorn facing direction, HP carries between fights + rest spots, voice no longer goes quiet after skipping a line (11/22).

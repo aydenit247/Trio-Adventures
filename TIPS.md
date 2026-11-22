@@ -49,7 +49,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Save files use `FileAccess.store_var/get_var`, not JSON: JSON turns ints into floats, and a float array index
   crashes.
 - [asar] **Never call `DisplayServer.tts_stop()` or speak with `interrupt=true`.** On Windows it can deadlock the whole
-  game. Use `dialogue.stop_voice()` (stops recordings only).
+  game. Use `dialogue.stop_voice()` (stops recordings, clears the robot's queue).
+- [asar] **The robot voice speaks one sentence at a time** from `_tts_queue` in dialogue.gd, so a skip only waits out
+  the current sentence. Always go through `dialogue._speak()`; calling `DisplayServer.tts_speak` yourself skips the
+  queue and talks over it. Test the queue headless with `res://tools/test_skip_voice.tscn` (fake TTS).
 - [asar] Voice lines match by line text. **Reword a voiced line and it silently goes back to TTS** until it's regenerated.
 
 ## Testing tricks
