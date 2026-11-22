@@ -22,6 +22,7 @@ var lv: Node
 var state := "silent"                  # silent / full / ducked / out: what it's aiming for (tests + dev)
 var gain_db := 0.0                     # extra volume set by the area each frame (village: 0 while the goblin band plays, -60 when it's gone)
 var _since_dialogue := 99.0
+var played_once := false               # Settings → Music: Play once, and the song has finished: stay quiet
 
 func _ready() -> void:
 	lv = get_parent()
@@ -29,6 +30,11 @@ func _ready() -> void:
 	player.stream = track
 	player.volume_db = SILENT
 	add_child(player)
+	player.finished.connect(func(): played_once = true)
+	if Game.music_once and track is AudioStreamOggVorbis:   # play it through once, no loop
+		var once: AudioStreamOggVorbis = track.duplicate()
+		once.loop = false
+		player.stream = once
 
 func _process(delta: float) -> void:
 	if track == null:
@@ -44,6 +50,9 @@ func _process(delta: float) -> void:
 		"ducked": target = maxf(SILENT, duck_db + gain_db)
 	# the song starts the first time it's wanted (so it begins at the top when free roam opens), then never stops
 	if not player.playing:
+		if played_once:   # Music: Play once, and it's done
+			state = "done"
+			return
 		if state == "full" or state == "ducked":
 			player.play()
 		else:

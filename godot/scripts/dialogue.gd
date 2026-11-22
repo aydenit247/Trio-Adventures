@@ -23,6 +23,8 @@ signal _next
 signal _picked(i: int)
 
 var active := false
+var can_leave := false   # optional conversations: Esc ends them (Asar). Set by Level.start, never in story scenes.
+var left := false        # true when the last conversation was ended with Esc
 var tts_on := true
 var panel: PanelContainer
 var portrait: TextureRect
@@ -118,6 +120,8 @@ func _build() -> void:
 	col.add_child(hint)
 
 func run(steps: Array, ctx: Node) -> void:
+	left = false
+	hint.text = "E / Space  >     Esc: leave" if can_leave else "E / Space  >"
 	active = true
 	panel.visible = true
 	panel.modulate.a = 0.0
@@ -129,11 +133,15 @@ func run(steps: Array, ctx: Node) -> void:
 
 func _run_steps(steps: Array, ctx: Node) -> void:
 	for s in steps:
+		if left:   # Esc: stop here (the rest of the conversation, and anything it would have started, is skipped)
+			return
 		if s.has("do"):
 			await ctx.do_action(s["do"])
 		elif s.has("choice"):
 			var opts: Array = s["choice"].filter(func(o): return not o.has("if") or Game.flag(o["if"]))
 			var i: int = await ask(opts)
+			if i < 0:
+				return
 			await _run_steps(opts[i]["steps"], ctx)
 		elif s.has("if"):
 			if Game.flag(s["if"]):
@@ -221,6 +229,17 @@ func _clear_choices() -> void:
 
 func _unhandled_input(ev: InputEvent) -> void:
 	if not active:
+		return
+	if can_leave and not left and (ev.is_action_pressed("pause") or ev.is_action_pressed("ui_cancel")):
+		left = true
+		stop_voice()
+		if not _choices.is_empty():
+			_picked.emit(-1)
+		else:
+			if _typing and _typing.is_running():
+				_typing.kill()
+			_next.emit()
+		get_viewport().set_input_as_handled()
 		return
 	if not _choices.is_empty():
 		if ev.is_action_pressed("ui_up") or ev.is_action_pressed("move_forward"):

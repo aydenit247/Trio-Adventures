@@ -122,6 +122,14 @@ func _build_level() -> void:
 		Models.place(self, "dry_branches_medium_01", p, randf() * TAU, 1.1, false, burnt)
 	_ash()
 	_walls()
+	card("campfire", 1.0, REST_POS)   # the rest spot
+	var rest_light := OmniLight3D.new()
+	rest_light.light_color = Color(1.0, 0.6, 0.3)
+	rest_light.light_energy = 1.4
+	rest_light.omni_range = 4.0
+	rest_light.position = REST_POS + Vector3(0, 0.8, 0)
+	add_child(rest_light)
+	add_glow(REST_POS, Color(1.0, 0.6, 0.3), 3.5, func(): return 1.0)
 	mattias = spawn_npc("mattias", "Metocin Mattias", "mattias", 1.95, Vector3(0, 0, 0.5))
 	mattias.visible = false
 	mattias.set_meta("tint", Color(0.75, 0.85, 1.15))
@@ -353,8 +361,12 @@ func map_extra() -> Array:
 func map_skip(u: Unit) -> bool:
 	return u == giant
 
+const REST_POS := Vector3(-4.6, 0, 8.6)   # an abandoned campfire just inside the pass (Asar: heal before the giant)
+
 func _level_interactables() -> Array:
-	return []
+	return [{ "id": "rest_fire", "label": "the campfire", "verb": "Rest at", "pos": REST_POS, "h": 1.2, "r": 2.2, "rest": true, "steps": [
+		{ "who": "narrator", "line": "Somebody left a campfire going. In a lava canyon. Bold. You warm up anyway." }, # DRAFT
+	] }]
 
 # ---------------------------------------------------------------- story
 func _begin() -> void:

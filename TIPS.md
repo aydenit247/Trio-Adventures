@@ -122,6 +122,15 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   Battle starts from `o.hurt`; `BattleView._outro` writes it back (knocked out → 1 HP). Full heal on level up
   (`add_xp`), after a loss (`Level._defeat`) and at rest spots: give an interactable `"rest": true` (camp fire, village
   campfire, the bedroll by the Chief's Hut). Beezy/Bowl heal outside fights from Tab (E or right-click). Mart and Pass have no rest spot.
+- [asar] **Signs, not floating labels:** use `lv.wood_sign(id, "TEXT\nLINE 2", pos, yaw, width, height, post)` for names in
+  the world. Text auto-fits (no wrapping, add your own line breaks). `assets/signs/<id>.png` replaces it with art.
+- [asar] **Esc ends optional talks:** `Level.start()` sets `dialogue.can_leave` when `free_roam()` is true (areas override;
+  default = `can_resume()`), unless the interactable has `"major": true`. Leaving skips the rest of the steps, including
+  `do` actions, so don't put must-happen bookkeeping at the end of an optional talk.
+- [asar] **Skorn crowned:** `skornKing` = he took the crown; `skornAway` = he's on the throne right now (until the Mart).
+  Use `skornAway` to pick who speaks in the village, `skornKing` for lines about him being king.
+- [asar] **Music: Play once** (`Game.music_once`, Settings): AreaMusic plays a non-looping copy and sets `played_once`;
+  the village band packs up when that happens.
 - [asar] **Walking between areas:** a new area that should be revisitable needs `can_resume_saved()` (its "finished"
   flag), `_resume(r)` (rebuild free roam, then `await super._resume(r)`), `back_exit()` and `arrival(from)`. Keep arrival
   spots out of exit triggers and away from roaming enemies (arriving next to the Goblin Patrol started a fight).

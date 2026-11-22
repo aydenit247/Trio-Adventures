@@ -42,6 +42,7 @@ func _configure() -> void:
 	party_ids = ["lykor", "xylo", "skorn"]
 	party_start = [Vector3(0, 0, 27), Vector3(-1.0, 0, 29), Vector3(1.0, 0, 29)]
 	if not Game.title_mode:
+		Game.set_flag("skornAway", Game.flag("skornKing") and not Game.flag("martDone"))   # who's around to talk (village_rooms_script)
 		Game.set_flag("campDone")   # reaching the village means camp is finished (also fixes older saves)
 	bounds = Rect2(-21, -22, 57, 55)   # x -21..36 (exit east at x = 30), z -22..33 (entrance road at z = 27-29)
 	leader_id = "lykor"
@@ -145,15 +146,7 @@ func _build_village() -> void:
 	Util.static_box(self, Vector3(9.0, 0.3, 4.6), Vector3(1.6, 0.6, 0.5), -0.4)
 	card("sign", 2.6, Vector3(13.5, 0, -4.2))
 	Util.static_cyl(self, Vector3(13.2, 0, -4.2), 0.2)
-	var s := Label3D.new()   # nailed-on note, since the sign is in runes
-	s.text = "METOCY MART →\n(probably)"
-	s.font_size = 40
-	s.pixel_size = 0.005
-	s.modulate = Color(0.15, 0.08, 0.03)
-	s.outline_size = 0
-	s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-	s.position = Vector3(13.5, 0.75, -4.0)
-	add_child(s)
+	wood_sign("sign_metocy_mart", "METOCY MART →\n(PROBABLY)", Vector3(14.6, 1.35, -2.9), -0.35, 1.6, 0.65, true)   # facing the village, arrow east
 
 func _bone(parent: Node3D, pos: Vector3, yaw: float, size: float, m: Material) -> void:
 	var b := Node3D.new()
@@ -198,7 +191,7 @@ func _build_throne() -> void:
 		_bone(root, p, rng.randf() * TAU, rng.randf_range(0.8, 1.15), bone)
 	_bone(root, Vector3(-0.9, 0.09, 1.2), 0.9, 0.9, bone)   # one crossed over another, for that throne-room look
 	Util.static_box(self, THRONE_POS + Vector3(0, 0.6, -0.3), Vector3(1.4, 1.2, 1.0))
-	char_label(root, "Throne (Spoons, Bones, 1 Wheel)", -1.0, 3.3)
+	wood_sign("sign_throne", "THRONE\n(SPOONS, BONES, 1 WHEEL)", THRONE_POS + Vector3(0, 0.62, 0.62), 0.0, 1.35, 0.5)   # plaque on the base
 
 # ---------------------------------------------------------------- per frame
 func _level_process(_delta: float) -> void:
@@ -206,6 +199,8 @@ func _level_process(_delta: float) -> void:
 	vb.process(_delta)
 	if band:
 		$Music.gain_db = band.gain_db   # the village song only plays while the band is with you
+		if $Music.played_once and band.state == "playing" and not busy:   # Music: Play once, song's over: the band packs up
+			band.leave()
 	if not roam_group.is_empty() and roam_group["done"] and not Game.flag("luckySpoonFound"):
 		Game.set_flag("luckySpoonFound")
 		Game.key_owner["lucky_spoon"] = Game.active_fighter
@@ -559,6 +554,7 @@ func _wake_outside() -> void:
 # ---- C: crown Skorn
 func _crown_skorn() -> void:
 	Game.set_flag("skornKing")
+	Game.set_flag("skornAway")   # he's on the throne now (not in the party) until the Mart
 	var sk := _member("skorn")
 	# Lykor gets off the throne FIRST and stands to its left (Asar: he used to stay on the seat, right on top of Skorn).
 	# Left side, because the Chief stands on the right and Xylo further left in front.
@@ -677,6 +673,9 @@ func bounds_exempt() -> bool:
 # ---------------------------------------------------------------- saves: resume village free roam
 func can_resume() -> bool:
 	return stage == "after" and vb.room == ""
+
+func free_roam() -> bool:   # inside the buildings counts too (Esc can end side conversations there)
+	return stage == "after"
 
 func can_resume_saved() -> bool:
 	return Game.flag("villageOpen")

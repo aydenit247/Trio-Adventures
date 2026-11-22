@@ -255,6 +255,9 @@ static func open_settings(parent: Node) -> MenuUI:
 				if lv and "dialogue" in lv and lv.dialogue:
 					lv.dialogue.tts_on = Game.tts_on
 				changed.call() },
+		{ "text": func(): return "Music:  < %s >" % ("Play once" if Game.music_once else "Loop"),
+		  "change": func(_d): Game.music_once = not Game.music_once; changed.call(),
+		  "note": "Play once: an area's song plays through one time, then it's quiet until you come back." },
 		{ "text": func(): return "Text speed:  < %s >" % Game.TEXT_SPEED[Game.text_speed],
 		  "change": func(d): Game.text_speed = (Game.text_speed + d + 4) % 4; changed.call() },
 		{ "text": func(): return "Window:  < %s >" % ("Fullscreen" if Game.fullscreen else "Windowed"),

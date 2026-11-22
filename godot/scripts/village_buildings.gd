@@ -95,19 +95,28 @@ func _outside() -> void:
 		var q := QuadMesh.new()
 		q.size = Vector2(randf_range(0.22, 0.34), randf_range(0.26, 0.38))
 		Util.add_mesh(lv, q, Util.mat(paper * randf_range(0.85, 1.0)), BOARD_POS + Vector3(-0.65 + k * 0.22, 1.35 + randf_range(-0.25, 0.25), 0.05), Vector3(0, 0, randf_range(-0.2, 0.2)))
-	_label3d("JOB BOARD", BOARD_POS + Vector3(0, 2.05, 0.06), 34, Color("#ffdf8a"))
+	lv.wood_sign("job_board", "JOB BOARD", BOARD_POS + Vector3(0, 2.12, 0.06), 0.0, 1.7, 0.42)
 	npc["grubnik"] = _goblin("grubnik", "Grubnik (Lost His Lucky Spoon)", BOARD_POS + Vector3(1.3, 0, 0.9), 1.05, Color(0.9, 1.0, 0.85))
 	# little bits of village life
 	Models.place(lv, "wooden_crate_01", Vector3(2.0, 0, 6.2), 0.6, 1.0, true)
 	Models.place(lv, "wooden_bucket_01", Vector3(7.8, 0, 4.4), 0.0, 1.0)
 	Models.place(lv, "wine_barrel_01", Vector3(-7.4, 0, 7.6), 0.0, 1.0, true)
 	Models.place(lv, "wooden_crate_02", Vector3(9.0, 0, -9.6), 1.1, 1.0, true)
-	# name signs over every building
+	# wooden name signs (Asar): over each hut's door, facing out the way the door does; the tent gets one on a post
+	const SIGN_TEXT := { "chief": "CHIEF'S HUT\n(CLOSED)", "bar": "UNEMPLOYMENT\nOFFICE & BAR", "shaman": "SHAMAN'S\nTENT" }
 	for id in BUILDINGS:
 		var d: Dictionary = BUILDINGS[id]
-		_label3d(d["name"] + ("\n(Closed)" if d.get("closed", false) else ""), d["pos"] + Vector3(0, 4.6, 0), 40, Color("#f3e3b0"))
-	_label3d("Outhouse (Smells)", OUTHOUSE_POS + Vector3(0, 3.0, 0), 36, Color("#f3e3b0"))
-	_label3d("Goblin House (Locked) (Napping)", HOUSE_POS + Vector3(0, 3.9, 0), 34, Color("#f3e3b0"))
+		var out: Vector3 = d["door"] - d["pos"]
+		out.y = 0.0
+		out = out.normalized()
+		var yaw := atan2(out.x, out.z)
+		if id == "shaman":   # cloth tent: a sign on a post beside the door
+			lv.wood_sign("sign_" + id, SIGN_TEXT[id], d["door"] + out * 0.6 + Vector3(out.z, 0, -out.x) * 1.9 + Vector3(0, 1.6, 0), yaw, 1.6, 0.75, true)
+		else:
+			lv.wood_sign("sign_" + id, SIGN_TEXT[id], d["door"] + out * 0.12 + Vector3(0, 2.8, 0), yaw, 2.2, 0.8)
+	lv.wood_sign("sign_outhouse", "OUTHOUSE\n(SMELLS)", OUTHOUSE_POS + Vector3(0, 2.0, 0.7), 0.0, 1.1, 0.5)
+	var hd: Vector3 = (HOUSE_POS + Vector3(-1.3, 0, 1.6) - HOUSE_POS).normalized()
+	lv.wood_sign("sign_goblin_house", "DO NOT DISTURB\n(NAPPING)", HOUSE_POS + Vector3(-1.3, 0, 1.6) + hd * 0.1 + Vector3(0, 2.45, 0), atan2(hd.x, hd.z), 1.6, 0.6)
 	_bedroll(BEDROLL_POS)
 	if not Game.flag("conditionerFound"):
 		conditioner_node = Models.place(lv, "pot_enamel_01", CONDITIONER_POS, 0.3, 0.6, false, Color(0.75, 0.9, 1.1))

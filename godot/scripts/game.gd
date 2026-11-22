@@ -384,6 +384,7 @@ var fullscreen := false
 var vsync := true
 var quality := 2                  # 0 Low · 1 Medium · 2 High
 var text_speed := 1               # index into TEXT_SPEED
+var music_once := false           # Settings → Music: play each area song once instead of looping (Ebain's note)
 var cam_speed := 1.0              # camera turn speed multiplier (0.4 .. 2.0)
 
 func _ready() -> void:
@@ -412,6 +413,7 @@ func load_settings() -> void:
 	vsync = cf.get_value("display", "vsync", vsync)
 	quality = cf.get_value("display", "quality", quality)
 	text_speed = cf.get_value("game", "text_speed", text_speed)
+	music_once = cf.get_value("audio", "music_once", music_once)
 	cam_speed = cf.get_value("game", "cam_speed", cam_speed)
 	difficulty = cf.get_value("game", "difficulty", difficulty)
 	timed_auto = cf.get_value("game", "timed_auto", timed_auto)
@@ -425,6 +427,7 @@ func save_settings() -> void:
 	cf.set_value("display", "vsync", vsync)
 	cf.set_value("display", "quality", quality)
 	cf.set_value("game", "text_speed", text_speed)
+	cf.set_value("audio", "music_once", music_once)
 	cf.set_value("game", "cam_speed", cam_speed)
 	cf.set_value("game", "difficulty", difficulty)
 	cf.set_value("game", "timed_auto", timed_auto)

@@ -71,7 +71,7 @@ func _logo() -> void:
 	var t := _lbl("TRIO ADVENTURES", 84, Color("#e8b923"), 18)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(t)
-	var st := _lbl("Chapter 1 — The Quest for the Metocy", 26, Color("#f3e3b0"), 8)
+	var st := _lbl("", 26, Color("#f3e3b0"), 8)   # (the chapter title now shows once when a new game starts, camp._chapter_card)
 	st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(st)
 	t.modulate.a = 0.0

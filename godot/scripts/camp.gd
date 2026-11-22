@@ -395,9 +395,41 @@ func arrival(from: String) -> Array:
 		return [EXIT_POS + Vector3(0, 0, 6.5), Vector3(0, 0, 1)]
 	return super.arrival(from)
 
+# Shown once when a new game starts (Ebain's note: off the main menu, on at the start instead)
+func _chapter_card() -> void:
+	title_box.visible = false
+	minimap.visible = false
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fade.add_child(box)   # on top of the black fade-in (the hud sits under it)
+	var cz := FontVariation.new()
+	cz.base_font = load("res://assets/fonts/Cinzel.ttf")
+	cz.variation_embolden = 0.8
+	var a := _label("CHAPTER 1", Vector2.ZERO, 30, Color("#c9c0e8"), 6)
+	var b := _label("The Quest for the Metocy", Vector2.ZERO, 56, Color("#e8b923"), 10)
+	for l in [a, b]:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.add_theme_font_override("font", cz)
+		l.modulate.a = 0.0
+		box.add_child(l)
+	var tw := create_tween()
+	tw.tween_property(a, "modulate:a", 1.0, 0.6)
+	tw.tween_property(b, "modulate:a", 1.0, 0.8)
+	tw.tween_interval(1.8 if not shots_mode else 0.2)
+	tw.set_parallel(true)
+	tw.tween_property(a, "modulate:a", 0.0, 0.7)
+	tw.tween_property(b, "modulate:a", 0.0, 0.7)
+	await tw.finished
+	box.queue_free()
+	title_box.visible = true
+	minimap.visible = true
+
 func _begin() -> void:
 	busy = true
 	fade.color.a = 1.0
+	await _chapter_card()
 	zoom = 17.0
 	yaw = 0.9
 	target_yaw = 0.9

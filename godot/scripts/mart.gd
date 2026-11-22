@@ -878,6 +878,9 @@ func _leave() -> void:
 func can_resume() -> bool:
 	return stage == "after" and not inside
 
+func free_roam() -> bool:
+	return stage == "after"
+
 func can_resume_saved() -> bool:
 	return Game.flag("martDone")
 

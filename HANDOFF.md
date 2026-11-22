@@ -210,6 +210,12 @@ as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funn
 roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`,
 `goblin_patrol` (roaming, village east road).
 
+### Polish (Asar 11/22)
+Village names are wooden signs (`Level.wood_sign`, art goes in `assets/signs/`, list in ASSETS_NEEDED.md). Esc ends optional
+conversations in free roam (`dialogue.can_leave`, `Level.free_roam()`). The chapter title shows once at New Game
+(`camp._chapter_card`) instead of on the title screen. Settings → Music: Loop / Play once (`Game.music_once`). The Pass has
+a rest campfire near the entrance.
+
 ### Walking between areas (Asar 11/22)
 Once an area is finished you can walk back: Pass → Mart → Village → Camp (each area's start edge has a "Back to …"
 sign), and walking forward into a finished area drops you into free roam instead of replaying it. `Game.travel(scene,

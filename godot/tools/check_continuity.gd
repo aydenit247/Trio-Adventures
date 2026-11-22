@@ -21,7 +21,7 @@ func _init():
 	var R = load("res://scripts/village_rooms_script.gd")
 	var paths := {
 		"A speech": {}, "B chug won": { "chugWon": true }, "B chug lost": { "foreheadLoser": true },
-		"C Skorn king": { "skornKing": true }, "D sneak": { "goblinAllies": true }, "E dethroned": { "lykorDethroned": true },
+		"C Skorn king": { "skornKing": true, "skornAway": true }, "D sneak": { "goblinAllies": true }, "E dethroned": { "lykorDethroned": true },
 	}
 	var bad := 0
 	for pname in paths:

@@ -3,7 +3,8 @@
 # Named goblins use who="goblin" + "name" (one-off speaker names, goblin portrait).
 #
 # CONTINUITY: the village opens after every throne choice, so lines here must fit all of them:
-#   A speech · B chug (chugWon / foreheadLoser) · C Skorn crowned (skornKing: Skorn stays on the throne, NOT in the party)
+#   A speech · B chug (chugWon / foreheadLoser) · C Skorn crowned (skornKing: Skorn stays on the throne, NOT in the party.
+#   skornAway = he's on the throne right now: skornKing and the Mart not done yet; after the Mart he walks with you again)
 #   D sneak (goblinAllies) · E Skorn fights, Lykor dethroned (lykorDethroned). Gate anything path-specific with if / if_not.
 extends RefCounted
 
@@ -57,8 +58,8 @@ const SLUDGE_TAB := [
 			{ "do": "bouncer_fight" },
 		] },
 		{ "text": "\"Get the bouncer. Let's settle this.\"", "steps": [
-			{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "smug", "line": "Send your biggest guy." }] }, # DRAFT
-			{ "if": "skornKing", "steps": [{ "who": "xylo", "mood": "smug", "line": "Send your biggest guy. I have read about fighting." }] }, # DRAFT
+			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "Send your biggest guy." }] }, # DRAFT
+			{ "if": "skornAway", "steps": [{ "who": "xylo", "mood": "smug", "line": "Send your biggest guy. I have read about fighting." }] }, # DRAFT
 			{ "who": "goblin", "name": SLUDGE, "line": "You asked for it. BIG THUMBS!" }, # DRAFT
 			{ "do": "bouncer_fight" },
 		] },
@@ -94,8 +95,8 @@ const GORBO_SET := [
 	{ "choice": [
 		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }, { "who": "lykor", "mood": "flattered", "line": "Ha. Okay. That's kinda sad but okay." }] }, # DRAFT
 		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" },
-			{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. GET A JOB." }] }, # DRAFT
-			{ "if": "skornKing", "steps": [{ "who": "xylo", "mood": "unimpressed", "line": "Boo. Get a job." }] }, # DRAFT
+			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. GET A JOB." }] }, # DRAFT
+			{ "if": "skornAway", "steps": [{ "who": "xylo", "mood": "unimpressed", "line": "Boo. Get a job." }] }, # DRAFT
 			{ "who": "goblin", "name": GORBO, "line": "…that's the joke, man." }] }, # DRAFT
 	] },
 	{ "who": "goblin", "name": GORBO, "line": "My wife told me to stop stealing spoons. I said \"fork that.\"" }, # DRAFT
@@ -109,8 +110,8 @@ const GORBO_SET := [
 	{ "choice": [
 		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }] },
 		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" },
-			{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. Ain't nobody dumb enough to pay twenty spoons for a receipt." }] }, # DRAFT (they haven't been to the Mart yet)
-			{ "if": "skornKing", "steps": [{ "who": "lykor", "mood": "smug", "line": "Twenty spoons for a receipt? That's not a joke, that's a skill issue." }] }, # DRAFT
+			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. Ain't nobody dumb enough to pay twenty spoons for a receipt." }] }, # DRAFT (they haven't been to the Mart yet)
+			{ "if": "skornAway", "steps": [{ "who": "lykor", "mood": "smug", "line": "Twenty spoons for a receipt? That's not a joke, that's a skill issue." }] }, # DRAFT
 		] },
 	] },
 	{ "do": "gorbo_end" },
@@ -163,8 +164,8 @@ const JOB_BOARD := [
 const GRUBNIK_ASK := [
 	{ "who": "goblin", "name": GRUBNIK, "line": "Y-you read my posting?! Finally! My lucky spoon got took!" }, # DRAFT
 	{ "who": "goblin", "name": GRUBNIK, "line": "The Goblin Patrol on the east road jacked it. Said it was a \"spoon tax.\" There's no spoon tax! I checked!" }, # DRAFT
-	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "smug", "line": "Say less. We'll get your spoon, lil bro." }] }, # DRAFT
-	{ "if": "skornKing", "steps": [{ "who": "lykor", "mood": "smug", "line": "Say less. We'll get your spoon, lil bro." }] }, # DRAFT
+	{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "Say less. We'll get your spoon, lil bro." }] }, # DRAFT
+	{ "if": "skornAway", "steps": [{ "who": "lykor", "mood": "smug", "line": "Say less. We'll get your spoon, lil bro." }] }, # DRAFT
 	{ "do": "start_lucky_spoon" },
 ]
 const GRUBNIK_WAITING := [
@@ -237,8 +238,8 @@ const FORTUNES := [
 ]
 const CRYSTAL_BALL := [
 	{ "who": "narrator", "line": "You look into the crystal ball. You see… yourself, looking into a crystal ball." }, # DRAFT
-	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bro it's just a mirror ball." }] }, # DRAFT
-	{ "if": "skornKing", "steps": [{ "who": "lykor", "mood": "flattered", "line": "It's a mirror ball. I look incredible in it, though." }] }, # DRAFT
+	{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bro it's just a mirror ball." }] }, # DRAFT
+	{ "if": "skornAway", "steps": [{ "who": "lykor", "mood": "flattered", "line": "It's a mirror ball. I look incredible in it, though." }] }, # DRAFT
 ]
 const WUZZLE_DONE := [
 	{ "who": "goblin", "name": WUZZLE, "line": "Go away, lore dragon. I'm writing new prophecies. They're about how you cheated." }, # DRAFT
@@ -262,8 +263,8 @@ const OUTHOUSE := [
 			{ "who": "xylo", "mood": "vision", "line": "The graffiti in there… it's more lore than Deloye has ever had. I'm shaking." }, # DRAFT
 		] },
 		{ "text": "Nobody. Absolutely not.", "steps": [
-			{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "smug", "line": "Smart." }] }, # DRAFT
-			{ "if": "skornKing", "steps": [{ "who": "xylo", "mood": "smug", "line": "Wise." }] }, # DRAFT
+			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "Smart." }] }, # DRAFT
+			{ "if": "skornAway", "steps": [{ "who": "xylo", "mood": "smug", "line": "Wise." }] }, # DRAFT
 		] },
 	] },
 ]

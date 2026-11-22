@@ -139,10 +139,6 @@ func bounds_exempt() -> bool: return false
 func can_resume_saved() -> bool: return false
 # Restore free roam from a save. Areas override to rebuild their free-roam state, then call super._resume(r).
 func _resume(r: Dictionary) -> void:
-	if r.has("leader"):
-		for u in party:
-			if u.id == r["leader"]:
-				set_leader(u)
 	var arrived_by_travel: bool = r.get("travel", false)
 	if arrived_by_travel or r["pos"] == Vector3.INF:   # walked in from another area: start at that edge
 		var a: Array = arrival(r.get("from", ""))
@@ -150,6 +146,13 @@ func _resume(r: Dictionary) -> void:
 		r["yaw"] = r.get("yaw", 0.0)
 	else:
 		place_party(r["pos"], Vector3(0, 0, -1))
+	if r.has("leader"):   # keep controlling who you were (place_party hands control to party[0], so swap spots)
+		for u in party:
+			if u.id == r["leader"] and u != leader:
+				var p0: Vector3 = leader.global_position
+				leader.global_position = u.global_position
+				u.global_position = p0
+				set_leader(u)
 	target_yaw = float(r.get("yaw", 0.0))
 	yaw = target_yaw
 	cam_target = leader.global_position
@@ -670,6 +673,71 @@ func objective(text: String, at := Vector3.INF) -> void:
 	create_tween().tween_property(objective_lbl, "modulate:a", 1.0, 0.4)
 
 # Floating joke label over someone (e.g. "Goblin (Between Jobs)"). secs <= 0 = stays.
+# A real wooden sign in the world (Asar: floating name labels got hidden behind buildings and looked clunky).
+# Faces `yaw` (0 = toward +z, the usual camera side). If res://assets/signs/<id>.png exists, that picture is used on the
+# board instead of the burned-in text, so sign art can be dropped in later with no code change.
+# post = stands on its own post (else it's meant to be nailed over a door, at pos).
+func wood_sign(id: String, text: String, pos: Vector3, yaw := 0.0, width := 2.2, height := 0.62, post := false) -> Node3D:
+	var root := Node3D.new()
+	add_child(root)
+	root.global_position = pos
+	root.rotation.y = yaw
+	var planks := Models.mat("weathered_planks", 1.2, Color(0.95, 0.85, 0.72))
+	var art_path := "res://assets/signs/%s.png" % id
+	var art: Texture2D = load(art_path) if ResourceLoader.exists(art_path) else null
+	if art:
+		height = width * art.get_height() / float(art.get_width())
+	if post:
+		for s in ([-width * 0.32, width * 0.32] if width > 1.6 else [0.0]):
+			var p := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			var post_h := pos.y + height * 0.35   # ground up to just behind the board
+			bm.size = Vector3(0.12, post_h, 0.12)
+			p.mesh = bm
+			p.material_override = planks
+			root.add_child(p)
+			p.position = Vector3(s, -pos.y + post_h * 0.5, -0.07)
+	if art:   # the painted sign (transparent PNG)
+		var q := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(width, height)
+		q.mesh = qm
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = art
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		q.material_override = m
+		root.add_child(q)
+		q.position = Vector3(0, 0, 0.02)
+		return root
+	var board := MeshInstance3D.new()
+	var b := BoxMesh.new()
+	b.size = Vector3(width, height, 0.08)
+	board.mesh = b
+	board.material_override = planks
+	root.add_child(board)
+	var l := Label3D.new()   # burned into the wood: dark, no outline, hidden behind things like a real sign
+	l.text = text
+	l.font_size = 96
+	# biggest text that fits the board, both ways (no wrapping: put line breaks in the text yourself)
+	var lines := text.split("\n")
+	var longest := 1
+	for ln in lines:
+		longest = maxi(longest, ln.length())
+	var ps_h := height * 0.8 / (lines.size() * 96.0 * 1.2)
+	var ps_w := width * 0.9 / (longest * 0.66 * 96.0)
+	l.pixel_size = minf(ps_h, ps_w)
+	l.modulate = Color(0.16, 0.08, 0.03)
+	l.outline_size = 0
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.position = Vector3(0, 0, 0.045)
+	var f := FontVariation.new()
+	f.base_font = load("res://assets/fonts/Cinzel.ttf")
+	f.variation_embolden = 0.9
+	l.font = f
+	root.add_child(l)
+	return root
+
 func char_label(target: Node3D, text: String, secs := 3.0, h := 2.3, color := Color("#f3e3b0")) -> Label3D:
 	var l := Label3D.new()
 	l.text = text
@@ -916,11 +984,18 @@ func run_nested(steps: Array) -> void:
 	else:
 		await dialogue._run_steps(steps, self)
 
+# Optional talks (free roam) can be ended with Esc; story moments can't. Areas override free_roam(); an interactable
+# can also say "major": true to never be skippable.
+func free_roam() -> bool:
+	return can_resume()
+
 func start(it: Dictionary) -> void:
 	prompt.visible = false
 	ui_sfx.play()
+	dialogue.can_leave = free_roam() and not it.get("major", false)
 	await run_dialogue(it["steps"])
-	if it.get("rest", false):   # campfires, beds: everyone back to full HP
+	dialogue.can_leave = false
+	if it.get("rest", false) and not dialogue.left:   # campfires, beds: everyone back to full HP
 		rest_party()
 
 func rest_party() -> void:
