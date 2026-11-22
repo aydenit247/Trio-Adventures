@@ -6,7 +6,7 @@ const INTRO := [
 	{ "who": "narrator", "line": "Later that morning…" },
 	{ "who": "skorn", "mood": "angry", "line": "Man, I can't believe this jit got the lead now." },
 	{ "who": "lykor", "mood": "smug", "line": "Map-burners don't get a vote, Skorn." },
-	{ "who": "narrator", "line": "(You're playing as Lykor now. Head into the village.)" },
+	{ "who": "narrator", "line": "(You're playing as Lykor now. Folk, head into that village over there.)" },
 ]
 
 const AMBUSH := [
@@ -48,7 +48,6 @@ const THRONE := [
 	{ "do": "crown" },
 	{ "who": "lykor", "mood": "flattered", "line": "Y'all had said you got some beezy or some shi?" }, # Ebain
 	{ "do": "beezy" },
-	{ "who": "narrator", "line": "The goblins hand the Mogging Elf a mug of goblin beezy." },
 	{ "who": "lykor", "mood": "flattered", "line": "Ayy. Now THIS a kingdom." },
 	{ "who": "xylo", "mood": "unimpressed", "line": "Lykor. Focus. Ask him." },
 	{ "who": "lykor", "line": "Aight, I'm crowned. Where the metocy at?" },
@@ -85,7 +84,6 @@ const THRONE := [
 				{ "do": "pass_out" },
 				{ "who": "narrator", "line": "Lykor passes out." },
 				{ "do": "wake_outside" },
-				{ "who": "narrator", "line": "Lykor wakes up outside the village. Something is written on his forehead." },
 				{ "who": "xylo", "mood": "unimpressed", "line": "On my Dragon Mama… it says \"METOCY MART, EAST. LOSER.\"" },
 				{ "who": "lykor", "mood": "angry", "line": "…They ain't have to add the last part." },
 				{ "who": "xylo", "mood": "smug", "line": "I'm leading from here." },
@@ -99,7 +97,6 @@ const THRONE := [
 			{ "who": "chief", "line": "…A purple king…" },
 			{ "who": "goblins", "line": "PURPLE KING! PURPLE KING!" },
 			{ "do": "crown_skorn" },
-			{ "who": "narrator", "line": "The goblins crown Skorn." },
 			{ "who": "skorn", "mood": "smug", "line": "Wait, dis bih tuff lowkey. I could fw this." }, # Ebain
 			{ "who": "chief", "line": "The Metocy Mart is east. Now leave, Mogging Elf. We have a new god." },
 			{ "who": "lykor", "line": "Damn. That was easy. Too easy." },

@@ -205,7 +205,7 @@ func _level_interactables() -> Array:
 		if not Game.flag("trailLoot%d" % i):
 			var L: Array = LOOT[i]
 			list.append({ "id": "loot_%d" % i, "label": { "bush": "the bush", "log": "the hollow log", "stump": "the stump", "rocks": "the rocks" }[L[0]],
-				"verb": "Search", "pos": L[1], "h": 1.4, "r": 1.9, "steps": [{ "who": "narrator", "line": TS.LOOT_LINES[L[0]] }, { "do": "loot_%d" % i }] })
+				"verb": "Search", "pos": L[1], "h": 1.4, "r": 1.9, "steps": [{ "do": "loot_%d" % i }] })
 	var t: String = str(Game.flags.get("trollDone", ""))
 	if t == "":
 		list.append({ "id": "troll", "label": "the Bridge Troll", "verb": "Talk to", "node": troll, "h": 2.4, "r": 2.6, "major": true, "steps": TS.TROLL_AGAIN })
@@ -277,7 +277,6 @@ func _on_action(n: String) -> void:
 			if res == "win" or res == "talked":
 				Game.set_flag("trollDone", "bad")
 				_apply_state()
-				await run_nested(TS.TROLL_BEATEN)
 				objective("Loot the troll's hut, then follow the trail to the village.", CHEST_POS)
 			else:
 				troll.global_position = TROLL_SPOT   # ran away or lost: he's still blocking the bridge

@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Narrator voice lines (Asar's recordings) + remove narrator lines without one — files: godot/assets/voices/narrator/ (new), voice_lines.gd, camp_script.gd, village_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, trail.gd, pass.gd, village.gd, village_buildings.gd, village_rooms_script.gd, level.gd, VOICE_LINES.md — branch: asar/narrator-voices — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Narrator voiced by Asar's 26 recordings; narrator lines without a recording removed
 - 2026-11-22 [asar] Job board popup glitch fixed; Haggle's Stall shop (village); Goblin Woods Trail between Camp and Village with loot spots and Asar's Bridge Troll
 - 2026-11-22 [asar] Polish: wooden signs, Esc leaves optional talks, chapter card at New Game, music play-once, keep character on travel, Skorn after the Mart, Pass rest spot
 - 2026-11-22 [asar] Spoonsmithy removed, Chief's Hut closed, job board UI, real throws, golden-hour Pass + quieter snore, walk back between areas (+ Mart/Pass resume)
@@ -42,10 +42,18 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/assets/voices/narrator/, voice_lines.gd, camp_script.gd, village_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, trail.gd, pass.gd, village.gd, village_buildings.gd, village_rooms_script.gd, level.gd, VOICE_LINES.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Narrator voice merged.** Asar recorded the narrator himself: 26 mp3s in `assets/voices/narrator/`,
+  mapped in `voice_lines.gd` `LINES` (not voice_index.gd, which is Ebain's claim). **Asar's call: every narrator line without a
+  recording was removed (32 lines)**, mostly DRAFT flavor (interactable descriptions, job board postings, trail), plus these older
+  story lines: "The goblins hand the Mogging Elf a mug of goblin beezy.", "Lykor wakes up outside the village. Something is
+  written on his forehead.", "The goblins crown Skorn.", "Do you take the metocy?", "There is a sign. It was there the whole
+  time.", "When the dust clears, only goblins remain.", "(You're playing as Skorn again.)". Ebain: shout if you want any back
+  (they'd need a recording). Two lines now match his takes: "(You're playing as Lykor now. Folk, head into that village over
+  there.)" and "The mountain pass. Hot. Ashy. And OD as a mufucka." Hot spot **level.gd** `start()`: an interactable with only
+  `do` steps (or none) runs without the dialogue box (rest spots, trail loot). The napping goblin house now answers as a goblin line.
 - 2026-11-22 [asar] **Trail + shop merged.** New area **Goblin Woods Trail** (`trail.tscn`, `trail.gd`, `trail_script.gd`) between
   Camp and the Village: camp's exit now goes to the trail (first time `goto`, later `travel`), the trail's north end goes to the
   village, village's back exit goes to the trail. 6 loot spots (+gold) and Asar's Bridge Troll (his line + "It's good"/"Bad." are

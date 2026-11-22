@@ -110,16 +110,13 @@ const OBJECTS := {
 		{ "who": "skorn", "mood": "smug", "line": "Best fire starter I ever used." }, # DRAFT
 	],
 	"map": [
-		{ "who": "narrator", "line": "A charred scrap of paper. All that's left reads: \"…TOCY\"." }, # DRAFT
 		{ "who": "skorn", "thought": true, "line": "Bunch of squiggly ass lines." }, # DRAFT (from web Scene 1)
 		{ "who": "lykor", "mood": "shocked", "line": "Why does that look like… nah. Nah." }, # DRAFT
 	],
 	"bag": [
-		{ "who": "narrator", "line": "Lykor's bag. It's open. Something important used to be in here." }, # DRAFT
 		{ "choice": [
 			{ "text": "Look inside", "steps": [
 				{ "do": "check_bag" },
-				{ "who": "narrator", "line": "Conditioner. Three bottles. Nothing else. Anymore." }, # DRAFT
 				{ "who": "lykor", "mood": "angry", "line": "Don't touch my bag, though!" }, # Ebain (adapted)
 			] },
 			{ "text": "Leave it alone", "steps": [

@@ -248,7 +248,6 @@ func _level_interactables() -> Array:
 			if u.id == "skorn":
 				list.append({ "id": "skorn_king", "label": "King Skorn", "verb": "Talk to", "node": u, "h": 2.2, "r": 2.2, "steps": VS.CHIEF_AFTER_SKORN })
 		list.append({ "id": "campfire", "label": "Campfire", "verb": "Rest at", "pos": FIRE_POS, "h": 1.6, "r": 2.6, "rest": true, "steps": [
-			{ "who": "narrator", "line": "You sit by the fire for a while. Nobody talks about their feelings. It's nice." }, # DRAFT
 		] })
 		if vb.room != "":
 			list = []

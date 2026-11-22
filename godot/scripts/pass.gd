@@ -365,7 +365,6 @@ const REST_POS := Vector3(-4.6, 0, 8.6)   # an abandoned campfire just inside th
 
 func _level_interactables() -> Array:
 	return [{ "id": "rest_fire", "label": "the campfire", "verb": "Rest at", "pos": REST_POS, "h": 1.2, "r": 2.2, "rest": true, "steps": [
-		{ "who": "narrator", "line": "Somebody left a campfire going. In a lava canyon. Bold. You warm up anyway." }, # DRAFT
 	] }]
 
 # ---------------------------------------------------------------- story

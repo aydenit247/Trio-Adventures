@@ -993,7 +993,18 @@ func start(it: Dictionary) -> void:
 	prompt.visible = false
 	ui_sfx.play()
 	dialogue.can_leave = free_roam() and not it.get("major", false)
-	await run_dialogue(it["steps"])
+	var steps: Array = it["steps"]
+	if steps.all(func(s): return s.has("do")):   # nothing to say (e.g. rest spots, loot): just do it, no dialogue box
+		dialogue.left = false
+		busy = true
+		freeze_all(true)
+		for s in steps:
+			await do_action(s["do"])
+		freeze_all(false)
+		busy = false
+		interact_cooldown = 0.3
+	else:
+		await run_dialogue(steps)
 	dialogue.can_leave = false
 	if it.get("rest", false) and not dialogue.left:   # campfires, beds: everyone back to full HP
 		rest_party()

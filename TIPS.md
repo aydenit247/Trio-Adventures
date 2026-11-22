@@ -163,3 +163,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] CPUParticles3D with a billboard material ignores `scale_amount` unless `billboard_keep_scale` is on: size the QuadMesh
   itself instead (see `trail.gd _sparkle`).
 - [asar] Don't run two xvfb screenshot tours into the same SHOT_DIR at once: they overwrite each other's PNGs.
+- [asar] Every narrator line in the game has Asar's recording (VOICE_LINES.md). Don't add `"who": "narrator"` lines
+  without asking him for a recording. Put the info in a character's line or a toast instead.
+- [asar] An interactable whose steps are only `{ "do": … }` (or empty, like the rest spots) runs without opening the
+  dialogue box (`Level.start`).

@@ -73,7 +73,6 @@ const SHOP := [
 	{ "who": "lykor", "line": "Aight, so what the word? What we owe ya for some metocy, mud?" }, # Ebain
 	{ "who": "dulbers", "mood": "grin", "line": "For y'all? First one's free." },
 	{ "who": "lykor", "mood": "smug", "line": "On some type shit." }, # Ebain
-	{ "who": "narrator", "line": "Do you take the metocy?" },
 	{ "choice": [
 		# A — everyone takes it → the whole party trips → demon fight
 		{ "text": "Everyone takes it", "steps": [
@@ -109,7 +108,6 @@ const SHOP := [
 			{ "who": "skorn", "mood": "angry", "line": "Bro really just kicked us out of a store." },
 			{ "who": "xylo", "mood": "unimpressed", "line": "And we still do not know where the metocy is." },
 			{ "do": "show_pass_sign" },
-			{ "who": "narrator", "line": "There is a sign. It was there the whole time." },
 			{ "who": "skorn", "mood": "confused", "line": "…Aight, that's lowkey convenient." },
 			{ "who": "dulbers", "line": "*muffled, from inside* You'll regret this, trio…" },
 			{ "do": "leave" },
@@ -146,7 +144,6 @@ const SHOP := [
 			{ "who": "dulbers", "mood": "grin", "line": "…Uh oh." },
 			{ "who": "goblins", "line": "GET HIMMMM!" },
 			{ "do": "goblin_chase" },
-			{ "who": "narrator", "line": "When the dust clears, only goblins remain." },
 			{ "who": "chief", "line": "Bogdrinker handled it. Do not ask questions." },
 			{ "who": "narrator", "line": "Dulbers Frint was never seen again." },
 			{ "who": "chief", "line": "The real metocy is past the giant. Field trip is over. Goblins — HOME." },

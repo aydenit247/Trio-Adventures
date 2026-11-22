@@ -518,7 +518,6 @@ func interactables() -> Array:
 		list.append({ "id": "outhouse", "label": "the Outhouse", "verb": "Check out", "pos": OUTHOUSE_POS + Vector3(0, 0, 0.8), "h": 2.6, "r": 2.0, "steps": R.OUTHOUSE_DONE if _outhouse_all_done() else R.OUTHOUSE })
 		list.append({ "id": "board", "label": "the Job Board", "verb": "Read", "pos": BOARD_POS, "h": 2.6, "r": 2.0, "steps": [{ "do": "job_board" }] })
 		list.append({ "id": "bedroll", "label": "the bedroll", "verb": "Rest on", "pos": BEDROLL_POS, "h": 0.9, "r": 1.6, "rest": true, "steps": [
-			{ "who": "narrator", "line": "Somebody's bedroll. It smells like beezy. You lie down anyway." }, # DRAFT
 		] })
 		if not Game.flag("conditionerFound"):
 			list.append({ "id": "conditioner", "label": "Backup Conditioner", "verb": "Pick up", "pos": CONDITIONER_POS, "h": 0.8, "r": 1.4, "steps": [{ "do": "take_conditioner" }] })

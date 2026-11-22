@@ -17,7 +17,7 @@ const ENDING := [
 ]
 
 const INTRO := [
-	{ "who": "narrator", "line": "The mountain pass. Hot. Ashy. Rude." },
+	{ "who": "narrator", "line": "The mountain pass. Hot. Ashy. And OD as a mufucka." },
 	{ "who": "skorn", "mood": "angry", "line": "Man, it's hot as hell out here." },
 	{ "if": "skornTripped", "steps": [{ "who": "skorn", "mood": "confused", "line": "…And why the rocks breathing? Oh, that's still the midtocy. My bad." }] },
 	{ "who": "lykor", "mood": "shocked", "line": "My hair cannot survive these conditions. Pray for me." },
@@ -25,7 +25,6 @@ const INTRO := [
 		{ "who": "xylo", "mood": "vision", "line": "On my Dragon Mama… I feel like Dulbers is watching us." },
 		{ "who": "skorn", "mood": "smug", "line": "Let him watch. Shorty ain't scary." },
 	] },
-	{ "who": "narrator", "line": "(You're playing as Skorn again.)" },
 ]
 
 const MATTIAS := [

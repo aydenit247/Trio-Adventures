@@ -18,6 +18,13 @@ game scripts, Ebain (and Asar) set each character's voice and each line's delive
   The studio picks up script changes from GitHub (see its README).
 - Asar's 37 goblin/Chief recordings were removed on 2026-11-21 (Ebain's call).
 
+## Narrator (Asar's own recordings, 2026-11-22)
+The narrator is voiced by Asar's recordings: 26 mp3s in `godot/assets/voices/narrator/`, mapped by hand in
+`voice_lines.gd` `LINES` (exact line text → file). Asar's call: **narrator lines without a recording were removed from
+the game**, so every narrator line now has his voice. Two lines were changed to say what he recorded
+("Folk, head into that village over there." and "And OD as a mufucka."). Adding or rewording a narrator line means it
+needs a new recording from Asar, or it plays on the robot voice.
+
 ## Skorn lines still on the robot voice (checked 2026-11-22, Asar)
 These have no generated file yet, so they fall back to TTS. Generate + approve them in the studio and re-import:
 - camp: "Man, it's about cold as a motherfucker." · "Good thing I got the fire going though." · "Bunch of squiggly ass lines." ·

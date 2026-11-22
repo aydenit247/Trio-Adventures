@@ -84,7 +84,6 @@ const THUMBS_BEATEN := [
 ]
 const CLERK_TALK := [
 	{ "who": "goblin", "name": CLERK, "line": "Take a number." }, # DRAFT
-	{ "who": "narrator", "line": "You take a number. It says 4,000,001. The sign says NOW SERVING: 3." }, # DRAFT
 	{ "who": "xylo", "mood": "unimpressed", "line": "Deloye Lore predicted this. Chapter one: \"The line.\"" }, # DRAFT
 ]
 
@@ -117,7 +116,6 @@ const GORBO_SET := [
 	{ "do": "gorbo_end" },
 	{ "if": "gorboRoasted", "steps": [
 		{ "who": "goblin", "name": GORBO, "line": "That's it. I'm done. I'm quitting comedy. I'm going back to being unemployed the normal way." }, # DRAFT
-		{ "who": "narrator", "line": "Gorbo storms off the stage. He comes back thirty seconds later. He has nowhere else to go." }, # DRAFT
 	] },
 	{ "if_not": "gorboRoasted", "steps": [
 		{ "who": "goblin", "name": GORBO, "line": "Y'all are the best crowd I ever had. Y'all are the ONLY crowd I ever had. Here — take my tip jar beezy." }, # DRAFT
@@ -153,14 +151,6 @@ const GULPO_WON := [
 ]
 
 # ================================================================ 3. JOB BOARD (outside)
-const JOB_BOARD := [
-	{ "who": "narrator", "line": "GOBLIN JOB BOARD. Most of the postings are just pictures of spoons." }, # DRAFT
-	{ "who": "narrator", "line": "\"WANTED: Goblin. Must be a goblin. Pay: no.\"" }, # DRAFT
-	{ "who": "narrator", "line": "\"HELP WANTED at the Metocy Mart. Must not ask questions. Must not ask about the questions. — D.F.\"" }, # DRAFT
-	{ "who": "narrator", "line": "\"BODYGUARD NEEDED for the Diddy Chud Giant's nap. Pay: you get to live.\"" }, # DRAFT
-	{ "who": "narrator", "line": "\"LOST: LUCKY SPOON. VERY LUCKY. REWARD. SEE GRUBNIK (I'm right here).\"" }, # DRAFT
-	{ "who": "xylo", "mood": "unimpressed", "line": "The economy here is in shambles." }, # DRAFT
-]
 const GRUBNIK_ASK := [
 	{ "who": "goblin", "name": GRUBNIK, "line": "Y-you read my posting?! Finally! My lucky spoon got took!" }, # DRAFT
 	{ "who": "goblin", "name": GRUBNIK, "line": "The Goblin Patrol on the east road jacked it. Said it was a \"spoon tax.\" There's no spoon tax! I checked!" }, # DRAFT
@@ -237,7 +227,6 @@ const FORTUNES := [
 	"A voice will call to you. It will say \"You had called?\" You did not call.",
 ]
 const CRYSTAL_BALL := [
-	{ "who": "narrator", "line": "You look into the crystal ball. You see… yourself, looking into a crystal ball." }, # DRAFT
 	{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bro it's just a mirror ball." }] }, # DRAFT
 	{ "if": "skornAway", "steps": [{ "who": "lykor", "mood": "flattered", "line": "It's a mirror ball. I look incredible in it, though." }] }, # DRAFT
 ]
@@ -248,7 +237,6 @@ const WUZZLE_DONE := [
 # (5. Clank's Spoonsmithy: removed 2026-11-22, Asar)
 # ================================================================ 6. THE OUTHOUSE (outside, no going inside for the camera)
 const OUTHOUSE := [
-	{ "who": "narrator", "line": "The village outhouse. There's a moon carved in the door, and a smell carved into the air." }, # DRAFT
 	{ "do": "outhouse_check" },
 	{ "choice": [
 		{ "text": "Skorn goes in", "if": "outhouseSkorn", "steps": [{ "do": "outhouse_skorn" },
@@ -270,10 +258,9 @@ const OUTHOUSE := [
 ]
 const OUTHOUSE_DONE := [
 	{ "who": "goblin", "line": "OCCUPIED." }, # DRAFT
-	{ "who": "narrator", "line": "Somebody's in there now. Somebody's always in there now." }, # DRAFT
 ]
 
 # ---------------------------------------------------------------- doors, misc
 const LOCKED_HOUSE := [
-	{ "who": "narrator", "line": "You knock. A voice from inside: \"WE'RE NAPPING.\"" }, # DRAFT
+	{ "who": "goblin", "line": "*from inside* WE'RE NAPPING." }, # DRAFT
 ]
