@@ -45,6 +45,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] Voice import (via voice-imports/ Action): Metocin Mattias (3: "You had called?" — also plays in camp, "*echoing* Impressive…", the Pass speech) + Demon Dulbers (3 Mart lines). All 6 matched the script; they replace the robot voice. New folders `assets/voices/mattias/`, `assets/voices/dulbers_demon/`. Touched voice_index.gd only through the Action (Ebain's giant claim untouched).
 - 2026-11-22 [ebain] **Goblin voices in: 8 of Ebain's takes** (assets/voices/goblin/, voice_index.gd regenerated via import_voices.py): got a light, hiring (camp + village), hold a spoon, village up north, allowed to mog, Mogging Elf goes, A STORE. Other goblin lines still use TTS.
 - 2026-11-22 [asar] **village.gd: throne fix (notes.md).** In `_crown_skorn()` Lykor stayed on SEAT_POS (scripted `walk_to` on the
   leader doesn't always move him) and Skorn sat right on top of him. Now Lykor steps off first, gets placed to the throne's left
