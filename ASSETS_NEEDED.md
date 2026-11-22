@@ -17,4 +17,19 @@ about **3:1 wide** (the throne plaque and outhouse sign about 2:1), at least 102
 | `sign_goblin_house.png` | DO NOT DISTURB (NAPPING) | on the locked goblin house door |
 | `job_board.png` | JOB BOARD | across the top of the job board |
 | `sign_throne.png` | THRONE (spoons, bones, 1 wheel) | small plaque on the throne's base |
+| `sign_shop.png` | HAGGLE'S STALL (NO HAGGLING) | over the market stall (village) |
+| `sign_trail_village.png` | GOBLIN VILLAGE (NO TROLLS) | trail, north end |
+| `sign_trail_camp.png` | BACK TO CAMP | trail, south end |
+| `sign_troll_hut.png` | DO NOT DISTURB | troll's hut door ("It's good" path) |
 | `sign_metocy_mart.png` | METOCY MART → (probably) | signpost at the east road, arrow pointing right |
+
+## Shop item pictures (Asar, 2026-11-22)
+New gear sold at Haggle's Stall shows a "?" crate until it has a picture. Same style as the other item icons:
+**transparent PNG, roughly square, about 512 px**, in `godot/assets/items/`.
+
+| File | Item |
+|---|---|
+| `pot_lid.png` | Pot Lid Shield (a pot lid used as a shield) |
+| `jordan9s.png` | Jordan 9's (sneakers) |
+| `goblin_tooth.png` | Lucky Goblin Tooth (on a string) |
+| `rock.png` | A Rock (Pre-Owned) |

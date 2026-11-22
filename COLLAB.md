@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Job board dialogue glitch; village shop stall (Asar's stock list); new trail area between Camp and Village with Asar's bridge troll, loot spots and his hut — files: godot/scripts/job_board_ui.gd, shop_ui.gd (new), trail.gd (new), trail_script.gd (new), godot/trail.tscn (new), village.gd, village_buildings.gd, camp.gd, map_ui.gd, combat/combat_data.gd, combat/battle_view.gd, level.gd, godot/assets/characters/troll.png, godot/assets/portraits/troll.png, dev_mode.gd — branch: asar/trail-shop — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Job board popup glitch fixed; Haggle's Stall shop (village); Goblin Woods Trail between Camp and Village with loot spots and Asar's Bridge Troll
 - 2026-11-22 [asar] Polish: wooden signs, Esc leaves optional talks, chapter card at New Game, music play-once, keep character on travel, Skorn after the Mart, Pass rest spot
 - 2026-11-22 [asar] Spoonsmithy removed, Chief's Hut closed, job board UI, real throws, golden-hour Pass + quieter snore, walk back between areas (+ Mart/Pass resume)
 - 2026-11-22 [asar] Lykor no longer blocks Skorn when Skorn gets crowned
@@ -41,10 +41,17 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/job_board_ui.gd, shop_ui.gd (new), trail.gd (new), trail_script.gd (new), godot/trail.tscn (new), village.gd, village_buildings.gd, camp.gd, map_ui.gd, combat/combat_data.gd, combat/battle_view.gd, level.gd, godot/assets/characters/troll.png, godot/assets/portraits/troll.png, dev_mode.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Trail + shop merged.** New area **Goblin Woods Trail** (`trail.tscn`, `trail.gd`, `trail_script.gd`) between
+  Camp and the Village: camp's exit now goes to the trail (first time `goto`, later `travel`), the trail's north end goes to the
+  village, village's back exit goes to the trail. 6 loot spots (+gold) and Asar's Bridge Troll (his line + "It's good"/"Bad." are
+  Asar's wording, `# Asar`; the rest is `# DRAFT`). "Bad." = new fight `troll` in combat_data.gd (80 gold) + his hut (15) and chest
+  (55). Hot spot: **level.gd** only adds "trail" to `AREA_KEYS`. Also: **battle_view.gd** `PILES["trail"]`; map_ui WORLD has the
+  trail; dev_mode lists it. **Haggle's Stall** (`shop_ui.gd`, stall in village_buildings.gd by the bedroll) sells beer, Chipotle
+  Bowl and 4 new gear (Pot Lid Shield, Jordan 9's, Lucky Goblin Tooth, A Rock). Job board no longer pops the dialogue box (and
+  the Xylo quip after closing is gone). New art requests in ASSETS_NEEDED.md (4 signs, 4 item pictures).
 - 2026-11-22 [asar] **Polish pass merged.** Hot spots: **dialogue.gd** `can_leave`/`left` (Esc ends optional talks; skips the remaining
   steps incl. `do`s; hint shows "Esc: leave"). **level.gd** `wood_sign()`, `free_roam()`, `start()` sets can_leave, `_resume` keeps your
   leader. **game.gd** `music_once` (saved in settings). area_music.gd plays a non-looping copy when Play once is on; goblin band leaves

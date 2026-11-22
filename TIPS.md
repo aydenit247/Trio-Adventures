@@ -157,3 +157,9 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   (see camp.gd, village.gd). Without them a save restarts the area from its beginning, which is always safe.
 - [ebain] Any new story flag that matters after loading must be in `Game.flags`, since that's what saves keep. Scene-only
   `var`s are lost on load.
+- [asar] Shots tours that hit a choice: `advance()` past the line before it first, then `dialogue._picked.emit(...)`.
+  Emitting while the line before is still up does nothing. Story fights auto-play in `--shots`, but they take about
+  a minute, so loop until the result flag is set instead of a fixed number of `advance()`s.
+- [asar] CPUParticles3D with a billboard material ignores `scale_amount` unless `billboard_keep_scale` is on: size the QuadMesh
+  itself instead (see `trail.gd _sparkle`).
+- [asar] Don't run two xvfb screenshot tours into the same SHOT_DIR at once: they overwrite each other's PNGs.

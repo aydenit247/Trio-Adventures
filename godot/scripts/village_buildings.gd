@@ -23,6 +23,8 @@ const BUILDINGS := {
 const OUTHOUSE_POS := Vector3(12.8, 0, 7.8)
 const BOARD_POS := Vector3(4.2, 0, -4.6)
 const HOUSE_POS := Vector3(10.5, 0, -6.5)
+const STALL_POS := Vector3(-5.6, 0, 3.4)   # Haggle's market stall in the square (Asar: the shop, instead of a Goblin Pit)
+const STALL_YAW := 1.1                     # counter faces the square / campfire
 const BEDROLL_POS := Vector3(-2.2, 0, -11.6)       # rest spot by the Chief's Hut (replaces his hay bed)
 const CONDITIONER_POS := Vector3(-1.4, 0, -10.6)   # the Backup Conditioner used to be in the Chief's chest
 
@@ -118,6 +120,7 @@ func _outside() -> void:
 	var hd: Vector3 = (HOUSE_POS + Vector3(-1.3, 0, 1.6) - HOUSE_POS).normalized()
 	lv.wood_sign("sign_goblin_house", "DO NOT DISTURB\n(NAPPING)", HOUSE_POS + Vector3(-1.3, 0, 1.6) + hd * 0.1 + Vector3(0, 2.45, 0), atan2(hd.x, hd.z), 1.6, 0.6)
 	_bedroll(BEDROLL_POS)
+	_stall()
 	if not Game.flag("conditionerFound"):
 		conditioner_node = Models.place(lv, "pot_enamel_01", CONDITIONER_POS, 0.3, 0.6, false, Color(0.75, 0.9, 1.1))
 
@@ -382,6 +385,52 @@ func _goblin(id: String, label: String, p: Vector3, h: float, tint: Color, tex :
 	l.position = Vector3(0, h + 0.3, 0)
 	return u
 
+# Haggle's market stall: four posts, a counter, a striped awning, junk for sale, Haggle behind it
+func _stall() -> void:
+	var root := Node3D.new()
+	lv.add_child(root)
+	root.global_position = STALL_POS
+	root.rotation.y = STALL_YAW
+	var wood := Models.mat("weathered_planks", 1.2, Color(0.85, 0.72, 0.58))
+	for x in [-1.5, 1.5]:
+		for z in [-0.7, 0.7]:
+			var post := MeshInstance3D.new()
+			var pm := BoxMesh.new()
+			pm.size = Vector3(0.14, 2.5, 0.14)
+			post.mesh = pm
+			post.material_override = wood
+			root.add_child(post)
+			post.position = Vector3(x, 1.25, z)
+	var counter := MeshInstance3D.new()
+	var cm := BoxMesh.new()
+	cm.size = Vector3(3.2, 1.0, 0.7)
+	counter.mesh = cm
+	counter.material_override = wood
+	root.add_child(counter)
+	counter.position = Vector3(0, 0.5, 0.55)
+	for i in 8:   # striped awning (red / cream), tilted toward the front
+		var strip := MeshInstance3D.new()
+		var sm := BoxMesh.new()
+		sm.size = Vector3(3.6 / 8.0, 0.05, 2.0)
+		strip.mesh = sm
+		strip.material_override = Util.mat(Color("#b8322a") if i % 2 == 0 else Color("#efe3c2"), 0.8)
+		root.add_child(strip)
+		strip.position = Vector3(-1.8 + (i + 0.5) * 3.6 / 8.0, 2.55, 0.1)
+		strip.rotation.x = 0.22
+	Util.static_box(lv, STALL_POS, Vector3(2.6, 2, 2.6), STALL_YAW)
+	# goods on the counter (real props)
+	var fwd := Vector3(sin(STALL_YAW), 0, cos(STALL_YAW))
+	var side := Vector3(cos(STALL_YAW), 0, -sin(STALL_YAW))
+	var top := STALL_POS + fwd * 0.55 + Vector3(0, 1.0, 0)
+	Models.place(lv, "wine_bottles_01", top - side * 1.0, STALL_YAW, 0.8)
+	Models.place(lv, "brass_pot_01", top - side * 0.2, STALL_YAW, 0.5)
+	Models.place(lv, "wooden_bowl_01", top + side * 0.5, STALL_YAW, 1.0)
+	Models.place(lv, "rock_07", top + side * 1.1, 0.0, 1.6, false, Color(0.7, 0.62, 0.55))   # the rock (pre-owned)
+	Models.place(lv, "wooden_crate_01", STALL_POS - fwd * 0.2 + side * 2.1, STALL_YAW + 0.3, 1.0, true)
+	Models.place(lv, "wicker_basket_01", STALL_POS + fwd * 1.3 - side * 2.0, 0.4, 1.3)
+	lv.wood_sign("sign_shop", "HAGGLE'S STALL\n(NO HAGGLING)", STALL_POS + fwd * 1.1 + Vector3(0, 2.15, 0), STALL_YAW, 2.4, 0.62)
+	npc["haggle"] = _goblin("haggle", "Haggle (Shopkeeper) (No Haggling)", STALL_POS - fwd * 0.25, 1.15, Color(1.0, 0.95, 0.85))
+
 # A bedroll on the ground: a rolled-up blanket and a flat one (rest spot)
 func _bedroll(p: Vector3) -> void:
 	var cloth := Models.mat("fabric_pattern_07", 0.8, Color(0.55, 0.35, 0.25))
@@ -473,6 +522,8 @@ func interactables() -> Array:
 		] })
 		if not Game.flag("conditionerFound"):
 			list.append({ "id": "conditioner", "label": "Backup Conditioner", "verb": "Pick up", "pos": CONDITIONER_POS, "h": 0.8, "r": 1.4, "steps": [{ "do": "take_conditioner" }] })
+		list.append({ "id": "shop", "label": "Haggle's Stall", "verb": "Shop at", "pos": STALL_POS + Vector3(sin(STALL_YAW), 0, cos(STALL_YAW)) * 1.6, "h": 2.2, "r": 2.0,
+			"steps": ([{ "who": "goblin", "name": "Haggle", "line": "Welcome to Haggle's! Everything's for sale. No haggling. It's ironic." }] if not Game.flag("haggleMet") else []) + [{ "do": "open_shop" }] }) # DRAFT
 		list.append({ "id": "grubnik", "label": "Grubnik", "verb": "Talk to", "node": npc["grubnik"], "h": 1.5, "r": 1.6, "steps": _grubnik_steps() })
 		return list
 	var o := origin(room)
@@ -543,6 +594,9 @@ func on_action(n: String) -> void:
 			await leave()
 		"job_board":
 			await JobBoardUI.show_board(lv, self)
+		"open_shop":
+			Game.set_flag("haggleMet")
+			await ShopUI.open_shop(lv)
 		# ---- by the Chief's Hut (the hut itself is closed)
 		"take_conditioner":
 			Game.set_flag("conditionerFound")
@@ -734,6 +788,8 @@ func tour() -> void:
 		await auto_talk("board", [], "b_01_board", 2)
 		await auto_talk("grubnik", [], "b_02_grubnik", 2)
 		await auto_talk("conditioner", [], "b_03_conditioner", 1)
+		Game.gold = 40
+		await auto_talk("shop", [], "b_03b_shop_talk", 1)
 		await auto_talk("bedroll", [], "b_04_bedroll", 1)
 		await auto_talk("door_bar")
 		await lv.wait(1.0)

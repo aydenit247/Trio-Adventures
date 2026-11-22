@@ -1514,7 +1514,7 @@ func open_map() -> void:   # M: big map (area + world tabs)
 
 # ---------------------------------------------------------------- maps (Minimap top-left, MapUI on M)
 # Areas override these: map_buildings() (blue dots + names), map_extra() (e.g. the giant), map_place() (inside a building).
-const AREA_KEYS := { "main": "camp", "village": "village", "mart": "mart", "pass": "pass" }
+const AREA_KEYS := { "main": "camp", "trail": "trail", "village": "village", "mart": "mart", "pass": "pass" }
 func area_key() -> String:
 	return AREA_KEYS.get(scene_file_path.get_file().get_basename(), scene_file_path.get_file().get_basename())
 

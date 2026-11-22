@@ -224,6 +224,7 @@ func map_buildings() -> Array:
 		out.append({ "pos": VB.BUILDINGS[id]["pos"], "name": VB.BUILDINGS[id]["name"] })
 	out.append({ "pos": THRONE_POS, "name": "The Throne" })
 	out.append({ "pos": VB.OUTHOUSE_POS, "name": "Outhouse" })
+	out.append({ "pos": VB.STALL_POS, "name": "Haggle's Stall (shop)" })
 	return out
 
 func map_place() -> String:
@@ -710,11 +711,11 @@ func _end_card() -> void:
 # ---- walking between areas: the entrance road leads back to camp; arriving from the Mart puts you at the east exit
 func back_exit() -> Dictionary:
 	if stage == "after" and vb.room == "":
-		return { "pos": Vector3(0, 0, 31.0), "r": 2.4, "scene": "res://main.tscn", "name": "The Camp" }
+		return { "pos": Vector3(0, 0, 31.0), "r": 2.4, "scene": "res://trail.tscn", "name": "Goblin Woods Trail" }
 	return {}
 
 func arrival(from: String) -> Array:
-	if from == "camp":
+	if from == "camp" or from == "trail":
 		return [Vector3(0, 0, 25.0), Vector3(0, 0, -1)]
 	if from == "mart":
 		return [EXIT_POS + Vector3(-1.5, 0, 4.5), Vector3(-1, 0, 0)]   # outside the exit trigger, clear of the Goblin Patrol's spot (21, -1.5)

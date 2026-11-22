@@ -80,6 +80,11 @@ const GEAR := {
 	"weighted_d6": { "slot": "trinket", "name": "Weighted d6", "desc": "On some cheating shi. Crash Out dice can't roll a 1.", "no_ones": true },
 	"can_hat": { "slot": "helmet", "name": "Beezy Mug Helmet", "desc": "A beezy mug, worn proudly on the head. Still a little sticky. +2 armor.", "armor": 2 },
 	"spoon_mail": { "slot": "armor", "name": "Spoon Mail Armor", "desc": "Armor made of spoons. Goes 'clink.' +3 armor.", "armor": 3 },
+	# sold at Haggle's stall in the village (ShopUI, Asar's list)
+	"pot_lid": { "slot": "shield", "name": "Pot Lid Shield", "desc": "Somebody's pot is missing a lid. +2 armor.", "armor": 2 }, # DRAFT desc
+	"jordan9s": { "slot": "shoes", "name": "Jordan 9's", "desc": "Fresh out the box. Don't step in anything. +1 speed.", "spd": 1 }, # DRAFT desc
+	"goblin_tooth": { "slot": "trinket", "name": "Lucky Goblin Tooth", "desc": "The goblin wasn't using it anymore. +5% damage.", "power": 0.05 }, # DRAFT desc
+	"rock": { "slot": "trinket", "name": "A Rock (Pre-Owned)", "desc": "It's a rock. It does nothing. You paid for it." }, # DRAFT desc
 	"receipt": { "slot": "trinket", "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
 }
 
@@ -159,6 +164,13 @@ const FIGHTS := {
 			{ "name": "Big Thumbs", "tag": "(Bouncer) (Has a Gym Membership)", "gold": 25, "hp": 150, "spd": 8, "tex": "goblin_fight", "h": 1.75, "ai": "goblin", "second_wind": true },
 		],
 		"talk": ["bribe_goblin", "kings_decree"],
+	},
+	"troll": {   # (Asar) the Bridge Troll, if you tell him "Bad."
+		"title": "The Bridge Troll", "xp": 45,
+		"enemies": [
+			{ "name": "Bridge Troll", "tag": "(Was Told \"Bad.\")", "gold": 80, "hp": 170, "spd": 7, "tex": "troll", "h": 2.3, "ai": "goblin", "second_wind": true },
+		],
+		"talk": ["roast"],
 	},
 	# ---- roaming (optional) fights
 	"goblin_patrol": {

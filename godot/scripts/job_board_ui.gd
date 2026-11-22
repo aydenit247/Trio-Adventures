@@ -47,6 +47,7 @@ var _hand: Font
 static func show_board(level: Node, buildings: Node) -> void:
 	level.busy = true
 	level.freeze_all(true)
+	level.dialogue.hide_box()   # (Asar: an empty/old dialogue box used to show with the board)
 	var ui := JobBoardUI.new()
 	ui.lv = level
 	ui.vb = buildings
@@ -68,12 +69,10 @@ static func show_board(level: Node, buildings: Node) -> void:
 	var job := ui.taken
 	level.freeze_all(false)
 	if job == "lucky_spoon":   # Grubnik heard you take his posting
+		level.dialogue.show_box()
 		await level.run_nested(R.GRUBNIK_ASK)
 	elif job != "":
 		level.show_toast("Job taken: %s. %s" % [R.QUESTS[job][0], JOB_WHERE.get(job, "")], 3.0)
-	if not Game.flag("boardRead"):
-		Game.set_flag("boardRead")
-		await level.run_nested([R.JOB_BOARD.back()])   # Xylo: "The economy here is in shambles."
 	level.busy = false
 
 func _build() -> void:

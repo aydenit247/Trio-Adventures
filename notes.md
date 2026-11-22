@@ -4,7 +4,7 @@ Quick notes and workshop ideas from Ebain. These are not claimed work, they're p
 
 ## Open
 
-- **Metocy Mart shop**: Add buyable things at Metocy Mart. *(Asar: skip for now.)*
+- **Metocy Mart shop**: Add buyable things at Metocy Mart. *(Asar: skip for now. There's a village shop now, Haggle's Stall.)*
 - **Deloye Lore map area**: Section of the map (possibly left of the village) focused on Xylo's Deloye Lore + a Deloye Lore song for that area.
 - General tips / ways to work more efficiently on this project
 
