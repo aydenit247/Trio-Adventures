@@ -84,7 +84,7 @@ const GEAR := {
 }
 
 # Permanent boosts: used from the Tab inventory on one fighter, used up, the bonus lasts all game (Game.boosts).
-# Kept in Game.inv by id. Same stat keys as GEAR.
+# Kept in each fighter's bag (Game.add_item / count). Same stat keys as GEAR.
 const BOOSTS := {
 	"conditioner": { "name": "Backup Conditioner", "desc": "Lykor's emergency bottle. Use it on someone for +15 max HP, for good. Lykor wants it back.", "hp": 15 },
 	"vol9": { "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. Read it to someone for +15% meter gain, for good.", "meter": 1.15 },
@@ -182,7 +182,7 @@ const TALK := {
 		"try": "Skorn: \"Y'all want a job? Pays in exposure.\"", "win": "The goblins accept. They have jobs now (unpaid). They leave to tell their moms.", "lose": "\"Exposure don't pay rent, bro.\" They keep swinging." },
 	"roast": { "text": "Roast them", "who": "lykor", "chance": 0.35, "bonus": "mogged", "kind": "end",
 		"try": "Lykor looks them up and down. Slowly.", "win": "\"Is that your face or are you holding it for someone?\" They walk off in tears.", "lose": "They don't get the joke. Lykor is offended that they don't get the joke." },
-	"kings_decree": { "text": "\"I'm the KING. The tab is forgiven.\"", "who": "lykor", "chance": 0.4, "kind": "end",
+	"kings_decree": { "text": "\"I'm the KING. The tab is forgiven.\"", "who": "lykor", "hide_if": ["skornKing", "lykorDethroned"], "chance": 0.4, "kind": "end",
 		"try": "Lykor stands on a chair. \"By royal decree, the tab is FORGIVEN.\"", "win": "Big Thumbs looks at the crown. Looks at Lykor. \"…Long live the king.\" He sits down.", "lose": "\"You were king for ten minutes, man.\"" },
 	"refund": { "text": "Ask for a refund", "who": "", "chance": 0.0, "kind": "backfire",
 		"try": "%s: \"Can we get a refund?\"", "win": "", "lose": "Dulbers laughs for a full minute. \"NO REFUNDS.\" He's HYPED now." },

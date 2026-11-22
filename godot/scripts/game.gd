@@ -6,7 +6,13 @@ const LEVELS := [0, 0, 50, 120, 220, 350, 520, 740, 1000, 1300, 1650]
 # Story flags, same names as the web game:
 # goblinAllies, skornKing, chugWon, lykorDethroned, foreheadLoser, bag_checked, ...
 var flags := {}
-var inv := { "beer": 0, "bowl": 0 }
+# Each character carries their own stuff (Asar's call). Use the item functions below, never write these directly.
+var bags := {}                    # fighter id -> { item id -> count }   (beer, bowl, BOOSTS items)
+var gear_owner := {}              # gear id -> fighter who carries it (worn or in their bag)
+var key_owner := {}               # key item id -> fighter (metocy_map, midtocy, lucky_spoon, shiny_spoon)
+var active_fighter := "skorn"     # who you're controlling: story rewards with no obvious receiver go to them
+const BAG_FIGHTERS := ["skorn", "lykor", "xylo", "chief"]
+const KEY_DEFAULT_OWNER := { "metocy_map": "skorn", "midtocy": "skorn" }
 var tts_on := true
 
 # progression (shared party level, like the web version)
@@ -37,7 +43,10 @@ func set_flag(name: String, value = true) -> void:
 
 func reset() -> void:
 	flags = {}
-	inv = { "beer": 0, "bowl": 0 }
+	bags = {}
+	gear_owner = {}
+	key_owner = {}
+	active_fighter = "skorn"
 	xp = 0
 	level = 1
 	gear_owned = []
@@ -60,11 +69,82 @@ func add_xp(n: int) -> Array:
 func xp_to_next() -> int:
 	return LEVELS[level + 1] - xp if level + 1 < LEVELS.size() else 0
 
-func give_gear(id: String) -> bool:
+func give_gear(id: String, to := "") -> bool:
 	if gear_owned.has(id):
 		return false
 	gear_owned.append(id)
+	gear_owner[id] = to if to != "" else active_fighter
 	return true
+
+# ---- per-character items
+func bag(f: String) -> Dictionary:
+	if not bags.has(f):
+		bags[f] = {}
+	return bags[f]
+
+# How many of an item one fighter has (f = "" → the whole party).
+func count(id: String, f := "") -> int:
+	if f != "":
+		return int(bag(f).get(id, 0))
+	var n := 0
+	for k in bags:
+		n += int(bags[k].get(id, 0))
+	return n
+
+# Give someone an item (f = "" → whoever you're controlling). Returns who got it.
+func add_item(id: String, n := 1, f := "") -> String:
+	var who := f if f != "" else active_fighter
+	bag(who)[id] = count(id, who) + n
+	return who
+
+# Take items (f = "" → from anyone, the one you're controlling first). False if there aren't enough.
+func take_item(id: String, n := 1, f := "") -> bool:
+	if (count(id, f) if f != "" else count(id)) < n:
+		return false
+	var order: Array = [f] if f != "" else [active_fighter] + BAG_FIGHTERS
+	for who in order:
+		while n > 0 and count(id, who) > 0:
+			bag(who)[id] = count(id, who) - 1
+			n -= 1
+	return true
+
+func set_count(f: String, id: String, n: int) -> void:
+	bag(f)[id] = maxi(0, n)
+
+# Move an item, a gear piece or a key item from one fighter to another. Gear gets taken off first.
+func give_item(from: String, to: String, id: String, n := 1) -> bool:
+	if CombatD.GEAR.has(id):
+		if gear_owner.get(id, "") != from:
+			return false
+		var w := wearer(id)
+		if not w.is_empty():
+			unequip(w[0], w[1])
+		gear_owner[id] = to
+		return true
+	if KEY_DEFAULT_OWNER.has(id) or key_owner.has(id):
+		key_owner[id] = to
+		return true
+	if not take_item(id, n, from):
+		return false
+	add_item(id, n, to)
+	return true
+
+func owner_of_key(id: String) -> String:
+	return key_owner.get(id, KEY_DEFAULT_OWNER.get(id, "lykor"))
+
+# Each fighter's beer/bowl for a fight (battle.gd), and writing what's left back afterwards.
+func fight_bags(ids: Array) -> Dictionary:
+	var out := {}
+	for f in ids:
+		out[f] = { "beer": count("beer", f), "bowl": count("bowl", f) }
+	return out
+
+func gear_in_bag(f: String) -> Array:   # unequipped gear this fighter carries
+	var out := []
+	for g in gear_owned:
+		if gear_owner.get(g, "lykor") == f and wearer(g).is_empty():
+			out.append(g)
+	return out
 
 func add_gold(n: int) -> void:
 	gold = max(0, gold + n)
@@ -113,6 +193,7 @@ func equip(fighter: String, gear_id: String, slot := "") -> String:
 	if not w.is_empty():
 		unequip(w[0], w[1])
 	slots_of(fighter)[slot] = gear_id
+	gear_owner[gear_id] = fighter
 	return slot
 
 # Everything a fighter's gear adds up to, in the same shape as one CombatD.GEAR entry (battle.gd reads this).
@@ -137,9 +218,9 @@ func gear_stats(fighter: String) -> Dictionary:
 # Use a BOOSTS item (Backup Conditioner, Deloye Lore Vol. 9) on a fighter: used up, bonus is permanent.
 func use_boost(fighter: String, item_id: String) -> bool:
 	var B: Dictionary = CombatD.BOOSTS.get(item_id, {})
-	if B.is_empty() or inv.get(item_id, 0) <= 0:
+	if B.is_empty() or count(item_id, fighter) <= 0:   # uses the fighter's own copy
 		return false
-	inv[item_id] -= 1
+	take_item(item_id, 1, fighter)
 	var bo: Dictionary = boosts.get(fighter, {})
 	bo["hp"] = bo.get("hp", 0) + B.get("hp", 0)
 	bo["meter"] = bo.get("meter", 1.0) * B.get("meter", 1.0)
@@ -317,7 +398,7 @@ var title_mode := false           # the title screen is showing the camp in the 
 
 func state_dict() -> Dictionary:
 	return {
-		"flags": flags.duplicate(true), "inv": inv.duplicate(true), "xp": xp, "level": level,
+		"flags": flags.duplicate(true), "bags": bags.duplicate(true), "gear_owner": gear_owner.duplicate(), "key_owner": key_owner.duplicate(), "xp": xp, "level": level,
 		"gear_owned": gear_owned.duplicate(), "equipped": equipped.duplicate(true), "boosts": boosts.duplicate(true), "gold": gold, "used67": used67,
 		"forehead": forehead, "quests": quests.duplicate(true),
 	}
@@ -325,7 +406,13 @@ func state_dict() -> Dictionary:
 func apply_state(d: Dictionary) -> void:
 	reset()
 	flags = d.get("flags", {}).duplicate(true)
-	inv = d.get("inv", { "beer": 0, "bowl": 0 }).duplicate(true)
+	bags = d.get("bags", {}).duplicate(true)
+	gear_owner = d.get("gear_owner", {}).duplicate()
+	key_owner = d.get("key_owner", {}).duplicate()
+	if d.has("inv"):   # old saves had one shared bag: it all goes to Lykor
+		for k in d["inv"]:
+			if int(d["inv"][k]) > 0:
+				add_item(k, int(d["inv"][k]), "lykor")
 	xp = int(d.get("xp", 0))
 	level = int(d.get("level", 1))
 	gear_owned = d.get("gear_owned", []).duplicate()
@@ -338,7 +425,11 @@ func apply_state(d: Dictionary) -> void:
 			var w := wearer(old_id)
 			if not w.is_empty():
 				unequip(w[0], w[1])
-			inv[old_id] = int(inv.get(old_id, 0)) + 1
+			add_item(old_id, 1, "lykor" if old_id == "conditioner" else "xylo")
+	for g in gear_owned:   # older saves: gear belongs to whoever wears it, else Lykor
+		if not gear_owner.has(g):
+			var w2 := wearer(g)
+			gear_owner[g] = w2[0] if not w2.is_empty() else "lykor"
 	used67 = d.get("used67", false)
 	forehead = d.get("forehead", "")
 	quests = d.get("quests", {}).duplicate(true)

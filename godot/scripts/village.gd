@@ -203,7 +203,8 @@ func _level_process(_delta: float) -> void:
 	vb.process(_delta)
 	if not roam_group.is_empty() and roam_group["done"] and not Game.flag("luckySpoonFound"):
 		Game.set_flag("luckySpoonFound")
-		show_toast("The patrol dropped something: Grubnik's Lucky Spoon!", 2.6)
+		Game.key_owner["lucky_spoon"] = Game.active_fighter
+		show_toast("The patrol dropped something: Grubnik's Lucky Spoon! (%s has it)" % leader.display_name, 2.6)
 	if mug and mug.get_meta("owner", null):
 		var o: Unit = mug.get_meta("owner")
 		mug.global_position = o.global_position + Vector3(0.45, 1.05, 0.1)
@@ -419,7 +420,7 @@ func _gift_beezy() -> void:
 		tw.tween_property(m, "global_position", leader.global_position + Vector3(0, 1.4, 0), 0.4).set_delay(k * 0.15)
 		tw.tween_callback(m.queue_free)
 	ui_sfx.play()
-	Game.inv["beer"] += 3
+	Game.add_item("beer", 3, "lykor")
 	show_toast("Lykor got: Beezy ×3")
 	await wait(0.9)
 
@@ -620,7 +621,7 @@ func _leave() -> void:
 	for g in goblins:
 		if g.visible and not Game.flag("skornKing"):
 			g.set_pose(stand, rng.randf_range(1.1, 1.3))
-	objective("Explore the village (I = quests) · or head east to the Metocy Mart.")
+	objective("Explore the village (Tab = inventory & quests) · or head east to the Metocy Mart.")
 	if not Game.flag("villageOpen"):
 		Game.set_flag("villageOpen")
 		if not shots_mode:

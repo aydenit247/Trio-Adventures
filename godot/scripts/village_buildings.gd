@@ -664,6 +664,8 @@ func on_action(n: String) -> void:
 		var i := int(n.substr(11))
 		Game.set_flag("spoon_%d" % i)
 		Game.flags["spoons_found"] = int(Game.flags.get("spoons_found", 0)) + 1
+		if not Game.key_owner.has("shiny_spoon"):
+			Game.key_owner["shiny_spoon"] = Game.active_fighter
 		reward(0, "Shiny Spoon (%d / %d)" % [Game.flags["spoons_found"], SPOONS.size()])
 		await lv.wait(0.3)
 		return
@@ -675,7 +677,7 @@ func on_action(n: String) -> void:
 			Game.set_flag("chiefHomeSeen")
 		"take_conditioner":
 			Game.set_flag("chestLooted")
-			Game.inv["conditioner"] = int(Game.inv.get("conditioner", 0)) + 1
+			Game.add_item("conditioner", 1, "lykor")
 			reward(10, "Got: Backup Conditioner (use it in your inventory for +15 max HP)")
 			await lv.wait(0.6)
 		"xylo_nap":
@@ -690,9 +692,9 @@ func on_action(n: String) -> void:
 			Game.set_flag("barTabStarted")
 			Game.start_quest("bar_tab", R.QUESTS["bar_tab"][0], R.QUESTS["bar_tab"][1])
 		"check_beezy":
-			Game.set_flag("has3Beezy", Game.inv["beer"] >= 3)
+			Game.set_flag("has3Beezy", Game.count("beer") >= 3)   # the whole party chips in
 		"pay_tab":
-			Game.inv["beer"] -= 3
+			Game.take_item("beer", 3)
 			Game.finish_quest("bar_tab")
 			reward(15, "Bar tab paid (−3 Beezy)")
 			await lv.wait(0.5)
@@ -703,7 +705,7 @@ func on_action(n: String) -> void:
 				Game.set_flag("thumbsBeaten", res == "win")
 				await run_lines(R.SLUDGE_AFTER_FIGHT)
 		"tab_won":
-			Game.inv["beer"] += 2
+			Game.add_item("beer", 2)
 			Game.finish_quest("bar_tab")
 			reward(0, "Tab cleared · Got: Beezy ×2")
 			await lv.wait(0.5)
@@ -718,8 +720,8 @@ func on_action(n: String) -> void:
 			if gorbo_heckles >= 2:
 				reward(15, "Roasted a comedian")
 			else:
-				Game.inv["beer"] += 1
-				reward(5, "Got: Beezy (from the tip jar)")
+				var who := Game.add_item("beer", 1)
+				reward(5, "%s got: Beezy (from the tip jar)" % who.capitalize())
 		"gulpo_chug":
 			if Game.quest_state("chug_rematch") == "":
 				Game.start_quest("chug_rematch", R.QUESTS["chug_rematch"][0], R.QUESTS["chug_rematch"][1])
@@ -727,8 +729,8 @@ func on_action(n: String) -> void:
 			if won:
 				Game.set_flag("chugRematchWon")
 				Game.finish_quest("chug_rematch")
-				Game.inv["beer"] += 2
-				reward(25, "Beat Gulpo · Got: Beezy ×2")
+				Game.add_item("beer", 2, "lykor")
+				reward(25, "Beat Gulpo · Lykor got: Beezy ×2")
 				await run_lines([{ "who": "goblin", "name": R.GULPO, "line": "No… my liver… it's never lost… it's crying…" }]) # DRAFT
 			else:
 				await run_lines([{ "who": "goblin", "name": R.GULPO, "line": "STEEL. LIVER. Night night, pretty boy." }]) # DRAFT
@@ -769,7 +771,7 @@ func on_action(n: String) -> void:
 		"lore_end":
 			Game.set_flag("loreOffWon", lore_wrong == 0)
 		"lore_reward":
-			Game.inv["vol9"] = int(Game.inv.get("vol9", 0)) + 1
+			Game.add_item("vol9", 1, "xylo")
 			Game.finish_quest("lore_off")
 			reward(40, "Got: Deloye Lore Vol. 9 (Signed) (read it in your inventory for +15% meter gain)")
 			await lv.wait(0.5)
@@ -787,8 +789,8 @@ func on_action(n: String) -> void:
 		"outhouse_skorn":
 			await _outhouse_trip("skorn")
 			Game.set_flag("outhouseSkornDone")
-			Game.inv["bowl"] += 1
-			reward(5, "Got: Chipotle Bowl (sealed) (allegedly)")
+			Game.add_item("bowl", 1, "skorn")
+			reward(5, "Skorn got: Chipotle Bowl (sealed) (allegedly)")
 		"outhouse_lykor":
 			await _outhouse_trip("lykor")
 			Game.set_flag("outhouseLykorDone")
@@ -844,8 +846,8 @@ func _smith_turn_in() -> void:
 			reward(20, "Got: Spoon of Destiny (+10% damage)")
 			await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "The Spoon of Destiny. I forged destiny into a spoon. It's still a spoon." }]) # DRAFT
 		else:
-			Game.inv["bowl"] += 2
-			reward(20, "Got: Chipotle Bowl ×2")
+			var who2 := Game.add_item("bowl", 2)
+			reward(20, "%s got: Chipotle Bowl ×2" % who2.capitalize())
 			await run_lines([{ "who": "goblin", "name": R.CLANK, "line": "You already got the Spoon of Destiny? Fine. I made you two bowls. They're spoon-shaped. Don't ask." }]) # DRAFT
 	if turned < 5 and found >= 5:
 		Game.give_gear("spoon_mail")
@@ -896,7 +898,8 @@ func tour() -> void:
 	lv.switch_enabled = true
 	lv.chief.visible = true
 	lv.chief.global_position = lv.THRONE_POS + Vector3(2.0, 0, 1.0)
-	Game.inv = { "beer": 3, "bowl": 0 }
+	Game.bags = {}
+	Game.add_item("beer", 3, "lykor")
 	var part := OS.get_environment("TOUR_PART")
 	await lv.wait(1.0)
 	if part == "" or part == "1":
@@ -946,5 +949,5 @@ func tour() -> void:
 		await lv.wait(1.0)
 		await lv.shot("b_18_party_quests")
 		lv._close_menu()
-	print("TOUR DONE  xp=", Game.xp, " level=", Game.level, " gear=", Game.gear_owned, " quests=", Game.quests, " inv=", Game.inv)
+	print("TOUR DONE  xp=", Game.xp, " level=", Game.level, " gear=", Game.gear_owned, " quests=", Game.quests, " bags=", Game.bags)
 	get_tree().quit()

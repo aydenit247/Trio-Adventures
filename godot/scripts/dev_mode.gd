@@ -173,9 +173,9 @@ func _do() -> void:
 				lv.show_toast("(dev) Level %d" % Game.level)
 			_render()
 		6:
-			Game.inv["beer"] += 3
-			Game.inv["bowl"] += 2
-			lv.show_toast("(dev) Beezy %d · Bowls %d" % [Game.inv["beer"], Game.inv["bowl"]])
+			Game.add_item("beer", 3)
+			Game.add_item("bowl", 2)
+			lv.show_toast("(dev) %s got Beezy ×3 · Bowl ×2 (now %d · %d)" % [Game.active_fighter.capitalize(), Game.count("beer", Game.active_fighter), Game.count("bowl", Game.active_fighter)])
 		7:
 			for g in CombatData.GEAR.keys():
 				Game.give_gear(g)

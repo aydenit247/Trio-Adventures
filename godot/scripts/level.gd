@@ -490,6 +490,7 @@ func remove_from_party(id: String) -> Unit:
 func set_leader(u: Unit) -> void:
 	var old := leader
 	leader = u
+	Game.active_fighter = u.id   # story rewards with no obvious receiver go to whoever you're controlling
 	var order: Array[Unit] = [u]
 	for p in party:
 		if p != u:
@@ -922,7 +923,7 @@ func story_so_far() -> Array:
 	if Game.flag("hasMidtocy"): out.append("Skorn has midtocy in his pocket.")
 	if Game.flag("dulbersEscaped"): out.append("Dulbers Frint got away. (He'll be back.)")
 	if Game.flag("dulbersDead"): out.append("Dulbers Frint was never seen again.")
-	if Game.inv["beer"] > 0: out.append("Beezy: %d" % Game.inv["beer"])
+	if Game.count("beer") > 0: out.append("Beezy: %d" % Game.count("beer"))
 	return out
 
 # ---------------------------------------------------------------- testing helpers
@@ -991,7 +992,9 @@ func _fight_tour(key: String) -> void:
 		var c := spawn_npc("chief", "Chief Bogdrinker", "goblin_chief", 1.45, leader.global_position + Vector3(1.5, 0, 1.5))
 		c.set_meta("follow", true)
 	Game.level = int(OS.get_environment("LEVEL")) if OS.get_environment("LEVEL") != "" else 1
-	Game.inv = { "beer": 2, "bowl": 1 }
+	for f in ["skorn", "lykor", "xylo"]:
+		Game.set_count(f, "beer", 1)
+	Game.set_count("lykor", "bowl", 1)
 	await wait(1.0)
 	var shooting := [true]
 	var shooter := func():
@@ -1135,13 +1138,13 @@ func _defeat(story: bool) -> void:
 	# the penalty
 	var opts := []
 	for P in CombatD.PENALTIES:
-		if P.has("lose") and Game.inv[P["lose"]] <= 0:
+		if P.has("lose") and Game.count(P["lose"]) <= 0:
 			continue
 		opts.append(P)
 	var P: Dictionary = opts[rng.randi() % opts.size()]
 	var msg := ""
 	if P.has("lose"):
-		Game.inv[P["lose"]] -= 1
+		Game.take_item(P["lose"], 1)
 		msg = P["text"]
 	else:
 		var words: Array = P["forehead"]

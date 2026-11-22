@@ -268,7 +268,7 @@ func _draw_gear() -> void:
 	info_lbl.size = Vector2(208, 104); info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info_hint = _txt("", Vector2(12, 174), 14, Color("#ffd27a"), serif_bold, card)
 	info_hint.size = Vector2(208, 44); info_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var keys := _txt("Q fighter · J quests · Tab close", Vector2(12, 226), 12, Color(1, 1, 1, 0.5), serif, card)
+	var keys := _txt("Right-click: view / give  ·  Q: next  ·  Tab: close", Vector2(12, 226), 12, Color(1, 1, 1, 0.5), serif, card)
 	keys.size = Vector2(208, 18)
 
 func _draw_quests() -> void:
@@ -344,29 +344,33 @@ func _slot_box(r: Rect2, gear_id: String, style: int, item := {}) -> Panel:
 	return box
 
 # everything in the shared bag, in a stable order
-func _bag_items() -> Array:
+func _bag_items() -> Array:   # what the fighter on screen carries (everyone has their own bag)
+	var fid: String = fighters[who]
 	var out := []
-	if Game.inv.get("beer", 0) > 0:
-		out.append({ "id": "beer", "kind": "use", "name": "Beezy", "desc": CombatD.ITEMS["beer"]["desc"], "count": Game.inv["beer"] })
-	if Game.inv.get("bowl", 0) > 0:
-		out.append({ "id": "bowl", "kind": "use", "name": "Chipotle Bowl", "desc": CombatD.ITEMS["bowl"]["desc"], "count": Game.inv["bowl"] })
+	for k in ["beer", "bowl"]:
+		if Game.count(k, fid) > 0:
+			out.append({ "id": k, "kind": "use", "name": CombatD.ITEMS[k]["name"], "desc": CombatD.ITEMS[k]["desc"], "count": Game.count(k, fid) })
 	for k in CombatD.BOOSTS:
-		if int(Game.inv.get(k, 0)) > 0:
+		if Game.count(k, fid) > 0:
 			var B: Dictionary = CombatD.BOOSTS[k]
-			out.append({ "id": k, "kind": "boost", "name": B["name"], "desc": B["desc"], "count": int(Game.inv[k]) })
-	for g in Game.gear_owned:
-		if CombatD.GEAR.has(g) and Game.wearer(g).is_empty():
-			var G: Dictionary = CombatD.GEAR.get(g, {})
+			out.append({ "id": k, "kind": "boost", "name": B["name"], "desc": B["desc"], "count": Game.count(k, fid) })
+	for g in Game.gear_in_bag(fid):
+		if CombatD.GEAR.has(g):
+			var G: Dictionary = CombatD.GEAR[g]
 			out.append({ "id": g, "kind": "gear", "name": G.get("name", g), "desc": G.get("desc", ""), "count": 1 })
+	var keys := []
 	if Game.flag("hasMap"):
-		out.append({ "id": "metocy_map", "kind": "key", "name": "Metocy Map (firestarter)", "desc": "The map to the metocy. Lykor packed it. Skorn has other plans for it.", "count": 1 })
+		keys.append({ "id": "metocy_map", "kind": "key", "name": "Metocy Map (firestarter)", "desc": "The map to the metocy. Lykor packed it. Skorn has other plans for it.", "count": 1 })
 	if Game.flag("hasMidtocy"):
-		out.append({ "id": "midtocy", "kind": "key", "name": "Midtocy", "desc": "The fake metocy. Skorn swears it's fine. It is not fine.", "count": 1 })
+		keys.append({ "id": "midtocy", "kind": "key", "name": "Midtocy", "desc": "The fake metocy. Skorn swears it's fine. It is not fine.", "count": 1 })
 	if Game.flag("luckySpoonFound") and Game.quest_state("lucky_spoon") == "active":
-		out.append({ "id": "lucky_spoon", "kind": "key", "name": "Grubnik's Lucky Spoon", "desc": "Covered in patrol grease. Grubnik misses it.", "count": 1 })
+		keys.append({ "id": "lucky_spoon", "kind": "key", "name": "Grubnik's Lucky Spoon", "desc": "Covered in patrol grease. Grubnik misses it.", "count": 1 })
 	var spoons := int(Game.flags.get("spoons_found", 0))
 	if spoons > 0 and not Game.gear_owned.has("spoon_mail"):
-		out.append({ "id": "shiny_spoon", "kind": "key", "name": "Shiny Spoons", "desc": "For Clank the Spoonsmith. 3 = a weapon, 5 = armor.", "count": spoons })
+		keys.append({ "id": "shiny_spoon", "kind": "key", "name": "Shiny Spoons", "desc": "For Clank the Spoonsmith. 3 = a weapon, 5 = armor.", "count": spoons })
+	for k in keys:
+		if Game.owner_of_key(k["id"]) == fid:
+			out.append(k)
 	return out
 
 # ---------------------------------------------------------------- selection + actions
@@ -531,10 +535,36 @@ func _item_at(i: int) -> Dictionary:
 	var c: Dictionary = cells[i]
 	if c["kind"] == "slot":
 		var g: String = Game.slots_of(fighters[who]).get(c["slot"], "")
-		return { "id": g, "name": CombatD.GEAR[g]["name"] } if g != "" else {}
+		return { "id": g, "name": CombatD.GEAR[g]["name"], "count": 1, "kind": "gear" } if g != "" else {}
 	if c["i"] < bag.size():
-		return { "id": bag[c["i"]]["id"], "name": bag[c["i"]]["name"] }
+		return bag[c["i"]]
 	return {}
+
+# Fighters who are actually here to hand things to (Skorn isn't, while he's sitting on the goblin throne)
+func _give_targets() -> Array:
+	var out := []
+	for f in fighters:
+		if f == fighters[who]:
+			continue
+		if f == "chief":
+			if Game.flag("goblinAllies"):
+				out.append(f)
+			continue
+		for u in lv.party:
+			if u.id == f:
+				out.append(f)
+	return out
+
+func _give(i: int, to: String, n: int) -> void:
+	var it := _item_at(i)
+	if it.is_empty():
+		return
+	var from: String = fighters[who]
+	if Game.give_item(from, to, it["id"], n):
+		note = "Gave %s%s to %s." % [it["name"], (" ×%d" % n) if n > 1 else "", CombatD.PARTY[to]["name"]]
+		_click()
+	_rebuild()
+	note = ""
 
 func _popup_base(dim: float) -> Control:
 	_close_popup()
@@ -568,21 +598,46 @@ func _open_item_menu(i: int, at: Vector2) -> void:
 	sb.bg_color = Color("#1d1814"); sb.border_color = GOLD; sb.set_border_width_all(2); sb.set_corner_radius_all(5)
 	sb.content_margin_left = 4; sb.content_margin_right = 4; sb.content_margin_top = 4; sb.content_margin_bottom = 4
 	box.add_theme_stylebox_override("panel", sb)
-	var b := Button.new()
-	b.text = "View"; b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(110, 32)
-	b.add_theme_font_override("font", serif_bold); b.add_theme_font_size_override("font_size", 17)
-	b.add_theme_color_override("font_color", Color("#f3e3b0")); b.add_theme_color_override("font_hover_color", GOLD)
-	var bs := StyleBoxFlat.new(); bs.bg_color = Color(0, 0, 0, 0)
-	var bh := StyleBoxFlat.new(); bh.bg_color = Color(1, 1, 1, 0.08)
-	b.add_theme_stylebox_override("normal", bs); b.add_theme_stylebox_override("hover", bh); b.add_theme_stylebox_override("pressed", bh)
-	b.pressed.connect(func():
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 0)
+	box.add_child(col)
+	col.add_child(_menu_button("View", func():
 		_close_popup()
-		_view_item(i))
-	box.add_child(b)
+		_view_item(i)))
+	var it := _item_at(i)
+	var n: int = int(it.get("count", 1))
+	for to in _give_targets():
+		var nm: String = CombatD.PARTY[to]["name"]
+		var t: String = to
+		if n > 1:
+			col.add_child(_menu_button("Give 1 to %s" % nm, func():
+				_close_popup()
+				_give(i, t, 1)))
+			col.add_child(_menu_button("Give all (%d) to %s" % [n, nm], func():
+				_close_popup()
+				_give(i, t, n)))
+		else:
+			col.add_child(_menu_button("Give to %s" % nm, func():
+				_close_popup()
+				_give(i, t, 1)))
 	layer.add_child(box)
-	box.position = at - global_position + Vector2(4, 4)
+	box.reset_size()
+	var vp := get_viewport_rect().size
+	box.position = (at - global_position + Vector2(4, 4)).clamp(Vector2(8, 8), vp - box.size - Vector2(8, 8))   # stay on screen
 	_click()
+
+func _menu_button(text: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = text; b.focus_mode = Control.FOCUS_NONE
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.custom_minimum_size = Vector2(190, 32)
+	b.add_theme_font_override("font", serif_bold); b.add_theme_font_size_override("font_size", 16)
+	b.add_theme_color_override("font_color", Color("#f3e3b0")); b.add_theme_color_override("font_hover_color", GOLD)
+	var bs := StyleBoxFlat.new(); bs.bg_color = Color(0, 0, 0, 0); bs.content_margin_left = 8
+	var bh := StyleBoxFlat.new(); bh.bg_color = Color(1, 1, 1, 0.08); bh.content_margin_left = 8
+	b.add_theme_stylebox_override("normal", bs); b.add_theme_stylebox_override("hover", bh); b.add_theme_stylebox_override("pressed", bh)
+	b.pressed.connect(cb)
+	return b
 
 # The item's picture, big, over everything. Click / Esc / E / Tab closes it.
 func _view_item(i: int) -> void:

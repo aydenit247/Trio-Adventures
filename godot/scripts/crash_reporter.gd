@@ -160,7 +160,7 @@ func _state_snapshot(sc: Node, game: Node, line: String, fight: String) -> Strin
 	o.append("- **Menu open:** %s" % (menu if menu else "no"))
 	if game:
 		o.append("- **Party:** level %s, %s XP, %s gold" % [game.get("level"), game.get("xp"), game.get("gold")])
-		o.append("- **Bag:** %s" % str(game.get("inv")))
+		o.append("- **Bags:** %s" % str(game.get("bags")))
 		o.append("- **Equipped:** %s" % str(game.get("equipped")))
 		var fl: Dictionary = game.get("flags") if game.get("flags") is Dictionary else {}
 		var on := []

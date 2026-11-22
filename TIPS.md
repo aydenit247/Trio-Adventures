@@ -103,6 +103,15 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Installing global npm tools (e.g. gltfpack) gets blocked in the sandbox. Do mesh work in Godot or with Python.
 
 ## Code conventions worth knowing
+- [asar] **Inventory is per character** (Asar). Never touch bags directly. Use `Game.add_item(id, n, who)` (who "" = the
+  character you're controlling, `Game.active_fighter`), `Game.take_item(id, n, who)` (who "" = whole party, controlled
+  character first), `Game.count(id, who)` (who "" = party total), `Game.give_item(from, to, id, n)`. When a story line
+  names who gets it ("Skorn got…"), pass that fighter. Gear has an owner (`Game.gear_owner`), and key items have
+  `Game.key_owner` (map/midtocy default to Skorn). In fights, each fighter only uses their own items (`b.item_count(id, k)`).
+- [asar] **Continuity:** the village opens after all 5 throne choices. Skorn is NOT in the party when `skornKing` (he's on
+  the throne until he bursts into the Mart). Gate path-specific lines with `if`/`if_not` (`chugWon`, `foreheadLoser`,
+  `skornKing`, `goblinAllies`, `lykorDethroned`), and run `tools/check_continuity.gd`. Talk options can use
+  `"hide_if": [flags]`.
 - [asar] `Game.equipped` is now fighter → { slot → gear id }. Use `Game.equip()/unequip()/wearer()/gear_stats()`, never write the dict directly. Old saves are migrated in `apply_state`. `Game.SLOTS` is the save-slot list; gear slots are `Game.GEAR_SLOTS`.
 - [asar] New gear needs a `"slot"` in CombatD.GEAR (helmet/armor/shoes/shield/weapon/trinket). New enemies need `"gold"`.
 - [ebain] Menus: use `MenuUI` (scripts/menu_ui.gd) for any new menu. It handles keyboard, controller and mouse, and has

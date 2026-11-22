@@ -361,7 +361,7 @@ func _on_action(n: String) -> void:
 			if not won:
 				giant_mood = "enraged"
 		"steal_bowls":
-			Game.inv["bowl"] += 2
+			Game.add_item("bowl", 2, "skorn")
 			ui_sfx.play()
 			show_toast("Skorn got: Chipotle Bowl ×2 (heals 60)")
 			await wait(0.6)

@@ -28,7 +28,7 @@ var rng := RandomNumberGenerator.new()
 var diff: Dictionary
 var level := 1
 var lvl := 1.0
-var inv := { "beer": 0, "bowl": 0 }
+var bags := {}                    # fighter id -> { beer, bowl }: everyone uses their own items
 var used67 := false
 var hype := 0
 var now := 0.0
@@ -52,7 +52,6 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 	level = o.get("level", 1)
 	lvl = 1.0 + 0.1 * (level - 1)
 	var oi: Dictionary = o.get("inv", {})
-	inv = { "beer": oi.get("beer", 0), "bowl": oi.get("bowl", 0) }
 	used67 = o.get("used67", false)
 	var gear: Dictionary = o.get("gear", {})
 
@@ -74,6 +73,12 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 			"tripping": mods.get("tripping", "") == "party" or (mods.get("tripping", "") == "skorn" and id == "skorn"),
 		})
 
+	for p in party:   # o.inv = { fighter: {beer, bowl} } (Game.fight_bags), or one shared {beer, bowl} (balance sim) → first fighter
+		bags[p["id"]] = { "beer": 0, "bowl": 0 }
+		if oi.get(p["id"]) is Dictionary:
+			bags[p["id"]] = { "beer": int(oi[p["id"]].get("beer", 0)), "bowl": int(oi[p["id"]].get("bowl", 0)) }
+	if oi.has("beer") or oi.has("bowl"):
+		bags[party[0]["id"]] = { "beer": int(oi.get("beer", 0)), "bowl": int(oi.get("bowl", 0)) }
 	var full_party: int = def.get("party", ids).size()
 	var hp_mul: float = (1.15 if mods.get("enraged", false) else 1.0) * diff["hp"] * (0.75 if ids.size() < full_party else 1.0)
 	if ids.size() > full_party and def.get("boss", false):
@@ -286,9 +291,30 @@ func talk_options(m: Dictionary) -> Array:
 		var T: Dictionary = D.TALK[tid]
 		if T.get("who", "") != "" and T["who"] != m["id"]:
 			continue
+		if T.has("hide_if") and _any_flag(T["hide_if"]):
+			continue
 		var need: String = T.get("need", "")
-		out.append({ "id": tid, "text": T["text"], "ok": need == "" or inv.get(need, 0) > 0, "need": need })
+		out.append({ "id": tid, "text": T["text"], "ok": need == "" or item_count(m["id"], need) > 0, "need": need })
 	return out
+
+func item_count(id: String, k: String) -> int:
+	return int(bags.get(id, {}).get(k, 0))
+
+func total_items(k: String) -> int:
+	var n := 0
+	for id in bags:
+		n += int(bags[id].get(k, 0))
+	return n
+
+# Story flags (e.g. hide "I'm the KING" if Skorn got crowned). Works without the Game autoload too (balance sim).
+func _any_flag(names: Array) -> bool:
+	var g = Engine.get_main_loop().root.get_node_or_null("Game") if Engine.get_main_loop() else null
+	if g == null:
+		return false
+	for f in names:
+		if g.flag(f):
+			return true
+	return false
 
 func can_flee() -> bool:
 	return not def.get("story", false)
@@ -504,7 +530,7 @@ func do_combo(m: Dictionary, c: Dictionary, t: Dictionary, h: Dictionary) -> Arr
 
 func use_item(m: Dictionary, k: String, t: Dictionary) -> Array:
 	var it: Dictionary = D.ITEMS[k]
-	inv[k] -= 1
+	bags[m["id"]][k] -= 1   # from the user's own bag
 	stats["items"] += 1
 	var ev := [{ "t": "item", "u": m, "target": t, "item": k }]
 	ev += _heal_member(m, t, it["heal"], "%s has a %s." % [t["name"], it["name"]])
@@ -528,7 +554,7 @@ func talk(m: Dictionary, tid: String) -> Array:
 	var try_text: String = T["try"] % m["name"] if "%s" in T["try"] else T["try"]
 	ev.append({ "t": "talk", "u": m, "text": try_text })
 	if T.has("need"):
-		inv[T["need"]] -= 1
+		bags[m["id"]][T["need"]] -= 1
 	var chance: float = T["chance"]
 	if T.has("bonus"):
 		for e in alive(enemies):
@@ -719,7 +745,7 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 				return { "kind": "hit", "name": "Hair Flip (Knockoff)", "power": 18, "targets": [t], "flatten": 0.45, "text": "Knockoff Lykor hair-flips at %s!" % t["name"], "sound": "sparkle" }
 			return all.merged({ "kind": "hit", "name": "Eldritch Blast (Generic)", "power": 20, "text": "Generic Xylo blasts the whole party!", "sound": "blast" })
 		var r := rnd()
-		if inv["beer"] > 0 and e["hp"] < e["max_hp"] * 0.75 and e.get("stole", 0) < 2 and r < 0.22:
+		if total_items("beer") > 0 and e["hp"] < e["max_hp"] * 0.75 and e.get("stole", 0) < 2 and r < 0.22:
 			e["stole"] = e.get("stole", 0) + 1
 			return { "kind": "steal", "text": "Dulbers steals one of your Beezys and chugs it in front of you." }
 		var lykor := member("lykor")
@@ -782,10 +808,14 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 			ev.append({ "t": "heal", "u": e, "amt": amt, "hp": e["hp"], "text": it["text"], "sound": "gulp" })
 			return ev
 		"steal":
-			inv["beer"] -= 1
+			var victim := ""
+			for id in bags:   # takes it from whoever has the most
+				if victim == "" or item_count(id, "beer") > item_count(victim, "beer"):
+					victim = id
+			bags[victim]["beer"] -= 1
 			var amt := mini(30, e["max_hp"] - e["hp"])
 			e["hp"] += amt
-			ev.append({ "t": "heal", "u": e, "amt": amt, "hp": e["hp"], "text": "%s (+%d) (%d left)" % [it["text"], amt, inv["beer"]], "sound": "gulp", "stole": true })
+			ev.append({ "t": "heal", "u": e, "amt": amt, "hp": e["hp"], "text": "%s (+%d) (%d left)" % [it["text"], amt, total_items("beer")], "sound": "gulp", "stole": true })
 			return ev
 		"shield":
 			e["st"]["shield"] = it["amt"]
@@ -862,9 +892,9 @@ func hurt(p: Dictionary, dmg: int, block: String, aoe: bool) -> Array:
 		var rest := alive(party)
 		if not rest.is_empty():
 			ev += bark(rest[0], "allyKo", 0.6)
-			if inv["beer"] + inv["bowl"] == 0 and not emergency_given:
+			if total_items("beer") + total_items("bowl") == 0 and not emergency_given:
 				emergency_given = true
-				inv["beer"] = 1
+				bags[rest[0]["id"]]["beer"] = 1
 				ev.append({ "t": "say", "text": "Someone's down and you're out of items? Here — 1 Emergency Beezy (complimentary).", "sound": "grab", "ms": 1600 })
 	elif not p["low_warned"] and p["hp"] < p["max_hp"] * 0.3:
 		p["low_warned"] = true

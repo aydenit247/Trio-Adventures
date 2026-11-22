@@ -80,13 +80,13 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 		if id in ["skorn", "lykor", "xylo", "chief"]:
 			gear[id] = Game.gear_stats(id)   # all 7 slots added up
 	b = BattleT.new(key, {
-		"party": ids, "mods": o.get("mods", {}), "level": Game.level, "inv": Game.inv,
+		"party": ids, "mods": o.get("mods", {}), "level": Game.level, "inv": Game.fight_bags(ids),
 		"difficulty": Game.difficulty, "used67": Game.used67, "gear": gear,
 	})
 	if auto_play and OS.get_environment("AUTO_LOSE") != "":
 		for p in b.party:
 			p["hp"] = 1
-		b.inv = { "beer": 0, "bowl": 0 }
+		for id in b.bags: b.bags[id] = { "beer": 0, "bowl": 0 }
 		b.emergency_given = true
 		b.used67 = true
 	_make_sounds()
@@ -551,8 +551,9 @@ func _choose(u: Dictionary) -> Dictionary:
 		var combos := b.combos_for(u)
 		if not combos.is_empty():
 			opts.append({ "text": "Team-Up!", "desc": "Spend meter with a friend for a combo move.", "v": "combo", "hot": true })
-		var items: int = b.inv["beer"] + b.inv["bowl"]
-		opts.append({ "text": "Items  (Beezy %d · Bowl %d)" % [b.inv["beer"], b.inv["bowl"]], "desc": "Heal or revive someone.", "v": "item", "off": items == 0 })
+		var nb := b.item_count(u["id"], "beer")
+		var nw := b.item_count(u["id"], "bowl")
+		opts.append({ "text": "Items  (Beezy %d · Bowl %d)" % [nb, nw], "desc": "Heal or revive someone with %s's own items." % u["name"], "v": "item", "off": nb + nw == 0 })
 		opts.append({ "text": "Defend", "desc": "Half damage, enemies aim at you, cooldowns tick faster, +meter.", "v": "defend" })
 		if not b.talk_options(u).is_empty():
 			opts.append({ "text": "Talk", "desc": "Try talking your way through this.", "v": "talk" })
@@ -582,8 +583,8 @@ func _choose(u: Dictionary) -> Dictionary:
 			"item":
 				var iopts := []
 				for k in ["beer", "bowl"]:
-					if b.inv[k] > 0:
-						iopts.append({ "text": "%s ×%d" % [D.ITEMS[k]["name"], b.inv[k]], "desc": D.ITEMS[k]["desc"], "v": k })
+					if b.item_count(u["id"], k) > 0:
+						iopts.append({ "text": "%s ×%d" % [D.ITEMS[k]["name"], b.item_count(u["id"], k)], "desc": D.ITEMS[k]["desc"], "v": k })
 				var it = await _menu("Items", iopts, true)
 				if it != null:
 					var t = await _pick_target(b.party, true)
@@ -610,8 +611,8 @@ func _auto_action(u: Dictionary) -> Dictionary:
 		if f["hp"] < t["hp"]: t = f
 	for p in b.party:
 		if p["hp"] < p["max_hp"] * 0.3:
-			if b.inv["bowl"] > 0: return { "type": "item", "item": "bowl", "target": p }
-			if b.inv["beer"] > 0: return { "type": "item", "item": "beer", "target": p }
+			if b.item_count(u["id"], "bowl") > 0: return { "type": "item", "item": "bowl", "target": p }
+			if b.item_count(u["id"], "beer") > 0: return { "type": "item", "item": "beer", "target": p }
 	if u["meter"] >= 100: return { "type": "move", "slot": "ult", "target": t }
 	var combos := b.combos_for(u)
 	if not combos.is_empty(): return { "type": "combo", "combo": combos.back(), "target": t }
@@ -1263,8 +1264,9 @@ func _ask_67() -> bool:
 # ================================================================== the end
 func _outro(res: String) -> void:
 	# carry items back out
-	Game.inv["beer"] = b.inv["beer"]
-	Game.inv["bowl"] = b.inv["bowl"]
+	for id in b.bags:   # what's left in each fighter's bag
+		Game.set_count(id, "beer", b.bags[id]["beer"])
+		Game.set_count(id, "bowl", b.bags[id]["bowl"])
 	Game.used67 = b.used67
 	_refresh()
 	if res == "win" or res == "talked":
