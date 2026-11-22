@@ -143,6 +143,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 |---|---|
 | `project.godot` | autoload `Game`, main scene **`title.tscn`** (title screen), Forward+, 1280×720, icon + boot splash (`icon.png`, `icon.ico`, `splash.png`) |
 | `scripts/title.gd` + `title.tscn` | title screen: the camp runs in "title mode" behind the logo (fire lit, slow camera orbit). Continue / New Game / Load / Settings / Quit. Music: Ebain's **"Prophecy of Metocy"** (`assets/music/prophecy_of_metocy.ogg`, Gregorian chant, loops, fades out when you start) |
+| `scripts/area_music.gd` | **AreaMusic**: an area's free-roam music. Add it as a child node in the area's `.tscn` and set `track` (+ `stages`, volumes). It watches the parent Level, so the area script doesn't change: plays while `stage` is in `stages`, ducks under dialogue, goes quiet in building interiors (`vb.room`) and fights (a BattleView child), fades out on `Game.changing`. Keeps playing silently while out, so the song continues instead of restarting. Village: Ebain's **"The Mogging Elf"** (`assets/music/the_mogging_elf.ogg`) in free roam |
 | `scripts/menu_ui.gd` | **MenuUI**: every menu (title, pause, settings, save/load, yes/no). Keyboard, controller and mouse. `MenuUI.open(parent, title, rows, opts)`, `MenuUI.confirm()`, `open_settings()`, `open_slots()` |
 | `scripts/game.gd` | **Game** autoload: story `flags`, `inv`, XP/level, gear, `quests`; `goto(scene)` (shows a loading card with a joke tip); **settings** (saved in `user://settings.cfg`; F11/Alt+Enter fullscreen); **saves** (`user://saves/<auto/1/2/3>.sav`: `save_game`, `load_game`, `latest_slot`, `new_game`) |
 | `scripts/level.gd` | **Level** base class every area extends: environment (night/day/lava), ground shader, `card()`, `backdrop()`, party + NPCs (`spawn_npc`, `add_to_party`, `walk_to`, `hop`, `knock`), camera (`cam_locked`, `zoom`, `cam_height`, `cam_look_h`, `focus_override`), interactions, `run_dialogue()`, HUD (`objective`, `show_toast`, `char_label`), `fight()`, roaming enemies (`spawn_roamers`), the defeat penalty, Esc pause menu, Tab inventory (`open_party_menu()` → InventoryUI), `item_icon(id)`, test helpers. Hooks: `_configure`, `_build_level`, `_after_build`, `_begin`, `_level_interactables`, `_on_action`, `_level_process`, `_shot_tour` |
@@ -209,11 +210,13 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
 - **Voice lines:** all voices will be AI-generated with Ebain's Emberstage studio (see VOICE_LINES.md). Asar's recordings
   were removed 2026-11-21. Lines without a generated voice use the robot TTS.
   The rest are numbered in `VOICE_LINES.md`; Asar records them by number. Mattias lines may come later.
-- **Pronunciations:** Ebain hasn't answered the pronunciation list (Lykor, Xylo, metocy, Deloye, slang like ts/mf/ngl).
+- **Pronunciations:** Lykor = **LIE-core** (Ebain, 2026-11-22). Still unanswered: Xylo, metocy, Deloye, slang like ts/mf/ngl.
   TTS respellings live in `dialogue.gd`.
-- **Music + real sound effects:** none yet (all sounds are synthesized). Planned tracks: camp, goblin village, Mart
-  (+ warped trip version), battle, boss, mountain/pass, victory jingle, "YOU GOT COOKED" sting. There's no music
-  system in the Godot version yet.
+- **Music:** title = "Prophecy of Metocy" (title.gd), village free roam = "The Mogging Elf" (AreaMusic node in
+  village.tscn). Ebain makes tracks in Google Flow Music. Loop points go in the track's `.import` (`loop=true`,
+  `loop_offset` = where the loop restarts, so an intro plays once). Still wanted: camp, Mart (+ warped trip version),
+  battle, boss, mountain/pass, victory jingle, "YOU GOT COOKED" sting. A new area track = add an AreaMusic node to
+  that area's .tscn.
 - **Credits:** asked Ebain whether to keep "Code, Cutouts & Sounds: Claude". No answer yet.
 - **Chapter 2+:** Dulbers returns as a villain.
 

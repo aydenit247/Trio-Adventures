@@ -18,7 +18,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   Voice calls (who sounds like what) live in that repo's `src/data/trio/cast.ts`. Ebain approves every take himself.
 - [ebain] Camp has no choice on purpose. Every other main event needs a 5-way choice with at least one combat option.
 - [ebain] Ebain wants lots of optional open-world stuff between the main events (joke NPCs, side quests, gear).
-- [ebain] Still unanswered: pronunciations (Lykor, Xylo, metocy, Deloye, ts/mf/ngl) and the "Code, Cutouts & Sounds:
+- [ebain] **Lykor is pronounced LIE-core** ("lie" + "core"). Spell it `Lie-core` for TTS/song generators.
+- [ebain] Still unanswered: pronunciations (Xylo, metocy, Deloye, ts/mf/ngl) and the "Code, Cutouts & Sounds:
   Claude" credit. Ask again only if it matters for your task.
 - [asar] Spoon Mail is called **Spoon Mail Armor** (Asar's call).
 - [ebain] Ebain added a **Grok** assistant (tag `grok`) for doc hygiene + light tasks. Its lane is in CLAUDE.md.
@@ -81,6 +82,12 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   api.sketchfab.com plus an API token.
 - [ebain] Sounds go in `godot/assets/sounds/` as `.ogg` (e.g. crickets.ogg, a seamless loop cut with ffmpeg + numpy).
   Set `loop=true` in the `.import` file.
+- [ebain] **Area music = an `AreaMusic` node** in the area's .tscn (see village.tscn), not code in the area script. It ducks under
+  dialogue and goes quiet for fights/interiors by itself.
+- [ebain] **Looping a Flow song:** Flow songs have an intro and an outro. Keep the intro, cut before the outro on a bar line
+  where the music matches the loop start (librosa beat-synced chroma+MFCC similarity, then align by onset envelope), blend
+  the last 0.3 s into the audio just before the loop start, and set `loop_offset` in the .import. Raw waveform
+  correlation is useless for this (AI songs never repeat sample-for-sample).
 - [ebain] Music goes in `godot/assets/music/` as `.ogg` (loop=true in the `.import`). Ebain makes tracks in Google Flow Music. Title = "Prophecy of Metocy". Trim trailing silence with ffmpeg before importing.
 - [ebain] Character `_side.png` art must face **right** (Unit mirrors it for walking left). Skorn's faced left and moonwalked.
 - [ebain] `notes.md` is Ebain's idea list (not claimed work). Turn an item into a board task before building it, and mark it done there.
