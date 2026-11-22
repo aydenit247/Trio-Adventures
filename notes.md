@@ -18,8 +18,11 @@ Quick notes and workshop ideas from Ebain. These are not claimed work, they're p
 - **Building / Metocy Mart labels in Goblin Village**: The text labels for buildings and the Metocy Mart sign are clunky and get blocked by structures. Look for a better labelling system (physical signs, better placement, different UI, etc.).
 - **Lykor blocking Skorn at the throne**: When Skorn gets crowned, Lykor is blocking him / standing in the way.
 - **Music non-loop option**: Add a way for any song to stop looping after the current playthrough finishes (goblin village song gets annoying after a while).
-- **Goblin village song presentation**: When the goblin song starts, have goblins with instruments appear and follow the trio / Lykor around playing it. They leave once the loop is stopped.
+- **Goblin village song / band**: When the goblin song starts, goblins with instruments appear and follow the trio / Lykor around playing it. You can talk to them and tell them to keep playing or go away:
+  - "Dat bih fire mud" → they continue
+  - "Y'all could get lost?" → they leave
 - **Exit non-major dialogues with Escape**: Players should be able to exit optional / non-major dialogues with Escape instead of being forced to finish talking to them.
 - **Dulbers refuse path**: In the Metocy Mart refuse option, Dulbers Frint does not turn into a demon (he should).
 - **Diddy Chud Giant snore SFX**: Add snore.mp3 (or equivalent) for the giant while sleeping, and use it in the Snore Sneak minigame.
 - **Main menu chapter text**: Remove the "Chapter 1 - Quest for the metocy" text from the main menu. Show it once when starting the game instead.
+- **Deloye Lore map area**: Add a section of the map (possibly left of the Goblin Village) that focuses on Xylo's Deloye Lore. Want to create a song about Deloye Lore for that area (rough idea for now).
