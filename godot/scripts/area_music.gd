@@ -20,6 +20,7 @@ const SILENT := -60.0
 var player: AudioStreamPlayer
 var lv: Node
 var state := "silent"                  # silent / full / ducked / out: what it's aiming for (tests + dev)
+var gain_db := 0.0                     # extra volume set by the area each frame (village: 0 while the goblin band plays, -60 when it's gone)
 var _since_dialogue := 99.0
 
 func _ready() -> void:
@@ -39,8 +40,8 @@ func _process(delta: float) -> void:
 	state = _wanted()
 	var target := SILENT
 	match state:
-		"full": target = volume_db
-		"ducked": target = duck_db
+		"full": target = maxf(SILENT, volume_db + gain_db)
+		"ducked": target = maxf(SILENT, duck_db + gain_db)
 	# the song starts the first time it's wanted (so it begins at the top when free roam opens), then never stops
 	if not player.playing:
 		if state == "full" or state == "ducked":

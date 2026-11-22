@@ -19,6 +19,7 @@ var stage := "enter"
 var goblins: Array[Unit] = []
 var roam_group := {}
 var vb   # the explorable buildings (village_buildings.gd)
+var band: GoblinBand   # the goblin band (drummer, horn, lute); added when free roam starts
 var chief: Unit
 var fire_light: OmniLight3D
 var noise := FastNoiseLite.new()
@@ -201,6 +202,8 @@ func _build_throne() -> void:
 func _level_process(_delta: float) -> void:
 	fire_light.light_energy = 2.0 * (1.0 + noise.get_noise_1d(t * 9.0) * 0.3)
 	vb.process(_delta)
+	if band:
+		$Music.gain_db = band.gain_db   # the village song only plays while the band is with you
 	if not roam_group.is_empty() and roam_group["done"] and not Game.flag("luckySpoonFound"):
 		Game.set_flag("luckySpoonFound")
 		Game.key_owner["lucky_spoon"] = Game.active_fighter
@@ -251,6 +254,8 @@ func _level_interactables() -> Array:
 		] })
 		if vb.room != "":
 			list = []
+		elif band:
+			list += band.interactables()
 		list += vb.interactables()
 	return list
 
@@ -356,7 +361,10 @@ func _on_action(n: String) -> void:
 		"leave":
 			_leave()
 		_:
-			await vb.on_action(n)
+			if n.begins_with("band_") and band:
+				await band.on_action(n)
+			else:
+				await vb.on_action(n)
 
 func _member(id: String) -> Unit:
 	for u in party + npcs:
@@ -644,6 +652,12 @@ func _leave() -> void:
 		Game.set_flag("villageOpen")
 		if not shots_mode:
 			Game.save_game.call_deferred("auto", self)   # free roam starts: checkpoint
+	if band == null:   # the village song starts: here comes the band (back again on every visit / loaded save)
+		band = GoblinBand.new()
+		band.lv = self
+		band.bar_door = VB.BUILDINGS["bar"]["door"]
+		add_child(band)
+		band.arrive()
 	# optional: a goblin patrol wanders the east road (fight it, sneak past it, or talk your way out)
 	if roam_group.is_empty():
 		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)
@@ -685,6 +699,9 @@ func _end_card() -> void:
 # ---------------------------------------------------------------- automated screenshots
 # Pick a path with env var VILLAGE_CHOICE=0..4 (A..E)
 func _shot_tour() -> void:
+	if OS.get_environment("VILLAGE_TOUR") == "band":
+		await _band_tour()
+		return
 	if OS.get_environment("VILLAGE_TOUR") == "buildings":
 		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)
 		await vb.tour()
@@ -736,4 +753,45 @@ func _shot_tour() -> void:
 	place_party(EXIT_POS + Vector3(-2.5, 0, 0), Vector3(1, 0, 0))
 	await wait(2.5)
 	await shot("v_12_%s_end" % tag)
+	get_tree().quit()
+
+# VILLAGE_TOUR=band: the goblin band shows up, follows, waits at a door, keeps playing, then gets told to get lost.
+func _band_tour() -> void:
+	fade.color.a = 0.0
+	busy = false
+	chief.visible = true
+	chief.global_position = THRONE_POS + Vector3(2.0, 0, 1.0)
+	place_party(Vector3(0, 0, 3), Vector3(0, 0, -1))
+	target_yaw = 0.0
+	_leave()
+	print("BAND ", band.state, " units=", band.units.size(), " gain=", band.gain_db)
+	await wait(0.6)
+	await shot("band_01_arrive")
+	await wait(2.5)
+	await shot("band_02_caught_up")
+	auto_dir = Vector3(1, 0, 0)   # walk right, then away from the camera: they should trail behind
+	await wait(2.0)
+	auto_dir = Vector3(0, 0, -1)
+	await wait(2.5)
+	auto_dir = Vector3.ZERO
+	await wait(0.6)
+	await shot("band_03_following")
+	await vb.auto_talk("door_bar")
+	await wait(1.0)
+	print("BAND inside: music ", $Music.state, " band at ", band.units[0].global_position.round(), " room=", vb.room)
+	await shot("band_04_inside_bar")
+	await wait(7.0)   # they walk over to the door meanwhile
+	await vb.auto_talk("exit")
+	await wait(1.2)
+	await shot("band_05_waited_outside")
+	await vb.auto_talk("band", [0], "band_06_talk", 1)
+	print("BAND after fire mud: ", band.state)
+	await wait(0.5)
+	await vb.auto_talk("band", [1], "band_07_get_lost", 2)
+	await wait(1.5)
+	print("BAND leaving: ", band.state, " gain=", snappedf(band.gain_db, 0.1))
+	await shot("band_08_walking_off")
+	await wait(9.0)
+	print("BAND end: ", band.state, " gain=", band.gain_db, " music=", snappedf($Music.player.volume_db, 0.1), " npcs=", npcs.filter(func(u): return is_instance_valid(u) and u.has_meta("band")).size())
+	await shot("band_09_gone")
 	get_tree().quit()
