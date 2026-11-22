@@ -98,10 +98,11 @@ const SHOP := [
 			{ "who": "xylo", "mood": "unimpressed", "line": "That is not profound insight. That is a man malfunctioning." },
 			{ "who": "lykor", "mood": "angry", "line": "Dulbers. What did you just give my guy?" },
 		] + REVEAL_AND_FIGHT },
-		# C — refuse → kicked out, Dulbers escapes (villain later). No midtocy.
+		# C — refuse → Dulbers goes demon, kicks you out, escapes (villain later). No midtocy.
 		{ "text": "Refuse it", "steps": [
 			{ "who": "lykor", "line": "Nah, we good. Sum off about you, folk." },
 			{ "who": "dulbers", "line": "…Sum OFF? About ME? Your boy Dulbers?" },
+			{ "do": "transform" },   # he shows his demon form (Asar: refusing should still turn him)
 			{ "who": "dulbers", "mood": "demon", "line": "Aight, y'all could get the fuck out my store doe? Fo' I call up Dulbmeethus." }, # Ebain
 			{ "who": "lykor", "mood": "smug", "line": "Dulbmeethus fw my ahh, I ain't trippin' bout him." }, # Ebain
 			{ "do": "kicked_out" },

@@ -20,6 +20,8 @@ var mattias_light: OmniLight3D
 var allies: Array[Unit] = []
 var chief: Unit
 var zzz_timer := 0.0
+var snore: AudioStreamPlayer   # Asar's snoring recording, loops while he sleeps, louder the closer you get
+var snore_sneak := false        # Snore Sneak minigame: full volume, and it pauses while he inhales
 var mini_running := false
 var mini_hold := false
 var mini_pick := -1
@@ -152,6 +154,13 @@ func _canyon() -> void:
 		add_child(l)
 		add_glow(p, Color(1.0, 0.5, 0.25), 6.0, func(): return 1.0)
 	# the sleeping giant, lying across the path (real 3D figure, not a painting)
+	snore = AudioStreamPlayer.new()
+	var snore_stream: AudioStreamOggVorbis = load("res://assets/sounds/giant_snore.ogg")
+	snore_stream.loop = true
+	snore.stream = snore_stream
+	snore.volume_db = -60.0
+	add_child(snore)
+	snore.play()
 	giant_lying = Sprite3D.new()
 	giant_lying.texture = load("res://assets/characters/giant_sleep.png")   # Asar's sleeping picture (head on the right, rock pillow)
 	giant_lying.pixel_size = 8.0 / giant_lying.texture.get_width()           # 8 m from feet to pillow
@@ -241,7 +250,26 @@ func _walls() -> void:
 	Util.static_box(self, Vector3(18, 1, 0), Vector3(0.5, 2, 5))
 
 # ---------------------------------------------------------------- per frame
+# Snore volume: quiet down the path, loud right next to his head (based on the character you control)
+const SNORE_NEAR := 4.0    # m from his head: full volume
+const SNORE_FAR := 34.0    # m: silent
+func _update_snore(delta: float) -> void:
+	if snore == null:
+		return
+	var asleep := not giant_awake and stage != "after" and stage != "end"
+	var target := -60.0
+	if asleep and snore_sneak:
+		target = 0.0
+	elif asleep and leader:
+		var d := Vector2(leader.global_position.x - GIANT_HEAD.x, leader.global_position.z - GIANT_HEAD.z).length()
+		var near := clampf(1.0 - (d - SNORE_NEAR) / (SNORE_FAR - SNORE_NEAR), 0.0, 1.0)
+		target = linear_to_db(maxf(near * near, 0.001)) - 1.0   # squared: it really ramps up as you get close
+	snore.volume_db = move_toward(snore.volume_db, target, delta * 40.0)
+	if not asleep and snore.volume_db <= -59.0 and snore.playing:
+		snore.stop()
+
 func _level_process(delta: float) -> void:
+	_update_snore(delta)
 	if not giant_awake and stage != "after" and stage != "end":
 		zzz_timer -= delta
 		if zzz_timer <= 0.0:
@@ -591,6 +619,7 @@ func _sneak_game() -> bool:
 	var heat := 0.0
 	var phase := "snore"
 	var phase_t := 1.6
+	snore_sneak = true   # the real snore, loud, and it stops while he inhales
 	var grace := 0.0
 	var won := false
 	var start_pos := []
@@ -607,10 +636,11 @@ func _sneak_game() -> bool:
 			if phase == "snore":
 				phase = "inhale"
 				phase_t = rng.randf_range(0.8, 1.4)
+				snore.stream_paused = true
 			else:
 				phase = "snore"
 				phase_t = rng.randf_range(1.0, 1.9) / (1.0 + sec * 0.25)
-				_sfx(Util.noise_burst(int(phase_t * 900), 0.03, 0.9), -6.0).play()
+				snore.stream_paused = false
 				_zzz()
 			grace = 0.18
 		var holding := Input.is_action_pressed("interact")
@@ -644,6 +674,8 @@ func _sneak_game() -> bool:
 		for i in party.size():
 			party[i].global_position = Vector3(5.0 + i * 1.3, 0, -8.0)
 	dialogue.show_box()
+	snore_sneak = false
+	snore.stream_paused = false
 	return won
 
 # ---- C: Lore Session — pick how each page truly continues. One wrong answer and he knows.
