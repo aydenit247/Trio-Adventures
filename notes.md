@@ -1,6 +1,6 @@
 # Notes
 
-Quick notes and workshop ideas from Ebain. These are not claimed work, they're possible tasks to be put on collab.md
+Quick notes and workshop ideas from Ebain. These are not claimed work, they're possible tasks to be put on collab.md. Remove them when done and change it into weekly summary
 
 - **Metocy Mart shop**: Add buyable things at Metocy Mart. *(Asar: skip for now.)*
 - **Status hover tooltips**: When hovering over debuffs and buffs (Mogged, Cooked, Locked In, etc.), show the effect description on mouse hover. ✅ *Done 11/21 (Asar's Claude): hover any status word in a fight.*
