@@ -3,6 +3,9 @@
 class_name VoiceIndex
 
 const LINES := {
+	"butnobodygetspastthegiant": "dulbers_demon/dulbers_demon_but_nobody_gets_past_the_giant.ogg",  # …but nobody gets past the giant.
+	"nobodyleavesmetocymartnorefundsnoexchanges": "dulbers_demon/dulbers_demon_nobody_leaves_metocy_mart_no_refunds_no.ogg",  # NOBODY LEAVES METOCY MART. NO REFUNDS. NO EXCHANGES.
+	"ughfinetherealmetocyispastthemountainpass": "dulbers_demon/dulbers_demon_ugh_fine_the_real_metocy_is_past_the_mou.ogg",  # Ugh… fine… the REAL metocy… is past the mountain pass…
 	"aightbet": "giant/giant_aight_bet.ogg",  # Aight. Bet.
 	"chudstomp": "giant/giant_chud_stomp.ogg",  # Chud stomp.
 	"cousinbogdrinker": "giant/giant_cousin_bogdrinker.ogg",  # …Cousin Bogdrinker?
@@ -24,6 +27,9 @@ const LINES := {
 	"wegowherethemoggingelfgoes": "goblin/goblin_we_go_where_the_mogging_elf_goes.ogg",  # We go where the Mogging Elf goes.
 	"yallhiring": "goblin/goblin_y_all_hiring.ogg",  # Y'all hiring?
 	"yayyouareallowedtomogthathardrightcooldudethatsfuckingfair": "goblin/goblin_yay_you_are_allowed_to_mog_that_hard_rig.ogg",  # Yay.. you are allowed to mog that hard, right? Cool dude, that's fucking fair.
+	"echoingimpressivemybelovedtriocomecloser": "mattias/mattias_impressive_my_beloved_trio_come_closer.ogg",  # *echoing* Impressive, my beloved trio. Come closer…
+	"mybelovedtrioivecametotellyouyoumustgetpastthismountainpassandcomefindmeinordertofindyourillustriousmetocydowhateveryoucantogetpast": "mattias/mattias_my_beloved_trio_i_ve_came_to_tell_you_yo.ogg",  # My beloved trio. I've came to tell you, you must get past this mountain pass and come find me in order to find your illustrious "Metocy." Do whatever you can to get past.
+	"youhadcalled": "mattias/mattias_you_had_called.ogg",  # You had called?
 	"actnatural": "skorn/skorn_act_natural.ogg",  # Act natural.
 	"aightfuckallatwakeupchud": "skorn/skorn_aight_fuck_allat_wake_up_chud.ogg",  # Aight, fuck allat. WAKE UP, CHUD!
 	"aightnowimmad": "skorn/skorn_aight_now_i_m_mad.ogg",  # Aight now I'm mad.
