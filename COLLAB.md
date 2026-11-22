@@ -12,7 +12,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
-- [asar] Notes tasks: (1) HP carries over between fights (heal with Beezy/Bowl from Tab, rest at campfires/hay bed, knocked out = up at 1 HP, full heal on level up and after a loss). (2) Hover a status (Mogged, Cooked…) in fights to see what it does. (3) Lykor's Mog/Mog Supreme camera close-up. Files: godot/scripts/game.gd, level.gd, combat/battle.gd, combat/battle_view.gd, inventory_ui.gd, camp.gd, village.gd, village_buildings.gd, notes.md — branch: asar/notes-tasks — started 2026-11-21
+- [asar] Notes tasks: (1) HP carries over between fights (heal with Beezy/Bowl from Tab, rest at campfires/hay bed, knocked out = up at 1 HP, full heal on level up and after a loss). (2) Hover a status (Mogged, Cooked…) in fights to see what it does. (3) Lykor's Mog/Mog Supreme camera close-up. (4) Diddy Chud Giant sleeping picture (Asar's art) + smooth wake-up. Files: godot/scripts/pass.gd, godot/assets/characters/giant_sleep.png, godot/scripts/game.gd, level.gd, combat/battle.gd, combat/battle_view.gd, inventory_ui.gd, camp.gd, village.gd, village_buildings.gd, notes.md — branch: asar/notes-tasks — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Mart + Pass resume-from-save (they replay from the area start for now): add can_resume()/can_resume_saved()/_resume() like camp/village
@@ -54,7 +54,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/game.gd, level.gd, combat/battle.gd, combat/battle_view.gd, inventory_ui.gd, camp.gd, village.gd, village_buildings.gd, notes.md
+- [asar] godot/scripts/pass.gd, godot/assets/characters/giant_sleep.png, godot/scripts/game.gd, level.gd, combat/battle.gd, combat/battle_view.gd, inventory_ui.gd, camp.gd, village.gd, village_buildings.gd, notes.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
