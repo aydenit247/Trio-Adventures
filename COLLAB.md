@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] (1) **Separate inventory per character** (own bags, gear and key items; story rewards go to the speaker/leader; fights use the fighter's own items) + right-click **Give to** another character. (2) **Continuity sweep**: lines that mention events from choices you didn't take (e.g. Gulpo's chug-off line when Skorn was crowned, Skorn talking when he stayed on the throne, "your majesty" after dethroning). Files: godot/scripts/game.gd, level.gd, inventory_ui.gd, combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, village_buildings.gd, village_rooms_script.gd, village.gd, pass.gd, dev_mode.gd (inv calls only), crash_reporter.gd. Branch: asar/bags-continuity. Started 2026-11-21
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -50,6 +51,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/game.gd, level.gd, inventory_ui.gd, combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, village_buildings.gd, village_rooms_script.gd, village.gd, pass.gd, dev_mode.gd (inv only), crash_reporter.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
