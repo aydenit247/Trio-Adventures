@@ -10,3 +10,4 @@ Quick notes and workshop ideas from Ebain. These are not claimed work, they're p
 - **Skorn facing direction**: When walking side to side as Skorn, he is not facing the correct way. ✅ *Fixed 11/21 (Ebain's Claude): his side picture faced left, the game expects right. Mirrored it.*
 - **Health resets after every fight** (from Asar): right now every fighter is back to full HP after each combat. That needs to change: damage should carry over between fights (heal with Beezy/Chipotle Bowls, resting, etc.).
 - **Lykor combat banter: "On some type shi"**: Add this line as banter for Lykor's "On some type shi" combat move (his move name, from the song lyric idea). Ebain's line, use verbatim.
+- **General Tips or things we can do to more efficiently create this project**: Ideas for speeding up how we build this game. Ebain's list, not claimed work.
