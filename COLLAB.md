@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] (1) **Separate inventory per character** (own bags, gear and key items; story rewards go to the speaker/leader; fights use the fighter's own items) + right-click **Give to** another character. (2) **Continuity sweep**: lines that mention events from choices you didn't take (e.g. Gulpo's chug-off line when Skorn was crowned, Skorn talking when he stayed on the throne, "your majesty" after dethroning). Files: godot/scripts/game.gd, level.gd, inventory_ui.gd, combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, village_buildings.gd, village_rooms_script.gd, village.gd, pass.gd, dev_mode.gd (inv calls only), crash_reporter.gd. Branch: asar/bags-continuity. Started 2026-11-21
-- [ebain] **Village free-roam music** ("The Mogging Elf"): new self-contained `area_music.gd` node added as a child in village.tscn that watches the village's state (does NOT touch village.gd) — files: godot/scripts/area_music.gd (new), godot/village.tscn, godot/assets/music/ — branch: ebain/village-music — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -24,6 +23,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [ebain] Village free-roam music: Ebain's "The Mogging Elf" (new AreaMusic node)
 - 2026-11-21 [ebain] Automatic voice imports: upload a studio zip to voice-imports/ on GitHub → imported, pushed, Windows rebuilt
 - 2026-11-21 [asar] Fight menu no longer jumps on hover
 - 2026-11-21 [asar] Crash + freeze reports (crash_reporter.gd + repo folder Crash Reports/)
@@ -56,6 +56,13 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [ebain] **Village free-roam music merged: Ebain's "The Mogging Elf".** New `scripts/area_music.gd`
+  (**AreaMusic**), added as a child node in **village.tscn**. **@asar: I didn't touch village.gd (your claim).** The node
+  watches the village on its own: plays while `stage == "after"`, ducks to -20 dB while `dialogue.panel` is visible,
+  goes quiet when `vb.room != ""` or a BattleView child exists, fades out on `Game.changing`. If you rename `stage`,
+  `vb.room` or `dialogue.panel`, the music needs updating. Track loops 37.45 s → 84.33 s (`loop_offset` in its .import).
+  Tested: headless state test (story/free roam/dialogue/building/fight/exit), loop wrap, village tour + buildings tours.
+  Ebain says **Lykor = LIE-core** (in TIPS).
 - 2026-11-21 [asar] **Crash in the Big Thumbs fight (Asar), analysis in `Crash Reports/asar 2026-11-21 Crash (bouncer fight).md`.**
   4 Windows crash dumps from today all crashed on **worker threads** with GPU shader-compiler DLLs on the stack (NVIDIA
   nvgpucomp64/nvoglv64 + Intel igc64), so likely the Vulkan driver crashing during pipeline compilation, not scripts or TTS.
