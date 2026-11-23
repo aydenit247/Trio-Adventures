@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Summit hymn + Mattias waits for it; camp: sleep in the tents → next morning — files: godot/scripts/camp.gd, camp_script.gd, summit.gd, summit_script.gd, godot/assets/music/the_hymn_of_metocin_mattias.ogg (new) — branch: asar/hymn-sleep — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -48,6 +49,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/camp.gd, camp_script.gd, summit.gd, summit_script.gd, godot/assets/music/the_hymn_of_metocin_mattias.ogg (new)
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
