@@ -26,7 +26,7 @@ func setup(fire_pos: Vector3) -> void:
 	var crk: AudioStreamOggVorbis = load("res://assets/sounds/crickets.ogg")
 	crk.loop = true
 	cricket_player.stream = crk
-	cricket_player.volume_db = -9.0
+	cricket_player.volume_db = -17.0   # (Asar 11/22: was -9, too loud at the campfire)
 	add_child(cricket_player)
 	cricket_player.play(randf() * 50.0)   # start somewhere random in the loop
 

@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Quieter camp crickets + Lykor's new "on some type shit" take in combat — files: godot/scripts/ambience.gd, godot/scripts/combat/battle_view.gd, godot/assets/sounds/lykor_on_some_type_shi.ogg — branch: asar/crickets-shi — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Camp crickets quieter; Lykor's "on some type shi" battle move uses his new take
 - 2026-11-22 [asar] Lykor + Xylo voiced by Asar's 111 recordings; their lines without one removed
 - 2026-11-22 [asar] Narrator voiced by Asar's 26 recordings; narrator lines without a recording removed
 - 2026-11-22 [asar] Job board popup glitch fixed; Haggle's Stall shop (village); Goblin Woods Trail between Camp and Village with loot spots and Asar's Bridge Troll
@@ -44,10 +44,12 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/ambience.gd, godot/scripts/combat/battle_view.gd, godot/assets/sounds/lykor_on_some_type_shi.ogg
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] Crickets at the campfire turned down (`ambience.gd`, -9 → -17 dB). Hot spot **combat/battle_view.gd**: Lykor's
+  "on some type shi" move now plays his new take `assets/voices/lykor/on_some_type_shit.mp3` (the Mart line's file) at the Voice
+  volume; the old `assets/sounds/lykor_on_some_type_shi.ogg` is deleted.
 - 2026-11-22 [asar] **Lykor + Xylo voices merged.** Asar's recordings: 71 Lykor + 40 Xylo mp3s (`assets/voices/lykor/`, `xylo/`),
   mapped in `voice_lines.gd` `LINES`. Covers dialogue and their combat barks. **Asar's call: their lines without a recording were
   removed (35)**, mostly village-room DRAFT banter, the trail talk, plus Xylo's "On my Dragon Mama it is." (camp ×3), "Real enough

@@ -195,7 +195,7 @@ func _make_sounds() -> void:
 	}
 	for k in defs:
 		sounds[k] = lv._sfx(defs[k], -4.0)
-	sounds["shi"] = lv._sfx(load("res://assets/sounds/lykor_on_some_type_shi.ogg"), 0.0)   # Asar's recording for Lykor's "on some type shi"
+	sounds["shi"] = lv._sfx(load("res://assets/voices/lykor/on_some_type_shit.mp3"), linear_to_db(maxf(Game.voice_vol, 0.01)))   # Asar's Lykor take (same file as his Mart line), at the Voice volume
 
 func sfx(k: String, pitch := 1.0) -> void:
 	if sounds.has(k):
