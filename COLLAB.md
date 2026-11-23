@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Dialogue controls: Backspace = back one line, E buffer (0.4 s), speed-mode button + Settings toggles — files: godot/scripts/dialogue.gd, godot/scripts/game.gd (settings vars only), godot/scripts/menu_ui.gd (Settings rows only) — branch: ebain/dialogue-controls — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
