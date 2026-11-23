@@ -10,8 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
-  voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -39,15 +37,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - 2026-11-22 [asar] Voice no longer goes quiet after skipping a line (robot reads per sentence, newest line queued)
 - 2026-11-22 [asar] Maps + HUD (minimap, big map with fog, objective star)
 - 2026-11-22 [ebain] Village free-roam music ("The Mogging Elf")
-- 2026-11-21 [asar] HP carries between fights + rest spots, status hover tooltips, Lykor Mog / "on some type shi" close-ups, sleeping Giant
-- 2026-11-21 [asar] Per-character inventories + Give + continuity sweep
-- 2026-11-21 [asar] Windows builds use DirectX 12 (fixes Big Thumbs crash)
-- 2026-11-21 [ebain] Automatic voice imports (upload zip to voice-imports/)
-- 2026-11-21 [asar] Crash + freeze reports
-- 2026-11-21 [ebain] Voice import pipeline (tools/import_voices.py)
-- 2026-11-21 [asar] Inventory overhaul (Tab, 7 gear slots, gold) + item rework + art
-- 2026-11-21 [ebain] Title screen, saves, settings, controller support, first Windows builds
-- 2026-11-21 [ebain] Full Chapter 1 ported (Camp → Village → Mart → Pass) + Combat 2.0
+- 2026-11-21 (summary) Chapter 1 ported + Combat 2.0, title/saves/settings/controller, inventory overhaul + per-character bags, voice import pipeline + auto-imports, D3D12 Windows builds, crash reports, HP carry/tooltips/sleeping giant. Details: git log.
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
@@ -55,6 +45,8 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-23 [ebain] **Board tidy (Ebain asked):** merged the two `## Log` sections that a merge had duplicated, collapsed 11-21 Done items and Log entries into one-line summaries (full detail is in `git log`), removed my finished giant-voice claim. **@asar:** a claimed-files line for pass.gd/summit.gd/summit.tscn/map_ui.gd/level.gd/dev_mode was sitting inside the Log; the summit is in Done so I took it out. If you're still editing those, re-add it under Claimed files. No other entries changed. Also fixed **CLAUDE.md** step 4: it pointed to a "HANDOFF.md 6b" section that doesn't exist, now it points to "Testing" in HANDOFF.md. Same rule, just the right pointer (Ebain OK'd it).
+- 2026-11-23 [ebain] **Wizard-lair asset pack on foundation: 28 textures + 34 Poly Haven models** (new folders only, no code touched; texture imports set to mode 2 + mipmaps). Full list + heavy-model warnings in TIPS. ~125 MB of source files, and export is `all_resources`, so **pushed to foundation only, NOT main**, to avoid growing the Windows download until the lair uses them. Whoever builds the lair: merge to main as normal once it's in, and delete unused ones.
 - 2026-11-22 [asar] **Goblin takes still to record (Asar + Ebain, planned for 11/23). Keep all of these lines, don't remove them:**
   camp goblin visitor ("Ayo. Y'all got a light?", "Ayo. Y'all hiring?", "I can hold a spoon.", "Damn. Aight. My village is up
   north…"), goblin band (3 lines), Gulpo "So YOU'RE the Mogging Elf…", Sludge's tab replies (5), village goblin "We go where the
@@ -90,12 +82,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
   exit is gone, the way on is a gorge right behind the sleeping giant (his collider spans it), and leaving goes straight up to
   the summit. Hot spot **level.gd**: only `AREA_KEYS["summit"]`. Also map_ui WORLD + dev_mode list it. Uses Ebain's lair pack
   (list of what's used in TIPS). New sign request in ASSETS_NEEDED.
-- [asar] godot/scripts/pass.gd, godot/scripts/summit.gd (new), godot/summit.tscn (new), godot/scripts/map_ui.gd, godot/scripts/level.gd, godot/scripts/dev_mode.gd, godot/scripts/combat/battle_view.gd
-
-## Log (newest first)
-<!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
 - 2026-11-22 [asar] village_buildings.gd: entering/leaving a building now uses `_place_party()` (followers a step INTO the room / away from the hut, current character stays in control). `lv.place_party()` put them behind the leader, inside the door wall: switch to them → stuck behind an invisible wall → walk off the room floor and fall. Plus `_keep_in_room()` safety net in `process()` (trio + followers can't leave a room's walls or drop below its floor). Test: `VILLAGE_TOUR=roomswitch`.
-- 2026-11-23 [ebain] **Wizard-lair asset pack on foundation: 28 textures + 34 Poly Haven models** (new folders only, no code touched; texture imports set to mode 2 + mipmaps). Full list + heavy-model warnings in TIPS. ~125 MB of source files, and export is `all_resources`, so **pushed to foundation only, NOT main**, to avoid growing the Windows download until the lair uses them. Whoever builds the lair: merge to main as normal once it's in, and delete unused ones.
 - 2026-11-22 [asar] Hot spot **dialogue.gd**: `VOICE_GAIN_DB` per-speaker boost for recordings, Mattias +9 dB (his files are ~10 dB
   under Skorn's). **pass.gd**: snoring quieter overall (max -16 dB, was -9); it plays on a "GiantSnore" bus with a low-pass filter,
   and each Lore Session page he sleeps through makes it 3 dB quieter and more muffled.
@@ -171,8 +158,4 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - 2026-11-22 [asar] dialogue.gd (hot spot): skip no longer mutes the next line. The robot voice reads a line one sentence at a time; the newest line waits in `_tts_queue` until the current sentence ends (still never interrupts TTS). Recordings stop/replace instantly and wait for a robot sentence instead of overlapping. `_speak()` signature unchanged (battle_view barks still use it). New test: `godot --headless --path godot res://tools/test_skip_voice.tscn`.
 - 2026-11-22 [asar] **Maps + HUD merged.** Title/objective centered top, minimap top-left, M = big map (Area + World tabs with fog). Objective star support via `objective(text, at)`. See level.gd map hooks. @ebain: pass a position when adding objectives.
 - 2026-11-22 [ebain] **Village free-roam music** ("The Mogging Elf") via new AreaMusic node in village.tscn. Ducks during dialogue/buildings/fights. Didn't touch village.gd.
-- 2026-11-21 [asar] **HP carry + status tooltips + Giant sleep + Lykor close-ups** (from notes.md). Shared: game.gd (hurt/heal), level.gd (rest spots), battle/battle_view. Rest at camp fire, village campfire, Chief's bed.
-- 2026-11-21 [asar] **Per-character inventories + Give + continuity sweep.** `inv` → per-fighter bags. Continuity variants for all 5 throne paths. New check_continuity.gd tool.
-- 2026-11-21 [asar] **D3D12 for Windows** (`project.godot` one-liner) to fix Big Thumbs crash.
-- 2026-11-21 [ebain] **Automatic voice imports**: drop studio zip in `voice-imports/` → Action imports, commits, rebuilds Windows.
-- Older detailed log entries (inventory systems, title/saves, combat port, village buildings, TTS freeze fix, etc.) summarized into the Done list above.
+- 2026-11-21 (summary) Early setup: Chapter 1 port, Combat 2.0, inventory/per-character bags, D3D12, voice import pipeline + auto-imports, HP carry/tooltips/sleeping giant. Hot spots touched then: game.gd, level.gd, dialogue.gd, project.godot. Details: git log.
