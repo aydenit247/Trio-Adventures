@@ -3,7 +3,7 @@ class_name MapUI
 
 # M: the big map (Asar). Two tabs:
 #   Area  - this whole area, north up, with the same dots as the minimap and fog over places you haven't walked yet.
-#   World - the journey (Camp → Goblin Woods Trail → Goblin Village → Metocy Mart → The Pass), fog over areas you haven't been to.
+#   World - the journey (Camp → Goblin Woods Trail → Goblin Village → Metocy Mart → The Pass → Summit Path & Wizard's Lair), fog over areas you haven't been to.
 # Q/E or ←/→ (or click a tab) switches tabs. M, Tab or Esc closes. Hover a dot to see what it is.
 
 signal closed
@@ -17,7 +17,8 @@ const WORLD := [   # area key, name, spot on the world tab (inside the map box)
 	["trail", "Goblin Woods Trail", Vector2(0.24, 0.6)],
 	["village", "Goblin Village", Vector2(0.4, 0.34)],
 	["mart", "Metocy Mart", Vector2(0.62, 0.62)],
-	["pass", "The Pass", Vector2(0.86, 0.24)],
+	["pass", "The Pass", Vector2(0.78, 0.36)],
+	["summit", "Summit Path & Wizard's Lair", Vector2(0.88, 0.1)],
 ]
 
 var lv: Node

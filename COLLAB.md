@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Pass exit behind the giant + new area after it: long Summit Path → Wizard's Lair (Mattias inside) — files: godot/scripts/pass.gd, godot/scripts/summit.gd (new), godot/summit.tscn (new), godot/scripts/map_ui.gd, godot/scripts/level.gd, godot/scripts/dev_mode.gd, godot/scripts/combat/battle_view.gd — branch: asar/wizard-lair — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Pass exit is a gorge behind the giant; new Scene 5: Summit Path → Wizard's Lair (Mattias), the end of Chapter 1
 - 2026-11-22 [asar] Fix: switching characters inside a village building no longer leaves them stuck at the door / falling through the map
 - 2026-11-22 [asar] Job board: 3×2 layout, no spoon notes, "LORE OFF" note, close-up hides the board, HUD hidden behind it; Grubnik talk no longer stuck
 - 2026-11-22 [asar] Camp crickets quieter; Lykor's "on some type shi" battle move uses his new take
@@ -47,6 +47,17 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
+
+## Log (newest first)
+<!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Scene 5: Summit Path + Wizard's Lair (the final event of Chapter 1, Asar).** New `summit.tscn`/`summit.gd`/
+  `summit_script.gd`. Long night climb (3 empty clearings for future events, `EVENT_SPOTS`), a big glowing tower, and a grand
+  hall inside with Metocin Mattias on a dais. **END OF CHAPTER 1 moved here**: walking up to Mattias plays `MATTIAS_FINALE`
+  (empty for now: Asar and Ebain are writing it, so it shows a "coming soon" toast) and then the end card. **pass.gd**: the east
+  exit is gone, the way on is a gorge right behind the sleeping giant (his collider spans it), and leaving goes straight up to
+  the summit. Hot spot **level.gd**: only `AREA_KEYS["summit"]`. Also map_ui WORLD + dev_mode list it. Uses Ebain's lair pack
+  (list of what's used in TIPS). New sign request in ASSETS_NEEDED.
 - [asar] godot/scripts/pass.gd, godot/scripts/summit.gd (new), godot/summit.tscn (new), godot/scripts/map_ui.gd, godot/scripts/level.gd, godot/scripts/dev_mode.gd, godot/scripts/combat/battle_view.gd
 
 ## Log (newest first)

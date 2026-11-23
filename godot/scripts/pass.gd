@@ -3,7 +3,7 @@
 #   A throw midtocy (if Skorn has it) · B Snore Sneak minigame · C Lore Session minigame · D fight · E cousin (goblins)
 # When he wakes, the lying figure is replaced by Ebain's awake giant standing up for real.
 # The way on is a narrow gorge straight behind him (Asar 11/22), so you can't get past until he's dealt with.
-# End of Chapter 1, then the gorge leads up to the Summit Path (summit.gd) and the Wizard's Lair.
+# The gorge leads up to the Summit Path (summit.gd) and the Wizard's Lair, where Chapter 1 ends.
 extends Level
 
 const PS = preload("res://scripts/pass_script.gd")
@@ -359,19 +359,13 @@ func _level_process(delta: float) -> void:
 		_giant_scene()
 	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.0:
 		stage = "end"
-		if Game.flag("summitStarted") and ResourceLoader.exists("res://summit.tscn"):   # been up there already: just walk on
-			busy = true
+		busy = true   # up the gorge to the Summit Path (Asar 11/22: the chapter now ends in the Wizard's Lair)
+		if Game.flag("summitStarted"):
 			await fade_out(0.6)
 			Game.travel("res://summit.tscn", "pass", leader.id)
-			return
-		var lines := ["END OF CHAPTER 1", "", "Trio Adventures — by Ebain", ""]
-		lines += story_so_far()
-		if ResourceLoader.exists("res://summit.tscn"):   # the Summit Path + Wizard's Lair (being built, Asar 11/22)
-			lines += ["", "Press E to keep climbing"]
-			end_card(lines, "res://summit.tscn")
 		else:
-			lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to return to the title screen"]
-			end_card(lines, "res://title.tscn")
+			await fade_out(1.0)
+			Game.goto("res://summit.tscn")
 
 func _zzz() -> void:
 	var l := Label3D.new()

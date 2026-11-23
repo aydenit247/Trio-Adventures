@@ -21,6 +21,7 @@ about **3:1 wide** (the throne plaque and outhouse sign about 2:1), at least 102
 | `sign_trail_village.png` | GOBLIN VILLAGE (NO TROLLS) | trail, north end |
 | `sign_trail_camp.png` | BACK TO CAMP | trail, south end |
 | `sign_troll_hut.png` | DO NOT DISTURB | troll's hut door ("It's good" path) |
+| `sign_wizard_lair.png` | WIZARD'S LAIR (NO SOLICITORS) | Summit Path, by the plaza |
 | `sign_metocy_mart.png` | METOCY MART → (probably) | signpost at the east road, arrow pointing right |
 
 ## Shop item pictures (Asar, 2026-11-22)

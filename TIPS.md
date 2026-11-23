@@ -172,3 +172,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   dialogue box (`Level.start`).
 - [asar] `run_nested()` from a do-only interactable (job board, shop) used to leave the dialogue stuck: nothing was
   running, so E/Space/Esc were ignored. It now starts a real dialogue when none is active.
+- [asar] Chapter 1 now ends in the Wizard's Lair (`summit.gd _finale`), not at the Pass exit. Mattias's finale lines go in
+  `summit_script.gd MATTIAS_FINALE`. The Pass exit walks straight up to the Summit Path.
+- [asar] Lair models used: Chandelier_01, Chandelier_03, gothic_statue (×4), GothicCabinet_01, chemistry_set,
+  bunsen_burner, vintage_microscope, stone_fire_pit, gothic_coffee_table, brass_candleholders, ArmChair_01,
+  vintage_grandfather_clock_01, ornate_mirror_01, marble_bust_01. Textures: castle_brick_07, medieval_blocks_05,
+  monastery_stone_floor, marble_mosaic_tiles, marble_tiles, dark_wood, dark_wooden_planks, velour_velvet,
+  quatrefoil_jacquard_fabric, rusty_metal_02. The rest of Ebain's pack is unused so far.

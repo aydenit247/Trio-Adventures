@@ -44,7 +44,13 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    (if allies). Skorn pockets the midtocy in most paths (`hasMidtocy`).
 4. **The Pass (lava, as Skorn):** Mattias appears → the giant is asleep in the way → A throw the midtocy (giant trips)
    · B **Snore Sneak** minigame · C **Lore Session** minigame (pick the true Deloye Lore continuation) · D slap him ·
-   E it's the Chief's cousin (if allies). Fights are real boss fights. → END OF CHAPTER 1 → back to camp.
+   E it's the Chief's cousin (if allies). Fights are real boss fights. The only way on is the gorge right behind where he
+   sleeps (Asar 11/22), so you can't get past until he's dealt with.
+5. **The Summit Path + the Wizard's Lair (night, Asar 11/22): the final event of Chapter 1.** A long climb up the
+   mountain (3 empty clearings saved for future events: `EVENT_SPOTS` overlook / shrine / cart), a plaza with a huge
+   glowing tower, then the lair's grand hall with Metocin Mattias on a dais. Walking up to him plays
+   `summit_script.gd MATTIAS_FINALE` (Asar and Ebain are writing it; empty = a "coming soon" toast), then END OF CHAPTER 1
+   → title. Flags `summitStarted`, `lairSeen`, `lairEntered`, `chapter1Done`.
 
 **Big direction (Ebain):** these four are the MAIN EVENTS. Between them he wants lots of optional, open-world-ish
 stuff: places to walk into, joke NPCs, side quests, roaming enemies, gear to find. More chapters later; Dulbers is
@@ -186,6 +192,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
 | `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
 | `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`): modelled shop exterior (`_shop_exterior`, street houses) + stocked interior at x = 300 (`_shop_interior`); the trip recolors `room_lights`/`glow_jars` |
+| `scripts/summit.gd` + `summit_script.gd` | Scene 5 (`summit.tscn`): the climb (z +62 → plaza at -52), tower (`_lair_exterior`), the hall built off to the side at `INT` (x 400, `_hall`: round wall open toward the camera, pillars, dais + throne, statues, chandeliers, alchemy + study corners, floating candles/books/orb via `floaters`). Uses Ebain's wizard-lair Poly Haven pack |
 | `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`): rock-face canyon + animated lava (`_canyon`, `_lava`), giant lying across the path (`giant_lying`, Asar's `giant_sleep.png`; `_giant_wakes` crossfades sleep → sit → standing, no black cut); Snore Sneak + Lore Session minigames |
 | `scripts/dev_mode.gd` | **DevMode**: the F1 developer menu, dialogue modes, line viewer (see "Dev mode") |
 | `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter |
