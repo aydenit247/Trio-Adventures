@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Pass exit behind the giant + new area after it: long Summit Path → Wizard's Lair (Mattias inside) — files: godot/scripts/pass.gd, godot/scripts/summit.gd (new), godot/summit.tscn (new), godot/scripts/map_ui.gd, godot/scripts/level.gd, godot/scripts/dev_mode.gd, godot/scripts/combat/battle_view.gd — branch: asar/wizard-lair — started 2026-11-22
 - [ebain] Poly Haven pack for the wizard lair (new texture/model folders only, no code) — files: godot/assets/textures/<new ids>, godot/assets/models/<new ids>, tools/ (read-only) — branch: ebain/wizard-assets — started 2026-11-23
 - [asar] Fix: switching characters inside a village building (stuck at the door / falling through the map) — files: godot/scripts/village_buildings.gd, godot/scripts/village.gd (tour only) — branch: asar/room-switch-fix — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
@@ -47,6 +48,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/pass.gd, godot/scripts/summit.gd (new), godot/summit.tscn (new), godot/scripts/map_ui.gd, godot/scripts/level.gd, godot/scripts/dev_mode.gd, godot/scripts/combat/battle_view.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
