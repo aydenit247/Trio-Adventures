@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Summit hymn + Mattias waits for it; camp: sleep in the tents → next morning — files: godot/scripts/camp.gd, camp_script.gd, summit.gd, summit_script.gd, godot/assets/music/the_hymn_of_metocin_mattias.ogg (new) — branch: asar/hymn-sleep — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Summit hymn (Mattias waits for it: "Peep the song first folk"); camp: sleep in the tents → the next morning
 - 2026-11-22 [asar] Dulbers Frint voiced by Asar's 18 recordings; Asar's sound effects pack wired in (combat, coins, doors, chug, lava…)
 - 2026-11-22 [asar] Pass exit is a gorge behind the giant; new Scene 5: Summit Path → Wizard's Lair (Mattias), the end of Chapter 1
 - 2026-11-22 [asar] Fix: switching characters inside a village building no longer leaves them stuck at the door / falling through the map
@@ -49,11 +49,16 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/camp.gd, camp_script.gd, summit.gd, summit_script.gd, godot/assets/music/the_hymn_of_metocin_mattias.ogg (new)
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Hymn + bedtime.** `assets/music/the_hymn_of_metocin_mattias.ogg` (Asar's track) plays once from arriving on
+  the Summit Path; walking up to Mattias before it ends plays `summit_script PEEP_THE_SONG` ("Peep the song first folk, shit is
+  gas", Asar) and steps you back. **Camp:** the tents are "Sleep in" after the fire (`camp_script SLEEP`, existing lines), Skorn
+  passes out by the fire, then the camp reloads in daylight (`campSlept`) and plays `MORNING` (the old LEAVE lines: "The next
+  morning…" + Lykor's new rule + Skorn's "my fault"). Leaving before sleeping: Lykor's "We leave at sunrise" sends you back.
+  The exit no longer plays dialogue. Mattias's new line has no voice file yet (robot).
 - 2026-11-22 [asar] **Dulbers voice + sound effects.** 18 Dulbers takes (`assets/voices/dulbers/`, `voice_lines.gd`), 4 Mart lines
   reworded to match (VOICE_LINES.md). 12 sound effects (`assets/sounds/sfx_*.ogg`) via new **level.gd** `play_sound()`. Hot spots:
   **game.gd** new signals `gold_changed` / `quest_finished` (coins + reward sound), **level.gd** rest heal + poof pop,

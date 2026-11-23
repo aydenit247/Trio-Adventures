@@ -28,13 +28,13 @@ var noise := FastNoiseLite.new()
 var leaving := false
 
 func _configure() -> void:
-	night = true
-	light_dir = Vector3(-0.45, 0.32, -0.83)
+	night = not Game.flag("campSlept")   # (Asar) after sleeping in the tents the camp is in morning light
+	light_dir = Vector3(-0.45, 0.32, -0.83) if night else Vector3(0.7, 0.28, 0.65)
 	clear_radius = 6.5
 	for i in 12:
 		var z := -4.5 - i * 2.2
 		path_pts.append(Vector2(sin(z * 0.42) * 1.1, z))
-	subtitle = "Scene 1 — Camp, the night before the quest"
+	subtitle = "Scene 1 — Camp, the night before the quest" if night else "Scene 1 — Camp, the next morning"
 	party_ids = ["skorn", "lykor", "xylo"]
 	party_start = [Vector3(2.0, 0, 2.9), Vector3(cos(2.3) * 3.9, 0, sin(2.3) * 3.9), Vector3(cos(0.75) * 3.9, 0, sin(0.75) * 3.9)]
 	leader_id = "skorn"
@@ -56,6 +56,8 @@ func _build_level() -> void:
 	add_child(amb)
 	amb.setup(FIRE_POS)
 	amb.fire_player.volume_db = -80.0
+	if not night:   # morning: no crickets
+		amb.cricket_player.stop()
 
 func _build_forest() -> void:
 	var placed := 0
@@ -225,10 +227,13 @@ func _level_process(delta: float) -> void:
 		goblin.set_meta("goal_speed", 1.0)
 	if goblin.has_meta("goal") and goblin.global_position.distance_to(goblin.get_meta("goal")) < 0.4:
 		goblin.remove_meta("goal")
-	# heading out
+	# heading out (only in the morning: at night Lykor sends you back to bed)
 	if stage == "lit" and not busy and not leaving and leader.global_position.distance_to(EXIT_POS) < 3.5:
-		leaving = true
-		_leave_camp()
+		if Game.flag("campSlept") or Game.flag("campDone"):
+			leaving = true
+			_leave_camp()
+		else:
+			_night_block()
 
 # maps: the two tents are the camp's "buildings"
 func map_buildings() -> Array:
@@ -236,13 +241,20 @@ func map_buildings() -> Array:
 
 func _level_interactables() -> Array:
 	if stage == "lit":
-		return [
+		return _lit_interactables().filter(func(i): return not (Game.flag("campSlept") and i["id"].begins_with("tent")))
+	return _dark_interactables()
+
+func _lit_interactables() -> Array:
+	return [
 			{ "id": "fire", "label": "Campfire", "verb": "Rest at", "pos": FIRE_POS, "h": 1.8, "r": 2.9, "steps": CampScript.OBJECTS["fire"], "rest": true },
 			{ "id": "map", "label": "Charred paper", "verb": "Look at", "pos": Vector3(1.5, 0, 1.4), "h": 0.7, "r": 1.4, "steps": CampScript.OBJECTS["map"] },
 			{ "id": "bag", "label": "Lykor's bag", "verb": "Look at", "pos": Vector3(-2.7, 0, -1.6), "h": 1.0, "r": 1.6, "steps": CampScript.OBJECTS["bag"] },
-			{ "id": "tent", "label": "Tent", "verb": "Look at", "pos": SKORN_TENT, "h": 3.2, "r": 3.4, "steps": CampScript.OBJECTS["tent"] },
+			{ "id": "tent", "label": "the tents", "verb": "Sleep in", "pos": SKORN_TENT, "h": 3.2, "r": 3.4, "steps": CampScript.SLEEP, "major": true },
+			{ "id": "tent2", "label": "the tents", "verb": "Sleep in", "pos": LYKOR_TENT, "h": 3.4, "r": 3.4, "steps": CampScript.SLEEP, "major": true },
 			{ "id": "goblin", "label": "Goblin (Between Jobs)", "verb": "Talk to", "node": goblin, "h": 1.6, "r": 2.2, "steps": CampScript.OBJECTS["goblin"] },
-		]
+	]
+
+func _dark_interactables() -> Array:
 	var pre := CampScript.PRE_FIRE
 	var list: Array = [
 		{ "id": "pit", "label": "Fire pit", "verb": ("Put the paper in the" if stage == "has_map" else "Look at"), "pos": FIRE_POS, "h": 1.4, "r": 2.9, "steps": pre["pit_with_map"] if stage == "has_map" else pre["pit"] },
@@ -272,12 +284,20 @@ func _on_action(n: String) -> void:
 			hop(party[1], 0.6)
 			hop(party[2], 0.6)
 			await wait(0.4)
+		"go_to_sleep":
+			await _go_to_sleep()
+		"skorn_wakes":
+			for u in party:
+				if u.id == "skorn":
+					unknock(u)
+					hop(u, 0.5)
+			await wait(0.5)
 		"party_up":
 			stage = "lit"
 			follow_enabled = true
 			switch_enabled = true
 			set_leader(party[0])
-			objective("Explore the camp, then head north up the path. (The goblins are up north.)", EXIT_POS)
+			objective("Explore the camp, then get some sleep in the tents.", SKORN_TENT)
 			Game.set_flag("campLit")
 			if not shots_mode:
 				Game.save_game("auto", self)   # free roam starts: checkpoint
@@ -364,6 +384,54 @@ func _title_backdrop() -> void:
 	target_yaw = 0.35
 	_update_camera(1.0)
 
+# ---------------------------------------------------------------- bedtime → morning (Asar 11/22)
+func _night_block() -> void:
+	busy = true
+	await run_dialogue(CampScript.NIGHT_BLOCK)
+	place_party(EXIT_POS + Vector3(0, 0, 9.0), Vector3(0, 0, 1))
+	objective("Get some sleep in the tents. You leave at sunrise.", SKORN_TENT)
+	busy = false
+
+func _go_to_sleep() -> void:
+	follow_enabled = false
+	var sk := party[0]
+	var ly := party[1]
+	var xy := party[2]
+	for u in party:
+		if u.id == "skorn": sk = u
+		elif u.id == "lykor": ly = u
+		elif u.id == "xylo": xy = u
+	# Lykor to his tent, Xylo takes Skorn's (he's "staying up"), Skorn plops down by the fire
+	walk_to(ly, LYKOR_TENT + Vector3(0, 0, 1.6), 1.0, 4.0)
+	walk_to(xy, SKORN_TENT + Vector3(0, 0, 1.6), 1.0, 4.0)
+	await walk_to(sk, FIRE_POS + Vector3(-1.6, 0, 1.6), 1.0, 4.0)
+	await wait(0.4)
+	ly.visible = false
+	xy.visible = false
+	sk.set_view("back")
+	await wait(1.4)
+	knock(sk, 80.0, 0.5)   # out cold, mid-guard
+	await wait(0.6)
+	for k in 3:
+		char_label(sk, "z" if k % 2 == 0 else "Z", 1.2, 2.0 + k * 0.4)
+		await wait(0.5)
+	await fade_out(1.6)
+	Game.set_flag("campSlept")
+	if not shots_mode:
+		Game.save_game("auto", self)
+	Game.travel("res://main.tscn", "morning", sk.id)   # reload the camp in daylight
+
+func arrival_morning() -> void:
+	# woke up: Skorn face-down by the fire, the other two coming out of the tents
+	for u in party:
+		match u.id:
+			"skorn":
+				u.global_position = FIRE_POS + Vector3(-1.6, 0, 1.6)
+				knock(u, 80.0, 0.01)
+			"lykor": u.global_position = LYKOR_TENT + Vector3(0, 0, 1.8)
+			"xylo": u.global_position = SKORN_TENT + Vector3(0.3, 0, 1.8)
+	focus_override = FIRE_POS + Vector3(0, 0, 0.5)
+
 func can_resume() -> bool:
 	return stage == "lit" and not leaving
 
@@ -372,11 +440,26 @@ func can_resume_saved() -> bool:
 
 func _resume(r: Dictionary) -> void:
 	_light_fire_now()
+	if Game.flag("campSlept"):   # morning: the fire burned down overnight, just embers
+		flames.emitting = false
+		fire_base = 0.5
 	stage = "lit"
 	follow_enabled = true
 	switch_enabled = true
-	objective("Explore the camp, then head north up the path. (The goblins are up north.)", EXIT_POS)
+	if Game.flag("campSlept"):
+		objective("Head north up the path. (The goblins are up north.)", EXIT_POS)
+	else:
+		objective("Explore the camp, then get some sleep in the tents.", SKORN_TENT)
 	await super._resume(r)
+	if r.get("from", "") == "morning":   # just woke up
+		busy = true
+		freeze_all(true)
+		arrival_morning()
+		await wait(0.9)
+		await run_dialogue(CampScript.MORNING)
+		focus_override = null
+		busy = false
+		freeze_all(false)
 
 func _leave_camp() -> void:
 	if Game.flag("campDone"):   # walked back here earlier: just head on to the village (no leaving scene again)
@@ -384,7 +467,7 @@ func _leave_camp() -> void:
 		await fade_out(0.6)
 		Game.travel("res://trail.tscn", "camp", leader.id)
 		return
-	await run_dialogue(CampScript.LEAVE)
+	busy = true
 	Game.set_flag("campDone")
 	await fade_out(1.0)
 	Game.goto("res://trail.tscn")   # (Asar: the long trail comes before the village now)
@@ -443,6 +526,16 @@ func _begin() -> void:
 
 # ---------------------------------------------------------------- automated screenshots
 func _shot_tour() -> void:
+	if Game.flag("campSlept") and Game.pending_resume.get("from", "") == "morning":   # second half: the morning
+		_resume(Game.pending_resume)
+		await wait(1.5)
+		await shot("camp_07_morning")
+		await advance(4, 0.8)
+		await wait(1.5)
+		await shot("camp_08_morning_free")
+		print("CAMP TOUR morning ok slept=", Game.flag("campSlept"), " stage=", stage)
+		get_tree().quit()
+		return
 	if OS.get_environment("LOOK") != "":   # LOOK="x,z,yaw;x,z,yaw" → close-up screenshots of spots (fire lit)
 		fade.color.a = 0.0
 		fire_base = 2.6
@@ -483,9 +576,15 @@ func _shot_tour() -> void:
 	await advance(13)
 	await wait(1.5)
 	await shot("camp_04_free_roam")
-	place_party(EXIT_POS + Vector3(0, 0, 3), Vector3(0, 0, -1))
-	await wait(2.5)
-	await shot("camp_05_leaving")
+	place_party(EXIT_POS + Vector3(0, 0, 5), Vector3(0, 0, -1))   # try to leave at night: Lykor sends you back
+	await wait(1.5)
+	await shot("camp_05_night_block")
+	await advance(2)
+	await wait(1.0)
+	place_party(SKORN_TENT + Vector3(1.5, 0, 2.2), Vector3(-1, 0, -1))
+	await wait(1.0)
+	start(current_interactables().filter(func(i): return i["id"] == "tent")[0])
 	await advance(3)
-	await wait(2.0)
-	get_tree().quit()
+	await wait(3.0)
+	await shot("camp_06_sleeping")
+	await wait(6.0)   # → the camp reloads in the morning; that run's tour picks up below

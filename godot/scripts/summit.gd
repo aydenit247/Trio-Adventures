@@ -31,6 +31,7 @@ var mattias_light: OmniLight3D
 var floaters: Array = []      # [node, base_y, speed, phase, spin]: bobbing crystals, candles, books, the orb
 var spinners: Array = []      # [node, speed]: rune circles, orb rings
 var _outdoor := {}
+var hymn: AreaMusic          # "The Hymn of Metocin Mattias" (Asar): starts when you arrive, plays once through
 
 func _configure() -> void:
 	if not Game.title_mode:
@@ -97,6 +98,15 @@ func _build_level() -> void:
 	_event_spots()
 	_lair_exterior()
 	_hall()
+	# Asar's hymn: plays once from the moment you arrive (no loop), on through the climb and into the lair.
+	# Mattias won't start his finale until it's done ("Peep the song first folk").
+	hymn = AreaMusic.new()
+	hymn.track = load("res://assets/music/the_hymn_of_metocin_mattias.ogg")
+	hymn.stages = PackedStringArray(["walk", "lair", "finale"])
+	hymn.volume_db = -5.0
+	hymn.duck_db = -16.0
+	hymn.fade_in_db_per_s = 25.0
+	add_child(hymn)
 
 func _after_build() -> void:
 	var env: Environment = world_env.environment
@@ -591,8 +601,11 @@ func _level_process(delta: float) -> void:
 		Game.set_flag("lairSeen")
 		_reveal_tower()
 	elif stage == "lair" and inside and leader.global_position.z < DAIS.z + 6.5:
-		stage = "finale"
-		_finale()
+		if hymn_playing():
+			_peep_the_song()
+		else:
+			stage = "finale"
+			_finale()
 
 # ================================================================ story
 func _begin() -> void:
@@ -712,6 +725,20 @@ func _set_inside(on: bool) -> void:
 		cam_height = 0.34
 		cam_look_h = 2.2
 
+# Is Asar's hymn still going? (Mattias makes you listen to the whole thing.)
+func hymn_playing() -> bool:
+	return hymn != null and hymn.player != null and hymn.player.playing and not hymn.played_once
+
+func _peep_the_song() -> void:
+	busy = true
+	freeze_all(true)
+	await run_dialogue(SS.PEEP_THE_SONG)
+	for i in party.size():   # step back off the dais steps so it doesn't fire again straight away
+		party[i].global_position = DAIS + Vector3(-1.2 + i * 1.2, 0, 9.0 + (i % 2) * 0.6)
+	objective("Listen to the hymn, then approach Metocin Mattias.", DAIS + Vector3(0, 0, 4))
+	freeze_all(false)
+	busy = false
+
 # The end of Chapter 1: Mattias's finale (SS.MATTIAS_FINALE, being written), then the end card.
 func _finale() -> void:
 	busy = true
@@ -812,8 +839,16 @@ func _shot_tour() -> void:
 	place_party(DAIS + Vector3(0, 0, 9.0), Vector3(0, 0, -1))
 	await wait(0.8)
 	await shot("s_12_mattias")
+	place_party(DAIS + Vector3(0, 0, 6.0), Vector3(0, 0, -1))   # hymn still playing: "Peep the song first folk"
+	await wait(1.2)
+	await shot("s_13_peep_the_song")
+	await advance(1, 0.6)
+	await wait(1.0)
+	print("SUMMIT peep: stage=", stage, " hymn_playing=", hymn_playing())
+	hymn.player.stop()   # pretend the hymn finished
+	hymn.played_once = true
 	place_party(DAIS + Vector3(0, 0, 6.0), Vector3(0, 0, -1))
 	await wait(4.5)
-	await shot("s_13_end")
+	await shot("s_14_end")
 	print("SUMMIT TOUR stage=", stage, " ch1=", Game.flag("chapter1Done"))
 	get_tree().quit()

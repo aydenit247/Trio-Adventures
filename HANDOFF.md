@@ -31,6 +31,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 ### Chapter 1 flow (each main event has a 5-way choice)
 1. **Camp (night, as Skorn):** fire's out → grab the bag → find the map → burn it to start the fire (oops) → roam →
    head north. No choice here — Ebain wants it that way.
+   **Bedtime (Asar 11/22):** after the fire, the tents say "Sleep in": Skorn swears he'll guard the fire, Lykor and Xylo
+   turn in, Skorn passes out by the fire → "The next morning…" → the camp reloads in daylight (`campSlept`) → the morning
+   lines → head north. Walking out before sleeping: Lykor says "We leave at sunrise" and sends you back.
 1½. **Goblin Woods Trail (morning, Asar 11/22):** a long walk between Camp and the Village to earn gold before the shop:
    6 searchable loot spots (sparkles) and Asar's **Bridge Troll** by the creek: "Y'all had said i could get some
    bussy?" → "It's good" (Xylo follows him into his hut; bridge opens) or "Bad." (troll fight, lots of gold, then loot
@@ -46,7 +49,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    · B **Snore Sneak** minigame · C **Lore Session** minigame (pick the true Deloye Lore continuation) · D slap him ·
    E it's the Chief's cousin (if allies). Fights are real boss fights. The only way on is the gorge right behind where he
    sleeps (Asar 11/22), so you can't get past until he's dealt with.
-5. **The Summit Path + the Wizard's Lair (night, Asar 11/22): the final event of Chapter 1.** A long climb up the
+5. **The Summit Path + the Wizard's Lair (night, Asar 11/22): the final event of Chapter 1.** Asar's "The Hymn of
+   Metocin Mattias" starts when you arrive and plays once; walking up to Mattias before it ends gets "Peep the song first
+   folk, shit is gas" (Asar) and a step back. A long climb up the
    mountain (3 empty clearings saved for future events: `EVENT_SPOTS` overlook / shrine / cart), a plaza with a huge
    glowing tower, then the lair's grand hall with Metocin Mattias on a dais. Walking up to him plays
    `summit_script.gd MATTIAS_FINALE` (Asar and Ebain are writing it; empty = a "coming soon" toast), then END OF CHAPTER 1

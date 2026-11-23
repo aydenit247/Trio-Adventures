@@ -4,6 +4,11 @@
 # Remember: narrator, Lykor and Xylo lines need Asar's recordings (VOICE_LINES.md).
 extends RefCounted
 
+# Walking up to him while "The Hymn of Metocin Mattias" is still playing (Asar's wording, verbatim).
+const PEEP_THE_SONG := [
+	{ "who": "mattias", "line": "Peep the song first folk, shit is gas" }, # Asar
+]
+
 # Plays when the party walks up to Mattias's dais. When it ends, the End of Chapter 1 card rolls.
 const MATTIAS_FINALE := [
 ]

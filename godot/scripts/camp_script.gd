@@ -140,9 +140,22 @@ const OBJECTS := {
 	],
 }
 
-# Walking out of camp up the north path → Goblin Village
-const LEAVE := [
+# ---------------- Bedtime → the next morning (Asar 11/22) ----------------
+# After the fire, the tents say "Sleep in". Skorn swears he'll stay up; Lykor and Xylo turn in; morning comes.
+const SLEEP := [
+	{ "who": "skorn", "line": "I'm not tired. I'm finna stay up and guard the fire." }, # DRAFT
+	{ "who": "xylo", "mood": "unimpressed", "line": "Guard it from what." }, # DRAFT
+	{ "who": "skorn", "mood": "angry", "line": "From… other fires." }, # DRAFT
+	{ "do": "go_to_sleep" },
+]
+# Trying to walk out of camp at night, before sleeping
+const NIGHT_BLOCK := [
+	{ "who": "lykor", "line": "Bet. We leave at sunrise. And nobody touch NUN." }, # DRAFT
+]
+# The camp reloads in daylight: Skorn fell asleep face-down by the fire he was "guarding"
+const MORNING := [
 	{ "who": "narrator", "line": "The next morning…" }, # Ebain
+	{ "do": "skorn_wakes" },
 	{ "who": "lykor", "line": "Aight, new rule: Skorn don't hold nothing. I'm leading." }, # DRAFT
 	{ "who": "skorn", "mood": "confused", "line": "Bet, my fault. I'm dumb as hell." }, # Ebain
 ]

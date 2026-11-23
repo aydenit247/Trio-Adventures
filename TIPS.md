@@ -184,3 +184,6 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   change (`Game.gold_changed`), reward on quest done (`Game.quest_finished`) and level up, door for village rooms / Mart /
   lair, pop on poofs, heal at rest spots, chug loop in chug contests, lava ambience in the Pass. In combat they replace the
   synth `slap`/`hit` (punch), `fire`, `blast`/`lore` (magic), `crit` (timed success), `heal`, `bonk` (sword).
+- [asar] Camp day/night: `camp.gd _configure` sets `night = not campSlept`, so sleeping reloads the scene (Game.travel
+  "morning") instead of relighting it live. The shots tour runs in two halves (night run → reload → morning run).
+- [asar] The summit hymn is an AreaMusic with a non-looping ogg; `summit.gd hymn_playing()` gates Mattias's finale.
