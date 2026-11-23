@@ -16,7 +16,7 @@ const AMBUSH := [
 	{ "who": "goblin", "line": "Yay.. you are allowed to mog that hard, right? Cool dude, that's fucking fair." }, # Ebain
 	{ "who": "goblins", "line": "THE MOGGING ELF!!" }, # Ebain
 	{ "do": "goblins_kneel" },
-	{ "who": "lykor", "mood": "flattered", "line": "Hell yup… this looksmaxxin shi payin off." }, # Ebain
+	{ "who": "lykor", "mood": "flattered", "line": "Hell yup… this looksmaxxin shit payin off." }, # Ebain
 	{ "who": "skorn", "mood": "angry", "line": "Hell nah. Why they ain't bowing to ME? I'm the one with armor." },
 	{ "who": "xylo", "mood": "unimpressed", "line": "Prophecies be weird like that." },
 	{ "do": "chief_appears" },
@@ -46,7 +46,7 @@ const THRONE := [
 	{ "do": "to_throne" },
 	{ "who": "narrator", "line": "The goblins seat Lykor on a throne made of spoons, bones, and one (1) wagon wheel." },
 	{ "do": "crown" },
-	{ "who": "lykor", "mood": "flattered", "line": "Y'all had said you got some beezy or some shi?" }, # Ebain
+	{ "who": "lykor", "mood": "flattered", "line": "Y'all had said you got some beezy or some shit?" }, # Ebain
 	{ "do": "beezy" },
 	{ "who": "lykor", "mood": "flattered", "line": "Ayy. Now THIS a kingdom." },
 	{ "who": "xylo", "mood": "unimpressed", "line": "Lykor. Focus. Ask him." },
@@ -71,7 +71,7 @@ const THRONE := [
 		] + GOODBYE },
 		# B — chugging contest (mash minigame)
 		{ "text": "Challenge the chief to a chugging contest", "steps": [
-			{ "who": "lykor", "mood": "smug", "line": "I bet your ass can't beat me in a beezy contest." }, # Ebain
+			{ "who": "lykor", "mood": "smug", "line": "I bet your ass can't beat me in a beezy contest, doe." }, # Ebain
 			{ "who": "chief", "line": "*gasp* Nobody has out-drunk Bogdrinker in 400 years." },
 			{ "who": "skorn", "mood": "unimpressed", "line": "Bro literally chugs bogs and swamps. It's in his NAME, dumbass." }, # Ebain's idea
 			{ "do": "chug_game" },
@@ -85,7 +85,7 @@ const THRONE := [
 				{ "who": "narrator", "line": "Lykor passes out." },
 				{ "do": "wake_outside" },
 				{ "who": "xylo", "mood": "unimpressed", "line": "On my Dragon Mama… it says \"METOCY MART, EAST. LOSER.\"" },
-				{ "who": "lykor", "mood": "angry", "line": "…They ain't have to add the last part." },
+				{ "who": "lykor", "mood": "angry", "line": "…They ain't have to add that last part." },
 				{ "who": "xylo", "mood": "smug", "line": "I'm leading from here." },
 				{ "do": "leave" },
 			] },
@@ -100,7 +100,7 @@ const THRONE := [
 			{ "who": "skorn", "mood": "smug", "line": "Wait, dis bih tuff lowkey. I could fw this." }, # Ebain
 			{ "who": "chief", "line": "The Metocy Mart is east. Now leave, Mogging Elf. We have a new god." },
 			{ "who": "lykor", "line": "Damn. That was easy. Too easy." },
-			{ "who": "xylo", "mood": "unimpressed", "line": "We are leaving him here, aren't we." },
+			{ "who": "xylo", "mood": "unimpressed", "line": "We aren't leaving him here, are we?" },
 			{ "who": "lykor", "mood": "smug", "line": "Yup." },
 			{ "do": "leave" },
 		] },
@@ -108,7 +108,7 @@ const THRONE := [
 		{ "text": "Sneak out", "steps": [
 			{ "who": "lykor", "thought": true, "line": "Slow… quiet…" }, # Ebain
 			{ "do": "sneak" },
-			{ "who": "lykor", "mood": "shocked", "line": "What the fuck is y'all doing?" }, # Ebain
+			{ "who": "lykor", "mood": "shocked", "line": "What the fuck is y'all doing, folk?" }, # Ebain
 			{ "who": "goblin", "line": "We go where the Mogging Elf goes." },
 			{ "who": "chief", "line": "The Mogging Elf seeks the metocy? Then the goblins will take him there OURSELVES. To the Metocy Mart!" },
 			{ "who": "goblins", "line": "FIELD TRIP! FIELD TRIP! FIELD TRIP!" },

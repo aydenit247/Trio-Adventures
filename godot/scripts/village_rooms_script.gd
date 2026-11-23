@@ -47,19 +47,16 @@ const SLUDGE_TAB := [
 	{ "do": "check_beezy" },
 	{ "choice": [
 		{ "text": "Pay with 3 Beezy", "if": "has3Beezy", "steps": [
-			{ "who": "lykor", "mood": "angry", "line": "Here. Take it. Take my beezy. I hope it's warm." }, # DRAFT
 			{ "do": "pay_tab" },
 			{ "who": "goblin", "name": SLUDGE, "line": "Pleasure doing business, Mogging Elf. Come back when you're rich." }, # DRAFT
 		] },
 		{ "text": "Lykor: \"I'm the Mogging Elf. Tabs don't apply to me.\"", "steps": [
-			{ "who": "lykor", "mood": "smug", "line": "Look at this face. Does this face pay tabs?" }, # DRAFT
 			{ "who": "goblin", "name": SLUDGE, "line": "…" }, # DRAFT
 			{ "who": "goblin", "name": SLUDGE, "line": "BIG THUMBS." }, # DRAFT
 			{ "do": "bouncer_fight" },
 		] },
 		{ "text": "\"Get the bouncer. Let's settle this.\"", "steps": [
 			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "Send your biggest guy." }] }, # DRAFT
-			{ "if": "skornAway", "steps": [{ "who": "xylo", "mood": "smug", "line": "Send your biggest guy. I have read about fighting." }] }, # DRAFT
 			{ "who": "goblin", "name": SLUDGE, "line": "You asked for it. BIG THUMBS!" }, # DRAFT
 			{ "do": "bouncer_fight" },
 		] },
@@ -84,7 +81,6 @@ const THUMBS_BEATEN := [
 ]
 const CLERK_TALK := [
 	{ "who": "goblin", "name": CLERK, "line": "Take a number." }, # DRAFT
-	{ "who": "xylo", "mood": "unimpressed", "line": "Deloye Lore predicted this. Chapter one: \"The line.\"" }, # DRAFT
 ]
 
 # Gorbo's open mic: laugh or heckle after each joke. Heckle him 2+ times and he quits comedy (for a minute).
@@ -92,17 +88,16 @@ const GORBO_SET := [
 	{ "who": "goblin", "name": GORBO, "line": "Is this thing on? Hello, hello! Y'all ever notice goblins never get jobs?" }, # DRAFT
 	{ "who": "goblin", "name": GORBO, "line": "Cause we don't APPLY! *ba dum tss* …That's not a joke. That's my life." }, # DRAFT
 	{ "choice": [
-		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }, { "who": "lykor", "mood": "flattered", "line": "Ha. Okay. That's kinda sad but okay." }] }, # DRAFT
+		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }] }, # DRAFT
 		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" },
 			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. GET A JOB." }] }, # DRAFT
-			{ "if": "skornAway", "steps": [{ "who": "xylo", "mood": "unimpressed", "line": "Boo. Get a job." }] }, # DRAFT
 			{ "who": "goblin", "name": GORBO, "line": "…that's the joke, man." }] }, # DRAFT
 	] },
 	{ "who": "goblin", "name": GORBO, "line": "My wife told me to stop stealing spoons. I said \"fork that.\"" }, # DRAFT
 	{ "who": "goblin", "name": GORBO, "line": "…I'm also not married. I just wanted to say fork." }, # DRAFT
 	{ "choice": [
-		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }, { "who": "xylo", "mood": "smug", "line": "A pun. Deloye would be proud. Deloye has never told a joke." }] }, # DRAFT
-		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" }, { "who": "lykor", "mood": "smug", "line": "Even your jokes are unemployed." }, { "who": "goblin", "name": GORBO, "line": "Oh he's GOOD." }] }, # DRAFT
+		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }] }, # DRAFT
+		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" }] }, # DRAFT
 	] },
 	{ "who": "goblin", "name": GORBO, "line": "Last one. I went to the Metocy Mart. Dulbers charged me twenty spoons for a receipt." }, # DRAFT
 	{ "who": "goblin", "name": GORBO, "line": "The receipt said NO REFUNDS. I didn't even buy anything!" }, # DRAFT
@@ -110,7 +105,6 @@ const GORBO_SET := [
 		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }] },
 		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" },
 			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. Ain't nobody dumb enough to pay twenty spoons for a receipt." }] }, # DRAFT (they haven't been to the Mart yet)
-			{ "if": "skornAway", "steps": [{ "who": "lykor", "mood": "smug", "line": "Twenty spoons for a receipt? That's not a joke, that's a skill issue." }] }, # DRAFT
 		] },
 	] },
 	{ "do": "gorbo_end" },
@@ -138,7 +132,6 @@ const GULPO_CHALLENGE := [
 	{ "who": "goblin", "name": GULPO, "line": "Me? I got a liver of STEEL. Chug me. Right now. Winner gets two beezy. Loser gets… embarrassed." }, # DRAFT
 	{ "choice": [
 		{ "text": "\"Pour it.\"", "steps": [
-			{ "who": "lykor", "mood": "smug", "line": "Pour it. And get the camera ready." }, # DRAFT
 			{ "do": "gulpo_chug" },
 		] },
 		{ "text": "\"Not right now.\"", "steps": [
@@ -155,7 +148,6 @@ const GRUBNIK_ASK := [
 	{ "who": "goblin", "name": GRUBNIK, "line": "Y-you read my posting?! Finally! My lucky spoon got took!" }, # DRAFT
 	{ "who": "goblin", "name": GRUBNIK, "line": "The Goblin Patrol on the east road jacked it. Said it was a \"spoon tax.\" There's no spoon tax! I checked!" }, # DRAFT
 	{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "Say less. We'll get your spoon, lil bro." }] }, # DRAFT
-	{ "if": "skornAway", "steps": [{ "who": "lykor", "mood": "smug", "line": "Say less. We'll get your spoon, lil bro." }] }, # DRAFT
 	{ "do": "start_lucky_spoon" },
 ]
 const GRUBNIK_WAITING := [
@@ -174,7 +166,6 @@ const GRUBNIK_DONE := [
 const WUZZLE_FIRST := [
 	{ "who": "goblin", "name": WUZZLE, "line": "Ahhh. I saw you coming. In a vision. Also through the tent flap." }, # DRAFT
 	{ "who": "goblin", "name": WUZZLE, "line": "The dragon. You carry the book of… Deloye, yes? Bah. Goblin prophecy is ten times the lore." }, # DRAFT
-	{ "who": "xylo", "mood": "angry", "line": "Ten times zero is still zero, but… wait. No. Deloye Lore is ALL the lore. Name the time and place." }, # DRAFT
 	{ "who": "goblin", "name": WUZZLE, "line": "Here. Now. A LORE-OFF. Answer three prophecies. Beat me, and I give you something… signed." }, # DRAFT
 	{ "do": "start_lore_off" },
 ]
@@ -210,12 +201,10 @@ const LORE_OFF := [
 	{ "if": "loreOffWon", "steps": [
 		{ "who": "goblin", "name": WUZZLE, "line": "No… NO… the spirits… they're clapping for HIM…" }, # DRAFT
 		{ "who": "goblin", "name": WUZZLE, "line": "Take it. Deloye Lore, Volume 9. Signed. I don't know who signed it. It was like that when I stole it." }, # DRAFT
-		{ "who": "xylo", "mood": "smug", "line": "On my Dragon Mama. Volume nine. The mid one." }, # DRAFT
 		{ "do": "lore_reward" },
 	] },
 	{ "if_not": "loreOffWon", "steps": [
 		{ "who": "goblin", "name": WUZZLE, "line": "HA! The spirits laugh at you, dragon! Come back when your lore has lore." }, # DRAFT
-		{ "who": "xylo", "mood": "angry", "line": "That one was a trick question. All of them were trick questions." }, # DRAFT
 	] },
 ]
 const FORTUNES := [
@@ -228,7 +217,6 @@ const FORTUNES := [
 ]
 const CRYSTAL_BALL := [
 	{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bro it's just a mirror ball." }] }, # DRAFT
-	{ "if": "skornAway", "steps": [{ "who": "lykor", "mood": "flattered", "line": "It's a mirror ball. I look incredible in it, though." }] }, # DRAFT
 ]
 const WUZZLE_DONE := [
 	{ "who": "goblin", "name": WUZZLE, "line": "Go away, lore dragon. I'm writing new prophecies. They're about how you cheated." }, # DRAFT
@@ -241,18 +229,13 @@ const OUTHOUSE := [
 	{ "choice": [
 		{ "text": "Skorn goes in", "if": "outhouseSkorn", "steps": [{ "do": "outhouse_skorn" },
 			{ "who": "skorn", "mood": "smug", "line": "Found a Chipotle Bowl in there. It was sealed. Don't worry about it." }, # DRAFT
-			{ "who": "lykor", "mood": "shocked", "line": "I am worried about it." }, # DRAFT
 		] },
 		{ "text": "Lykor goes in", "if": "outhouseLykor", "steps": [{ "do": "outhouse_lykor" },
-			{ "who": "lykor", "mood": "shocked", "line": "…" }, # DRAFT
-			{ "who": "lykor", "mood": "shocked", "line": "We will never speak of this. Nobody look at my hair." }, # DRAFT
 		] },
 		{ "text": "Xylo goes in", "if": "outhouseXylo", "steps": [{ "do": "outhouse_xylo" },
-			{ "who": "xylo", "mood": "vision", "line": "The graffiti in there… it's more lore than Deloye has ever had. I'm shaking." }, # DRAFT
 		] },
 		{ "text": "Nobody. Absolutely not.", "steps": [
 			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "Smart." }] }, # DRAFT
-			{ "if": "skornAway", "steps": [{ "who": "xylo", "mood": "smug", "line": "Wise." }] }, # DRAFT
 		] },
 	] },
 ]

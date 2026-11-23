@@ -12,7 +12,6 @@ const INTRO := [
 	{ "who": "narrator", "line": "Caelid. Night. The night before the greatest quest of their lives." }, # Ebain
 	{ "who": "narrator", "line": "The quest for the metocy." }, # Ebain
 	{ "who": "lykor", "mood": "flattered", "line": "Dat metocy gon be gah tomorrow, on the absolute." }, # Ebain
-	{ "who": "xylo", "line": "On my Dragon Mama it is." }, # Ebain
 	{ "who": "skorn", "line": "Man, it's about cold as a motherfucker. We could get the fire going, though." }, # Ebain
 	{ "who": "lykor", "line": "Aight bet. But don't touch my bag, though." }, # Ebain
 	{ "who": "skorn", "line": "Why would I touch yo bag, mud?" }, # DRAFT
@@ -43,7 +42,7 @@ const BURN := [
 	{ "who": "lykor", "mood": "angry", "line": "Bags is for MAPS, Skorn!" }, # DRAFT
 	{ "who": "skorn", "line": "Not no more." }, # DRAFT
 	{ "who": "xylo", "line": "Chill. Them goblins up north know every road in Caelid. We just ask them." }, # DRAFT
-	{ "who": "lykor", "line": "Bet. We leave at sunrise. And nobody touch NOTHING." }, # DRAFT
+	{ "who": "lykor", "line": "Bet. We leave at sunrise. And nobody touch NUN." }, # DRAFT
 	{ "do": "party_up" },
 	{ "who": "narrator", "line": "(Explore the camp. Q switches who you control. Tab opens your inventory.)" },
 ]
@@ -59,7 +58,6 @@ const PRE_FIRE := {
 		{ "who": "lykor", "line": "Aight bet. But don't touch my bag, though." }, # Ebain
 	],
 	"xylo": [
-		{ "who": "xylo", "line": "On my Dragon Mama it is." }, # Ebain
 		{ "who": "skorn", "thought": true, "line": "…He don't got no fire starter. He got a book." }, # DRAFT
 	],
 	"tent": [
@@ -76,7 +74,7 @@ const PRE_FIRE := {
 const TALK := {
 	"lykor": [
 		{ "if": "bag_checked", "steps": [
-			{ "who": "lykor", "mood": "angry", "line": "Why is my bag open. Who opened my bag." }, # DRAFT
+			{ "who": "lykor", "mood": "angry", "line": "Why is my bag opened?" }, # DRAFT
 			{ "who": "skorn", "thought": true, "line": "Act natural." }, # DRAFT
 		] },
 		{ "who": "lykor", "mood": "flattered", "line": "Dat metocy gon be gah tomorrow, on the absolute." }, # Ebain
@@ -92,7 +90,6 @@ const TALK := {
 		] },
 	],
 	"xylo": [
-		{ "who": "xylo", "line": "On my Dragon Mama it is." }, # Ebain
 		{ "who": "xylo", "mood": "vision", "line": "Deloye Lore, Volume 4, says the night before a quest is sacred." }, # DRAFT
 		{ "who": "skorn", "mood": "confused", "line": "What it say about the metocy?" }, # DRAFT
 		{ "who": "xylo", "mood": "unimpressed", "line": "Nothing. There is no lore." }, # DRAFT
@@ -117,7 +114,7 @@ const OBJECTS := {
 		{ "choice": [
 			{ "text": "Look inside", "steps": [
 				{ "do": "check_bag" },
-				{ "who": "lykor", "mood": "angry", "line": "Don't touch my bag, though!" }, # Ebain (adapted)
+				{ "who": "lykor", "mood": "angry", "line": "Don't touch my bag, doe!" }, # Ebain (adapted)
 			] },
 			{ "text": "Leave it alone", "steps": [
 				{ "who": "skorn", "thought": true, "line": "Already touched it once. That's enough for one night." }, # DRAFT

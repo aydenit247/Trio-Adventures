@@ -50,7 +50,6 @@ func _configure() -> void:
 	cam_look_h = 2.8
 	talk = {
 		"lykor": [{ "who": "lykor", "mood": "shocked", "line": "The ash is getting in my hair. I can feel it judging me." }], # DRAFT
-		"xylo": [{ "who": "xylo", "mood": "vision", "line": "Deloye Lore speaks of a giant. It does not say anything else about him. Classic Deloye." }], # DRAFT
 	}
 
 # Golden hour: warm low sun, soft blue-violet shade, light dusty haze instead of thick red fog

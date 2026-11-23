@@ -50,10 +50,6 @@ func _configure() -> void:
 	cam_height = 0.36
 	cam_look_h = 1.6
 	checkpoint = BRIDGE + Vector3(0, 0, 8)
-	talk = {
-		"lykor": [{ "who": "lykor", "mood": "smug", "line": "Long walk. Good thing I look this good doing it." }], # DRAFT
-		"xylo": [{ "who": "xylo", "line": "Deloye Lore warns of a troll on this trail. It is not specific about what he wants." }], # DRAFT
-	}
 
 func _build_level() -> void:
 	var rng2 := RandomNumberGenerator.new()
@@ -214,8 +210,6 @@ func _level_interactables() -> Array:
 			list.append({ "id": "hut", "label": "the troll's hut", "verb": "Search", "pos": HUT_DOOR, "h": 2.2, "r": 2.0, "steps": TS.HUT_SEARCH })
 		if not Game.flag("trollChest"):
 			list.append({ "id": "chest", "label": "the troll's chest", "verb": "Open", "pos": CHEST_POS, "h": 1.0, "r": 1.6, "steps": TS.CHEST })
-	elif t == "good":
-		list.append({ "id": "hut", "label": "the troll's hut", "verb": "Knock on", "pos": HUT_DOOR, "h": 2.2, "r": 2.0, "steps": TS.HUT_DOOR_GOOD })
 	return list
 
 func _level_process(_delta: float) -> void:

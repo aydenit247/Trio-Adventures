@@ -50,7 +50,7 @@ func _configure() -> void:
 	noise.frequency = 1.0
 	talk = {
 		"skorn": [{ "who": "skorn", "mood": "angry", "line": "Why they always pick HIM, bro." }], # DRAFT
-		"xylo": [{ "who": "xylo", "mood": "unimpressed", "line": "Deloye Lore said nothing about goblins. Nothing about anything, really." }], # DRAFT
+		"xylo": [{ "who": "xylo", "mood": "unimpressed", "line": "Cause they think he sexy as hell… like, yep." }], # DRAFT
 	}
 
 func _build_level() -> void:

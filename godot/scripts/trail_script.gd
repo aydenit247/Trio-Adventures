@@ -6,7 +6,6 @@ const TROLL := "Bridge Troll"   # one-off speaker name (portrait: assets/portrai
 
 const INTRO := [
 	{ "who": "skorn", "mood": "confused", "line": "Who drew this map? Why is the village an inch away?" }, # DRAFT
-	{ "who": "xylo", "mood": "unimpressed", "line": "You burned the map, Skorn." }, # DRAFT
 ]
 
 const TROLL_MEET := [
@@ -15,7 +14,6 @@ const TROLL_MEET := [
 		{ "text": "It's good", "steps": [ # Asar
 			{ "do": "troll_good" },
 			{ "do": "xylo_back" },
-			{ "who": "xylo", "mood": "unimpressed", "line": "The bridge is open. Let us go." }, # DRAFT
 		] },
 		{ "text": "Bad.", "steps": [ # Asar
 			{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "BAD?!" }, # DRAFT
@@ -27,9 +25,6 @@ const TROLL_MEET := [
 # talking to him again after you ran from the fight
 const TROLL_AGAIN := TROLL_MEET
 
-const HUT_DOOR_GOOD := [
-	{ "who": "xylo", "mood": "unimpressed", "line": "We are not knocking on that door." }, # DRAFT
-]
 
 const HUT_SEARCH := [
 	{ "do": "hut_loot" },

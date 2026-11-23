@@ -25,6 +25,12 @@ the game**, so every narrator line now has his voice. Two lines were changed to 
 ("Folk, head into that village over there." and "And OD as a mufucka."). Adding or rewording a narrator line means it
 needs a new recording from Asar, or it plays on the robot voice.
 
+## Lykor and Xylo (Asar's own recordings, 2026-11-22)
+Same deal as the narrator: 71 Lykor + 40 Xylo mp3s in `godot/assets/voices/lykor/` and `xylo/`, mapped in
+`voice_lines.gd` `LINES` (dialogue and their combat barks). **Their lines without a recording were removed.** Lines Asar
+and Ebain reworded in the recordings were changed in the scripts to match (see the COLLAB log, 2026-11-22). Adding or
+rewording a Lykor or Xylo line means it needs a new recording, or it plays on the robot voice.
+
 ## Skorn lines still on the robot voice (checked 2026-11-22, Asar)
 These have no generated file yet, so they fall back to TTS. Generate + approve them in the studio and re-import:
 - camp: "Man, it's about cold as a motherfucker." · "Good thing I got the fire going though." · "Bunch of squiggly ass lines." ·

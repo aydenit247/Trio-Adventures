@@ -20,11 +20,7 @@ const INTRO := [
 	{ "who": "narrator", "line": "The mountain pass. Hot. Ashy. And OD as a mufucka." },
 	{ "who": "skorn", "mood": "angry", "line": "Man, it's hot as hell out here." },
 	{ "if": "skornTripped", "steps": [{ "who": "skorn", "mood": "confused", "line": "…And why the rocks breathing? Oh, that's still the midtocy. My bad." }] },
-	{ "who": "lykor", "mood": "shocked", "line": "My hair cannot survive these conditions. Pray for me." },
-	{ "if": "dulbersEscaped", "steps": [
-		{ "who": "xylo", "mood": "vision", "line": "On my Dragon Mama… I feel like Dulbers is watching us." },
-		{ "who": "skorn", "mood": "smug", "line": "Let him watch. Shorty ain't scary." },
-	] },
+	{ "who": "lykor", "mood": "shocked", "line": "My hair cannot survive these OD ahh conditions. Pray for my ahh." },
 ]
 
 const MATTIAS := [
@@ -58,7 +54,7 @@ const GIANT := [
 		{ "text": "Sneak across him", "steps": [
 			{ "who": "lykor", "line": "We just gotta tiptoe across. Quiet as hell." },
 			{ "who": "skorn", "mood": "angry", "line": "I'm a 7'2 Chad Orc (with a cosign from Clavicular) in metal armor, bro." }, # Ebain
-			{ "who": "xylo", "line": "Then step when he snores. The snore will hide us." },
+			{ "who": "xylo", "line": "Ay you good bruh, he snoring loud as hell." },
 			{ "do": "sneak_game" },
 			{ "if": "sneakWon", "steps": [
 				{ "who": "narrator", "line": "The trio makes it across. Diddy Chud never wakes up." },
@@ -77,7 +73,7 @@ const GIANT := [
 		] },
 		# C — Xylo reads Deloye Lore (Lore Session minigame)
 		{ "text": "Xylo reads him Deloye Lore", "steps": [
-			{ "who": "xylo", "mood": "vision", "line": "Stand back. He requires… lore." },
+			{ "who": "xylo", "mood": "vision", "line": "Stand back! He requires… lore." },
 			{ "who": "lykor", "mood": "unimpressed", "line": "Bro, not everything is solved by Deloye Lore." }, # Ebain
 			{ "who": "xylo", "mood": "smug", "line": "Just watch, folk." }, # Ebain
 			{ "do": "lore_game" },

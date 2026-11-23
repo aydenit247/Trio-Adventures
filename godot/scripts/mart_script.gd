@@ -17,13 +17,11 @@ const ARRIVE := [
 	{ "who": "xylo", "mood": "vision", "line": "There. I can feel it. The metocy is near." },
 	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bro, it's a store. You feel a store?" }] },
 	{ "if": "skornKing", "steps": [{ "who": "lykor", "line": "It's weird without Skorn. …Peaceful, but weird." }] },
-	{ "who": "lykor", "mood": "smug", "line": "\"For all yo metocy needs n shi folk.\" …Very professional." },
 	{ "do": "dulbers_appears" },
 	{ "who": "dulbers", "mood": "grin", "line": "Hey guys, it's your boy Dulbers Frint!" },
 	{ "who": "dulbers", "mood": "grin", "line": "Y'all could pull up before the Diddy Chud Giant smells you?" }, # Ebain
 	{ "if": "foreheadLoser", "steps": [
 		{ "who": "dulbers", "mood": "grin", "line": "…\"Loser\"? Says so right on your forehead, my boy." },
-		{ "who": "lykor", "mood": "angry", "line": "Don't." },
 	] },
 	{ "if": "lykorDethroned", "steps": [
 		{ "who": "skorn", "mood": "smug", "line": "Make way. Purple god of the goblins, coming through. No big deal." }, # Ebain
@@ -45,7 +43,6 @@ const REVEAL_AND_FIGHT := [
 	{ "do": "transform" },
 	{ "who": "dulbers_demon", "line": "NOBODY LEAVES METOCY MART. NO REFUNDS. NO EXCHANGES." },
 	{ "who": "skorn", "mood": "tweaking", "line": "Balright. I ain't ever pop metocy and have a jit turn into a got damn demon. This some white people shit." }, # Ebain
-	{ "who": "xylo", "line": "Real enough to fight." },
 	{ "do": "fight_dulbers" },
 	{ "if": "goblinAllies", "steps": [{ "who": "chief", "line": "Goblins: one. Demon: zero." }] },
 	{ "do": "trip_end" },
@@ -67,7 +64,6 @@ const SHOP := [
 		{ "who": "skorn", "mood": "angry", "line": "THEY HAD KICKED ME OUT." }, # Ebain
 		{ "who": "lykor", "mood": "shocked", "line": "Already??" },
 		{ "who": "skorn", "mood": "angry", "line": "I drank too much beezy and cracked on too many goblin biddies. They got pissed." }, # Ebain
-		{ "who": "xylo", "mood": "unimpressed", "line": "…Goblin biddies." },
 		{ "who": "skorn", "mood": "smug", "line": "Don't judge me." },
 	] },
 	{ "who": "lykor", "line": "Aight, so what the word? What we owe ya for some metocy, mud?" }, # Ebain
@@ -84,7 +80,7 @@ const SHOP := [
 			{ "do": "trip_start" },
 			{ "who": "skorn", "mood": "tweaking", "line": "Yo. YO. Why the floor breathing?" },
 			{ "who": "lykor", "mood": "tweaking", "line": "Nah, I'm real life tweaking." }, # Ebain
-			{ "who": "xylo", "mood": "tweaking", "line": "On my Dragon Mama… I can see sounds. The sounds are purple." },
+			{ "who": "xylo", "mood": "tweaking", "line": "On my Unborn dragon egg… I can see sounds. The sounds is purple." },
 			{ "who": "skorn", "mood": "tweaking", "line": "Nah, this don't feel like metocy. This feel like some bullshit, on my dead orcs." }, # Ebain
 			{ "who": "lykor", "mood": "angry", "line": "Dulbers. What did you give us?" },
 		] + REVEAL_AND_FIGHT },
@@ -94,7 +90,7 @@ const SHOP := [
 			{ "who": "skorn", "mood": "smug", "line": "Bet, let me peep ts." }, # Ebain
 			{ "do": "skorn_trip" },
 			{ "who": "skorn", "mood": "tweaking", "line": "…Yo, why Lykor got three heads? Which one I talk to?" },
-			{ "who": "xylo", "mood": "unimpressed", "line": "That is not profound insight. That is a man malfunctioning." },
+			{ "who": "xylo", "mood": "unimpressed", "line": "Maaaan, it's cause yo ass geekin off that midtocy." },
 			{ "who": "lykor", "mood": "angry", "line": "Dulbers. What did you just give my guy?" },
 		] + REVEAL_AND_FIGHT },
 		# C — refuse → Dulbers goes demon, kicks you out, escapes (villain later). No midtocy.
@@ -114,12 +110,11 @@ const SHOP := [
 		] },
 		# D — Xylo reads Deloye Lore about it → deal, midtocy, Dulbers escapes
 		{ "text": "Have Xylo inspect it", "steps": [
-			{ "who": "xylo", "mood": "vision", "line": "Allow me." },
 			{ "do": "xylo_lore" },
 			{ "who": "xylo", "mood": "vision", "line": "It is written, in chapter 8,784, section B12, that true metocy glows from within — its shell dry as desert bone, smooth as a sage's forehead. True metocy is NEVER moist." }, # Ebain's idea
-			{ "who": "xylo", "mood": "unimpressed", "line": "This one is… moist." },
+			{ "who": "xylo", "mood": "unimpressed", "line": "But this one… is moist." },
 			{ "who": "dulbers", "mood": "grin", "line": "It's NOT moist—" },
-			{ "who": "xylo", "mood": "unimpressed", "line": "It is cracked, purple, and growing a small civilization." },
+			{ "who": "xylo", "mood": "unimpressed", "line": "Maaan, this one is cracked, purple, and growing a small civilization." },
 			{ "do": "reveal_midtocy" },
 			{ "who": "lykor", "mood": "angry", "line": "You was finna lace us with MIDTOCY?" },
 			{ "who": "dulbers", "line": "Aight aight aight, keep your voice down! Let's make a deal." },
@@ -148,7 +143,7 @@ const SHOP := [
 			{ "who": "narrator", "line": "Dulbers Frint was never seen again." },
 			{ "who": "chief", "line": "The real metocy is past the giant. Field trip is over. Goblins — HOME." },
 			{ "do": "goblins_go_home" },
-			{ "who": "xylo", "mood": "unimpressed", "line": "On my Dragon Mama… our entourage has left us." },
+			{ "who": "xylo", "mood": "unimpressed", "line": "On my Dragon Grandpa… our entourage has left us." },
 			{ "who": "skorn", "line": "Good riddance. …I kinda miss 'em." },
 			{ "do": "leave" },
 		] },
