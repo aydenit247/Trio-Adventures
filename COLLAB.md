@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Dulbers Frint voice lines + Asar's sound effects pack — files: godot/assets/voices/dulbers/ (new), godot/assets/sounds/ (new sfx_*), voice_lines.gd, mart_script.gd, combat/battle_view.gd, game.gd, level.gd, village_buildings.gd, village.gd, mart.gd, pass.gd, summit.gd — branch: asar/dulbers-sfx — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -47,6 +48,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/assets/voices/dulbers/ (new), godot/assets/sounds/ (new sfx_*), voice_lines.gd, mart_script.gd, combat/battle_view.gd, game.gd, level.gd, village_buildings.gd, village.gd, mart.gd, pass.gd, summit.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
