@@ -25,6 +25,12 @@ the game**, so every narrator line now has his voice. Two lines were changed to 
 ("Folk, head into that village over there." and "And OD as a mufucka."). Adding or rewording a narrator line means it
 needs a new recording from Asar, or it plays on the robot voice.
 
+## Goblins (Asar's recordings, 2026-11-22)
+86 mp3s in `godot/assets/voices/goblins_asar/` (village goblins, Chief Bogdrinker, Big Thumbs, Wuzzle, Gulpo, Grubnik,
+Sludge, Haggle, the clerk, combat taunts), mapped in `voice_lines.gd` `LINES`. They win over the studio goblin voices
+in `voices/goblin/`. Reworded to match: "BYE!! YOU BETTER COME BACK ONE DAY!!", Gulpo's "Me liver…", Big Thumbs' "Shi did
+not work.", the Chief's "Then we will take him there OURSELVES", and his perfect-hit taunt is now "On some smelly shiiii!".
+
 ## Dulbers Frint (Asar's recordings, 2026-11-22)
 18 mp3s in `godot/assets/voices/dulbers/`, mapped in `voice_lines.gd` `LINES` (Mart dialogue + his 3 combat taunts). Four
 lines were changed to match the takes ("Store's open, folk!", "Similar vibes doe.", "Hand-made. On some type shit.",

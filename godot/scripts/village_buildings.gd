@@ -31,7 +31,6 @@ const CONDITIONER_POS := Vector3(-1.4, 0, -10.6)   # the Backup Conditioner used
 var lv          # the village (Level)
 var room := ""  # "" = outside, else a BUILDINGS key
 var npc := {}   # name -> Unit
-var gorbo_heckles := 0
 var lore_wrong := 0
 var conditioner_node: Node3D
 var _outdoor := {}   # saved sun/ambient while indoors
@@ -238,23 +237,15 @@ func _bar_room() -> void:
 		Models.place(lv, "round_wooden_table_01", o + p, randf() * TAU, 0.8, true)
 		for a in [0.4, 2.5, 4.4]:
 			Models.place(lv, "wooden_stool_01", o + p + Vector3(cos(a) * 0.95, 0, sin(a) * 0.95), randf() * TAU, 1.0)
-	# stage
-	Models.block(lv, o + Vector3(4.2, 0.2, -3.0), Vector3(3.6, 0.4, 2.2), dark_planks, 0.0, true)
-	_label3d("OPEN MIC NIGHT\n(every night)", o + Vector3(4.2, 3.3, BACK_Z + 0.1), 32, Color("#ff9ad5"))
-	var spot := SpotLight3D.new()
-	spot.light_color = Color(1.0, 0.85, 0.6)
-	spot.light_energy = 4.0
-	spot.spot_range = 7.0
-	spot.spot_angle = 22.0
-	spot.position = o + Vector3(4.2, 5.5, -1.5)
-	lv.add_child(spot)
-	spot.look_at(o + Vector3(4.2, 0.4, -3.0), Vector3.UP)
+	# (the open-mic stage was removed with its comedian, Asar 11/22): one more table in that corner
+	Models.place(lv, "round_wooden_table_01", o + Vector3(4.4, 0, -2.6), 0.6, 0.8, true)
+	for a2 in [0.4, 2.5, 4.4]:
+		Models.place(lv, "wooden_stool_01", o + Vector3(4.4, 0, -2.6) + Vector3(cos(a2) * 0.95, 0, sin(a2) * 0.95), randf() * TAU, 1.0)
 	# unemployment window
 	Models.block(lv, o + Vector3(-6.2, 1.0, 1.9), Vector3(0.6, 2.0, 1.6), Models.mat("clay_plaster", 1.5), 0.0, true)
 	_label3d("UNEMPLOYMENT\nTAKE A NUMBER\nNOW SERVING: 3", o + Vector3(-5.85, 2.4, 1.9), 22, Color("#ffffff"))
 	# people
 	npc["sludge"] = _goblin("sludge", "Sludge (Bartender) (Waters Down Everything)", o + Vector3(-3.4, 0, -3.3), 1.15, Color(0.95, 0.9, 0.8))
-	npc["gorbo"] = _goblin("gorbo", "Gorbo (Open Mic) (Nobody Asked)", o + Vector3(4.2, 0.5, -3.0), 1.1, Color(1.05, 0.95, 1.1))
 	npc["thumbs"] = _goblin("thumbs", "Big Thumbs (Bouncer) (Has a Gym Membership)", o + Vector3(-2.6, 0, 3.3), 1.75, Color(0.85, 0.95, 0.85), "goblin_fight")
 	npc["gulpo"] = _goblin("gulpo", "Gulpo (Bar Champion) (Liver of Steel)", o + Vector3(2.1, 0, 0.9), 1.25, Color(1.0, 0.92, 0.75))
 	npc["clerk"] = _goblin("clerk", "Unemployment Clerk (On Break Since 1987)", o + Vector3(-5.3, 0, 1.6), 1.1, Color(0.85, 0.85, 0.9))
@@ -530,7 +521,6 @@ func interactables() -> Array:
 	match room:
 		"bar":
 			list.append({ "id": "sludge", "label": "Sludge", "verb": "Talk to", "node": npc["sludge"], "h": 1.6, "r": 2.2, "steps": _sludge_steps() })
-			list.append({ "id": "gorbo", "label": "Gorbo", "verb": "Watch", "node": npc["gorbo"], "h": 2.0, "r": 2.4, "steps": R.GORBO_AGAIN if Game.flag("gorboSeen") else R.GORBO_SET })
 			list.append({ "id": "thumbs", "label": "Big Thumbs", "verb": "Talk to", "node": npc["thumbs"], "h": 2.2, "r": 1.7, "steps": R.THUMBS_BEATEN if Game.flag("thumbsBeaten") else R.THUMBS_TALK })
 			list.append({ "id": "gulpo", "label": "Gulpo", "verb": "Talk to", "node": npc["gulpo"], "h": 1.7, "r": 1.7, "steps": R.GULPO_WON if Game.flag("chugRematchWon") else R.GULPO_CHALLENGE })
 			list.append({ "id": "clerk", "label": "the Unemployment window", "verb": "Visit", "node": npc["clerk"], "h": 1.6, "r": 1.6, "steps": R.CLERK_TALK })
@@ -658,19 +648,6 @@ func on_action(n: String) -> void:
 			Game.finish_quest("bar_tab")
 			reward(0, "Tab cleared · Got: Beezy ×2")
 			await lv.wait(0.5)
-		"gorbo_laugh":
-			lv.hop(npc["gorbo"], 0.4)
-		"gorbo_heckle":
-			gorbo_heckles += 1
-			lv.char_label(npc["gorbo"], "Gorbo (Hurt)", 1.5, 1.5, Color("#ff8a6a"))
-		"gorbo_end":
-			Game.set_flag("gorboSeen")
-			Game.set_flag("gorboRoasted", gorbo_heckles >= 2)
-			if gorbo_heckles >= 2:
-				reward(15, "Roasted a comedian")
-			else:
-				var who := Game.add_item("beer", 1)
-				reward(5, "%s got: Beezy (from the tip jar)" % who.capitalize())
 		"gulpo_chug":
 			if Game.quest_state("chug_rematch") == "":
 				Game.start_quest("chug_rematch", R.QUESTS["chug_rematch"][0], R.QUESTS["chug_rematch"][1])
@@ -827,7 +804,6 @@ func tour() -> void:
 		await auto_talk("door_bar")
 		await lv.wait(1.0)
 		await lv.shot("b_06_bar_room")
-		await auto_talk("gorbo", [1, 1, 0], "b_07_gorbo", 1)
 		await auto_talk("sludge", [2], "b_08_sludge", 3)
 		await lv.shot("b_09_after_fight")
 		await auto_talk("gulpo", [0])

@@ -37,7 +37,7 @@ const GOODBYE := [
 	{ "who": "xylo", "mood": "unimpressed", "line": "They… sell it?" },
 	{ "who": "chief", "line": "For all yo metocy needs." },
 	{ "do": "goblins_cry" },
-	{ "who": "goblins", "line": "*sobbing* BYE!! COME BACK HARDER!!" },
+	{ "who": "goblins", "line": "*sobbing* BYE!! YOU BETTER COME BACK ONE DAY!!" },
 	{ "who": "xylo", "mood": "smug", "line": "On my Dragon Mama, I'm leading from here." },
 	{ "do": "leave" },
 ]
@@ -110,7 +110,7 @@ const THRONE := [
 			{ "do": "sneak" },
 			{ "who": "lykor", "mood": "shocked", "line": "What the fuck is y'all doing, folk?" }, # Ebain
 			{ "who": "goblin", "line": "We go where the Mogging Elf goes." },
-			{ "who": "chief", "line": "The Mogging Elf seeks the metocy? Then the goblins will take him there OURSELVES. To the Metocy Mart!" },
+			{ "who": "chief", "line": "The Mogging Elf seeks the metocy? Then we will take him there OURSELVES. To the Metocy Mart!" },
 			{ "who": "goblins", "line": "FIELD TRIP! FIELD TRIP! FIELD TRIP!" },
 			{ "who": "skorn", "mood": "angry", "line": "Hell nah." },
 			{ "do": "goblins_join" },

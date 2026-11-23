@@ -246,7 +246,7 @@ again (Dulbers is gone in every ending). Mart and Pass now resume from saves too
 
 ### The explorable village (after the throne scene)
 Chief's Hut (closed: outside only, Asar 11/22) with a bedroll beside it (rest spot) and a Backup Conditioner pickup ·
-Unemployment Office & Bar (**Bar Tab** → bouncer fight, Gorbo's open mic, Gulpo **Chug Rematch**) · Job Board
+Unemployment Office & Bar (**Bar Tab** → bouncer fight, Gulpo **Chug Rematch**; Gorbo and his open mic were removed, Asar 11/22) · Job Board
 (`scripts/job_board_ui.gd`: pinned notes you click; "Take job" starts **Lucky Spoon** / **Lore-Off** / **Chug Rematch**)
 + Grubnik (**Lucky Spoon** from the Goblin Patrol → Weighted d6) · Shaman's Tent (fortunes, **Lore-Off** → Deloye Lore
 Vol. 9) · Outhouse (each of the trio goes in once) · **Haggle's Stall** (shop, `ShopUI`: beer, Chipotle Bowl, Pot Lid
@@ -267,7 +267,7 @@ in a building they wait by its door. Their replies and joke labels are # DRAFT.
 Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
 - **Village extras:** the Goblin Pit (fight arena), personal quests (Lykor's hair contest, Xylo's lore class for
   goblin kids, Skorn's job interviews).
-- **Character art from Ebain (Gemini):** new named goblins (bartender, comedian, bouncer, shaman, smith) — right now
+- **Character art from Ebain (Gemini):** new named goblins (bartender, bouncer, shaman, smith) — right now
   they're recolored goblin cutouts. Cut new art with `tools/key_chars.py` into `godot/assets/characters/`.
   Wishlist: `godot/ASSETS_NEEDED.md`. Top of the list: a **sleeping giant** (lying down) for the Pass. Right now
   it's his standing art turned on its side.

@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Goblin voice lines (Asar's recordings) + remove Gorbo completely — files: godot/assets/voices/goblins_asar/ (new), voice_lines.gd, village_buildings.gd, village_rooms_script.gd, village_script.gd, mart_script.gd, combat/combat_data.gd, VOICE_LINES.md — branch: asar/goblin-voices — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Goblins voiced by Asar's 86 recordings; Gorbo (open mic) removed completely
 - 2026-11-22 [asar] Summit hymn (Mattias waits for it: "Peep the song first folk"); camp: sleep in the tents → the next morning
 - 2026-11-22 [asar] Dulbers Frint voiced by Asar's 18 recordings; Asar's sound effects pack wired in (combat, coins, doors, chug, lava…)
 - 2026-11-22 [asar] Pass exit is a gorge behind the giant; new Scene 5: Summit Path → Wizard's Lair (Mattias), the end of Chapter 1
@@ -50,11 +50,16 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/assets/voices/goblins_asar/ (new), voice_lines.gd, village_buildings.gd, village_rooms_script.gd, village_script.gd, mart_script.gd, combat/combat_data.gd, VOICE_LINES.md
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Goblin voices + Gorbo gone.** 86 takes (`assets/voices/goblins_asar/`, `voice_lines.gd`) for the village goblins,
+  Chief, Big Thumbs, Wuzzle, Gulpo, Grubnik, Sludge, Haggle, the clerk and goblin combat taunts. They override Ebain's studio
+  goblin files where both exist. 6 lines reworded to match (VOICE_LINES.md). **Gorbo removed** (Asar's call): his NPC, open-mic
+  set, stage, sign, spotlight, actions, flags (`gorboSeen`/`gorboRoasted`) and the tour step; a table sits in that corner now.
+  Goblin lines with no take yet (camp goblin, band, Gulpo "So YOU'RE the Mogging Elf", Sludge's tab follow-ups, etc.) are still
+  in; Asar is deciding whether they go.
 - 2026-11-22 [asar] **Hymn + bedtime.** `assets/music/the_hymn_of_metocin_mattias.ogg` (Asar's track) plays once from arriving on
   the Summit Path; walking up to Mattias before it ends plays `summit_script PEEP_THE_SONG` ("Peep the song first folk, shit is
   gas", Asar) and steps you back. **Camp:** the tents are "Sleep in" after the fire (`camp_script SLEEP`, existing lines), Skorn

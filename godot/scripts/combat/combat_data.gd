@@ -243,7 +243,7 @@ const BANTER := {
 		"hurt": ["Rude.", "That was un-lore-like."],
 	},
 	"chief": {
-		"perfect": ["ROYAL BONK!", "That's the union way!"],
+		"perfect": ["ROYAL BONK!", "On some smelly shiiii!"],
 		"ult": ["UNEMPLOYED, UNITE!"],
 		"lowhp": ["Somebody pour me one…"],
 		"ko": ["Tell the village… open bar…"],

@@ -10,7 +10,6 @@ extends RefCounted
 
 # ---------------------------------------------------------------- names (speaker box / joke label over their heads)
 const SLUDGE := "Sludge (Bartender)"
-const GORBO := "Gorbo (Open Mic)"
 const THUMBS := "Big Thumbs (Bouncer)"
 const GULPO := "Gulpo (Bar Champion)"
 const GRUBNIK := "Grubnik"
@@ -77,47 +76,12 @@ const THUMBS_TALK := [
 	{ "who": "goblin", "name": THUMBS, "line": "No trouble in here. I do NOT get paid enough for trouble. I get paid zero." }, # DRAFT
 ]
 const THUMBS_BEATEN := [
-	{ "who": "goblin", "name": THUMBS, "line": "I'm cancelling my gym membership. It didn't work." }, # DRAFT
+	{ "who": "goblin", "name": THUMBS, "line": "I'm cancelling my gym membership. Shi did not work." }, # DRAFT
 ]
 const CLERK_TALK := [
 	{ "who": "goblin", "name": CLERK, "line": "Take a number." }, # DRAFT
 ]
 
-# Gorbo's open mic: laugh or heckle after each joke. Heckle him 2+ times and he quits comedy (for a minute).
-const GORBO_SET := [
-	{ "who": "goblin", "name": GORBO, "line": "Is this thing on? Hello, hello! Y'all ever notice goblins never get jobs?" }, # DRAFT
-	{ "who": "goblin", "name": GORBO, "line": "Cause we don't APPLY! *ba dum tss* …That's not a joke. That's my life." }, # DRAFT
-	{ "choice": [
-		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }] }, # DRAFT
-		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" },
-			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. GET A JOB." }] }, # DRAFT
-			{ "who": "goblin", "name": GORBO, "line": "…that's the joke, man." }] }, # DRAFT
-	] },
-	{ "who": "goblin", "name": GORBO, "line": "My wife told me to stop stealing spoons. I said \"fork that.\"" }, # DRAFT
-	{ "who": "goblin", "name": GORBO, "line": "…I'm also not married. I just wanted to say fork." }, # DRAFT
-	{ "choice": [
-		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }] }, # DRAFT
-		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" }] }, # DRAFT
-	] },
-	{ "who": "goblin", "name": GORBO, "line": "Last one. I went to the Metocy Mart. Dulbers charged me twenty spoons for a receipt." }, # DRAFT
-	{ "who": "goblin", "name": GORBO, "line": "The receipt said NO REFUNDS. I didn't even buy anything!" }, # DRAFT
-	{ "choice": [
-		{ "text": "Laugh", "steps": [{ "do": "gorbo_laugh" }] },
-		{ "text": "Heckle", "steps": [{ "do": "gorbo_heckle" },
-			{ "if_not": "skornAway", "steps": [{ "who": "skorn", "mood": "smug", "line": "BOOOO. Ain't nobody dumb enough to pay twenty spoons for a receipt." }] }, # DRAFT (they haven't been to the Mart yet)
-		] },
-	] },
-	{ "do": "gorbo_end" },
-	{ "if": "gorboRoasted", "steps": [
-		{ "who": "goblin", "name": GORBO, "line": "That's it. I'm done. I'm quitting comedy. I'm going back to being unemployed the normal way." }, # DRAFT
-	] },
-	{ "if_not": "gorboRoasted", "steps": [
-		{ "who": "goblin", "name": GORBO, "line": "Y'all are the best crowd I ever had. Y'all are the ONLY crowd I ever had. Here — take my tip jar beezy." }, # DRAFT
-	] },
-]
-const GORBO_AGAIN := [
-	{ "who": "goblin", "name": GORBO, "line": "I'm working on new material. It's about you guys. It's mostly about the hair." }, # DRAFT
-]
 
 const GULPO_CHALLENGE := [
 	{ "if": "chugWon", "steps": [
@@ -135,12 +99,12 @@ const GULPO_CHALLENGE := [
 			{ "do": "gulpo_chug" },
 		] },
 		{ "text": "\"Not right now.\"", "steps": [
-			{ "who": "goblin", "name": GULPO, "line": "Scared. I get it. My liver scares me too." }, # DRAFT
+			{ "who": "goblin", "name": GULPO, "line": "Scared. I get it. Me liver scares me too." }, # DRAFT
 		] },
 	] },
 ]
 const GULPO_WON := [
-	{ "who": "goblin", "name": GULPO, "line": "My liver… it betrayed me… after all we've been through…" }, # DRAFT
+	{ "who": "goblin", "name": GULPO, "line": "Me liver… it betrayed me… after all we've been through…" }, # DRAFT
 ]
 
 # ================================================================ 3. JOB BOARD (outside)
