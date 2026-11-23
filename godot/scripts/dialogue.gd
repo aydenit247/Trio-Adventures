@@ -19,6 +19,9 @@ const CHARS := {
 }
 const GOLD := Color("#e8b923")
 
+# Per-speaker boost for recordings that came out quieter than the rest (Asar 11/22: Mattias was ~10 dB under Skorn).
+const VOICE_GAIN_DB := { "mattias": 9.0 }
+
 signal _next
 signal _picked(i: int)
 
@@ -297,7 +300,7 @@ func _speak(who: String, line: String, thought: bool) -> void:
 		return
 	var rec := VoiceLines.stream_for(line)   # thoughts too: the studio bakes their echo in
 	if rec:
-		_vo.volume_db = linear_to_db(Game.voice_vol)
+		_vo.volume_db = linear_to_db(Game.voice_vol) + VOICE_GAIN_DB.get(who, 0.0)
 		_pending_rec = rec
 		_pump()
 		return

@@ -200,6 +200,7 @@ func _canyon() -> void:
 	snore_stream.loop = true
 	snore.stream = snore_stream
 	snore.volume_db = -60.0
+	snore.bus = _snore_bus()   # own bus with a low-pass filter: muffled as he sinks deeper (Lore Session)
 	add_child(snore)
 	snore.play()
 	giant_lying = Sprite3D.new()
@@ -295,7 +296,21 @@ func _walls() -> void:
 # Snore volume: quiet down the path, loud right next to his head (based on the character you control)
 const SNORE_NEAR := 3.0    # m from his head: loudest
 const SNORE_FAR := 20.0    # m: silent (Asar: quiet from far away, only loud up close)
-const SNORE_MAX_DB := -9.0 # loudest it gets (Asar: generally quieter)
+const SNORE_MAX_DB := -16.0 # loudest it gets (Asar 11/22: still too loud up close, was -9)
+var snore_deep := 0          # Lore Session pages he's slept deeper through: each one quieter and more muffled (Asar)
+
+# A "GiantSnore" audio bus with a low-pass filter (made once, reused on every visit).
+func _snore_bus() -> String:
+	var i := AudioServer.get_bus_index("GiantSnore")
+	if i < 0:
+		AudioServer.add_bus()
+		i = AudioServer.bus_count - 1
+		AudioServer.set_bus_name(i, "GiantSnore")
+		AudioServer.set_bus_send(i, "Master")
+		AudioServer.add_bus_effect(i, AudioEffectLowPassFilter.new())
+	(AudioServer.get_bus_effect(i, 0) as AudioEffectLowPassFilter).cutoff_hz = 20000.0
+	return "GiantSnore"
+
 func _update_snore(delta: float) -> void:
 	if snore == null:
 		return
@@ -307,7 +322,13 @@ func _update_snore(delta: float) -> void:
 		var d := Vector2(leader.global_position.x - GIANT_HEAD.x, leader.global_position.z - GIANT_HEAD.z).length()
 		var near := clampf(1.0 - (d - SNORE_NEAR) / (SNORE_FAR - SNORE_NEAR), 0.0, 1.0)
 		target = linear_to_db(maxf(near * near * near, 0.001)) + SNORE_MAX_DB   # cubed: faint until you're close, then it ramps up
+	if asleep and snore_deep > 0:   # deeper sleep: quieter (-3 dB a page) and muffled
+		target -= 3.0 * snore_deep
 	snore.volume_db = move_toward(snore.volume_db, target, delta * 40.0)
+	var lp := AudioServer.get_bus_effect(AudioServer.get_bus_index("GiantSnore"), 0) as AudioEffectLowPassFilter
+	if lp:
+		var want := 20000.0 if snore_deep == 0 else lerpf(1400.0, 500.0, clampf((snore_deep - 1) / 4.0, 0.0, 1.0))
+		lp.cutoff_hz = move_toward(lp.cutoff_hz, want, delta * 20000.0)
 	if not asleep and snore.volume_db <= -59.0 and snore.playing:
 		snore.stop()
 
@@ -763,6 +784,7 @@ func _sneak_game() -> bool:
 # ---- C: Lore Session — pick how each page truly continues. One wrong answer and he knows.
 func _lore_game() -> bool:
 	dialogue.hide_box()
+	snore_deep = 0
 	var won := true
 	for k in PS.LORE.size():
 		var L: Dictionary = PS.LORE[k]
@@ -810,6 +832,7 @@ func _lore_game() -> bool:
 			won = false
 			break
 		_zzz()
+		snore_deep = k + 1   # quieter + muffled with every page
 		show_toast("He sinks deeper into sleep… (%d / %d)" % [k + 1, PS.LORE.size()], 1.0)
 		await wait(0.6)
 	dialogue.show_box()

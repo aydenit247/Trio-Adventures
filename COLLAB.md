@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Louder Mattias, quieter snoring (muffled during the Lore Session) — files: godot/scripts/pass.gd, godot/scripts/dialogue.gd — branch: asar/snore-mattias — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -46,10 +45,12 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/pass.gd, godot/scripts/dialogue.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] Hot spot **dialogue.gd**: `VOICE_GAIN_DB` per-speaker boost for recordings, Mattias +9 dB (his files are ~10 dB
+  under Skorn's). **pass.gd**: snoring quieter overall (max -16 dB, was -9); it plays on a "GiantSnore" bus with a low-pass filter,
+  and each Lore Session page he sleeps through makes it 3 dB quieter and more muffled.
 - 2026-11-22 [asar] Job board: the 2 spoon-picture notes are gone, 6 notes in a 3×2 grid with gaps, "CHALLENGERS WANTED" is now
   "LORE OFF / Pull up if you on some lore shi." (Asar's wording). Reading a note hides the board (it used to cover the title), and
   the HUD is hidden while the board is open. Hot spot **level.gd** `run_nested()`: if no dialogue is running it starts one. Taking
