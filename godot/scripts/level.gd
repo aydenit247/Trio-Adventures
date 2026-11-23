@@ -981,6 +981,8 @@ func run_dialogue(steps: Array) -> void:
 func run_nested(steps: Array) -> void:
 	if DevMode.active():
 		await DevMode.walk(self, steps)
+	elif not dialogue.active:   # called from a do-only interactable (job board, shop…): no dialogue is running, so start
+		await run_dialogue(steps)   # a real one, or E/Space/Esc are ignored and it gets stuck (Asar 11/22)
 	else:
 		await dialogue._run_steps(steps, self)
 

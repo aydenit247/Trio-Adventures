@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Job board fixes (layout, no spoon notes, Lore off note, Grubnik talk stuck) — files: godot/scripts/job_board_ui.gd, godot/scripts/level.gd — branch: asar/job-board-fix — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Job board: 3×2 layout, no spoon notes, "LORE OFF" note, close-up hides the board, HUD hidden behind it; Grubnik talk no longer stuck
 - 2026-11-22 [asar] Camp crickets quieter; Lykor's "on some type shi" battle move uses his new take
 - 2026-11-22 [asar] Lykor + Xylo voiced by Asar's 111 recordings; their lines without one removed
 - 2026-11-22 [asar] Narrator voiced by Asar's 26 recordings; narrator lines without a recording removed
@@ -45,10 +45,13 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/job_board_ui.gd, godot/scripts/level.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] Job board: the 2 spoon-picture notes are gone, 6 notes in a 3×2 grid with gaps, "CHALLENGERS WANTED" is now
+  "LORE OFF / Pull up if you on some lore shi." (Asar's wording). Reading a note hides the board (it used to cover the title), and
+  the HUD is hidden while the board is open. Hot spot **level.gd** `run_nested()`: if no dialogue is running it starts one. Taking
+  Grubnik's job used to get stuck (E/Space/Esc ignored) since my do-only change earlier today.
 - 2026-11-22 [asar] Goblin band: "Dat bih fire mud" / "Y'all could get lost?" aren't recorded for Lykor/Xylo, so with them
   leading the spoken line is skipped (the choice text says it) and the band answers. Skorn still says them. (`goblin_band.gd`)
 - 2026-11-22 [asar] Crickets at the campfire turned down (`ambience.gd`, -9 → -17 dB). Hot spot **combat/battle_view.gd**: Lykor's

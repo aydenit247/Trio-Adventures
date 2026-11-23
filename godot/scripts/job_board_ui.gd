@@ -13,15 +13,13 @@ const H := 600.0
 const INK := Color("#2b1d10")
 const GOLD := Color("#e8b923")
 
-# The postings. text = what's written on it. job = quest id it starts (real jobs only). spoon = just a drawing of a spoon.
+# The postings. text = what's written on it. job = quest id it starts (real jobs only). (Spoon-picture notes removed, Asar 11/22.)
 const NOTES := [
 	{ "head": "WANTED", "text": "Goblin. Must be a goblin.\nPay: no." }, # DRAFT (from the old board lines)
-	{ "spoon": true },
 	{ "head": "HELP WANTED", "text": "at the Metocy Mart.\nMust not ask questions. Must not ask about the questions.\n— D.F." }, # DRAFT
 	{ "head": "LOST: LUCKY SPOON", "text": "VERY LUCKY. REWARD.\nSEE GRUBNIK\n(I'm right here.)", "job": "lucky_spoon" }, # DRAFT
 	{ "head": "BODYGUARD NEEDED", "text": "for the Diddy Chud Giant's nap.\nPay: you get to live." }, # DRAFT
-	{ "head": "CHALLENGERS WANTED", "text": "Think your little lore book beats my prophecies?\nShaman's Tent.\n— Wuzzle", "job": "lore_off" }, # DRAFT
-	{ "spoon": true },
+	{ "head": "LORE OFF", "text": "Pull up if you on some lore shi.", "job": "lore_off" }, # Asar
 	{ "head": "CAN YOU HOLD YOUR BEEZY?", "text": "Prove it. The bar.\n— Gulpo\n(undefeated)", "job": "chug_rematch" }, # DRAFT
 ]
 # Where each job sends you (shown after you take it)
@@ -43,6 +41,7 @@ var taken := ""             # quest id taken this visit (the caller follows up, 
 var _opened_at := 0
 var _font: Font
 var _hand: Font
+var _hidden_hud: Array = []
 
 static func show_board(level: Node, buildings: Node) -> void:
 	level.busy = true
@@ -56,7 +55,7 @@ static func show_board(level: Node, buildings: Node) -> void:
 	if level.shots_mode:   # automated tour: show it, read Grubnik's note, close
 		await level.wait(1.0)
 		await level.shot("b_01_board_ui")
-		ui._open(3)
+		ui._open(NOTES.map(func(n): return n.get("job", "")).find("lucky_spoon"))
 		await level.wait(0.6)
 		await level.shot("b_01b_board_note")
 		ui._close_note()
@@ -78,6 +77,10 @@ static func show_board(level: Node, buildings: Node) -> void:
 func _build() -> void:
 	_opened_at = Engine.get_process_frames()
 	MenuUI.stack.append(self)
+	for ch in get_parent().get_children():   # the HUD (map, title, portraits, tracker) peeked out around the board
+		if ch != self and ch is CanvasItem and ch.visible:
+			ch.visible = false
+			_hidden_hud.append(ch)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var cz := FontVariation.new()
@@ -117,16 +120,16 @@ func _build() -> void:
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1122
-	var cols := 4
+	var cols := 3
 	for i in NOTES.size():
 		var n: Dictionary = NOTES[i]
 		var c := Panel.new()
-		var sz := Vector2(rng.randf_range(184, 198), rng.randf_range(214, 228))
+		var sz := Vector2(rng.randf_range(236, 250), rng.randf_range(196, 206))
 		c.size = sz
 		c.pivot_offset = sz * 0.5
-		var cell := Vector2(80 + (i % cols) * 214, 78 + int(i / cols) * 248)
-		c.position = cell + Vector2(rng.randf_range(-10, 10), rng.randf_range(-6, 12))
-		c.rotation = rng.randf_range(-0.08, 0.08)
+		var cell := Vector2(84 + (i % cols) * 290, 82 + int(i / cols) * 236)   # 3 columns × 2 rows, gaps between notes
+		c.position = cell + Vector2(rng.randf_range(-6, 6), rng.randf_range(-4, 6))
+		c.rotation = rng.randf_range(-0.05, 0.05)
 		c.mouse_filter = Control.MOUSE_FILTER_STOP
 		c.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		c.add_theme_stylebox_override("panel", _paper(Color("#e9dcb8") * rng.randf_range(0.9, 1.0)))
@@ -139,17 +142,8 @@ func _build() -> void:
 	_refresh()
 
 func _fill_note(c: Control, n: Dictionary, big: bool) -> void:
-	var pad := 14.0 if not big else 30.0
-	if n.get("spoon", false):   # "Most of the postings are just pictures of spoons."
-		var t := TextureRect.new()
-		t.texture = load("res://assets/items/spoon.png")
-		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		t.position = Vector2(pad, pad + 6); t.size = c.size - Vector2(pad * 2, pad * 2 + 6)
-		t.modulate = Color(0.45, 0.35, 0.25, 0.85)
-		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		c.add_child(t)
-	else:   # heading + body stacked, wrapped to the paper's width
+	var pad := 16.0 if not big else 30.0
+	if true:   # heading + body stacked, wrapped to the paper's width
 		var box := VBoxContainer.new()
 		box.position = Vector2(pad, pad + 6)
 		box.custom_minimum_size = Vector2(c.size.x - pad * 2, 0)
@@ -157,12 +151,12 @@ func _fill_note(c: Control, n: Dictionary, big: bool) -> void:
 		box.add_theme_constant_override("separation", 8 if not big else 18)
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		c.add_child(box)
-		var hd := _lbl(n["head"], 16 if not big else 30, INK, _font, 0)
+		var hd := _lbl(n["head"], 18 if not big else 30, INK, _font, 0)
 		hd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hd.custom_minimum_size = Vector2(c.size.x - pad * 2, 0)
 		hd.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		box.add_child(hd)
-		var body := _lbl(n["text"], 13 if not big else 24, INK.lightened(0.15), _hand, 0)
+		var body := _lbl(n["text"], 15 if not big else 24, INK.lightened(0.15), _hand, 0)
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.custom_minimum_size = Vector2(c.size.x - pad * 2, 0)
 		body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -198,6 +192,7 @@ func _open(i: int) -> void:
 	reading = i
 	sel = i
 	lv.ui_sfx.play()
+	root.visible = false   # just the note on its own: nothing behind it to overlap (Asar: it covered the title)
 	close_up = Control.new()
 	close_up.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	close_up.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -209,8 +204,8 @@ func _open(i: int) -> void:
 	add_child(close_up)
 	var n: Dictionary = NOTES[i]
 	var p := Panel.new()
-	p.size = Vector2(440, 440)
-	p.position = get_viewport_rect().size * 0.5 - p.size * 0.5 - Vector2(0, 30)
+	p.size = Vector2(460, 400)
+	p.position = get_viewport_rect().size * 0.5 - p.size * 0.5 - Vector2(0, 36)
 	p.pivot_offset = p.size * 0.5
 	p.rotation = cards[i].rotation * 0.5
 	p.add_theme_stylebox_override("panel", _paper(Color("#efe3c2")))
@@ -239,6 +234,7 @@ func _close_note() -> void:
 		close_up.queue_free()
 		close_up = null
 	reading = -1
+	root.visible = true
 	_refresh()
 
 func _take(job: String) -> void:
@@ -290,6 +286,10 @@ func close() -> void:
 
 func _exit_tree() -> void:
 	MenuUI.stack.erase(self)
+	for ch in _hidden_hud:
+		if is_instance_valid(ch):
+			ch.visible = true
+	_hidden_hud.clear()
 
 # ---- drawing + helpers
 func _draw_board() -> void:

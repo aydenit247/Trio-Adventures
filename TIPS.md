@@ -167,3 +167,5 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   add or reword those lines without asking him for a recording. Put new info in a Skorn line or a toast instead.
 - [asar] An interactable whose steps are only `{ "do": … }` (or empty, like the rest spots) runs without opening the
   dialogue box (`Level.start`).
+- [asar] `run_nested()` from a do-only interactable (job board, shop) used to leave the dialogue stuck: nothing was
+  running, so E/Space/Esc were ignored. It now starts a real dialogue when none is active.
