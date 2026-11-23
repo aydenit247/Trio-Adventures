@@ -55,6 +55,12 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Goblin takes still to record (Asar + Ebain, planned for 11/23). Keep all of these lines, don't remove them:**
+  camp goblin visitor ("Ayo. Y'all got a light?", "Ayo. Y'all hiring?", "I can hold a spoon.", "Damn. Aight. My village is up
+  north…"), goblin band (3 lines), Gulpo "So YOU'RE the Mogging Elf…", Sludge's tab replies (5), village goblin "We go where the
+  Mogging Elf goes." and "Y'all hiring?", Mart "Ooooh. A STORE.", Bridge Troll (2). **Exception:** "Yay.. you are allowed to mog
+  that hard, right? Cool dude, that's fucking fair." stays on its current voice on purpose (they love it): never map a new take
+  to it.
 - 2026-11-22 [asar] **Outcomes + completion %.** New `progress_data.gd` (17 story outcomes + 4 side quests + Chapter 1 + 6 trail loot
   spots = 100 points), saved in `user://progress.cfg` across playthroughs. Hot spots: **game.gd** `unlock()` / `outcomes_found()` /
   `completion_pct()` (set_flag and finish_quest unlock too), **dialogue.gd** a choice option with `"outcome"` unlocks it when
