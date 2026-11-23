@@ -444,7 +444,7 @@ func enter(id: String) -> void:
 	await lv.fade_out(0.4)
 	room = id
 	var o := origin(id)
-	lv.place_party(o + Vector3(0, 0, FRONT_Z - 1.2), Vector3(0, 0, -1))
+	_place_party(o + Vector3(0, 0, FRONT_Z - 1.2), Vector3(0, 0, -1))
 	for u in lv.npcs:   # goblins following you come in too (the band waits outside the door)
 		if u.has_meta("follow") and u.get_meta("follow") and not u.has_meta("band"):
 			u.global_position = o + Vector3(randf_range(-2, 2), 0, FRONT_Z - 2.0)
@@ -469,7 +469,7 @@ func leave() -> void:
 	var d: Dictionary = BUILDINGS[room]
 	var out: Vector3 = (d["door"] - d["pos"]).normalized()
 	out.y = 0.0
-	lv.place_party(d["door"] + out * 1.2, out)
+	_place_party(d["door"] + out * 1.2, out)
 	for u in lv.npcs:
 		if u.has_meta("follow") and u.get_meta("follow") and not u.has_meta("band"):
 			u.global_position = d["door"] + out * 2.5
@@ -566,7 +566,41 @@ func _skorn_here() -> bool:
 	return false
 
 # ================================================================ per frame
+# Puts whoever you're controlling at `p` and the other two a step further along `ahead` (into the room / away from the
+# hut). lv.place_party() puts them BEHIND the leader, which here is inside the doorway's wall: switching to one of
+# them left you stuck behind an invisible wall, and walking on dropped you off the room's floor. Keeps the leader.
+func _place_party(p: Vector3, ahead: Vector3) -> void:
+	var side := ahead.cross(Vector3.UP).normalized()
+	var k := 0
+	for u in lv.party:
+		u.velocity = Vector3.ZERO
+		if u == lv.leader:
+			u.global_position = p
+		else:
+			u.global_position = p + ahead * 1.3 + side * (0.9 if k == 0 else -0.9)
+			k += 1
+	lv.set_leader(lv.leader)
+	lv.cam_target = p
+
+# Safety net: nobody in a room can end up outside its walls or below its floor (would fall forever).
+func _keep_in_room() -> void:
+	var o := origin(room)
+	var hx := ROOM_W / 2.0 - 0.6
+	for u in lv.party + lv.npcs:
+		if not is_instance_valid(u) or not u.visible:
+			continue
+		if not lv.party.has(u) and not (u.has_meta("follow") and u.get_meta("follow")):
+			continue   # room NPCs (barkeep etc.) stay where they were put
+		var l: Vector3 = u.global_position - o
+		if absf(l.x) > 30.0:   # not in this room at all (the band waiting outside, village goblins)
+			continue
+		if absf(l.x) > hx or l.z > FRONT_Z - 0.6 or l.z < BACK_Z + 0.6 or l.y < -0.3:
+			u.global_position = o + Vector3(clampf(l.x, -hx, hx), 0.0, clampf(l.z, BACK_Z + 0.6, FRONT_Z - 0.6))
+			u.velocity = Vector3.ZERO
+
 func process(_delta: float) -> void:
+	if room != "":
+		_keep_in_room()
 	if conditioner_node and conditioner_node.visible and Game.flag("conditionerFound"):
 		conditioner_node.visible = false
 
