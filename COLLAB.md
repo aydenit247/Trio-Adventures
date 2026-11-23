@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Lykor + Xylo voice lines (Asar's recordings) + remove their lines without one — files: godot/assets/voices/lykor/, godot/assets/voices/xylo/ (new), voice_lines.gd, camp_script.gd, village_script.gd, village_rooms_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, trail.gd, pass.gd, village.gd, combat/combat_data.gd, VOICE_LINES.md — branch: asar/lykor-xylo-voices — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -42,6 +43,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/assets/voices/lykor/, godot/assets/voices/xylo/ (new), voice_lines.gd, camp_script.gd, village_script.gd, village_rooms_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, trail.gd, pass.gd, village.gd, combat/combat_data.gd, VOICE_LINES.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
