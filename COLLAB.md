@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Goblin voice lines (Asar's recordings) + remove Gorbo completely — files: godot/assets/voices/goblins_asar/ (new), voice_lines.gd, village_buildings.gd, village_rooms_script.gd, village_script.gd, mart_script.gd, combat/combat_data.gd, VOICE_LINES.md — branch: asar/goblin-voices — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -49,6 +50,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/assets/voices/goblins_asar/ (new), voice_lines.gd, village_buildings.gd, village_rooms_script.gd, village_script.gd, mart_script.gd, combat/combat_data.gd, VOICE_LINES.md
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
