@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Outcomes x/17 + completion % on the title screen (saved across games) — files: godot/scripts/game.gd, dialogue.gd, title.gd, progress_data.gd (new), village_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, summit.gd — branch: asar/outcomes — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -50,6 +51,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/game.gd, dialogue.gd, title.gd, progress_data.gd (new), village_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, summit.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
