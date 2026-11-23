@@ -755,6 +755,7 @@ func _finale() -> void:
 	stage = "end"
 	var lines := ["END OF CHAPTER 1", "", "Trio Adventures — by Ebain", ""]
 	lines += story_so_far()
+	lines += ["", "Outcomes found: %d / %d  ·  %d%% complete" % [Game.outcomes_found(), Game.outcomes_total(), Game.completion_pct()]]
 	lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to return to the title screen"]
 	end_card(lines, "res://title.tscn")
 

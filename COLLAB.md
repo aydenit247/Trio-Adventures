@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Outcomes x/17 + completion % on the title screen (saved across games) — files: godot/scripts/game.gd, dialogue.gd, title.gd, progress_data.gd (new), village_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, summit.gd — branch: asar/outcomes — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Title screen shows Outcomes x/17 + completion % (saved across playthroughs)
 - 2026-11-22 [asar] Goblins voiced by Asar's 86 recordings; Gorbo (open mic) removed completely
 - 2026-11-22 [asar] Summit hymn (Mattias waits for it: "Peep the song first folk"); camp: sleep in the tents → the next morning
 - 2026-11-22 [asar] Dulbers Frint voiced by Asar's 18 recordings; Asar's sound effects pack wired in (combat, coins, doors, chug, lava…)
@@ -51,11 +51,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/game.gd, dialogue.gd, title.gd, progress_data.gd (new), village_script.gd, mart_script.gd, pass_script.gd, trail_script.gd, summit.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Outcomes + completion %.** New `progress_data.gd` (17 story outcomes + 4 side quests + Chapter 1 + 6 trail loot
+  spots = 100 points), saved in `user://progress.cfg` across playthroughs. Hot spots: **game.gd** `unlock()` / `outcomes_found()` /
+  `completion_pct()` (set_flag and finish_quest unlock too), **dialogue.gd** a choice option with `"outcome"` unlocks it when
+  picked. The 17 story choices in village/mart/pass/trail scripts got `"outcome"` tags. Shown on the title screen (bottom left)
+  and the End of Chapter 1 card.
 - 2026-11-22 [asar] **Goblin voices + Gorbo gone.** 86 takes (`assets/voices/goblins_asar/`, `voice_lines.gd`) for the village goblins,
   Chief, Big Thumbs, Wuzzle, Gulpo, Grubnik, Sludge, Haggle, the clerk and goblin combat taunts. They override Ebain's studio
   goblin files where both exist. 6 lines reworded to match (VOICE_LINES.md). **Gorbo removed** (Asar's call): his NPC, open-mic

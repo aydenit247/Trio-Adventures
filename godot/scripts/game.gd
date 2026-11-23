@@ -43,6 +43,8 @@ func flag(name: String) -> bool:
 
 func set_flag(name: String, value = true) -> void:
 	flags[name] = value
+	if value and PD.FLAGS.has(name):
+		unlock(PD.FLAGS[name])
 
 func reset() -> void:
 	flags = {}
@@ -303,6 +305,7 @@ func finish_quest(id: String) -> void:
 	if quests.has(id):
 		if quests[id]["state"] != "done":
 			quest_finished.emit(id)
+			unlock("quest_" + id)
 		quests[id]["state"] = "done"
 
 func quest_state(id: String) -> String:
@@ -381,6 +384,42 @@ func _ensure_loading_ui() -> void:
 	_load_tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_load_bg.add_child(_load_tip)
 
+# ================================================================ progress across all playthroughs (Asar 11/22)
+# "Outcomes x/17 · N% complete" on the title screen. What counts: progress_data.gd. Never reset by New Game.
+const PD = preload("res://scripts/progress_data.gd")
+const PROGRESS_PATH := "user://progress.cfg"
+var progress := {}   # item id -> true
+
+func load_progress() -> void:
+	var cf := ConfigFile.new()
+	if cf.load(PROGRESS_PATH) == OK and cf.has_section("found"):
+		for k in cf.get_section_keys("found"):
+			progress[k] = true
+
+func unlock(id: String) -> void:
+	if title_mode or progress.has(id):
+		return
+	progress[id] = true
+	var cf := ConfigFile.new()
+	for k in progress:
+		cf.set_value("found", k, true)
+	cf.save(PROGRESS_PATH)
+
+func outcomes_total() -> int:
+	return PD.ITEMS.filter(func(it): return it[3]).size()
+
+func outcomes_found() -> int:
+	return PD.ITEMS.filter(func(it): return it[3] and progress.has(it[0])).size()
+
+func completion_pct() -> int:
+	var got := 0
+	var total := 0
+	for it in PD.ITEMS:
+		total += it[2]
+		if progress.has(it[0]):
+			got += it[2]
+	return int(round(100.0 * got / maxf(total, 1)))
+
 # ================================================================ settings (saved to user://settings.cfg)
 const SETTINGS_PATH := "user://settings.cfg"
 const QUALITY := ["Low", "Medium", "High"]
@@ -398,6 +437,7 @@ var cam_speed := 1.0              # camera turn speed multiplier (0.4 .. 2.0)
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(load("res://scripts/crash_reporter.gd").new())   # crash/freeze reports (see crash_reporter.gd)
+	load_progress()
 	load_settings()
 	apply_settings()
 

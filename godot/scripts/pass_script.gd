@@ -39,7 +39,7 @@ const GIANT := [
 	{ "who": "narrator", "line": "How do you get past Diddy Chud Giant?" },
 	{ "choice": [
 		# A — throw the midtocy (only if Skorn has some)
-		{ "text": "Skorn throws the midtocy", "if": "hasMidtocy", "steps": [
+		{ "text": "Skorn throws the midtocy", "outcome": "pass_midtocy", "if": "hasMidtocy", "steps": [
 			{ "who": "skorn", "mood": "smug", "line": "Watch this. Wake up call, big dawg." },
 			{ "do": "throw_midtocy" },
 			{ "do": "giant_wakes" },
@@ -51,7 +51,7 @@ const GIANT := [
 			{ "do": "fight_giant" },
 		] + AFTER_FIGHT + ENDING },
 		# B — sneak across him (Snore Sneak minigame)
-		{ "text": "Sneak across him", "steps": [
+		{ "text": "Sneak across him", "outcome": "pass_sneak", "steps": [
 			{ "who": "lykor", "line": "We just gotta tiptoe across. Quiet as hell." },
 			{ "who": "skorn", "mood": "angry", "line": "I'm a 7'2 Chad Orc (with a cosign from Clavicular) in metal armor, bro." }, # Ebain
 			{ "who": "xylo", "line": "Ay you good bruh, he snoring loud as hell." },
@@ -72,7 +72,7 @@ const GIANT := [
 			] + AFTER_FIGHT + ENDING },
 		] },
 		# C — Xylo reads Deloye Lore (Lore Session minigame)
-		{ "text": "Xylo reads him Deloye Lore", "steps": [
+		{ "text": "Xylo reads him Deloye Lore", "outcome": "pass_lore", "steps": [
 			{ "who": "xylo", "mood": "vision", "line": "Stand back! He requires… lore." },
 			{ "who": "lykor", "mood": "unimpressed", "line": "Bro, not everything is solved by Deloye Lore." }, # Ebain
 			{ "who": "xylo", "mood": "smug", "line": "Just watch, folk." }, # Ebain
@@ -92,7 +92,7 @@ const GIANT := [
 			] + AFTER_FIGHT + ENDING },
 		] },
 		# D — fight him
-		{ "text": "Fight him", "steps": [
+		{ "text": "Fight him", "outcome": "pass_fight", "steps": [
 			{ "who": "skorn", "mood": "angry", "line": "Aight, fuck allat. WAKE UP, CHUD!" }, # Ebain
 			{ "do": "skorn_slaps_giant" },
 			{ "who": "narrator", "line": "Skorn Diddy Slaps the giant across the face." },
@@ -102,7 +102,7 @@ const GIANT := [
 			{ "do": "fight_giant" },
 		] + AFTER_FIGHT + ENDING },
 		# E — secret: the goblins are still with you
-		{ "text": "Let Chief Bogdrinker handle it", "if": "goblinAllies", "steps": [
+		{ "text": "Let Chief Bogdrinker handle it", "outcome": "pass_bogdrinker", "if": "goblinAllies", "steps": [
 			{ "who": "chief", "line": "…Cousin Chud?" },
 			{ "do": "giant_wakes_calm" },
 			{ "who": "giant", "line": "…Cousin Bogdrinker?" },

@@ -145,6 +145,8 @@ func _run_steps(steps: Array, ctx: Node) -> void:
 			var i: int = await ask(opts)
 			if i < 0:
 				return
+			if opts[i].has("outcome"):   # counts toward "Outcomes x/17" on the title screen (progress_data.gd)
+				Game.unlock(opts[i]["outcome"])
 			await _run_steps(opts[i]["steps"], ctx)
 		elif s.has("if"):
 			if Game.flag(s["if"]):

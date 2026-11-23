@@ -58,7 +58,7 @@ const THRONE := [
 	{ "who": "narrator", "line": "How does Lykor get out of this?" },
 	{ "choice": [
 		# A — royal speech → directions + beezy for the road
-		{ "text": "Give a royal speech", "steps": [
+		{ "text": "Give a royal speech", "outcome": "village_speech", "steps": [
 			{ "who": "lykor", "mood": "smug", "line": "My chopped goblins. My loyal chopped goblins." }, # Ebain
 			{ "who": "lykor", "mood": "smug", "line": "Y'all need to quit being OD and let me dip on a mf, and that's on some type shi. I'll spin the block on y'all and bring u some metocy n shi, trust. Y'all type coo." }, # Ebain
 			{ "who": "chief", "line": "Bet dat." }, # Ebain
@@ -70,7 +70,7 @@ const THRONE := [
 			{ "who": "skorn", "mood": "angry", "line": "Why HE get the beezy?" },
 		] + GOODBYE },
 		# B — chugging contest (mash minigame)
-		{ "text": "Challenge the chief to a chugging contest", "steps": [
+		{ "text": "Challenge the chief to a chugging contest", "outcome": "village_chug", "steps": [
 			{ "who": "lykor", "mood": "smug", "line": "I bet your ass can't beat me in a beezy contest, doe." }, # Ebain
 			{ "who": "chief", "line": "*gasp* Nobody has out-drunk Bogdrinker in 400 years." },
 			{ "who": "skorn", "mood": "unimpressed", "line": "Bro literally chugs bogs and swamps. It's in his NAME, dumbass." }, # Ebain's idea
@@ -91,7 +91,7 @@ const THRONE := [
 			] },
 		] },
 		# C — offer Skorn as king → Skorn stays behind
-		{ "text": "Offer Skorn as the new king", "steps": [
+		{ "text": "Offer Skorn as the new king", "outcome": "village_skorn_king", "steps": [
 			{ "who": "lykor", "mood": "smug", "line": "Aight, real talk. Take HIM instead. He's purple. That's basically royal." },
 			{ "who": "skorn", "mood": "confused", "line": "Say what now?" },
 			{ "who": "chief", "line": "…A purple king…" },
@@ -105,7 +105,7 @@ const THRONE := [
 			{ "do": "leave" },
 		] },
 		# D — sneak out (you actually sneak) → the goblins tag along
-		{ "text": "Sneak out", "steps": [
+		{ "text": "Sneak out", "outcome": "village_sneak", "steps": [
 			{ "who": "lykor", "thought": true, "line": "Slow… quiet…" }, # Ebain
 			{ "do": "sneak" },
 			{ "who": "lykor", "mood": "shocked", "line": "What the fuck is y'all doing, folk?" }, # Ebain
@@ -118,7 +118,7 @@ const THRONE := [
 			{ "do": "leave" },
 		] },
 		# E — Skorn "negotiates" → fight → the goblins worship Skorn
-		{ "text": "Let Skorn \"negotiate\"", "steps": [
+		{ "text": "Let Skorn \"negotiate\"", "outcome": "village_negotiate", "steps": [
 			{ "who": "skorn", "mood": "smug", "line": "Step aside, pretty boy. Let a professional negotiate." },
 			{ "who": "lykor", "mood": "shocked", "line": "Skorn, do NOT—" },
 			{ "do": "skorn_slap" },

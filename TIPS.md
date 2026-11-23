@@ -187,3 +187,6 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] Camp day/night: `camp.gd _configure` sets `night = not campSlept`, so sleeping reloads the scene (Game.travel
   "morning") instead of relighting it live. The shots tour runs in two halves (night run → reload → morning run).
 - [asar] The summit hymn is an AreaMusic with a non-looping ogg; `summit.gd hymn_playing()` gates Mattias's finale.
+- [asar] **Outcomes / completion %** (title screen + end card): `progress_data.gd` lists what counts (17 story outcomes +
+  side quests + Chapter 1 + trail loot = 100 points). Saved in `user://progress.cfg`, never reset by New Game. New story
+  choice? Add `"outcome": "<id>"` to the choice option and an entry in `progress_data.gd` (rebalance the points to 100).

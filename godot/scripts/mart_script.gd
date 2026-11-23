@@ -71,7 +71,7 @@ const SHOP := [
 	{ "who": "lykor", "mood": "smug", "line": "On some type shit." }, # Ebain
 	{ "choice": [
 		# A — everyone takes it → the whole party trips → demon fight
-		{ "text": "Everyone takes it", "steps": [
+		{ "text": "Everyone takes it", "outcome": "mart_everyone", "steps": [
 			{ "who": "skorn", "mood": "smug", "line": "Free?? Say less." },
 			{ "do": "take_it" },
 			{ "who": "narrator", "line": "The trio takes the metocy." },
@@ -85,7 +85,7 @@ const SHOP := [
 			{ "who": "lykor", "mood": "angry", "line": "Dulbers. What did you give us?" },
 		] + REVEAL_AND_FIGHT },
 		# B — Skorn tries it first → only Skorn trips → demon fight
-		{ "text": "Let Skorn try it first", "steps": [
+		{ "text": "Let Skorn try it first", "outcome": "mart_skorn_first", "steps": [
 			{ "who": "lykor", "line": "Skorn. You first." },
 			{ "who": "skorn", "mood": "smug", "line": "Bet, let me peep ts." }, # Ebain
 			{ "do": "skorn_trip" },
@@ -94,7 +94,7 @@ const SHOP := [
 			{ "who": "lykor", "mood": "angry", "line": "Dulbers. What did you just give my guy?" },
 		] + REVEAL_AND_FIGHT },
 		# C — refuse → Dulbers goes demon, kicks you out, escapes (villain later). No midtocy.
-		{ "text": "Refuse it", "steps": [
+		{ "text": "Refuse it", "outcome": "mart_refuse", "steps": [
 			{ "who": "lykor", "line": "Nah, we good. Sum off about you, folk." },
 			{ "who": "dulbers", "line": "…Sum OFF? About ME? Your boy Dulbers?" },
 			{ "do": "transform" },   # he shows his demon form (Asar: refusing should still turn him)
@@ -109,7 +109,7 @@ const SHOP := [
 			{ "do": "leave" },
 		] },
 		# D — Xylo reads Deloye Lore about it → deal, midtocy, Dulbers escapes
-		{ "text": "Have Xylo inspect it", "steps": [
+		{ "text": "Have Xylo inspect it", "outcome": "mart_xylo", "steps": [
 			{ "do": "xylo_lore" },
 			{ "who": "xylo", "mood": "vision", "line": "It is written, in chapter 8,784, section B12, that true metocy glows from within — its shell dry as desert bone, smooth as a sage's forehead. True metocy is NEVER moist." }, # Ebain's idea
 			{ "who": "xylo", "mood": "unimpressed", "line": "But this one… is moist." },
@@ -128,7 +128,7 @@ const SHOP := [
 			{ "do": "leave" },
 		] },
 		# E — secret (goblins came along): goblins taste-test it, then take Dulbers out
-		{ "text": "Let the goblins taste-test it", "if": "goblinAllies", "steps": [
+		{ "text": "Let the goblins taste-test it", "outcome": "mart_goblins", "if": "goblinAllies", "steps": [
 			{ "who": "lykor", "line": "Bogdrinker. Y'all try it first." },
 			{ "who": "skorn", "mood": "smug", "line": "Hold up. I'm keeping one before y'all eat 'em all." },
 			{ "do": "skorn_pockets" },

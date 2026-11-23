@@ -85,6 +85,13 @@ func _logo() -> void:
 	foot.offset_top = -34; foot.offset_right = -24
 	foot.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	ui.add_child(foot)
+	# (Asar) how much of the game you've seen, across every playthrough (progress_data.gd)
+	var prog := _lbl("Outcomes  %d / %d      %d%% complete" % [Game.outcomes_found(), Game.outcomes_total(), Game.completion_pct()], 22, Color("#f3e3b0"), 6)
+	prog.anchor_left = 0.0; prog.anchor_top = 1.0; prog.anchor_bottom = 1.0
+	prog.offset_left = 34; prog.offset_top = -46
+	ui.add_child(prog)
+	prog.modulate.a = 0.0
+	create_tween().tween_property(prog, "modulate:a", 1.0, 0.8).set_delay(1.6)
 
 func _open_menu() -> void:
 	var latest := Game.latest_slot()

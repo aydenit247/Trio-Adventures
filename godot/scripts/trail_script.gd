@@ -11,11 +11,11 @@ const INTRO := [
 const TROLL_MEET := [
 	{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "Y'all had said i could get some bussy?" }, # Asar
 	{ "choice": [
-		{ "text": "It's good", "steps": [ # Asar
+		{ "text": "It's good", "outcome": "troll_good", "steps": [ # Asar
 			{ "do": "troll_good" },
 			{ "do": "xylo_back" },
 		] },
-		{ "text": "Bad.", "steps": [ # Asar
+		{ "text": "Bad.", "outcome": "troll_bad", "steps": [ # Asar
 			{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "BAD?!" }, # DRAFT
 			{ "do": "troll_fight" },
 		] },
