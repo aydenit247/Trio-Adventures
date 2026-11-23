@@ -25,6 +25,11 @@ the game**, so every narrator line now has his voice. Two lines were changed to 
 ("Folk, head into that village over there." and "And OD as a mufucka."). Adding or rewording a narrator line means it
 needs a new recording from Asar, or it plays on the robot voice.
 
+## Dulbers Frint (Asar's recordings, 2026-11-22)
+18 mp3s in `godot/assets/voices/dulbers/`, mapped in `voice_lines.gd` `LINES` (Mart dialogue + his 3 combat taunts). Four
+lines were changed to match the takes ("Store's open, folk!", "Similar vibes doe.", "Hand-made. On some type shit.",
+"For y'all ahh? First one's free."). Still robot: "…\"Loser\"? Says so right on your forehead, my boy." (no take yet).
+
 ## Lykor and Xylo (Asar's own recordings, 2026-11-22)
 Same deal as the narrator: 71 Lykor + 40 Xylo mp3s in `godot/assets/voices/lykor/` and `xylo/`, mapped in
 `voice_lines.gd` `LINES` (dialogue and their combat barks). **Their lines without a recording were removed.** Lines Asar

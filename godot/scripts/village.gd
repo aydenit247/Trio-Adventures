@@ -370,6 +370,7 @@ func _member(id: String) -> Unit:
 	return null
 
 func _poof(p: Vector3) -> void:
+	play_sound("sfx_pop", -5.0, randf_range(0.9, 1.1))
 	var f := Fx.poof(Color(0.55, 0.65, 0.35))
 	f.position = p + Vector3(0, 0.5, 0)
 	add_child(f)
@@ -493,6 +494,7 @@ func _chug_game(rival := "Chief Bogdrinker (400-year champ)", rival_speed := 1.0
 	chug_you = 0.0
 	chug_rival = 0.0
 	chug_running = true
+	var chug_snd := play_sound("sfx_chug_loop", -2.0, 1.0, true)   # Asar's chugging, looped while you chug
 	var time_left := 8.0
 	while chug_running:
 		await get_tree().process_frame
@@ -506,6 +508,8 @@ func _chug_game(rival := "Chief Bogdrinker (400-year champ)", rival_speed := 1.0
 		timer_lbl.text = "%.1f" % max(time_left, 0.0)
 		if chug_you >= 100.0 or chug_rival >= 100.0 or time_left <= 0.0:
 			chug_running = false
+	if chug_snd:
+		chug_snd.queue_free()
 	var won := chug_you >= 100.0 and chug_you >= chug_rival
 	hint.text = "LEGEND!" if won else "%s wins. %s is not okay." % [rival.get_slice(" (", 0), leader.display_name]
 	hint.add_theme_color_override("font_color", Color("#7dff8a") if won else Color("#ff8a6a"))

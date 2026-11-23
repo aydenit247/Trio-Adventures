@@ -661,6 +661,7 @@ func _member(id: String) -> Unit:
 	return null
 
 func _poof(p: Vector3, color := Color(0.8, 0.75, 0.7)) -> void:
+	play_sound("sfx_pop", -4.0)
 	var f := Fx.poof(color)
 	f.position = p + Vector3(0, 0.6, 0)
 	add_child(f)
@@ -670,6 +671,7 @@ func _poof(p: Vector3, color := Color(0.8, 0.75, 0.7)) -> void:
 func _enter_shop() -> void:
 	stage = "inside"
 	objective("")
+	play_sound("sfx_door", -4.0)
 	await fade_out(0.5)
 	inside = true
 	var spots := [INT + Vector3(0, 0, 1.2), INT + Vector3(-2.3, 0, 1.8), INT + Vector3(2.3, 0, 1.8)]

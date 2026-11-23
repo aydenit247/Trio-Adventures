@@ -83,6 +83,8 @@ const BOUNDS_LINES := [   # DRAFT
 var sun_light: DirectionalLight3D
 
 func _ready() -> void:
+	Game.gold_changed.connect(func(d: int): if is_inside_tree() and not Game.title_mode: play_sound("sfx_coins", -6.0 if d > 0 else -9.0, 1.0 if d > 0 else 0.85))
+	Game.quest_finished.connect(func(_id: String): if is_inside_tree() and not Game.title_mode: play_sound("sfx_reward", -3.0))
 	rng.seed = 7
 	_configure()
 	_setup_input()
@@ -642,6 +644,31 @@ func _label(text: String, pos: Vector2, size: int, color: Color, outline: int) -
 	l.add_theme_constant_override("outline_size", outline)
 	return l
 
+# Asar's sound effects (assets/sounds/sfx_*.ogg). One-shot: a player that frees itself when done.
+# loop = true keeps it going (returns the player so you can stop/queue_free it).
+var _snd_cache := {}
+func play_sound(id: String, db := 0.0, pitch := 1.0, loop := false) -> AudioStreamPlayer:
+	if Game.title_mode:
+		return null
+	if not _snd_cache.has(id):
+		var p := "res://assets/sounds/%s.ogg" % id
+		_snd_cache[id] = load(p) if ResourceLoader.exists(p) else null
+	var st: AudioStream = _snd_cache[id]
+	if st == null:
+		return null
+	if loop:
+		st = st.duplicate()
+		st.loop = true
+	var a := AudioStreamPlayer.new()
+	a.stream = st
+	a.volume_db = db
+	a.pitch_scale = pitch
+	add_child(a)
+	a.play()
+	if not loop:
+		a.finished.connect(a.queue_free)
+	return a
+
 func _sfx(stream: AudioStream, db: float) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.stream = stream
@@ -1016,9 +1043,10 @@ func rest_party() -> void:
 		show_toast("Everyone's already at full HP.", 1.8)
 		return
 	Game.heal_all()
-	var p := _sfx(Util.chime(784, 350, 0.22), -6.0)
-	p.finished.connect(p.queue_free)
-	p.play()
+	if play_sound("sfx_heal", -3.0) == null:   # Asar's heal sound (old chime if it's missing)
+		var p := _sfx(Util.chime(784, 350, 0.22), -6.0)
+		p.finished.connect(p.queue_free)
+		p.play()
 	show_toast("You rest for a bit. Everyone's back to full HP.", 2.4)
 
 # "To be continued" style card. next_scene = scene to load when E is pressed.
@@ -1421,6 +1449,7 @@ func _poof_out(u: Unit) -> void:
 	if not is_instance_valid(u):
 		return
 	var f := Fx.poof(Color(0.8, 0.75, 0.7))
+	play_sound("sfx_pop", -4.0)
 	f.position = u.global_position + Vector3(0, 0.5, 0)
 	add_child(f)
 	f.emitting = true

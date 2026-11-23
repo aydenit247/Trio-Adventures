@@ -154,8 +154,14 @@ func gear_in_bag(f: String) -> Array:   # unequipped gear this fighter carries
 			out.append(g)
 	return out
 
+signal gold_changed(delta: int)       # (Asar) the level plays the coin sound
+signal quest_finished(id: String)     # (Asar) the level plays the reward sound
+
 func add_gold(n: int) -> void:
+	var before := gold
 	gold = max(0, gold + n)
+	if gold != before:
+		gold_changed.emit(gold - before)
 
 # ---- equipment: 7 slots per fighter. A slot only takes gear of its type ("trinket" fits either trinket slot).
 const GEAR_SLOTS := ["helmet", "armor", "shoes", "shield", "weapon", "trinket1", "trinket2"]
@@ -295,6 +301,8 @@ func start_quest(id: String, title: String, note: String) -> void:
 
 func finish_quest(id: String) -> void:
 	if quests.has(id):
+		if quests[id]["state"] != "done":
+			quest_finished.emit(id)
 		quests[id]["state"] = "done"
 
 func quest_state(id: String) -> String:

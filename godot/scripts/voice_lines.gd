@@ -152,6 +152,26 @@ const LINES := {
 	"This was… not in the scripture…": "xylo/this_was_not_in_the_scripture",
 	"Wait a second… sum don't feel right, folk.": "xylo/wait_a_second_sum_don_t_feel_right_folk",
 	"We aren't leaving him here, are we?": "xylo/we_aren_t_leaving_him_here_are_we",
+	# Dulbers Frint: Asar's recordings (2026-11-22), dialogue + combat taunts.
+	"Hey guys, it's your boy Dulbers Frint!": "dulbers/hey_guys_its_your_boy",
+	"Y'all could pull up before the Diddy Chud Giant smells you?": "dulbers/yall_could_pull_up_before_the_diddy_chud_giant",
+	"Come on in, come on in! Store's open, folk!": "dulbers/come_on_in_come_on_in_stores_open_folk",
+	"Heh… yeah, so that's actually midtocy. Off-brand. Similar vibes doe.": "dulbers/heh_yeah_so_that_s_actually_midtocy_off_brand_similar_vibes_",
+	"…And now that you know…": "dulbers/and_now_that_you_know",
+	"Finest metocy in Caelid. This shit'll have u geekin, folk. Hand-made. On some type shit.": "dulbers/finest_metocy_in_caelid_this_shit_ll_have_u_geekin_folk_hand",
+	"For y'all ahh? First one's free.": "dulbers/for_yall_ahh_first_ones_free",
+	"…Sum OFF? About ME? Your boy Dulbers?": "dulbers/sum_off_about_me_your_boy_dulbers",
+	"Aight, y'all could get the fuck out my store doe? Fo' I call up Dulbmeethus.": "dulbers/aight_yall_get_the_fuck_out_my_store_doe",
+	"*muffled, from inside* You'll regret this, trio…": "dulbers/youll_regret_this",
+	"It's NOT moist—": "dulbers/its_not_moist",
+	"Aight aight aight, keep your voice down! Let's make a deal.": "dulbers/aight_aight_keep_your_voice_down",
+	"The real metocy is past the mountain pass. Past the giant. Here — take some midtocy on the house. Don't tell nobody.": "dulbers/the_real_metocy_is_past_the_mountain_pass_past_the_giant_her",
+	"Pleasure doing business!": "dulbers/pleasure_doing_business",
+	"…Uh oh.": "dulbers/uh_oh",
+	"All sales final!": "dulbers/all_sales_final",
+	"Thank you for shopping!": "dulbers/thank_you_for_shoping",
+	"Let me try something on real quick…": "dulbers/let_me_try_something_on_real_quick",
+	"hey guys its your boy dulbers frint": "dulbers/hey_guys_its_your_boy",
 }
 
 static var _index: Dictionary = {}

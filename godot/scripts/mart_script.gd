@@ -31,13 +31,13 @@ const ARRIVE := [
 ]
 
 const DULBERS_WAITING := [
-	{ "who": "dulbers", "mood": "grin", "line": "Come on in, come on in! Store's open!" }, # DRAFT
+	{ "who": "dulbers", "mood": "grin", "line": "Come on in, come on in! Store's open, folk!" }, # DRAFT
 ]
 
 # Reveal + demon fight (A and B)
 const REVEAL_AND_FIGHT := [
 	{ "do": "reveal_midtocy" },
-	{ "who": "dulbers", "mood": "grin", "line": "Heh… yeah, so that's actually midtocy. Off-brand. Similar vibes." },
+	{ "who": "dulbers", "mood": "grin", "line": "Heh… yeah, so that's actually midtocy. Off-brand. Similar vibes doe." },
 	{ "who": "skorn", "mood": "angry", "line": "YOU LACED US WITH MIDTOCY?!" },
 	{ "who": "dulbers", "mood": "grin", "line": "…And now that you know…" },
 	{ "do": "transform" },
@@ -58,7 +58,7 @@ const REVEAL_AND_FIGHT := [
 
 const SHOP := [
 	{ "do": "show_pill" },
-	{ "who": "dulbers", "line": "Finest metocy in Caelid. This shit'll have u geekin, folk. Hand-made." }, # Ebain
+	{ "who": "dulbers", "line": "Finest metocy in Caelid. This shit'll have u geekin, folk. Hand-made. On some type shit." }, # Ebain
 	{ "if": "skornKing", "steps": [
 		{ "do": "skorn_bursts_in" },
 		{ "who": "skorn", "mood": "angry", "line": "THEY HAD KICKED ME OUT." }, # Ebain
@@ -67,7 +67,7 @@ const SHOP := [
 		{ "who": "skorn", "mood": "smug", "line": "Don't judge me." },
 	] },
 	{ "who": "lykor", "line": "Aight, so what the word? What we owe ya for some metocy, mud?" }, # Ebain
-	{ "who": "dulbers", "mood": "grin", "line": "For y'all? First one's free." },
+	{ "who": "dulbers", "mood": "grin", "line": "For y'all ahh? First one's free." },
 	{ "who": "lykor", "mood": "smug", "line": "On some type shit." }, # Ebain
 	{ "choice": [
 		# A — everyone takes it → the whole party trips → demon fight

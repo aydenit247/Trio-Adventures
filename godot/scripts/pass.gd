@@ -203,6 +203,7 @@ func _canyon() -> void:
 	snore.bus = _snore_bus()   # own bus with a low-pass filter: muffled as he sinks deeper (Lore Session)
 	add_child(snore)
 	snore.play()
+	play_sound("sfx_lava_ambient", -8.0, 1.0, true)   # Asar's lava ambience, low under everything
 	giant_lying = Sprite3D.new()
 	giant_lying.texture = load("res://assets/characters/giant_sleep.png")   # Asar's sleeping picture (head on the right, rock pillow)
 	giant_lying.pixel_size = 8.0 / giant_lying.texture.get_width()           # 8 m from feet to pillow
@@ -530,6 +531,7 @@ func char_label_at(p: Vector3, text: String, secs := 3.0, color := Color("#f3e3b
 		get_tree().create_timer(secs + 0.6).timeout.connect(n.queue_free)
 
 func _poof(p: Vector3, color := Color(0.8, 0.7, 0.6)) -> void:
+	play_sound("sfx_pop", -3.0)
 	var f := Fx.poof(color)
 	f.position = p + Vector3(0, 0.6, 0)
 	add_child(f)

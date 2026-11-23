@@ -641,6 +641,7 @@ func _on_action(n: String) -> void:
 			await _leave_lair()
 
 func _enter_lair() -> void:
+	play_sound("sfx_door", -2.0, 0.8)   # a big heavy door
 	await fade_out(0.5)
 	_set_inside(true)
 	var spots := [DOOR_IN + Vector3(0, 0, -3.4), DOOR_IN + Vector3(-1.4, 0, -2.6), DOOR_IN + Vector3(1.4, 0, -2.6)]
@@ -662,6 +663,8 @@ func _enter_lair() -> void:
 		tw.tween_property(self, "cam_look_h", 2.6, 2.2).set_trans(Tween.TRANS_SINE)
 		await wait(1.6)
 		mattias_light.light_energy = 8.0
+		play_sound("sfx_magic", 0.0, 0.8)
+		play_sound("sfx_pop", -2.0, 0.7)
 		var p := Fx.poof(Color(0.6, 0.7, 1.0))
 		add_child(p)
 		p.global_position = mattias.global_position + Vector3(0, 1.0, 0)
@@ -677,6 +680,7 @@ func _enter_lair() -> void:
 		await wait(0.4)
 
 func _leave_lair() -> void:
+	play_sound("sfx_door", -2.0, 0.8)
 	await fade_out(0.5)
 	_set_inside(false)
 	place_party(DOOR_OUT + Vector3(0, 0, 2.6), Vector3(0, 0, 1))

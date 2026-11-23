@@ -440,7 +440,7 @@ func _bedroll(p: Vector3) -> void:
 # ================================================================ walking in and out
 func enter(id: String) -> void:
 	lv.busy = true
-	lv.ui_sfx.play()
+	lv.play_sound("sfx_door", -4.0)
 	await lv.fade_out(0.4)
 	room = id
 	var o := origin(id)
@@ -464,7 +464,7 @@ func enter(id: String) -> void:
 
 func leave() -> void:
 	lv.busy = true
-	lv.ui_sfx.play()
+	lv.play_sound("sfx_door", -4.0)
 	await lv.fade_out(0.4)
 	var d: Dictionary = BUILDINGS[room]
 	var out: Vector3 = (d["door"] - d["pos"]).normalized()

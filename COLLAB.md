@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Dulbers Frint voice lines + Asar's sound effects pack — files: godot/assets/voices/dulbers/ (new), godot/assets/sounds/ (new sfx_*), voice_lines.gd, mart_script.gd, combat/battle_view.gd, game.gd, level.gd, village_buildings.gd, village.gd, mart.gd, pass.gd, summit.gd — branch: asar/dulbers-sfx — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
 
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-22 [asar] Dulbers Frint voiced by Asar's 18 recordings; Asar's sound effects pack wired in (combat, coins, doors, chug, lava…)
 - 2026-11-22 [asar] Pass exit is a gorge behind the giant; new Scene 5: Summit Path → Wizard's Lair (Mattias), the end of Chapter 1
 - 2026-11-22 [asar] Fix: switching characters inside a village building no longer leaves them stuck at the door / falling through the map
 - 2026-11-22 [asar] Job board: 3×2 layout, no spoon notes, "LORE OFF" note, close-up hides the board, HUD hidden behind it; Grubnik talk no longer stuck
@@ -48,11 +48,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/assets/voices/dulbers/ (new), godot/assets/sounds/ (new sfx_*), voice_lines.gd, mart_script.gd, combat/battle_view.gd, game.gd, level.gd, village_buildings.gd, village.gd, mart.gd, pass.gd, summit.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-22 [asar] **Dulbers voice + sound effects.** 18 Dulbers takes (`assets/voices/dulbers/`, `voice_lines.gd`), 4 Mart lines
+  reworded to match (VOICE_LINES.md). 12 sound effects (`assets/sounds/sfx_*.ogg`) via new **level.gd** `play_sound()`. Hot spots:
+  **game.gd** new signals `gold_changed` / `quest_finished` (coins + reward sound), **level.gd** rest heal + poof pop,
+  **combat/battle_view.gd** recorded punch/fire/magic/timed-success/heal/sword replace the synth ones, reward on level up.
+  Also: door sounds (village rooms, Mart, lair), chug loop in chug contests, lava ambience in the Pass. Details in TIPS.
 - 2026-11-22 [asar] **Scene 5: Summit Path + Wizard's Lair (the final event of Chapter 1, Asar).** New `summit.tscn`/`summit.gd`/
   `summit_script.gd`. Long night climb (3 empty clearings for future events, `EVENT_SPOTS`), a big glowing tower, and a grand
   hall inside with Metocin Mattias on a dais. **END OF CHAPTER 1 moved here**: walking up to Mattias plays `MATTIAS_FINALE`

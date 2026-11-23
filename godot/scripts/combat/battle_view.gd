@@ -195,6 +195,13 @@ func _make_sounds() -> void:
 	}
 	for k in defs:
 		sounds[k] = lv._sfx(defs[k], -4.0)
+	# Asar's sound effects pack (11/22): recorded versions where they fit
+	for pair in [["slap", "sfx_punch", 0.0], ["hit", "sfx_punch", -3.0], ["fire", "sfx_fire_explosion", -2.0], ["blast", "sfx_magic", -2.0],
+			["lore", "sfx_magic", -4.0], ["crit", "sfx_timed_success", -2.0], ["heal", "sfx_heal", -2.0], ["bonk", "sfx_sword", -4.0]]:
+		var st = load("res://assets/sounds/%s.ogg" % pair[1])
+		if st:
+			sounds[pair[0]].stream = st
+			sounds[pair[0]].volume_db = pair[2]
 	sounds["shi"] = lv._sfx(load("res://assets/voices/lykor/on_some_type_shit.mp3"), linear_to_db(maxf(Game.voice_vol, 0.01)))   # Asar's Lykor take (same file as his Mart line), at the Voice volume
 
 func sfx(k: String, pitch := 1.0) -> void:
@@ -1643,6 +1650,7 @@ func _results(res: String) -> void:
 	line.call("+%d XP   ·   Level %d   (%s)" % [xp, Game.level, "%d to next" % Game.xp_to_next() if Game.xp_to_next() > 0 else "max"], 20, Color.WHITE)
 	for lvn in ups:
 		line.call("LEVEL UP! The trio is now Level %d. (+10%% HP and damage, everyone fully healed)" % lvn, 20, GREEN)
+		lv.play_sound("sfx_reward", -2.0)
 		if lvn == 3:
 			line.call("New moves: Belly Bump · Conditioner Mist · Citation Needed", 18, Color("#fff07a"))
 	if not found.is_empty():   # Found: [icon] [icon]  (hover for details)

@@ -179,3 +179,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   vintage_grandfather_clock_01, ornate_mirror_01, marble_bust_01. Textures: castle_brick_07, medieval_blocks_05,
   monastery_stone_floor, marble_mosaic_tiles, marble_tiles, dark_wood, dark_wooden_planks, velour_velvet,
   quatrefoil_jacquard_fabric, rusty_metal_02. The rest of Ebain's pack is unused so far.
+- [asar] **Sound effects:** Asar's pack is in `assets/sounds/sfx_*.ogg` (loudness-matched). Play one with
+  `lv.play_sound("sfx_door", db, pitch, loop)` (loop returns the player; free it to stop). Hooked up: coins on any gold
+  change (`Game.gold_changed`), reward on quest done (`Game.quest_finished`) and level up, door for village rooms / Mart /
+  lair, pop on poofs, heal at rest spots, chug loop in chug contests, lava ambience in the Pass. In combat they replace the
+  synth `slap`/`hit` (punch), `fire`, `blast`/`lore` (magic), `crit` (timed success), `heal`, `bonk` (sword).
