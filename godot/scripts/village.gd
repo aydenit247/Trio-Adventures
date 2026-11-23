@@ -723,6 +723,9 @@ func arrival(from: String) -> Array:
 # ---------------------------------------------------------------- automated screenshots
 # Pick a path with env var VILLAGE_CHOICE=0..4 (A..E)
 func _shot_tour() -> void:
+	if OS.get_environment("VILLAGE_TOUR") == "roomswitch":
+		await _room_switch_tour()
+		return
 	if OS.get_environment("VILLAGE_TOUR") == "band":
 		await _band_tour()
 		return
@@ -818,4 +821,58 @@ func _band_tour() -> void:
 	await wait(9.0)
 	print("BAND end: ", band.state, " gain=", band.gain_db, " music=", snappedf($Music.player.volume_db, 0.1), " npcs=", npcs.filter(func(u): return is_instance_valid(u) and u.has_meta("band")).size())
 	await shot("band_09_gone")
+	get_tree().quit()
+
+# VILLAGE_TOUR=roomswitch: go into each building, switch to every character and walk them into every wall.
+# Everyone must stay inside the room (the old bug: switched-to characters stood in the door wall and fell out).
+func _room_switch_tour() -> void:
+	fade.color.a = 0.0
+	busy = false
+	chief.visible = true
+	place_party(Vector3(0, 0, 3), Vector3(0, 0, -1))
+	var bad := 0
+	for id in ["bar", "shaman", "chief"]:
+		if not VB.BUILDINGS.has(id) or not vb.has_method("enter"):
+			continue
+		await vb.enter(id)
+		await wait(0.3)
+		for k in 80:   # click through any entry chatter (it pauses walking)
+			if not busy:
+				break
+			dialogue._next.emit()
+			if dialogue.has_signal("_picked"):
+				dialogue._picked.emit(0)
+			await wait(0.12)
+		await wait(0.2)
+		var o: Vector3 = vb.origin(id)
+		for u in party:
+			var l := u.global_position - o
+			print("ROOM %s %s start z=%.2f (door wall at %.2f)" % [id, u.id, l.z, VB.FRONT_Z])
+			if l.z > VB.FRONT_Z - 0.5:
+				bad += 1
+		if id == "bar":
+			await shot("roomswitch_01_enter")
+		for n in party.size():
+			set_leader(party[(party.find(leader) + 1) % party.size()])
+			for d in [Vector3(0, 0, 1), Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, -1)]:   # ends shoving into the door wall
+				auto_dir = d
+				await wait(1.6 if d.z >= 0 else 3.5)
+			auto_dir = Vector3.ZERO
+			await wait(0.2)
+			for u in party:
+				var l := u.global_position - o
+				var inside := absf(l.x) < VB.ROOM_W / 2.0 and l.z < VB.FRONT_Z and l.z > VB.BACK_Z and l.y > -0.3
+				if not inside:
+					bad += 1
+				print("ROOM %s leading=%s %s at %s %s" % [id, leader.id, u.id, l.snapped(Vector3(0.1, 0.1, 0.1)), "ok" if inside else "OUTSIDE"])
+			if id == "bar" and n == 1:
+				await shot("roomswitch_02_switched_walked")
+		await vb.leave()
+		await wait(0.4)
+		var dd: Dictionary = VB.BUILDINGS[id]
+		for u in party:
+			print("ROOM %s out %s %.2f from door, y=%.2f" % [id, u.id, u.global_position.distance_to(dd["door"]), u.global_position.y])
+		if id == "bar":
+			await shot("roomswitch_03_back_out")
+	print("ROOMSWITCH RESULT: %s" % ("ALL OK" if bad == 0 else "%d BAD" % bad))
 	get_tree().quit()
