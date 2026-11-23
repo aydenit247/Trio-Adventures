@@ -2,13 +2,14 @@
 # Walk up → Metocin Mattias appears → the giant is asleep across the path (a real 3D canyon now) → choose:
 #   A throw midtocy (if Skorn has it) · B Snore Sneak minigame · C Lore Session minigame · D fight · E cousin (goblins)
 # When he wakes, the lying figure is replaced by Ebain's awake giant standing up for real.
-# End of Chapter 1.
+# The way on is a narrow gorge straight behind him (Asar 11/22), so you can't get past until he's dealt with.
+# End of Chapter 1, then the gorge leads up to the Summit Path (summit.gd) and the Wizard's Lair.
 extends Level
 
 const PS = preload("res://scripts/pass_script.gd")
 const GIANT_HEAD := Vector3(4.2, 2.8, -10.0)      # his head, at the right end of where he's lying
 const GIANT_STAND := Vector3(3.5, 0, -9.5)
-const EXIT_POS := Vector3(14, 0, 0)
+const EXIT_POS := Vector3(1.1, 0, -21.5)   # top of the gorge behind the giant
 
 # "enter" → "mattias" done → "giant" (scene) → "after" (walk out) → "end"
 var stage := "enter"
@@ -38,7 +39,7 @@ func _configure() -> void:
 	light_dir = Vector3(-0.55, 0.28, -0.8)
 	clear_center = Vector2(0, -3)
 	clear_radius = 6.0
-	path_pts = PackedVector2Array([Vector2(0, 16), Vector2(0.5, 6), Vector2(0, 0), Vector2(2.5, -8), Vector2(0, 0), Vector2(8, 0), Vector2(16, 0)])
+	path_pts = PackedVector2Array([Vector2(0, 16), Vector2(0.5, 6), Vector2(0, 0), Vector2(1.6, -6), Vector2(1.2, -12), Vector2(1.1, -18), Vector2(1.0, -26)])
 	path_width = 1.8
 	subtitle = "Scene 4 — The Pass"
 	party_ids = ["skorn", "lykor", "xylo"]
@@ -153,7 +154,8 @@ func _build_level() -> void:
 			allies.append(g)
 
 # ================================================================ the canyon as a real 3D place (inspired by Ebain's paintings)
-const GIANT_LIE := Vector3(1.6, 0, -10.2)          # where he's sleeping across the path
+const GIANT_LIE := Vector3(1.6, 0, -10.2)          # where he's sleeping across the path (the gorge mouth is right behind him)
+const GIANT_BLOCK_OFS := Vector3(0, 1.5, -0.6)
 var giant_lying: Sprite3D
 
 func _canyon() -> void:
@@ -164,8 +166,6 @@ func _canyon() -> void:
 		var z := -16.0 + i * 4.6
 		for side in [-1.0, 1.0]:
 			var x: float = side * (12.5 + randf_range(0.0, 2.5))
-			if side > 0 and abs(z) < 4.0:
-				continue   # the east exit
 			var r := Models.place(self, "rock_face_01", Vector3(x, -0.5, z), (PI / 2.0 if side < 0 else -PI / 2.0) + randf_range(-0.4, 0.4), 1.0, false, rock if i % 2 == 0 else rock2)
 			r.scale = Vector3(randf_range(1.6, 2.2), randf_range(2.4, 3.6), randf_range(1.6, 2.2))
 			_no_shadow(r)
@@ -176,7 +176,7 @@ func _canyon() -> void:
 		var r := Models.place(self, "rock_face_01", Vector3(x, -0.5, -21.0 - randf_range(0, 3)), randf_range(-0.3, 0.3), 1.0, false, rock)
 		r.scale = Vector3(2.0, randf_range(3.0, 4.6), 1.8)
 		_no_shadow(r)
-	for p in [Vector3(-7.5, 0, -15.5), Vector3(8.5, 0, -16.5), Vector3(-10.5, 0, -8.0), Vector3(11.0, 0, -9.0), Vector3(-3.5, 0, -19.0), Vector3(6.0, 0, -19.5)]:
+	for p in [Vector3(-7.5, 0, -15.5), Vector3(8.5, 0, -16.5), Vector3(-10.5, 0, -8.0), Vector3(11.0, 0, -9.0), Vector3(-6.5, 0, -19.0), Vector3(8.5, 0, -19.5)]:
 		var sp := Models.place(self, "rock_07", p, randf() * TAU, 1.0, true, rock2)   # jagged spires
 		sp.scale = Vector3(randf_range(9.0, 12.0), randf_range(26.0, 40.0), randf_range(6.0, 8.0))
 		_no_shadow(sp)
@@ -184,9 +184,9 @@ func _canyon() -> void:
 	_lava(Vector3(-9.6, 0.02, -2.0), Vector2(2.2, 26.0))
 	_lava(Vector3(9.8, 0.02, -8.0), Vector2(2.0, 10.0))
 	_lava(Vector3(9.8, 0.02, 8.5), Vector2(2.0, 9.0))
-	_lava(Vector3(-2.0, 0.02, -15.5), Vector2(12.0, 3.0))
-	_lava(Vector3(7.0, 0.02, -17.5), Vector2(6.0, 2.5))
-	for p in [Vector3(-9.6, 0.6, -10), Vector3(-9.6, 0.6, 2), Vector3(9.8, 0.6, -8), Vector3(9.8, 0.6, 8), Vector3(-2, 0.8, -15.5), Vector3(7, 0.8, -17.5)]:
+	_lava(Vector3(-5.6, 0.02, -15.5), Vector2(6.0, 3.0))
+	_lava(Vector3(7.4, 0.02, -17.5), Vector2(5.0, 2.5))
+	for p in [Vector3(-9.6, 0.6, -10), Vector3(-9.6, 0.6, 2), Vector3(9.8, 0.6, -8), Vector3(9.8, 0.6, 8), Vector3(-5.6, 0.8, -15.5), Vector3(7.4, 0.8, -17.5)]:
 		var l := OmniLight3D.new()
 		l.light_color = Color(1.0, 0.45, 0.15)
 		l.light_energy = 1.3
@@ -211,7 +211,7 @@ func _canyon() -> void:
 	giant_lying.modulate = Color(1.0, 0.88, 0.84)
 	giant_lying.position = GIANT_LIE + Vector3(0, giant_lying.texture.get_height() * giant_lying.pixel_size * 0.5 - 0.15, 0)
 	add_child(giant_lying)
-	Util.static_box(self, GIANT_LIE + Vector3(0, 1.5, 0), Vector3(6.6, 3.0, 2.0))
+	Util.static_box(self, GIANT_LIE + GIANT_BLOCK_OFS, Vector3(6.6, 3.0, 3.2))   # reaches back to the gorge wall: no squeezing past
 	for p in [Vector3(-1.8, 0, 0.9), Vector3(3.9, 0, 0.7), Vector3(-3.4, 0, -0.4), Vector3(5.2, 0, -0.6)]:   # rocks he's lying on
 		Models.place(self, "rock_07", GIANT_LIE + p, randf() * TAU, randf_range(6.0, 9.0), false, rock2)
 	if not Game.flag("giantDone"):   # coming back later: he's gone, no label
@@ -263,7 +263,7 @@ func _clear_giant_block() -> void:
 	for c in get_children():
 		if c is StaticBody3D and c.get_child_count() > 0 and c.get_child(0) is CollisionShape3D:
 			var cs: CollisionShape3D = c.get_child(0)
-			if cs.global_position.distance_to(GIANT_LIE + Vector3(0, 1.5, 0)) < 0.2:
+			if cs.global_position.distance_to(GIANT_LIE + GIANT_BLOCK_OFS) < 0.2:
 				c.queue_free()
 
 func _ash() -> void:
@@ -282,15 +282,25 @@ func _ash() -> void:
 	a.position = Vector3(0, 0.5, 0)
 	add_child(a)
 
+# Canyon walls. The only way on is the gorge behind the giant (x -0.8..3.0), and he's lying right across its mouth.
 func _walls() -> void:
 	Util.static_box(self, Vector3(-9.5, 1, 0.5), Vector3(0.5, 2, 26))
-	Util.static_box(self, Vector3(9.5, 1, -6.8), Vector3(0.5, 2, 9.6))
-	Util.static_box(self, Vector3(9.5, 1, 7.6), Vector3(0.5, 2, 10.8))
-	Util.static_box(self, Vector3(0, 1, -12.0), Vector3(19, 2, 0.5))
+	Util.static_box(self, Vector3(9.5, 1, 0.5), Vector3(0.5, 2, 26))
+	Util.static_box(self, Vector3(-5.15, 1, -12.0), Vector3(8.7, 2, 0.5))   # north wall, west of the gorge
+	Util.static_box(self, Vector3(6.25, 1, -12.0), Vector3(6.5, 2, 0.5))    # north wall, east of the gorge
+	Util.static_box(self, Vector3(-1.05, 1, -18.5), Vector3(0.5, 2, 13))    # gorge sides
+	Util.static_box(self, Vector3(3.25, 1, -18.5), Vector3(0.5, 2, 13))
+	Util.static_box(self, Vector3(1.1, 1, -25.2), Vector3(5, 2, 0.5))
 	Util.static_box(self, Vector3(0, 1, 13.5), Vector3(19, 2, 0.5))
-	Util.static_box(self, Vector3(13.5, 1, -2.4), Vector3(9, 2, 0.5))
-	Util.static_box(self, Vector3(13.5, 1, 2.4), Vector3(9, 2, 0.5))
-	Util.static_box(self, Vector3(18, 1, 0), Vector3(0.5, 2, 5))
+	# the gorge: tall rock either side, climbing away behind the giant
+	var rock := Color(0.6, 0.47, 0.38)
+	for z in [-14.0, -18.5, -23.0]:
+		for side in [-1.0, 1.0]:
+			var x: float = 1.1 + side * 4.6
+			var r := Models.place(self, "rock_face_01", Vector3(x, -0.4, z), (PI / 2.0 if side < 0 else -PI / 2.0) + randf_range(-0.25, 0.25), 1.0, false, rock * randf_range(0.85, 1.0))
+			r.scale = Vector3(randf_range(1.2, 1.5), randf_range(2.6, 3.4), randf_range(1.2, 1.5))
+			_no_shadow(r)
+	Models.patch(self, Vector3(1.1, 0, -18.5), Vector2(4.2, 14), "dark_rock", 2.0, Color(0.72, 0.6, 0.5), 0.0, 0.4)
 
 # ---------------------------------------------------------------- per frame
 # Snore volume: quiet down the path, loud right next to his head (based on the character you control)
@@ -349,10 +359,19 @@ func _level_process(delta: float) -> void:
 		_giant_scene()
 	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.0:
 		stage = "end"
+		if Game.flag("summitStarted") and ResourceLoader.exists("res://summit.tscn"):   # been up there already: just walk on
+			busy = true
+			await fade_out(0.6)
+			Game.travel("res://summit.tscn", "pass", leader.id)
+			return
 		var lines := ["END OF CHAPTER 1", "", "Trio Adventures — by Ebain", ""]
 		lines += story_so_far()
-		lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to return to the title screen"]
-		end_card(lines, "res://title.tscn")
+		if ResourceLoader.exists("res://summit.tscn"):   # the Summit Path + Wizard's Lair (being built, Asar 11/22)
+			lines += ["", "Press E to keep climbing"]
+			end_card(lines, "res://summit.tscn")
+		else:
+			lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to return to the title screen"]
+			end_card(lines, "res://title.tscn")
 
 func _zzz() -> void:
 	var l := Label3D.new()
@@ -606,6 +625,7 @@ func _fight_giant() -> void:
 	giant.set_meta("tint", Color.WHITE)
 
 func _leave() -> void:
+	_clear_giant_block()   # he's dealt with: you can step over/past him both ways now
 	Game.set_flag("giantDone")   # the pass is open: you can walk back to the Mart and return (Asar)
 	stage = "after"
 	focus_override = null
@@ -650,6 +670,8 @@ func back_exit() -> Dictionary:
 func arrival(from: String) -> Array:
 	if from == "mart":
 		return [Vector3(0, 0, 8.0), Vector3(0, 0, -1)]
+	if from == "summit":
+		return [EXIT_POS + Vector3(0, 0, 4.0), Vector3(0, 0, 1)]
 	return super.arrival(from)
 
 # ---------------------------------------------------------------- minigame UI helpers
@@ -775,7 +797,7 @@ func _sneak_game() -> bool:
 	col.get_parent().queue_free()
 	if won:
 		for i in party.size():
-			party[i].global_position = Vector3(5.0 + i * 1.3, 0, -8.0)
+			party[i].global_position = Vector3(0.3 + i * 0.9, 0, -14.2)   # snuck over him, into the gorge
 	dialogue.show_box()
 	snore_sneak = false
 	snore.stream_paused = false
@@ -885,7 +907,7 @@ func _shot_tour() -> void:
 			await shot("p_07_%s_late" % tag)
 	await wait(2.0)
 	await shot("p_08_%s_after" % tag)
-	place_party(EXIT_POS + Vector3(-2.5, 0, 0), Vector3(1, 0, 0))
+	place_party(EXIT_POS + Vector3(0, 0, 3.0), Vector3(0, 0, -1))
 	await wait(3.0)
 	await shot("p_09_%s_end" % tag)
 	get_tree().quit()
