@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Pass exit behind the giant + new area after it: long Summit Path → Wizard's Lair (Mattias inside) — files: godot/scripts/pass.gd, godot/scripts/summit.gd (new), godot/summit.tscn (new), godot/scripts/map_ui.gd, godot/scripts/level.gd, godot/scripts/dev_mode.gd, godot/scripts/combat/battle_view.gd — branch: asar/wizard-lair — started 2026-11-22
-- [ebain] Poly Haven pack for the wizard lair (new texture/model folders only, no code) — files: godot/assets/textures/<new ids>, godot/assets/models/<new ids>, tools/ (read-only) — branch: ebain/wizard-assets — started 2026-11-23
 - [asar] Fix: switching characters inside a village building (stuck at the door / falling through the map) — files: godot/scripts/village_buildings.gd, godot/scripts/village.gd (tour only) — branch: asar/room-switch-fix — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
@@ -53,6 +52,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-23 [ebain] **Wizard-lair asset pack on foundation: 28 textures + 34 Poly Haven models** (new folders only, no code touched; texture imports set to mode 2 + mipmaps). Full list + heavy-model warnings in TIPS. ~125 MB of source files, and export is `all_resources`, so **pushed to foundation only, NOT main**, to avoid growing the Windows download until the lair uses them. Whoever builds the lair: merge to main as normal once it's in, and delete unused ones.
 - 2026-11-22 [asar] Hot spot **dialogue.gd**: `VOICE_GAIN_DB` per-speaker boost for recordings, Mattias +9 dB (his files are ~10 dB
   under Skorn's). **pass.gd**: snoring quieter overall (max -16 dB, was -9); it plays on a "GiantSnore" bus with a low-pass filter,
   and each Lore Session page he sleeps through makes it 3 dB quieter and more muffled.
