@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Poly Haven pack for the wizard lair (new texture/model folders only, no code) — files: godot/assets/textures/<new ids>, godot/assets/models/<new ids>, tools/ (read-only) — branch: ebain/wizard-assets — started 2026-11-23
 - [asar] Fix: switching characters inside a village building (stuck at the door / falling through the map) — files: godot/scripts/village_buildings.gd, godot/scripts/village.gd (tour only) — branch: asar/room-switch-fix — started 2026-11-22
 - [ebain] Diddy Chud Giant voice lines (taken over from grok, Ebain asked) — waiting on Ebain's zip; it'll go through
   voice-imports/ — files: godot/assets/voices/giant/, godot/scripts/voice_index.gd — started 2026-11-21
