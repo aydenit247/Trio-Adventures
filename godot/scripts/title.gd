@@ -102,6 +102,8 @@ func _open_menu() -> void:
 		  "note": _continue_note(latest) },
 		{ "text": "New Game", "pick": func(): _new_game() },
 		{ "text": "Load Game", "enabled": latest != "", "pick": func(): await _sub(MenuUI.open_slots(ui, "load")) },
+		{ "text": "Achievements  (%d/%d)" % [Game.ach.count(), Achievements.LIST.size()], "pick": func():
+			await _sub(MenuUI.open(ui, "Achievements", Game.ach.menu_rows(), { "w": 560 })) },
 		{ "text": "Settings", "pick": func(): await _sub(MenuUI.open_settings(ui)) },
 		{ "text": "Quit", "pick": func(): get_tree().quit() },
 	]

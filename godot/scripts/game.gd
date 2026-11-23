@@ -43,6 +43,8 @@ func flag(name: String) -> bool:
 
 func set_flag(name: String, value = true) -> void:
 	flags[name] = value
+	if value and ach:
+		ach.event("flag:" + name)   # achievements.gd
 	if value and PD.FLAGS.has(name):
 		unlock(PD.FLAGS[name])
 
@@ -397,6 +399,8 @@ func load_progress() -> void:
 			progress[k] = true
 
 func unlock(id: String) -> void:
+	if ach and not title_mode:
+		ach.event("progress:" + id)   # achievements.gd (before the early return, so new achievements catch up)
 	if title_mode or progress.has(id):
 		return
 	progress[id] = true
@@ -440,7 +444,16 @@ var dlg_buffer := 2               # index into DLG_BUFFER
 var dlg_back := true              # Backspace goes back one line
 var dlg_speed := false            # speed mode: no buffer (spam E) + 2x text. Turned on with the button on the dialogue box
 
+# Achievements (achievements.gd): the popup layer lives on Game so it survives scene changes.
+var ach: Achievements
+
+func achieve(id: String) -> void:
+	if ach:
+		ach.give(id)
+
 func _ready() -> void:
+	ach = Achievements.new()
+	add_child(ach)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(load("res://scripts/crash_reporter.gd").new())   # crash/freeze reports (see crash_reporter.gd)
 	load_progress()

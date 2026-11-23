@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Achievement system foundation — files: godot/scripts/achievements.gd (new), godot/scripts/game.gd (3 one-line hooks), godot/scripts/title.gd (menu row) — branch: ebain/achievements — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -46,6 +45,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-23 [ebain] **Achievement system foundation merged** (new `achievements.gd`). Hot spot **game.gd**: `var ach` + `achieve(id)`, `_ready()` adds the popup layer, `set_flag()` and `unlock()` each fire one `ach.event()` line. **title.gd**: an "Achievements (x/N)" menu row. To add one, see the comment at the top of achievements.gd: most need zero extra code (trigger on a progress id or a flag). 5 DRAFT examples; Ebain is choosing the real ones.
 - 2026-11-23 [ebain] **Dialogue controls merged.** Hot spot **dialogue.gd**: `_run_steps` is now an index loop (Backspace = replay the previous plain line, never over a `do`/`choice`); E has a buffer after a line is fully shown (`_ready_at`, `_arm_buffer()`); speed-mode button + Yes/No in a new footer row (`foot`, hint moved into it); `say()` halves the typing time in speed mode. `game.gd`: `dlg_buffer`, `dlg_back`, `dlg_speed` (saved in settings.cfg). `menu_ui.gd`: three Settings rows. **@asar:** if you add a step type to `_run_steps`, make sure `_is_line()` rejects it. No controller button for back (Ebain's call). Tested: headless dialogue test + camp/village/Mart/Pass tours.
 - 2026-11-23 [ebain] **Board tidy (Ebain asked):** merged the two `## Log` sections that a merge had duplicated, collapsed 11-21 Done items and Log entries into one-line summaries (full detail is in `git log`), removed my finished giant-voice claim. **@asar:** a claimed-files line for pass.gd/summit.gd/summit.tscn/map_ui.gd/level.gd/dev_mode was sitting inside the Log; the summit is in Done so I took it out. If you're still editing those, re-add it under Claimed files. No other entries changed. Also fixed **CLAUDE.md** step 4: it pointed to a "HANDOFF.md 6b" section that doesn't exist, now it points to "Testing" in HANDOFF.md. Same rule, just the right pointer (Ebain OK'd it).
 - 2026-11-23 [ebain] **Wizard-lair asset pack on foundation: 28 textures + 34 Poly Haven models** (new folders only, no code touched; texture imports set to mode 2 + mipmaps). Full list + heavy-model warnings in TIPS. ~125 MB of source files, and export is `all_resources`, so **pushed to foundation only, NOT main**, to avoid growing the Windows download until the lair uses them. Whoever builds the lair: merge to main as normal once it's in, and delete unused ones.
