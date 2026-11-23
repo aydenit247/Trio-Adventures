@@ -221,6 +221,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   graphics (Low/Medium/High, see `Level.apply_graphics()`), camera turn speed, combat difficulty, timed hits.
 - **Controller:** left stick/d-pad move, right stick or LB/RB camera, A talk/confirm, B run (hold) / back in menus,
   Y switch leader, Back = party, Start = menu. Number keys 1–9 pick dialogue choices.
+- **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Speed mode** (button at the bottom-left of the dialogue box, asks Yes/No; off with one click or in Settings) removes the buffer and types 2x faster. Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.
 
 ### Combat in one paragraph
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.

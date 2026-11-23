@@ -433,6 +433,12 @@ var quality := 2                  # 0 Low · 1 Medium · 2 High
 var text_speed := 1               # index into TEXT_SPEED
 var music_once := false           # Settings → Music: play each area song once instead of looping (Ebain's note)
 var cam_speed := 1.0              # camera turn speed multiplier (0.4 .. 2.0)
+# Dialogue controls (Ebain 11/23). dialogue.gd reads these.
+const DLG_BUFFER := ["Off", "Short", "Normal", "Long"]   # wait after a line is fully shown before E can advance
+const DLG_BUFFER_SEC := [0.0, 0.2, 0.4, 0.8]
+var dlg_buffer := 2               # index into DLG_BUFFER
+var dlg_back := true              # Backspace goes back one line
+var dlg_speed := false            # speed mode: no buffer (spam E) + 2x text. Turned on with the button on the dialogue box
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -465,6 +471,9 @@ func load_settings() -> void:
 	cam_speed = cf.get_value("game", "cam_speed", cam_speed)
 	difficulty = cf.get_value("game", "difficulty", difficulty)
 	timed_auto = cf.get_value("game", "timed_auto", timed_auto)
+	dlg_buffer = clampi(int(cf.get_value("game", "dlg_buffer", dlg_buffer)), 0, 3)
+	dlg_back = cf.get_value("game", "dlg_back", dlg_back)
+	dlg_speed = cf.get_value("game", "dlg_speed", dlg_speed)
 
 func save_settings() -> void:
 	var cf := ConfigFile.new()
@@ -479,6 +488,9 @@ func save_settings() -> void:
 	cf.set_value("game", "cam_speed", cam_speed)
 	cf.set_value("game", "difficulty", difficulty)
 	cf.set_value("game", "timed_auto", timed_auto)
+	cf.set_value("game", "dlg_buffer", dlg_buffer)
+	cf.set_value("game", "dlg_back", dlg_back)
+	cf.set_value("game", "dlg_speed", dlg_speed)
 	cf.save(SETTINGS_PATH)
 
 # Audio + window. (Graphics quality is applied per area by Level.apply_graphics().)

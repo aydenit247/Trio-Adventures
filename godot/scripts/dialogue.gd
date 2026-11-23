@@ -37,6 +37,12 @@ var text_lbl: RichTextLabel
 var choice_box: VBoxContainer
 var hint: Label
 var _typing: Tween
+var foot: HBoxContainer          # bottom row: speed-mode button/confirm on the left, key hint on the right
+var _speed_btn: Button
+var _speed_ask: HBoxContainer
+var _ready_at := 0               # msec: E can't advance before this (the buffer)
+var _back_ok := false            # the step before this line is a plain line, so Backspace can replay it
+var _back_req := false
 var _choices: Array = []
 var _sel := 0
 var _voices: PackedStringArray = []
@@ -115,16 +121,83 @@ func _build() -> void:
 	choice_box.add_theme_constant_override("separation", 4)
 	col.add_child(choice_box)
 
+	foot = HBoxContainer.new()
+	foot.add_theme_constant_override("separation", 10)
+	col.add_child(foot)
+	_speed_btn = _foot_button("", _on_speed_btn)
+	foot.add_child(_speed_btn)
+	_speed_ask = HBoxContainer.new()
+	_speed_ask.add_theme_constant_override("separation", 8)
+	_speed_ask.visible = false
+	foot.add_child(_speed_ask)
+	var q := Label.new()
+	q.text = "Speed mode: spam E to skip, text 2x. Turn on?"
+	q.add_theme_font_size_override("font_size", 15)
+	q.add_theme_color_override("font_color", GOLD)
+	_speed_ask.add_child(q)
+	_speed_ask.add_child(_foot_button("Yes", func(): _set_speed(true)))
+	_speed_ask.add_child(_foot_button("No", func(): _speed_ask.visible = false; _speed_btn.visible = true))
 	hint = Label.new()
 	hint.text = "E / Space  >"
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hint.add_theme_font_size_override("font_size", 15)
 	hint.add_theme_color_override("font_color", Color("#a49cc4"))
-	col.add_child(hint)
+	foot.add_child(hint)
+	_refresh_speed_btn()
+
+# Small clickable buttons in the bottom row. No keyboard focus, so E / Space never "presses" them.
+func _foot_button(txt: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = txt
+	b.flat = true
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	b.add_theme_font_size_override("font_size", 15)
+	b.add_theme_color_override("font_color", Color("#a49cc4"))
+	b.add_theme_color_override("font_hover_color", GOLD)
+	b.pressed.connect(cb)
+	return b
+
+# Turning speed mode ON asks first (Yes / No); turning it OFF is one click.
+func _on_speed_btn() -> void:
+	if Game.dlg_speed:
+		_set_speed(false)
+	else:
+		_speed_btn.visible = false
+		_speed_ask.visible = true
+
+func _set_speed(on: bool) -> void:
+	Game.dlg_speed = on
+	Game.save_settings()
+	_speed_ask.visible = false
+	_speed_btn.visible = true
+	_refresh_speed_btn()
+
+func _refresh_speed_btn() -> void:
+	_speed_btn.text = "» Speed mode: %s" % ("ON" if Game.dlg_speed else "OFF")
+
+# Footer hint: Backspace shows only when going back is possible for this line.
+func _hint_text() -> String:
+	var parts: Array = []
+	if Game.dlg_back and _back_ok:
+		parts.append("Backspace: back")
+	if can_leave:
+		parts.append("Esc: leave")
+	parts.append("E / Space  >")
+	return "     ".join(parts)
+
+# The buffer: E can't advance until the line has been fully on screen for a moment (none in speed mode).
+func _arm_buffer() -> void:
+	var sec: float = 0.0 if Game.dlg_speed else Game.DLG_BUFFER_SEC[Game.dlg_buffer]
+	_ready_at = Time.get_ticks_msec() + int(sec * 1000.0)
+
 
 func run(steps: Array, ctx: Node) -> void:
 	left = false
-	hint.text = "E / Space  >     Esc: leave" if can_leave else "E / Space  >"
+	_refresh_speed_btn()
+	_speed_ask.visible = false
+	_speed_btn.visible = true
 	active = true
 	panel.visible = true
 	panel.modulate.a = 0.0
@@ -135,19 +208,21 @@ func run(steps: Array, ctx: Node) -> void:
 	active = false
 
 func _run_steps(steps: Array, ctx: Node) -> void:
-	for s in steps:
+	var i := 0
+	while i < steps.size():
+		var s: Dictionary = steps[i]
 		if left:   # Esc: stop here (the rest of the conversation, and anything it would have started, is skipped)
 			return
 		if s.has("do"):
 			await ctx.do_action(s["do"])
 		elif s.has("choice"):
 			var opts: Array = s["choice"].filter(func(o): return not o.has("if") or Game.flag(o["if"]))
-			var i: int = await ask(opts)
-			if i < 0:
+			var pick: int = await ask(opts)
+			if pick < 0:
 				return
-			if opts[i].has("outcome"):   # counts toward "Outcomes x/17" on the title screen (progress_data.gd)
-				Game.unlock(opts[i]["outcome"])
-			await _run_steps(opts[i]["steps"], ctx)
+			if opts[pick].has("outcome"):   # counts toward "Outcomes x/17" on the title screen (progress_data.gd)
+				Game.unlock(opts[pick]["outcome"])
+			await _run_steps(opts[pick]["steps"], ctx)
 		elif s.has("if"):
 			if Game.flag(s["if"]):
 				await _run_steps(s["steps"], ctx)
@@ -155,7 +230,20 @@ func _run_steps(steps: Array, ctx: Node) -> void:
 			if not Game.flag(s["if_not"]):
 				await _run_steps(s["steps"], ctx)
 		else:
+			# Backspace replays the previous line, but only if that step is also a plain line: going back over an
+			# action (camera, fight, item...) or a choice would run it twice, so it's not allowed.
+			_back_ok = i > 0 and _is_line(steps[i - 1])
 			await say(s)
+			_back_ok = false
+			if _back_req:
+				_back_req = false
+				if i > 0 and _is_line(steps[i - 1]):
+					i -= 1
+					continue
+		i += 1
+
+func _is_line(s: Dictionary) -> bool:
+	return not (s.has("do") or s.has("choice") or s.has("if") or s.has("if_not"))
 
 # Hide/show the box mid-dialogue (e.g. while the player sneaks during a scene)
 func hide_box() -> void:
@@ -177,6 +265,8 @@ func say(s: Dictionary) -> void:
 	portrait_frame.visible = tex != null
 	_clear_choices()
 	hint.visible = true
+	hint.text = _hint_text()
+	foot.visible = true
 	text_lbl.visible = true
 	if who == "narrator":
 		text_lbl.text = "[center][i]%s[/i][/center]" % line
@@ -185,19 +275,24 @@ func say(s: Dictionary) -> void:
 	else:
 		text_lbl.text = line
 	var speed: float = Game.TEXT_SPEED_MULT[Game.text_speed]   # Settings → Text speed (0 = instant)
+	if Game.dlg_speed:
+		speed *= 0.5   # speed mode: 2x text
 	if speed <= 0.0:
 		text_lbl.visible_ratio = 1.0
 		_typing = null
+		_arm_buffer()
 	else:
 		text_lbl.visible_ratio = 0.0
 		_typing = create_tween()
 		_typing.tween_property(text_lbl, "visible_ratio", 1.0, max(0.2, line.length() * 0.022 * speed))
+		_typing.finished.connect(_arm_buffer)   # buffer starts when the line is fully shown
 	_speak(who, line, thought)
 	await _next
 
 func ask(opts: Array) -> int:
 	_clear_choices()
 	hint.visible = false
+	foot.visible = false
 	text_lbl.visible = false
 	panel.offset_top = -214 - max(0, opts.size() - 3) * 34   # grow the box for long choice lists
 	_choices = []
@@ -261,11 +356,20 @@ func _unhandled_input(ev: InputEvent) -> void:
 				_picked.emit(n)
 		get_viewport().set_input_as_handled()
 		return
+	if ev is InputEventKey and ev.pressed and not ev.echo and ev.keycode == KEY_BACKSPACE:
+		if Game.dlg_back and _back_ok and not _back_req:   # replay the previous line
+			_back_req = true
+			if _typing and _typing.is_running():
+				_typing.kill()
+			_next.emit()
+		get_viewport().set_input_as_handled()
+		return
 	if ev.is_action_pressed("interact") or (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT):
 		if _typing and _typing.is_running():
 			_typing.kill()
 			text_lbl.visible_ratio = 1.0
-		else:
+			_arm_buffer()   # skipping the typing counts as showing the line: the next press waits out the buffer
+		elif Time.get_ticks_msec() >= _ready_at:
 			_next.emit()
 		get_viewport().set_input_as_handled()
 
