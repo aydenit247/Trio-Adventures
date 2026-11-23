@@ -46,16 +46,18 @@ func arrive() -> void:
 # Talk to any band member.
 func talk_steps(u: Unit) -> Array:
 	var me: String = lv.leader.id
+	# (Asar 11/22) Lykor and Xylo only say lines Asar recorded. These two aren't recorded, so with them leading the
+	# choice text stands in for what they said and the band just answers.
+	var says := func(line: String) -> Array:
+		return [] if me in ["lykor", "xylo"] else [{ "who": me, "line": line }]   # Ebain
 	return [
 		{ "who": "goblin", "name": u.display_name, "portrait": "goblin", "line": "We take requests. We know one song." }, # DRAFT
 		{ "choice": [
-			{ "text": "Dat bih fire mud", "steps": [   # Ebain
-				{ "who": me, "line": "Dat bih fire mud" }, # Ebain
+			{ "text": "Dat bih fire mud", "steps": says.call("Dat bih fire mud") + [   # Ebain
 				{ "who": "goblins", "name": "Goblin Band", "line": "WE STAY JAMMIN'." }, # DRAFT
 				{ "do": "band_keep" },
 			] },
-			{ "text": "Y'all could get lost?", "steps": [   # Ebain
-				{ "who": me, "line": "Y'all could get lost?" }, # Ebain
+			{ "text": "Y'all could get lost?", "steps": says.call("Y'all could get lost?") + [   # Ebain
 				{ "who": "goblins", "name": "Goblin Band", "line": "…Tough crowd. We'll be at the bar. Don't come looking." }, # DRAFT
 				{ "do": "band_leave" },
 			] },
