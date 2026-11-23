@@ -88,6 +88,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   api.sketchfab.com plus an API token.
 - [ebain] Sounds go in `godot/assets/sounds/` as `.ogg` (e.g. crickets.ogg, a seamless loop cut with ffmpeg + numpy).
   Set `loop=true` in the `.import` file.
+- [asar] **`lv.place_party(p, facing)` puts the 2 followers BEHIND `p`** (and resets control to party[0]). Next to a wall or
+  doorway that's inside the wall. Village rooms use `vb._place_party(p, ahead)` instead (followers ahead, leader kept).
 - [asar] **Followers with meta `band` (the goblin band) don't get teleported into buildings** with the other followers;
   GoblinBand walks them to the door instead. To mute/fade an area's song from code, set its AreaMusic `gain_db` every
   frame (0 = normal, -60 = silent); the song keeps running silently so it picks up where it was.

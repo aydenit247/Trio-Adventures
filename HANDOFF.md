@@ -106,6 +106,7 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
 `$SHOT_DIR`. Useful env vars:
 - `VILLAGE_CHOICE=0..4`, `MART_CHOICE=0..4`, `PASS_CHOICE=0..4` — which choice path the tour takes
 - `VILLAGE_TOUR=buildings TOUR_PART=1|2` — walks every village building and quest
+- `VILLAGE_TOUR=roomswitch` — enters the bar, shaman tent and Chief's hut, switches to every character, walks into every wall; prints ALL OK if nobody leaves the room
 - `VILLAGE_TOUR=band` — the goblin band: arrives, follows, waits at the bar door, keeps playing, then gets sent away
 - `FIGHT=goblins|dulbers|giant|goblin_patrol|bouncer` (+ `LEVEL=2`, `ALLIES=1`, `AUTO_LOSE=1`, `MENUS=1`) — runs one fight
 - `LOOK="x,z,yaw;..."` (camp) — close-up screenshots of spots with the fire lit
