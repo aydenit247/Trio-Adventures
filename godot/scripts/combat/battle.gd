@@ -726,6 +726,8 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			return { "kind": "phase", "text": "Dulbers SHAPESHIFTS… into %s?! (Bootleg version)" % D.PARTY[e["disguise"]]["name"], "bark": "phase", "disguise": e["disguise"] }
 		if e["ai"] == "mattias":
 			return { "kind": "phase", "text": "Metocin Mattias stops holding back. (Every hit lands harder now.)", "bark": "phase" }
+		if e["ai"] == "rat_king":   # DRAFT
+			return { "kind": "phase", "text": "King Nibbsworth III takes a bite of his own scepter. He's eating to win now.", "bark": "phase" }
 
 	# Boss buffs (Ebain 11/24: "think of more buffs bosses can do"). Texts are # DRAFT.
 	if e.get("boss", false):
@@ -736,7 +738,7 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 		var every: int = 7 if e["ai"] == "mattias" else 5
 		if e["turn"] % every == every - 1 and not e["st"].has("braced"):
 			var why: String = { "giant": "Diddy Chud flexes his big back.", "dulbers": "Dulbers pins on a MANAGER badge.",
-				"mattias": "Mattias adjusts his robe. Unbothered." }.get(e["ai"], "%s braces." % e["name"]) # DRAFT
+				"mattias": "Mattias adjusts his robe. Unbothered.", "rat_king": "The Rat King hides behind his cape." }.get(e["ai"], "%s braces." % e["name"]) # DRAFT
 			return { "kind": "buff", "status": "braced", "turns": 2, "text": why + " BRACED: takes 30% less damage for 2 turns." }
 
 	if mods.get("enemy_tripping", false) and rnd() < 0.3:
@@ -750,6 +752,25 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			return { "kind": "hype", "other": pick(buddies), "text": "%s yells \"LET'S GOOOO!\"" % e["name"], "bark": "hype" }
 		var t := target(e)
 		return { "kind": "hit", "name": "Spoon Bonk", "power": 9, "targets": [t], "text": "%s bonks %s with a spoon!" % [e["name"], t["name"]], "sound": "bonk" }
+
+	# the rat cave (RUINS_PLAN.md). Move names/texts: # DRAFT
+	if e["ai"] == "rat":
+		var buddies := alive(enemies).filter(func(x): return not is_same(x, e) and not x["st"].has("hyped"))
+		if not buddies.is_empty() and rnd() < 0.15:
+			return { "kind": "hype", "other": pick(buddies), "text": "%s squeaks a war cry. SQUEAK SQUEAK!" % e["name"], "bark": "hype" }
+		var t := target(e)
+		if rnd() < 0.3:
+			return { "kind": "hit", "name": "Ankle Nibble", "power": 7, "targets": [t], "text": "%s nibbles %s's ankle!" % [e["name"], t["name"]], "sound": "bonk" }
+		return { "kind": "hit", "name": "Toothpick Poke", "power": 11, "targets": [t], "text": "%s pokes %s with a toothpick spear!" % [e["name"], t["name"]], "sound": "bonk" }
+
+	if e["ai"] == "rat_king":
+		if e["phase"] == 2 and e.get("corn", 0) < 2 and e["hp"] < e["max_hp"] * 0.4 and rnd() < 0.35:
+			e["corn"] = e.get("corn", 0) + 1
+			return { "kind": "eat", "amt": 45, "text": "King Nibbsworth III gnaws on the Corncob Scepter. Royal snack. (+45)" }
+		if rnd() < 0.3:
+			return all.merged({ "kind": "hit", "name": "Royal Decree", "power": 19, "text": "King Nibbsworth III: \"By royal decree… y'all are MID.\" It hurts everyone's feelings.", "sound": "roar" })
+		var t := target(e)
+		return { "kind": "hit", "name": "Corncob Bonk", "power": 32, "targets": [t], "text": "King Nibbsworth III bonks %s with the Corncob Scepter!" % t["name"], "sound": "slap" }
 
 	if e["ai"] == "dulbers":
 		if e["phase"] == 2:

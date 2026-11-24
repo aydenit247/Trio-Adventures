@@ -1,6 +1,9 @@
 # Ruins → Cave → Rat Colony, and Charis's house (plan, Ebain 2026-11-24)
 
-Status: **planned, not built.** A chat that builds this: claim it on the COLLAB board first, follow CLAUDE.md.
+Status: **built 2026-11-24** (ebain/ruins). How it works now: HANDOFF.md section 1 (item 3½) and the code map (`ruins.gd`, `cave.gd`).
+Changes from this plan: the ruins are reached from a path WEST off the Metocy Mart street (village.gd was claimed by Asar),
+the cave is its own scene (`cave.tscn`), and Ebain answered: drafted rat names, all 5 rat options as written, the mog
+outcome gives a pet rat that follows you everywhere, Charis built now with placeholder art.
 Everything marked DRAFT is a placeholder: Ebain writes the real lines and has the final say on story/characters.
 
 ## Ebain's answers (don't re-ask)

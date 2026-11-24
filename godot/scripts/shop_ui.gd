@@ -22,6 +22,10 @@ const STOCK := [
 ]
 
 var lv: Node
+var stock: Array = STOCK
+var shop_title := "HAGGLE'S STALL"
+var broke_line := "Haggle: \"No gold, no goods. No haggling.\""
+var discount := 1.0
 var root: Control
 var rows: Array = []
 var scroll: ScrollContainer
@@ -37,12 +41,17 @@ var note_lbl: Label
 var _opened_at := 0
 var _font: Font
 
-static func open_shop(level: Node) -> void:
+# opts (all optional): stock (same shape as STOCK), title, broke (line when you can't pay), discount (0.5 = half price)
+static func open_shop(level: Node, opts := {}) -> void:
 	level.busy = true
 	level.freeze_all(true)
 	level.dialogue.hide_box()
 	var ui := ShopUI.new()
 	ui.lv = level
+	ui.stock = opts.get("stock", STOCK)
+	ui.shop_title = opts.get("title", ui.shop_title)
+	ui.broke_line = opts.get("broke", ui.broke_line)
+	ui.discount = opts.get("discount", 1.0)
 	level.hud.add_child(ui)
 	ui._build()
 	if level.shots_mode:   # automated tour: show it, buy a Beezy, close
@@ -96,7 +105,7 @@ func _build() -> void:
 		for i in n:   # scalloped edge
 			awn.draw_circle(Vector2((i + 0.5) * W / n, 52), W / n * 0.5, Color("#b8322a") if i % 2 == 0 else Color("#efe3c2")))
 	root.add_child(awn)
-	var title := _lbl("HAGGLE'S STALL", 30, Color("#2b1d10"), _font, 0)
+	var title := _lbl(shop_title, 30, Color("#2b1d10"), _font, 0)
 	title.position = Vector2(0, 8); title.size = Vector2(W, 40)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(title)
@@ -124,7 +133,7 @@ func _build() -> void:
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", 6)
 	scroll.add_child(list)
-	for i in STOCK.size():
+	for i in stock.size():
 		var r := Panel.new()
 		r.custom_minimum_size = Vector2(430, 56)
 		r.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -197,19 +206,26 @@ func _build() -> void:
 	_refresh()
 
 # ---- data
+func _price(i: int) -> int:
+	return maxi(1, int(round(stock[i][2] * discount)))
+
+# "item" ids are bag items: heal items (CombatD.ITEMS) or permanent boosts (CombatD.BOOSTS)
+func _item_def(id: String) -> Dictionary:
+	return CombatD.ITEMS[id] if CombatD.ITEMS.has(id) else CombatD.BOOSTS[id]
+
 func _name(i: int) -> String:
-	var id: String = STOCK[i][0]
-	return CombatD.ITEMS[id]["name"] if STOCK[i][1] == "item" else CombatD.GEAR[id]["name"]
+	var id: String = stock[i][0]
+	return _item_def(id)["name"] if stock[i][1] == "item" else CombatD.GEAR[id]["name"]
 
 func _desc(i: int) -> String:
-	var id: String = STOCK[i][0]
-	if STOCK[i][1] == "item":
-		return CombatD.ITEMS[id]["desc"]
+	var id: String = stock[i][0]
+	if stock[i][1] == "item":
+		return _item_def(id)["desc"]
 	var G: Dictionary = CombatD.GEAR[id]
 	return G["desc"] + "\n(" + Game.SLOT_NAMES.get(G["slot"], G["slot"].capitalize()) + ")" if G["slot"] != "trinket" else G["desc"] + "\n(Trinket)"
 
 func _owned(i: int) -> bool:
-	return STOCK[i][1] == "gear" and Game.gear_owned.has(STOCK[i][0])
+	return stock[i][1] == "gear" and Game.gear_owned.has(stock[i][0])
 
 func _icon(id: String) -> Texture2D:
 	var t: Texture2D = lv.item_icon(id)
@@ -238,30 +254,30 @@ func _refresh() -> void:
 	who_lbl.text = "Buying for: %s" % CombatD.PARTY[Game.active_fighter]["name"]
 	for i in rows.size():
 		var r: Dictionary = rows[i]
-		r["icon"].texture = _icon(STOCK[i][0])
+		r["icon"].texture = _icon(stock[i][0])
 		r["name"].text = _name(i)
 		var owned := _owned(i)
-		r["price"].text = "OWNED" if owned else "%d g" % STOCK[i][2]
-		r["price"].add_theme_color_override("font_color", Color(1, 1, 1, 0.45) if owned else (GOLD if Game.gold >= STOCK[i][2] else Color("#ff6a5a")))
+		r["price"].text = "OWNED" if owned else "%d g" % _price(i)
+		r["price"].add_theme_color_override("font_color", Color(1, 1, 1, 0.45) if owned else (GOLD if Game.gold >= _price(i) else Color("#ff6a5a")))
 		r["panel"].add_theme_stylebox_override("panel", _box(Color("#5a3a1f") if i == sel else Color("#2a1b0e"), GOLD if i == sel else Color("#4a3320"), 2, 6))
-	big_icon.texture = _icon(STOCK[sel][0])
+	big_icon.texture = _icon(stock[sel][0])
 	name_lbl.text = _name(sel)
 	desc_lbl.text = _desc(sel)
 	var have := ""
-	if STOCK[sel][1] == "item":
-		have = "   (you have %d)" % Game.count(STOCK[sel][0])
-	price_lbl.text = ("Already yours" if _owned(sel) else "%d gold" % STOCK[sel][2]) + have
-	buy_btn.disabled = _owned(sel) or Game.gold < STOCK[sel][2]
+	if stock[sel][1] == "item":
+		have = "   (you have %d)" % Game.count(stock[sel][0])
+	price_lbl.text = ("Already yours" if _owned(sel) else "%d gold" % _price(sel)) + have
+	buy_btn.disabled = _owned(sel) or Game.gold < _price(sel)
 
 func _buy() -> void:
-	if _owned(sel) or Game.gold < STOCK[sel][2]:
-		note_lbl.text = "Haggle: \"No gold, no goods. No haggling.\"" if not _owned(sel) else "You already have that."
+	if _owned(sel) or Game.gold < _price(sel):
+		note_lbl.text = broke_line if not _owned(sel) else "You already have that."
 		return
-	var id: String = STOCK[sel][0]
-	Game.add_gold(-STOCK[sel][2])
+	var id: String = stock[sel][0]
+	Game.add_gold(-_price(sel))
 	var who: String = Game.active_fighter
 	var nm: String = CombatD.PARTY[who]["name"]
-	if STOCK[sel][1] == "item":
+	if stock[sel][1] == "item":
 		Game.add_item(id, 1, who)
 		note_lbl.text = "%s got: %s" % [nm, _name(sel)]
 	else:
@@ -284,9 +300,9 @@ func _input(ev: InputEvent) -> void:
 	elif ev.is_action_pressed("interact") or ev.is_action_pressed("ui_accept"):
 		_buy()
 	elif ev.is_action_pressed("move_back") or ev.is_action_pressed("ui_down"):
-		sel = (sel + 1) % STOCK.size(); _refresh(); UITheme.play("move")
+		sel = (sel + 1) % stock.size(); _refresh(); UITheme.play("move")
 	elif ev.is_action_pressed("move_forward") or ev.is_action_pressed("ui_up"):
-		sel = (sel - 1 + STOCK.size()) % STOCK.size(); _refresh(); UITheme.play("move")
+		sel = (sel - 1 + stock.size()) % stock.size(); _refresh(); UITheme.play("move")
 	else:
 		return
 	get_viewport().set_input_as_handled()

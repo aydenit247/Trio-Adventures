@@ -11,6 +11,11 @@ const DOOR_OUT := Vector3(-2.9, 0, -10.5)          # in front of the painted doo
 const COUNTER := INT + Vector3(0, 0, -3.0)
 const DOOR_IN := INT + Vector3(5.2, 0, 2.8)
 const EXIT_POS := Vector3(14, 0, 0)
+const RS = preload("res://scripts/ruins_script.gd")
+const RUINS_Z := 6.2                               # the side path west to the Old Ruins (RUINS_PLAN.md)
+const RUINS_EXIT_X := -15.5
+const HOUSE_DOOR := Vector3(9.2, 0, -14.0)         # Charis's house = the house right of the Mart (its front door)
+const HOUSE := Vector3(340, 0, 0)                  # its inside, built off to the side like the shop
 
 # "outside" → "arrived" (go inside) → "inside" → "after" (walk east) → "end"
 var stage := "outside"
@@ -23,6 +28,8 @@ var trip_overlay: ColorRect
 var allies: Array[Unit] = []
 var chief: Unit
 var pass_sign: Node3D
+var in_house := false
+var charis: Unit
 
 func _configure() -> void:
 	night = true
@@ -50,20 +57,22 @@ func _build_level() -> void:
 	for k in 14:
 		var side := -1.0 if k % 2 == 0 else 1.0
 		var p := Vector3(side * rng.randf_range(8.5, 16.0), 0, rng.randf_range(-11, 14))
-		if p.x > 0 and abs(p.z) < 3.0:
+		if p.x > 0 and abs(p.z) < 3.0 or p.x < 0 and abs(p.z - RUINS_Z) < 3.2:
 			continue
 		card("tree_%d" % (rng.randi() % 4 + 1), rng.randf_range(6.0, 9.0), p, rng.randf() < 0.5, true)
 	for k in 12:
 		var side := -1.0 if k % 2 == 0 else 1.0
 		var p := Vector3(side * rng.randf_range(6.5, 9.0), 0, rng.randf_range(-9, 12))
-		if p.x > 0 and abs(p.z) < 3.0:
+		if p.x > 0 and abs(p.z) < 3.0 or p.x < 0 and abs(p.z - RUINS_Z) < 3.0:
 			continue
 		if rng.randf() < 0.7:
 			card("bush_%d" % (rng.randi() % 3 + 1), rng.randf_range(1.2, 2.0), p, rng.randf() < 0.5, true)
 		else:
 			Models.place(self, "namaqualand_boulder_05", p, rng.randf() * TAU, rng.randf_range(1.0, 1.6), true, Color(0.6, 0.62, 0.7))
-	_walls(Vector3.ZERO, 9.5, -11.5, 14.0, true)
+	_walls(Vector3.ZERO, 9.5, -11.5, 14.0, true, true)
 	_mart_props()
+	_ruins_path()
+	_charis_house()
 	# ---- inside: the shop room
 	_build_room()
 	dulbers = spawn_npc("dulbers", "Dulbers Frint", "dulbers", 1.3, DOOR_OUT + Vector3(0, 0, -0.5))
@@ -79,7 +88,26 @@ func _build_level() -> void:
 			g.set_meta("follow_i", i + 1)
 			allies.append(g)
 
-func _walls(c: Vector3, half_x: float, back_z: float, front_z: float, east_gap: bool) -> void:
+func _walls(c: Vector3, half_x: float, back_z: float, front_z: float, east_gap: bool, street := false) -> void:
+	if street:   # the street: gaps west (path to the Old Ruins) and back-right (Charis's yard), RUINS_PLAN.md
+		var g0 := RUINS_Z - 2.0
+		var g1 := RUINS_Z + 2.0
+		Util.static_box(self, c + Vector3(-half_x, 1, (back_z + g0) / 2.0), Vector3(0.5, 2, g0 - back_z))
+		Util.static_box(self, c + Vector3(-half_x, 1, (g1 + front_z) / 2.0), Vector3(0.5, 2, front_z - g1))
+		Util.static_box(self, c + Vector3(-half_x - 4.0, 1, g0), Vector3(8.0, 2, 0.5))   # the path's sides
+		Util.static_box(self, c + Vector3(-half_x - 4.0, 1, g1), Vector3(8.0, 2, 0.5))
+		Util.static_box(self, c + Vector3(-half_x - 8.2, 1, RUINS_Z), Vector3(0.5, 2, 4.5))
+		Util.static_box(self, c + Vector3(-0.0, 1, back_z), Vector3(11.0, 2, 0.5))        # back wall, left part (x -5.5..5.5)
+		Util.static_box(self, c + Vector3(-7.5, 1, back_z), Vector3(4.0, 2, 0.5))
+		Util.static_box(self, c + Vector3(5.5, 1, back_z - 1.4), Vector3(0.5, 2, 2.8))    # Charis's yard sides
+		Util.static_box(self, c + Vector3(half_x, 1, back_z - 1.4), Vector3(0.5, 2, 2.8))
+		Util.static_box(self, c + Vector3(half_x, 1, (back_z - 2.2) / 2.0), Vector3(0.5, 2, -2.2 - back_z))
+		Util.static_box(self, c + Vector3(half_x, 1, (front_z + 2.2) / 2.0), Vector3(0.5, 2, front_z - 2.2))
+		Util.static_box(self, c + Vector3(18, 1, 0), Vector3(0.5, 2, 8))
+		Util.static_box(self, c + Vector3(13.5, 1, -2.4), Vector3(9, 2, 0.5))
+		Util.static_box(self, c + Vector3(13.5, 1, 2.4), Vector3(9, 2, 0.5))
+		Util.static_box(self, c + Vector3(0, 1, front_z), Vector3(half_x * 2, 2, 0.5))
+		return
 	Util.static_box(self, c + Vector3(-half_x, 1, (back_z + front_z) / 2.0), Vector3(0.5, 2, front_z - back_z))
 	if east_gap:
 		Util.static_box(self, c + Vector3(half_x, 1, (back_z - 2.2) / 2.0), Vector3(0.5, 2, -2.2 - back_z))
@@ -500,12 +528,23 @@ func _level_process(_delta: float) -> void:
 				u.sprite.modulate = Color.from_hsv(fmod(t * 0.1 + u.global_position.x * 0.05, 1.0), 0.35, 1.0)
 	if busy:
 		return
-	if stage == "outside" and leader.global_position.z < 1.5:
+	if (stage == "outside" or stage == "after") and not inside and not in_house and leader.global_position.x < RUINS_EXIT_X:
+		stage = "end"
+		_to_ruins()
+	elif stage == "outside" and leader.global_position.z < 1.5:
 		stage = "arrived"
 		_arrive()
 	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.0:
 		stage = "end"
 		_to_pass()
+
+func _to_ruins() -> void:
+	busy = true
+	await fade_out(0.7)
+	if Game.flag("ruinsStarted"):
+		Game.travel("res://ruins.tscn", "mart", leader.id)
+	else:
+		Game.goto("res://ruins.tscn")
 
 func _to_pass() -> void:
 	busy = true
@@ -521,16 +560,24 @@ func map_buildings() -> Array:
 	return [{ "pos": Vector3(SHOP_X, 0, SHOP_FRONT - 3.0), "name": "Metocy Mart" }]
 
 func map_place() -> String:
+	if leader and leader.global_position.x > 320.0:
+		return "Charis's House"
 	return "Metocy Mart" if leader and leader.global_position.x > 200.0 else ""
 
 func map_place_door() -> Vector3:
-	return DOOR_OUT
+	return HOUSE_DOOR if in_house else DOOR_OUT
 
 func _level_interactables() -> Array:
 	if stage == "after":
+		if in_house:
+			return [
+				{ "id": "house_exit", "label": "outside", "verb": "Go", "pos": HOUSE + Vector3(0, 0, 3.6), "h": 2.2, "r": 1.8, "steps": [{ "do": "house_out" }] },
+				{ "id": "charis", "label": "Charis", "verb": "Talk to", "node": charis, "h": 2.1, "r": 2.2, "steps": [{ "do": "charis_talk" }] },
+			]
 		if inside:
 			return [{ "id": "shop_exit", "label": "outside", "verb": "Go", "pos": DOOR_IN, "h": 2.2, "r": 1.8, "steps": [{ "do": "shop_out" }] }]
-		return [{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 2.6, "steps": [{ "do": "shop_in" }] }]
+		return [{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 2.6, "steps": [{ "do": "shop_in" }] },
+			{ "id": "house_door", "label": "Charis's house", "verb": "Knock on", "pos": HOUSE_DOOR + Vector3(0, 0, 0.9), "h": 2.4, "r": 1.8, "steps": [{ "do": "house_in" }] }]
 	if stage == "arrived":
 		return [
 			{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 3.0, "steps": [{ "do": "enter_shop" }] + MS.SHOP },
@@ -558,6 +605,14 @@ func _on_action(n: String) -> void:
 			await _shop_in()
 		"shop_out":
 			await _shop_out()
+		"house_in":
+			await _house_in()
+		"house_out":
+			await _house_out()
+		"charis_talk":
+			var first := not Game.flag("charisMet")
+			Game.set_flag("charisMet")
+			await run_nested(RS.CHARIS_HI if first else RS.CHARIS_AGAIN)
 		"dulbers_appears":
 			dulbers.global_position = DOOR_OUT
 			dulbers.visible = true
@@ -879,7 +934,7 @@ func _leave() -> void:
 # ---------------------------------------------------------------- coming back later (Game.travel / saves)
 # Dulbers is gone (escaped, beaten or vanished) in every ending, so the shop is just empty and you can walk in.
 func can_resume() -> bool:
-	return stage == "after" and not inside
+	return stage == "after" and not inside and not in_house
 
 func free_roam() -> bool:
 	return stage == "after"
@@ -908,7 +963,7 @@ func _resume(r: Dictionary) -> void:
 		allies[i].global_position = leader.global_position + Vector3(-1.2 + i * 0.8, 0, 1.6)
 
 func back_exit() -> Dictionary:
-	if stage == "after" and not inside:
+	if stage == "after" and not inside and not in_house:
 		return { "pos": Vector3(0, 0, 13.0), "r": 2.2, "scene": "res://village.tscn", "name": "Goblin Village" }
 	return {}
 
@@ -917,6 +972,8 @@ func arrival(from: String) -> Array:
 		return [Vector3(0, 0, 8.5), Vector3(0, 0, -1)]
 	if from == "pass":
 		return [EXIT_POS + Vector3(-5.5, 0, 0), Vector3(-1, 0, 0)]
+	if from == "ruins":
+		return [Vector3(-12.5, 0, RUINS_Z), Vector3(1, 0, 0)]
 	return super.arrival(from)
 
 # the empty shop: walk in and out freely once Dulbers is gone
@@ -943,6 +1000,118 @@ func _shop_out() -> void:
 	place_party(DOOR_OUT + Vector3(0, 0, 1.6), Vector3(0, 0, 1))
 	for i in allies.size():
 		allies[i].global_position = DOOR_OUT + Vector3(-1.5 + i * 0.9, 0, 2.6)
+	zoom = 11.0
+	cam_height = 0.3
+	cam_look_h = 2.6
+	cam_target = leader.global_position
+	fade_in(0.4)
+	busy = false
+
+# ---------------------------------------------------------------- the Old Ruins path + Charis's house (RUINS_PLAN.md)
+func _ruins_path() -> void:
+	Models.patch(self, Vector3(-13.5, 0, RUINS_Z), Vector2(9.0, 3.2), "cobblestone_floor_04", 2.0, Color(0.6, 0.6, 0.66), 0.0, 0.45)
+	wood_sign("sign_mart_ruins", "OLD RUINS\n(DEFINITELY NO TRAPS)", Vector3(-8.2, 1.25, RUINS_Z + 2.6), 0.5, 1.7, 0.56, true)   # DRAFT
+	for k in 6:   # the path's edges: bushes and a few rocks
+		var x := -11.0 - k * 1.3
+		card("bush_%d" % (1 + k % 3), rng.randf_range(1.1, 1.6), Vector3(x, 0, RUINS_Z + 2.6), k % 2 == 0, true)
+		card("bush_%d" % (1 + (k + 1) % 3), rng.randf_range(1.1, 1.6), Vector3(x - 0.6, 0, RUINS_Z - 2.6), k % 2 == 1, true)
+	for k in 5:
+		card("tree_%d" % (1 + k % 4), rng.randf_range(7.0, 9.0), Vector3(-18.5 + rng.randf_range(-1, 1), 0, RUINS_Z - 4.0 + k * 2.0), k % 2 == 0, true)
+
+func _charis_house() -> void:
+	# a door + sign on the front of the house right of the Mart (mart.gd _house at 9.5, -17)
+	var rot := -0.1
+	Models.block(self, HOUSE_DOOR + Vector3(0, 1.0, 0), Vector3(1.1, 2.0, 0.1), Models.mat("dark_wooden_planks", 0.8, Color(0.5, 0.38, 0.3)), rot)
+	wood_sign("sign_charis", "CHARIS", HOUSE_DOOR + Vector3(0, 2.4, 0.12), rot, 1.1, 0.36)
+	var porch := OmniLight3D.new()
+	porch.light_color = Color(1.0, 0.72, 0.42)
+	porch.light_energy = 1.2
+	porch.omni_range = 4.0
+	porch.position = HOUSE_DOOR + Vector3(0.9, 2.3, 0.6)
+	add_child(porch)
+	add_glow(HOUSE_DOOR + Vector3(0, 1, 0.8), Color(1.0, 0.75, 0.45), 4.0, func(): return 0.7)
+	Models.patch(self, Vector3(7.5, 0, -12.8), Vector2(4.2, 3.0), "cobblestone_floor_04", 1.6, Color(0.6, 0.6, 0.66), 0.0, 0.3)
+	# the inside: a cozy room off to the side (bed, table, shelves, rug, fireplace, plants)
+	var floor_body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = Vector3(14, 1, 12)
+	cs.shape = bs
+	cs.position = HOUSE + Vector3(0, -0.5, 0)
+	floor_body.add_child(cs)
+	add_child(floor_body)
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(14, 20)
+	Util.add_mesh(self, pm, Models.mat("old_wooden_floor_01", 2.0, Color(0.72, 0.62, 0.55)), HOUSE + Vector3(0, 0.001, 4))
+	var wall := Models.mat("clay_plaster", 2.0, Color(0.78, 0.7, 0.62))
+	var beam := Models.mat("dark_wood", 1.0, Color(0.5, 0.4, 0.32))
+	Models.block(self, HOUSE + Vector3(0, 3.0, -4.5), Vector3(12, 6, 0.3), wall)
+	for x in [-6.0, 6.0]:
+		Models.block(self, HOUSE + Vector3(x, 3.0, -0.5), Vector3(0.3, 6, 8.6), wall)
+	for z in [-3.0, 0.0]:
+		Models.block(self, HOUSE + Vector3(0, 4.6, z), Vector3(12, 0.25, 0.25), beam)
+	var dark := Util.mat(Color(0.08, 0.055, 0.045))
+	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var shell := PlaneMesh.new()
+	shell.size = Vector2(40, 20)
+	Util.add_mesh(self, shell, dark, HOUSE + Vector3(0, 6, -4.7), Vector3(PI / 2.0, 0, 0))
+	Util.add_mesh(self, shell, dark, HOUSE + Vector3(0, 6.5, 0), Vector3(PI, 0, 0))
+	_walls(HOUSE, 5.6, -4.2, 4.6, false)
+	Models.block(self, HOUSE + Vector3(-1.5, 0.01, 0.6), Vector3(4.2, 0.02, 2.8), Models.mat("quatrefoil_jacquard_fabric", 1.0, Color(0.85, 0.6, 0.65)))   # rug
+	Models.place(self, "GothicBed_01", HOUSE + Vector3(3.8, 0, -2.8), 0.0, 1.0, true, Color(0.9, 0.8, 0.85))
+	Models.place(self, "round_wooden_table_01", HOUSE + Vector3(-2.0, 0, 0.4), 0.0, 1.0, true)
+	Models.place(self, "painted_wooden_chair_01", HOUSE + Vector3(-3.1, 0, 0.6), PI / 2.0, 1.0, false, Color(0.55, 0.42, 0.35))
+	Models.place(self, "painted_wooden_chair_01", HOUSE + Vector3(-0.9, 0, 0.2), -PI / 2.0, 1.0, false, Color(0.55, 0.42, 0.35))
+	Models.place(self, "wooden_bookshelf_worn", HOUSE + Vector3(-4.2, 0, -4.0), 0.0, 1.0, true)
+	Models.place(self, "Shelf_01", HOUSE + Vector3(0.6, 1.8, -4.25), 0.0, 1.0)
+	Models.place(self, "planter_pot_clay", HOUSE + Vector3(5.3, 0, 2.6), 0.0, 1.2)
+	Models.place(self, "planter_pot_clay", HOUSE + Vector3(-5.3, 0, 2.8), 0.0, 1.0)
+	Models.place(self, "wooden_lantern_01", HOUSE + Vector3(-2.0, 0.78, 0.4), 0.0, 0.7)
+	Models.place(self, "stone_fire_pit", HOUSE + Vector3(1.2, 0, -3.4), 0.0, 1.0)
+	var fire := Fx.flames(0.6)
+	fire.position = HOUSE + Vector3(1.2, 0.25, -3.4)
+	add_child(fire)
+	for lp in [HOUSE + Vector3(1.2, 1.2, -3.0), HOUSE + Vector3(-2.0, 2.2, 0.6)]:
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.68, 0.4)
+		l.light_energy = 1.5
+		l.omni_range = 7.0
+		l.position = lp
+		add_child(l)
+	add_glow(HOUSE + Vector3(0, 1, -1), Color(1.0, 0.72, 0.45), 9.0, func(): return 0.75, true)
+	charis = spawn_npc("charis", "Charis", "charis", 1.75, HOUSE + Vector3(1.8, 0, -1.2))
+	var tag := Label3D.new()
+	tag.text = "Charis (Art Coming Soon)"   # placeholder until Ebain's art
+	tag.font_size = 30
+	tag.pixel_size = 0.0065
+	tag.outline_size = 8
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.modulate = Color("#ffcf9a")
+	tag.position = Vector3(0, 2.0, 0)
+	charis.add_child(tag)
+
+func _house_in() -> void:
+	busy = true
+	await fade_out(0.4)
+	in_house = true
+	place_party(HOUSE + Vector3(0, 0, 2.6), Vector3(0, 0, -1))
+	for i in allies.size():
+		allies[i].global_position = HOUSE + Vector3(-4.0 + i * 1.0, 0, 3.4)
+	zoom = 8.5
+	cam_height = 0.38
+	cam_look_h = 1.8
+	cam_target = leader.global_position
+	fade_in(0.4)
+	show_toast("Charis's House", 1.6)
+	busy = false
+
+func _house_out() -> void:
+	busy = true
+	await fade_out(0.4)
+	in_house = false
+	place_party(HOUSE_DOOR + Vector3(-1.2, 0, 2.6), Vector3(0, 0, -1))   # followers land on the street side, not in the wall
+	for i in allies.size():
+		allies[i].global_position = HOUSE_DOOR + Vector3(-2.0 + i * 0.8, 0, 2.4)
 	zoom = 11.0
 	cam_height = 0.3
 	cam_look_h = 2.6
@@ -994,6 +1163,25 @@ func _shot_tour() -> void:
 	place_party(EXIT_POS + Vector3(-2.5, 0, 0), Vector3(1, 0, 0))
 	await wait(2.5)
 	await shot("m_09_%s_end" % tag)
+	# Charis's house (RUINS_PLAN.md): knock, talk, leave
+	if stage != "after":   # the tour's own steps don't always reach free roam: finish the scene first
+		busy = false
+		await _leave()
+	place_party(HOUSE_DOOR + Vector3(-0.6, 0, 1.8), Vector3(0, 0, -1))
+	await wait(0.8)
+	var hd: Array = current_interactables().filter(func(i): return i["id"] == "house_door")
+	if hd.is_empty():
+		print("MART TOUR no house door (stage=", stage, ")")
+	else:
+		start(hd[0])
+		await wait(1.5)
+		await shot("m_10_charis_house")
+		start(current_interactables().filter(func(i): return i["id"] == "charis")[0])
+		await advance(1, 0.6)
+		await wait(0.8)
+		start(current_interactables().filter(func(i): return i["id"] == "house_exit")[0])
+		await wait(1.5)
+		print("MART TOUR charis met=", Game.flag("charisMet"), " in_house=", in_house)
 	get_tree().quit()
 
 const PLANK_SHADER := """

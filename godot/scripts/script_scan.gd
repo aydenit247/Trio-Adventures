@@ -10,7 +10,7 @@ extends RefCounted
 const SCRIPTS := [
 	"res://scripts/camp_script.gd", "res://scripts/trail_script.gd", "res://scripts/village_script.gd",
 	"res://scripts/village_rooms_script.gd", "res://scripts/mart_script.gd", "res://scripts/pass_script.gd",
-	"res://scripts/summit_script.gd", "res://scripts/combat/combat_data.gd",
+	"res://scripts/summit_script.gd", "res://scripts/ruins_script.gd", "res://scripts/combat/combat_data.gd",
 ]
 # Voice Lines tabs: [tab label, speaker ids / voices folders in it]
 const CATS := [

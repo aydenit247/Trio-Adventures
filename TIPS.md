@@ -55,6 +55,14 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   queue and talks over it. Test the queue headless with `res://tools/test_skip_voice.tscn` (fake TTS).
 - [asar] Voice lines match by line text. **Reword a voiced line and it silently goes back to TTS** until it's regenerated.
 
+- [ebain] **An autowrap Label inside a SHRINK_CENTER container shrinks to ~0 wide** and shows one letter per line. Give it
+  a `custom_minimum_size.x` from `font.get_string_size()` (Level.objective() does this now; the objective plate was
+  vertical in every area since UI part 2).
+- [ebain] **Dark areas:** cutouts are unshaded, so lights don't touch them. Override `light_at()` (see cave.gd: dark base +
+  torch glows + a glow that follows the leader) and set the environment to `BG_COLOR` black, sun off.
+- [ebain] **Battle items are hard-coded to beer/bowl** (battle.gd bags, battle_view menus). A new shop "item" is either one
+  of those or a BOOSTS item (permanent, used from Tab), like `cave_cheese`.
+
 ## Testing tricks
 - [asar] **Windows crash dumps** are in `%LOCALAPPDATA%\CrashDumps\TrioAdventures.exe.*.dmp`. You can parse the minidump with plain Python `struct` (exception stream 6, module list 4, thread list 3, memory64 list 9). Asar's 4 crashes were all worker threads with GPU shader-compiler DLLs on the stack (Vulkan driver), not scripts or TTS.
 - [asar] **Crash/freeze reports:** the game writes them to `Crash Reports/` next to the exe (sandbox/editor: `~/.local/share/godot/app_userdata/Trio Adventures/Crash Reports`). A sandbox run killed by `timeout` makes a Crash report on the next run (expected). Put real ones in the repo's `Crash Reports/` folder and note the cause in its README. `CrashReporter.note("...")` adds your own breadcrumb.
@@ -82,6 +90,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   scale (`Level.apply_graphics()`). New expensive effects should respect `Game.quality`.
 
 ## Assets
+- [ebain] **New shop = `ShopUI.open_shop(lv, { "stock": [...], "title": "...", "broke": "...", "discount": 0.5 })`** (Scrounge
+  in cave.gd). Leave opts out for Haggle's Stall.
+- [ebain] **Cameras look north (−z):** walls on the south side of a room hide the party. Build them as low lips
+  (0.7 m) with full-height collision (cave.gd `_wall_x/_wall_z(..., low)`).
 - [ebain] `python3 tools/fetch_polyhaven.py model|texture <ids> [res]`. Afterwards: `--import`, then set
   `compress/mode=2` + `mipmaps/generate=true` in the `.import` files and import again.
 - [ebain] Reachable sites (if the person allowed them): polyhaven, ambientcg, opengameart. Sketchfab downloads need

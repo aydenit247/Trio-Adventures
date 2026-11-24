@@ -26,6 +26,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 - **Chief Bogdrinker:** goblin chief, gives out beezy (beer). The goblins are all unemployed.
 - **Diddy Chud Giant:** the boss blocking the Pass. Wakes up with "Aight. Bet."
 - **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?"
+- **King Nibbsworth III** (Rat King), **Scrounge** (rat trader), **Lil Nibbs** (pet rat): the Rat Cave. All three names
+  are Claude DRAFTs (Ebain said "you draft names"), so he may rename them.
+- **Charis:** lives in the house right of the Metocy Mart. Placeholder art and one DRAFT greeting until Ebain writes her.
 - **Items:** Beezy (heals 30), Chipotle Bowl (heals 60), Midtocy (the fake metocy), the d6 ("on some dice shi").
 
 ### Chapter 1 flow (each main event has a 5-way choice)
@@ -45,6 +48,25 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 3. **Metocy Mart (evening, as Xylo):** Dulbers offers the midtocy → A everyone trips / B Skorn trips → boss fight vs
    demon Dulbers · C refuse → kicked out · D Xylo inspects it (Deloye Lore ch. 8,784 sec. B12) · E goblins handle it
    (if allies). Skorn pockets the midtocy in most paths (`hasMidtocy`).
+3½. **Side path: Old Ruins → Rat Cave → Rat Colony (RUINS_PLAN.md, built 11/24).** Optional, never blocks the story. A
+   path WEST off the Metocy Mart street (sign "OLD RUINS", open before and after the Mart scene) leads to `ruins.tscn`
+   (day): 3 loot spots and THE BIG SHINY CHEST on a dais. Opening it: the floor gives way → `cave.tscn` (dark, torches,
+   light around the leader). The cave: landing chamber (rope out of reach) → tunnel (2 loot spots, 2 roaming "Rat
+   Patrol" groups) → **The Three Seals** puzzle → the colony. **Puzzle:** a 7×6 grid; boulders slide until they hit a
+   pillar/wall/boulder; each boulder (spoon / book / bowl) must stop on the plate with its symbol. Only **Skorn** can push the
+   big spoon boulder, only **Lykor** fits through the crack into the side room (lever → the rubble drops and the bowl
+   boulder rolls out of its alcove), only **Xylo** can read the wall carving, which makes the plates' symbols glow, and
+   the door won't open until it's been read. A rope resets the boulders; a hint line after 90 s stuck. Solution
+   (7 pushes): book W, S · spoon W, N · bowl N, E, N. **The colony:** King Nibbsworth III on a junk pile, Scrounge's stall,
+   12 joke-labelled rats → 5-way choice: fight (boss fight `rat_colony`, Corncob Scepter drop, no trader) · Skorn
+   crowned Rat King (Bottle-Cap Crown, trader half price) · business (trader's "good shelf": Lucky Crumb + Corncob
+   Scepter) · Xylo out-lores the King (+40 gold, secret tunnel straight to the Mart street) · Lykor mogs them (**Lil
+   Nibbs**, a tiny rat, follows the party in every area: `ratPet`, `Level.spawn_pet()`). Then a tunnel up to the ruins
+   (and back down). Flags: `ruinsStarted`, `ruinsLoot0..2`, `ruinsFell`, `caveEntered`, `caveLoot0..1`, `sealsRead`,
+   `sealsLever`, `sealsSolved`, `ratsDone` (string: fight/king/trade/lore/mog), `ratPet`, `charisMet`. All lines DRAFT
+   in `ruins_script.gd`.
+   **Charis's house:** the house right of the Mart (yard behind a gap in the back wall) can be entered in free roam after
+   the Mart scene. Interior built off to the side at x 340 (`mart.gd _charis_house`). Talking to Charis: `charisMet`.
 4. **The Pass (lava, as Skorn):** Mattias appears → the giant is asleep in the way → A throw the midtocy (giant trips)
    · B **Snore Sneak** minigame · C **Lore Session** minigame (pick the true Deloye Lore continuation) · D slap him ·
    E it's the Chief's cousin (if allies). Fights are real boss fights. The only way on is the gorge right behind where he
@@ -141,6 +163,8 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
 - `VILLAGE_TOUR=buildings TOUR_PART=1|2` — walks every village building and quest
 - `VILLAGE_TOUR=roomswitch` — enters the bar, shaman tent and Chief's hut, switches to every character, walks into every wall; prints ALL OK if nobody leaves the room
 - `VILLAGE_TOUR=band` — the goblin band: arrives, follows, waits at the bar door, keeps playing, then gets sent away
+- `RUINS_CHOICE=0..4` (cave tour: solves the puzzle with scripted pushes, then picks the rat choice; run `cave.tscn`, or
+  `ruins.tscn` with `SHOTS_CHAIN=1` to fall in from the ruins first) · the Mart tour ends with Charis's house
 - `FIGHT=goblins|dulbers|giant|goblin_patrol|bouncer` (+ `LEVEL=2`, `ALLIES=1`, `AUTO_LOSE=1`, `MENUS=1`) — runs one fight
 - `LOOK="x,z,yaw;..."` (camp) — close-up screenshots of spots with the fire lit
 - `--views` instead of `--shots` walks the trio in 4 directions
@@ -216,21 +240,23 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/crash_reporter.gd` | **CrashReporter** (started by Game): freeze watchdog thread (12 s without a frame), crash/force-close detection on next launch (session marker), `OS.add_logger` catches every error. Writes Markdown reports to `Crash Reports/` next to the exe (user:// in the editor). `CrashReporter.note("...")` adds a breadcrumb. Repo folder `Crash Reports/` collects them |
 | `scripts/inventory_ui.gd` | **InventoryUI** (Tab): Deloye Lore parchment window over the blurred game. Fighter + 7 gear slots, **that fighter's own bag** (right-click → View / Give to another character) (`_bag_items()`: Beezy/Bowl, unequipped gear, key items), gold, quests page (J). Q = next fighter. Own grid input (MenuUI is list-only) but it joins `MenuUI.stack` |
 | `scripts/minimap.gd` | top-left minimap (simple shapes, colored dots, fog, turns with the camera; shared draw helpers) |
-| `scripts/map_ui.gd` | M: big map, Area tab (whole area + fog) and World tab (Camp → Village → Mart → Pass, fog on unvisited) |
+| `scripts/map_ui.gd` | M: big map, Area tab (whole area + fog) and World tab (Camp → Village → Mart → Pass, fog on unvisited). `SIDE` = side paths drawn as a dotted branch, hidden until visited (Old Ruins & Rat Cave off the Mart) |
 | `scripts/job_board_ui.gd` | the village Job Board screen (pinned notes, read up close, Take job) |
 | `scripts/voice_index.gd` | **VoiceIndex**: generated by `tools/import_voices.py` (studio export → OGG). Line key → file |
 | `scripts/voice_lines.gd` | **VoiceLines**: line text → recorded mp3 in `assets/voices/`. `dialogue.gd` plays a recording when a line has one (matched ignoring case/punctuation), otherwise TTS. Still-to-record list: `VOICE_LINES.md`. Its own `LINES` holds Asar's narrator, Lykor and Xylo recordings (`assets/voices/narrator/`, `lykor/`, `xylo/`; only recorded lines exist for those three, see VOICE_LINES.md) |
 | `scripts/camp.gd` + `camp_script.gd` | Scene 1 (`main.tscn`) |
 | `scripts/trail.gd` + `trail_script.gd` | Scene 1.5 (`trail.tscn`): forest trail z +58 (camp end) → −58 (village end), creek + bridge at z 0, troll hut, loot spots (`LOOT`), `_apply_state()` rebuilds troll/hut/loot from flags |
-| `scripts/shop_ui.gd` | **ShopUI**: Haggle's Stall (village, by the bedroll). `STOCK` = [id, "item"/"gear", price]; buys go to the active fighter |
+| `scripts/shop_ui.gd` | **ShopUI**: Haggle's Stall (village, by the bedroll). `STOCK` = [id, "item"/"gear", price]; buys go to the active fighter. Other shops pass `open_shop(lv, { stock, title, broke, discount })` (Scrounge in the cave). "item" ids can be heal items or BOOSTS |
+| `scripts/ruins.gd` + `ruins_script.gd` | Side path (`ruins.tscn`): the Old Ruins, loot (`LOOT`), the trap chest (`_trap`), the hole, the tunnel to the colony. `ruins_script.gd` holds ALL the side path's lines (ruins, cave, puzzle, colony, Charis), every one # DRAFT |
+| `scripts/cave.gd` | Side path (`cave.tscn`): the Rat Cave. Own `light_at()` (dark + torches + leader light). Puzzle: `PZ`/`CELL` grid, `PILLARS`, `PLATES`, `B_START`, `slide_target()`/`push()`, `_apply_puzzle_state()` rebuilds it from flags. Colony: `_build_colony`, `_colony_scene` (RS.COLONY), `_open_shop()` (Scrounge's stock). Walls on the camera side are low lips with full-height collision |
 | `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
 | `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
 | `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`): modelled shop exterior (`_shop_exterior`, street houses) + stocked interior at x = 300 (`_shop_interior`); the trip recolors `room_lights`/`glow_jars` |
-| `scripts/progress_data.gd` | **ProgressData**: what counts toward "Outcomes x/26 · N% complete" (title screen, end card). `Game.unlock(id)` / `outcomes_found()` / `completion_pct()`; saved in `user://progress.cfg` across playthroughs. `ProgressData.pick_outcome(id)` (called by dialogue.gd + dev mode when a choice with `"outcome"` is picked) also sets the **per-run** string flag `way_<scene>` (`village_skorn_king` → `way_village = "skorn_king"`), since outcomes themselves are saved across playthroughs |
+| `scripts/progress_data.gd` | **ProgressData**: what counts toward "Outcomes x/31 · N% complete" (story outcomes 2 points each, quests 5, Chapter 1 6, Three Seals 3, Charis 3, trail loot 1 = 100) (title screen, end card). `Game.unlock(id)` / `outcomes_found()` / `completion_pct()`; saved in `user://progress.cfg` across playthroughs. `ProgressData.pick_outcome(id)` (called by dialogue.gd + dev mode when a choice with `"outcome"` is picked) also sets the **per-run** string flag `way_<scene>` (`village_skorn_king` → `way_village = "skorn_king"`), since outcomes themselves are saved across playthroughs |
 | `scripts/summit.gd` + `summit_script.gd` | Scene 5 (`summit.tscn`): the climb (z +62 → plaza at -52), tower (`_lair_exterior`), the hall built off to the side at `INT` (x 400, `_hall`: round wall open toward the camera, pillars, dais + throne, statues, chandeliers, alchemy + study corners, floating candles/books/orb via `floaters`). Uses Ebain's wizard-lair Poly Haven pack. **Finale:** `_begin` (arrival) → `_halfway` → `_ambush` → `_finale` → `_hard_end` / `_goblin_party` (set at `PARTY_POS`, x -400) / `end_card`. Script steps with a `"dyn"` key get their line from `_dyn_line()` (tables `DYN_*` in summit_script: first matching flag wins). Trip look = `_take_metocy` + `TRIP_SHADER`. Test: `SUMMIT_TOUR=finale SUMMIT_FLAGS=… SUMMIT_PICKS=… [AUTOWIN=1]` (see the comment above `_finale_tour`) |
 | `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`): rock-face canyon + animated lava (`_canyon`, `_lava`), giant lying across the path (`giant_lying`, Asar's `giant_sleep.png`; `_giant_wakes` crossfades sleep → sit → standing, no black cut); Snore Sneak + Lore Session minigames |
 | `scripts/dev_mode.gd` | **DevMode**: the F1 developer menu, dialogue modes, line viewer (see "Dev mode") |
-| `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter |
+| `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter. Rat cave: fights `rats` (roaming) + `rat_colony` (boss, `lvl` 3), ai `rat`/`rat_king` (battle.gd), rat gear (thimble_helm, toothpick_spear, bottlecap_mail, lucky_crumb, bottlecap_crown, corncob_scepter), boost `cave_cheese`, talk `cheese_bribe` |
 | `scripts/combat/battle.gd` | pure combat rules (turn timeline, meters, ultimates, team-ups, statuses, boss AI, talk/flee) |
 | `scripts/combat/battle_view.gd` | in-world fight presentation (line-up, menus, timed ring, dice, events, results, hoverable status words, Lykor's Mog close-up `_mog_cam`) |
 | `scripts/models.gd` | **Models**: `place(parent, id, pos, rot_y, scale, collide, recolor)`, `mat(texture, tile, tint)` (triplanar PBR for any box/cylinder), `block`, `cylinder`, `patch` (soft-edged ground decal), `tint` |
@@ -278,7 +304,7 @@ FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T o
 (FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events, banter, XP +
 levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (flat cut per hit), permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
-roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`,
+roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`, `rats` (roaming, cave), `rat_colony` (cave boss),
 `goblin_patrol` (roaming, village east road), `troll`, `dulbers_ambush` (summit, regular-size Dulbers; Mattias can join
 as a 4th fighter, `CombatD.PARTY["mattias"]`), `mattias` (the sucker-punch boss; every number in `CombatD.MATTIAS_BOSS`,
 balance with `SIM_ONLY=mattias godot --headless --path godot --script res://tools/sim_combat.gd`). `fight(key, { lose_ends

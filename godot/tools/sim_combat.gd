@@ -16,6 +16,9 @@ func _init() -> void:
 		["giant", { "party": ["skorn", "lykor", "xylo"], "level": 3, "inv": { "beer": 3, "bowl": 2 }, "mods": { "enemy_tripping": true } }],
 		["giant", { "party": ["skorn", "lykor", "xylo", "chief"], "level": 3, "inv": { "beer": 3 }, "mods": { "enraged": true } }],
 		["dulbers_ambush", { "party": ["skorn", "lykor", "xylo"], "level": 3, "inv": { "beer": 2, "bowl": 1 } }],
+		["rats", { "party": ["skorn", "lykor", "xylo"], "level": 2, "inv": {} }],
+		["rat_colony", { "party": ["skorn", "lykor", "xylo"], "level": 2, "inv": { "beer": 2 } }],
+		["rat_colony", { "party": ["skorn", "lykor", "xylo"], "level": 3, "inv": { "beer": 2, "bowl": 1 } }],
 		# out-leveled bosses (D.BOSS_SCALE keeps them strong): should stay close to their on-level numbers
 		["dulbers", { "party": ["skorn", "lykor", "xylo"], "level": 4, "inv": { "beer": 3 }, "mods": { "tripping": "skorn" } }],
 		["giant", { "party": ["skorn", "lykor", "xylo"], "level": 5, "inv": { "beer": 3, "bowl": 2 }, "mods": { "enraged": true } }],

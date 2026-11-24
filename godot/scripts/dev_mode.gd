@@ -28,7 +28,7 @@ const SCRIPTS := {
 	"The Pass (Scene 4)": "res://scripts/pass_script.gd",
 	"Summit Path + Wizard's Lair (Scene 5)": "res://scripts/summit_script.gd",
 }
-const SCENES := [["Camp (Scene 1)", "res://main.tscn"], ["Goblin Woods Trail", "res://trail.tscn"], ["Goblin Village (Scene 2)", "res://village.tscn"], ["Metocy Mart (Scene 3)", "res://mart.tscn"], ["The Pass (Scene 4)", "res://pass.tscn"], ["Summit Path + Wizard's Lair (Scene 5)", "res://summit.tscn"]]
+const SCENES := [["Camp (Scene 1)", "res://main.tscn"], ["Goblin Woods Trail", "res://trail.tscn"], ["Goblin Village (Scene 2)", "res://village.tscn"], ["Metocy Mart (Scene 3)", "res://mart.tscn"], ["Old Ruins (side path)", "res://ruins.tscn"], ["Rat Cave (side path)", "res://cave.tscn"], ["The Pass (Scene 4)", "res://pass.tscn"], ["Summit Path + Wizard's Lair (Scene 5)", "res://summit.tscn"]]
 
 # ================================================================ dialogue filtering (used by Level.run_dialogue)
 static func active() -> bool:

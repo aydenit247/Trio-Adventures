@@ -116,6 +116,13 @@ const GEAR := {
 	"king_helm": { "slot": "helmet", "name": "Goblin King's Helm", "desc": "Spoons, but make them royal. +3 armor, start fights with 20 meter.", "armor": 3, "start": 20 }, # DRAFT
 	"designer_mail": { "slot": "armor", "name": "Designer Spoon Mail", "desc": "Same spoons, better logo. +5 armor and +20 max HP.", "armor": 5, "hp": 20 }, # DRAFT
 	"golden_ladle": { "slot": "weapon", "name": "The Golden Ladle", "desc": "Haggle's prized possession. He cried a little. +25% damage, +20% meter gain.", "power": 0.25, "meter": 1.2 }, # DRAFT
+	# the rat colony (RUINS_PLAN.md): Scrounge's stall + rat choice rewards. Names/descs: # DRAFT
+	"thimble_helm": { "slot": "helmet", "name": "Thimble Helm", "desc": "A rat's helmet. On you it's more of a hat. +2 armor, +1 speed.", "armor": 2, "spd": 1 }, # DRAFT
+	"toothpick_spear": { "slot": "weapon", "name": "Toothpick Spear", "desc": "Sharpened by a professional (a rat). +15% damage.", "power": 0.15 }, # DRAFT
+	"bottlecap_mail": { "slot": "armor", "name": "Bottle-Cap Mail", "desc": "Forty bottle caps and a dream. +4 armor and +10 max HP.", "armor": 4, "hp": 10 }, # DRAFT
+	"lucky_crumb": { "slot": "trinket", "name": "Lucky Crumb", "desc": "The rats say it's blessed. It's a crumb. +10% meter gain.", "meter": 1.1 }, # DRAFT
+	"bottlecap_crown": { "slot": "helmet", "name": "Bottle-Cap Crown", "desc": "Crown of the Rat King. Smells like the Rat King. +3 armor, +10% damage.", "armor": 3, "power": 0.10 }, # DRAFT
+	"corncob_scepter": { "slot": "weapon", "name": "Corncob Scepter", "desc": "Half-eaten. Fully royal. +20% damage and +15 max HP.", "power": 0.20, "hp": 15 }, # DRAFT
 	"receipt": { "slot": "trinket", "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
 }
 
@@ -123,6 +130,7 @@ const GEAR := {
 # Kept in each fighter's bag (Game.add_item / count). Same stat keys as GEAR.
 const BOOSTS := {
 	"conditioner": { "name": "Backup Conditioner", "desc": "Lykor's emergency bottle. Use it on someone for +15 max HP, for good. Lykor wants it back.", "hp": 15 },
+	"cave_cheese": { "name": "Aged Cave Cheese", "desc": "Aged in a cave. By rats. Eat it for +10 max HP, for good. Do not ask what it's aged in.", "hp": 10 }, # DRAFT
 	"vol9": { "name": "Deloye Lore Vol. 9 (Signed)", "desc": "Signed by nobody. Read it to someone for +15% meter gain, for good.", "meter": 1.15 },
 }
 
@@ -217,6 +225,27 @@ const FIGHTS := {
 		],
 		"talk": ["roast"],
 	},
+	# ---- the rat cave (RUINS_PLAN.md). Rat names/tags: # DRAFT
+	"rats": {   # roaming rat groups in the cave tunnel
+		"title": "Rat Patrol", "xp": 45,
+		"enemies": [
+			{ "name": "Rat", "tag": "(Thimble Infantry)", "gold": 4, "hp": 26, "spd": 10, "tex": "rat", "roam_tex": "rat", "h": 0.95, "ai": "rat" },
+			{ "name": "Rat", "tag": "(Big Back)", "gold": 7, "hp": 40, "spd": 6, "tex": "rat_fat", "roam_tex": "rat_fat", "h": 1.05, "ai": "rat" },
+			{ "name": "Rat", "tag": "(Small) (Scared)", "gold": 2, "hp": 16, "spd": 13, "tex": "rat_tiny", "roam_tex": "rat_tiny", "h": 0.62, "ai": "rat" },
+		],
+		"talk": ["cheese_bribe", "roast"],
+		"loot": ["thimble_helm"],
+	},
+	"rat_colony": {   # "rats_fight": the whole colony + the Rat King
+		"title": "The Rat Colony vs. Everybody", "party": ["skorn", "lykor", "xylo"], "xp": 90, "story": true, "boss": true, "lvl": 3,
+		"enemies": [
+			{ "name": "King Nibbsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 460, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.45, "ai": "rat_king", "boss": true },
+			{ "name": "Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 34, "spd": 10, "tex": "rat", "h": 0.95, "ai": "rat" },
+			{ "name": "Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 46, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "rat" },
+		],
+		"talk": ["cheese_bribe"],
+		"loot": "corncob_scepter",
+	},
 	# ---- roaming (optional) fights
 	"goblin_patrol": {
 		"title": "Goblin Patrol", "xp": 50,
@@ -247,6 +276,8 @@ const TALK := {
 		"try": "Lykor: \"Honestly? Great lighting in here.\"", "win": "Dulbers is flattered. He just stands there blushing. (Charmed)", "lose": "\"Flattery won't get you a discount.\"" },
 	"feed_giant": { "text": "Offer him a Chipotle Bowl", "who": "", "need": "bowl", "chance": 1.0, "kind": "itis",
 		"try": "%s slides a Chipotle Bowl across the ground.", "win": "He eats the whole thing in one bite (+40). Then the itis hits. He's getting SLEEPY.", "lose": "" },
+	"cheese_bribe": { "text": "Bribe them with a Chipotle Bowl", "who": "", "need": "bowl", "chance": 1.0, "kind": "end",
+		"try": "%s sets down a Chipotle Bowl.", "win": "The rats swarm the bowl. Nobody is fighting anymore. Everybody is eating.", "lose": "" }, # DRAFT
 	"apologize_mattias": { "text": "\"My fault, folk.\"", "who": "", "chance": 0.0, "kind": "backfire",
 		"try": "%s: \"My fault, folk. We was geeking.\"", "win": "", "lose": "Mattias: \"Bet.\" He does not accept. He's HYPED now." },   # DRAFT
 	"lullaby": { "text": "Sing him a lullaby", "who": "xylo", "chance": 0.45, "kind": "cc", "status": "lorepill",
@@ -311,6 +342,14 @@ const BANTER := {
 		"hurt": ["Watch the robe, folk."],
 		"taunt": ["You had called?", "Bet.", "That's OD, folk."],
 		"phase": ["Aight. Now I'm locked in."],
+	},
+	"rat": {   # DRAFT
+		"taunt": ["SQUEAK.", "For the King!", "Your crumbs. Hand 'em over."],
+		"hype": ["SQUEAK SQUEAK!"],
+	},
+	"rat_king": {   # DRAFT
+		"taunt": ["Kneel before the crust.", "I have eaten better than you.", "Guards! Nibble them!"],
+		"phase": ["Fetch… the CORN."],
 	},
 	"goblin": {
 		"taunt": ["I NEED THIS JOB!", "Spoon time!", "Bonk o'clock!"],

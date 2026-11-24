@@ -94,6 +94,7 @@ func _ready() -> void:
 	_build_party()
 	_build_ui()
 	_after_build()
+	spawn_pet()
 	apply_graphics()
 	_show_forehead()
 	if not Game.title_mode and not Game.visited.has(area_key()):
@@ -481,6 +482,33 @@ func _build_party() -> void:
 			first = u
 	set_leader(first)
 
+# The rat pet (cave "rats_mog" outcome, flag ratPet): a tiny worshipping rat that follows the party in every area.
+# It's an NPC with the "follow" meta, so it trails behind the party, and it hops back to the leader after teleports.
+var pet: Unit
+func spawn_pet() -> void:
+	if Game.title_mode or not Game.flag("ratPet") or leader == null or is_instance_valid(pet):
+		return
+	pet = spawn_npc("rat_pet", "Lil Nibbs", "rat_tiny", 0.6, leader.global_position + Vector3(0.9, 0, 1.3))   # name: DRAFT
+	pet.set_meta("follow", true)
+	pet.set_meta("follow_i", 0)
+	pet.walk_speed = 5.0
+	pet.run_speed = 8.2
+	var tag := Label3D.new()
+	tag.text = "Lil Nibbs (Lykor's #1 Fan)"   # DRAFT
+	tag.font_size = 28
+	tag.pixel_size = 0.007
+	tag.outline_size = 8
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.modulate = Color("#ffe3a8")
+	tag.position = Vector3(0, 0.95, 0)
+	pet.add_child(tag)
+
+func _pet_process() -> void:
+	if not is_instance_valid(pet) or leader == null:
+		return
+	if pet.global_position.distance_to(leader.global_position) > 14.0:   # left behind by a teleport (rooms, place_party)
+		pet.global_position = leader.global_position + Vector3(0.9, 0, 1.3)
+
 func spawn_npc(id: String, display: String, tex: String, h: float, pos: Vector3) -> Unit:
 	var u := make_unit(id, display, "res://assets/characters/%s.png" % tex, h, pos)
 	npcs.append(u)
@@ -746,6 +774,10 @@ func show_toast(msg: String, secs := 1.6) -> void:
 func objective(text: String, at := Vector3.INF) -> void:
 	objective_at = at if text != "" else Vector3.INF
 	objective_lbl.text = ("Objective: " + text) if text != "" else ""
+	# an autowrap Label in a SHRINK_CENTER box shrinks to ~0 wide (one letter per line), so give it its natural width
+	var f := objective_lbl.get_theme_font("font")
+	var fsz := objective_lbl.get_theme_font_size("font_size")
+	objective_lbl.custom_minimum_size.x = 0.0 if text == "" else minf(f.get_string_size(objective_lbl.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x + 44.0, 640.0)
 	objective_lbl.add_theme_stylebox_override("normal", _plate() if text != "" else StyleBoxEmpty.new())
 	objective_lbl.modulate.a = 0.0
 	create_tween().tween_property(objective_lbl, "modulate:a", 1.0, 0.4)
@@ -910,6 +942,7 @@ func _process(delta: float) -> void:
 			u.drive(to2.normalized() * clamp(to2.length() / 1.2, 0.0, 1.0) if to2.length() > 0.4 else Vector3.ZERO, to2.length() > 3.0, cam_right, delta)
 		else:
 			u.drive(Vector3.ZERO, false, cam_right, delta)
+	_pet_process()
 	for u in party + npcs:
 		u.sprite.modulate = light_at(u.global_position) * (u.get_meta("tint") if u.has_meta("tint") else Color.WHITE)
 	for c in cards:
@@ -1607,7 +1640,7 @@ func open_map() -> void:   # M: big map (area + world tabs)
 
 # ---------------------------------------------------------------- maps (Minimap top-left, MapUI on M)
 # Areas override these: map_buildings() (blue dots + names), map_extra() (e.g. the giant), map_place() (inside a building).
-const AREA_KEYS := { "main": "camp", "trail": "trail", "village": "village", "mart": "mart", "pass": "pass", "summit": "summit" }
+const AREA_KEYS := { "main": "camp", "trail": "trail", "village": "village", "mart": "mart", "pass": "pass", "summit": "summit", "ruins": "ruins", "cave": "cave" }
 func area_key() -> String:
 	return AREA_KEYS.get(scene_file_path.get_file().get_basename(), scene_file_path.get_file().get_basename())
 

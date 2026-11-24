@@ -20,6 +20,10 @@ const WORLD := [   # area key, name, spot on the world tab (inside the map box)
 	["pass", "The Pass", Vector2(0.78, 0.36)],
 	["summit", "Summit Path & Wizard's Lair", Vector2(0.88, 0.1)],
 ]
+# side paths off the main road: [name, spot, the WORLD area it branches from, area keys that count as "been there"]
+const SIDE := [
+	["Old Ruins & Rat Cave", Vector2(0.46, 0.84), "mart", ["ruins", "cave"]],
+]
 
 var lv: Node
 var tab := "area"
@@ -231,11 +235,36 @@ func _draw_world() -> void:
 				box.draw_circle(p + o, rng.randf_range(22, 36), Color(0.62, 0.64, 0.7, 0.16))
 			box.draw_circle(p, 44, Color(0.08, 0.08, 0.1, 0.75))
 			box.draw_string(f, p + Vector2(-60, 9), "???", HORIZONTAL_ALIGNMENT_CENTER, 120, 26, Color(1, 1, 1, 0.55))
+	# side paths: a dotted branch off their area, only once you've been there (a secret until then)
+	for sd in SIDE:
+		var p: Vector2 = Vector2(sd[1].x * bs.x, sd[1].y * bs.y)
+		var from: Vector2 = pts[WORLD.map(func(w): return w[0]).find(sd[2])]
+		var keys: Array = sd[3]
+		var is_here := keys.has(here)
+		if not is_here and not keys.any(func(k): return Game.visited.has(k)):
+			continue
+		var n := int(from.distance_to(p) / 10.0)
+		for k in n:
+			if k % 2 == 0:
+				box.draw_line(from.lerp(p, float(k) / n), from.lerp(p, float(k + 1) / n), Minimap.PATH, 3.0, true)
+		box.draw_circle(p, 24, Color.BLACK)
+		box.draw_circle(p, 21, Minimap.WALK.lightened(0.1))
+		box.draw_arc(p, 21, 0, TAU, 32, GOLD, 2.0, true)
+		box.draw_string(f, p + Vector2(-110, 46), sd[0], HORIZONTAL_ALIGNMENT_CENTER, 220, 17, INK)
+		if is_here:
+			var pulse := 1.0 + 0.15 * sin(lv.t * 4.0)
+			var col: Color = Minimap.COLORS.get(lv.leader.id if lv.leader else "skorn", GOLD)
+			box.draw_circle(p, 10 * pulse, Color.BLACK)
+			box.draw_circle(p, 7 * pulse, col)
+			box.draw_string(f, p + Vector2(-110, -34), "You are here", HORIZONTAL_ALIGNMENT_CENTER, 220, 16, GOLD)
+		_hits.append([p, sd[0]])
 	box.draw_string(f, Vector2(14, 28), "The Journey", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, GOLD)
 
 func _area_name(k: String) -> String:
 	for w in WORLD:
 		if w[0] == k: return w[1]
+	if k == "ruins": return "Old Ruins"
+	if k == "cave": return "Rat Cave"
 	return k.capitalize()
 
 # ---------------------------------------------------------------- legend

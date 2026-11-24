@@ -11,7 +11,7 @@ extends Node
 
 const D = preload("res://scripts/combat/combat_data.gd")
 const BattleT = preload("res://scripts/combat/battle.gd")
-const PORTRAIT := { "goblin": "goblin", "dulbers": "dulbers_demon", "giant": "giant_angry" }
+const PORTRAIT := { "goblin": "goblin", "dulbers": "dulbers_demon", "giant": "giant_angry", "rat": "rat", "rat_king": "rat_king" }
 const GOLD := Color("#e8b923")
 const RED := Color("#ff6a5a")
 const GREEN := Color("#7dff8a")
@@ -1161,6 +1161,8 @@ const PILES := {
 	"trail": [["rock_07", "a rock", 0.5], ["dry_branches_medium_01", "a bundle of sticks", 0.7], ["tree_stump_01", "a tree stump", 0.7], ["wooden_bucket_02", "the troll's bucket", 0.5], ["dead_tree_trunk_02", "half a log", 0.8]],
 	"village": [["wooden_stool_01", "a goblin's stool", 0.6], ["wooden_bucket_02", "a bucket", 0.5], ["wooden_crate_02", "a crate", 0.6], ["wine_barrel_01", "a barrel", 0.8], ["wooden_spoon", "a spoon", 0.45]],
 	"mart": [["wine_bottles_01", "a crate of bottles", 0.5], ["ceramic_vase_01", "a vase (NO REFUNDS)", 0.5], ["brass_pot_01", "a brass pot", 0.45], ["wooden_crate_01", "a crate", 0.6], ["book_encyclopedia_set_01", "an encyclopedia", 0.45]],
+	"ruins": [["rock_07", "a chunk of ancient wall", 0.55], ["wooden_crate_01", "an ancient crate", 0.6], ["rock_09", "a rock (historical)", 0.6], ["dry_branches_medium_01", "a bundle of sticks", 0.7], ["wooden_bucket_01", "a bucket", 0.5]],
+	"cave": [["rock_07", "a stalagmite", 0.55], ["wooden_crate_02", "a rat's crate", 0.55], ["wine_bottles_01", "a crate of bottles", 0.5], ["rock_09", "a cave rock", 0.6], ["wooden_bucket_02", "a rat's bucket", 0.5]],
 	"pass": [["rock_07", "a rock", 0.55], ["rock_09", "a chunk of the mountain", 0.7], ["rock_07", "a rock that looked at him funny", 0.45], ["dry_branches_medium_01", "a burnt branch", 0.8], ["boulder_01", "a boulder (small)", 0.7]],
 }
 var pile: Array = []   # [{ "node": Node3D, "name": String }]

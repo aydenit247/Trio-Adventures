@@ -28,4 +28,9 @@ under it saying what the cause was.
 
 ## Fixed / explained
 _(newest first: report file → cause → fix)_
+- `ebain 2026-11-23 Freeze (camp sleep to morning).md` + `ebain 2026-11-23 Freeze (morning camp to trail).md` → two hard
+  freezes on the same build (.pck 2026-11-24 02:47), both during "Loading a new area" out of the camp, error log empty.
+  Not the robot voice (in the second one it had been quiet for 10 s). The second run got past the load that froze the
+  first time and froze on the next new one, which points at the GPU compiling shaders for a new area (like Asar's
+  crashes, now on D3D12). → **open**, to look at in its own chat (Windows crash dumps would help, if any were written).
 - `asar 2026-11-21 Crash (bouncer fight).md` → likely Vulkan driver crash while compiling shaders on a worker thread (4 dumps agree) → testing DirectX 12 (open)
