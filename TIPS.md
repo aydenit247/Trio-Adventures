@@ -82,6 +82,20 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] **Big round rooms + a camera 15 m back = the camera ends up outside the wall.** Shrink `zoom` near the edges
   (`summit._hall_camera`), don't just add walls (those then cover the screen).
 - [asar] **The dev menu is Alt+F1.** Bots/tests that need it must hold Alt (`Input.is_key_pressed(KEY_ALT)` is checked).
+- [ebain] **Followers stole E:** party members' "Talk to" interactables sit right next to you, so they beat doors/boulders
+  on distance. `_nearest_interactable` now only picks `party_talk` entries when nothing else is in reach. New
+  "follower-ish" interactables should set `"party_talk": true` too.
+- [ebain] **Never teleport the party a fixed distance sideways** (old "fled" code did `leader + away * 4`): in tunnels
+  that's inside the wall / off the map. Use the leader's `trail` (where you actually walked) or the checkpoint.
+- [ebain] **Fixed-spacing lineups break in narrow places.** Raycast for room first (`battle_view._fit_lineup`, layer 1).
+- [ebain] **Speeding the game up (bots):** raise `Engine.physics_ticks_per_second` and `max_physics_steps_per_frame`
+  with `Engine.time_scale`, or each physics step gets N times bigger. The summit's slow-mo sets time_scale back to 1.0.
+- [ebain] **Scroll lists: rows must be MOUSE_FILTER_PASS, not STOP**, or the wheel never reaches the ScrollContainer
+  (half of why the Scrapbook wouldn't scroll; `voice_lines_ui.gd` rows are still STOP). The other half: **a panel whose
+  autowrap labels were measured at width 0 grows very tall and never shrinks back**. Give the column a min width and
+  reset the panel's size a couple of frames later (`scrapbook_ui._resettle`). Check `get_v_scroll_bar().max_value > page`.
+- [ebain] **A close-up camera needs a clear line**: hide the party (they stand between you and the thing) and pick a
+  yaw away from furniture (`summit._inspect_og`). Check it with a one-shot tour (`SUMMIT_TOUR=og`).
 - [asar] **Screen-space overlays that follow 3D things** (enemy HP bars, the timed-hit ring): `lv.cam.unproject_position()`
   straight into a Control under `lv.hud`, every frame; skip it when `cam.is_position_behind()`, and clamp to the screen
   for giants.
@@ -147,6 +161,9 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   correlation is useless for this (AI songs never repeat sample-for-sample).
 - [ebain] **Wizard-lair asset pack (Poly Haven, 2026-11-23):** textures `castle_brick_07 castle_brick_broken_06 medieval_blocks_05 mossy_brick dark_brick_wall stone_wall_03 rock_wall_10 monastery_stone_floor slate_floor_02 marble_tiles marble_mosaic_tiles old_mosaic_floor volcanic_rock_tiles dark_wood dark_wooden_planks dark_paneled_wood velour_velvet rough_linen fabric_leather_01 book_pattern dirty_carpet quatrefoil_jacquard_fabric decrepit_wallpaper rusty_metal_02 metal_plate_02 marble_cliff_01 tiger_rock moon_meteor_01`; models `Chandelier_01/02/03 lantern_chandelier_01 brass_candleholders GothicBed_01 GothicCabinet_01 GothicCommode_01 gothic_statue gothic_coffee_table marble_bust_01 ornate_mirror_01 vintage_microscope chemistry_set bunsen_burner spinning_wheel_01 ArmChair_01 vintage_grandfather_clock_01 wooden_broom stone_fire_pit brass_vase_02 ceramic_vase_03 wooden_display_shelves_01 Shelf_01 painted_wooden_shelves vintage_cabinet_01 mantel_clock_01 fancy_picture_frame_01 barrel_stove crystalline_iceplant brass_diya_lantern Lantern_01 planter_pot_clay kite_shield`. Heavy ones (use sparingly, one or two): vintage_cabinet_01 61k tris, spinning_wheel_01 52k, chemistry_set 41k, brass_candleholders 41k, Lantern_01 33k, Chandelier_03 29k, gothic_statue 27k. Everything else is under 26k. Not on Poly Haven: skulls, cauldrons, potions, crystals-as-props, rugs (use `quatrefoil_jacquard_fabric`/`dirty_carpet` on a flat box for rugs, `crystalline_iceplant` for crystals). Because export is `all_resources`, unused assets ship in the Windows build: delete what the lair ends up not using.
 - [ebain] **Dialogue back/buffer/speed (11/23):** `_run_steps` in dialogue.gd is an index loop now so Backspace can step back one *plain line*. Never allow back over a `do` or `choice` (they'd run twice). The buffer is `_ready_at` (armed when typing finishes or is skipped). Footer buttons use `FOCUS_NONE` so E/Space never presses them. Test a dialogue change with a temp SceneTree script: `InputMap.add_action("interact")`, get Game via `root.get_node("Game")` (the autoload isn't a global name in `--script` files), call `d._unhandled_input(ev)`.
+- [ebain] Ebain (11/24): Dulbers only comes out when you try the Mart door. Charis's house: open before AND after the Mart,
+  no sign over her door, she has a gaming setup. He dropped the idea of Ayden/Asar/Mason NPCs in her house.
+- [ebain] Ebain (11/24): dialogue speed is a 0.5x–3x slider for voices AND text (replaced the ON/OFF speed mode).
 - [ebain] Music goes in `godot/assets/music/` as `.ogg` (loop=true in the `.import`). Ebain makes tracks in Google Flow Music. Title = "Prophecy of Metocy". Trim trailing silence with ffmpeg before importing.
 - [ebain] Character `_side.png` art must face **right** (Unit mirrors it for walking left). Skorn's faced left and moonwalked.
 - [ebain] `notes.md` is Ebain's idea list (not claimed work). Turn an item into a board task before building it, and mark it done there.

@@ -25,7 +25,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 - **Metocin Mattias:** shows up out of nowhere: "You had called?"
 - **Chief Bogdrinker:** goblin chief, gives out beezy (beer). The goblins are all unemployed.
 - **Diddy Chud Giant:** the boss blocking the Pass. Wakes up with "Aight. Bet."
-- **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?"
+- **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?" Sometimes pulls up mid-fight and lightning-strikes the whole enemy side (Ebain 11/24, 3% of fights).
 - **King Nibbsworth III** (Rat King), **Scrounge** (rat trader), **Lil Nibbs** (pet rat): the Rat Cave. All three names
   are Claude DRAFTs (Ebain said "you draft names"), so he may rename them.
 - **Deloye:** wrote Deloye Lore. Floats and twirls in the middle of the secret library, earbuds in, chill, surprised
@@ -49,7 +49,8 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 2. **Goblin Village (day, as Lykor):** ambush → kneel → the Chief → crowned at the spoon throne → choice: A royal
    speech (+3 beezy) · B chug-off minigame · C crown Skorn (he stays behind, `skornKing`) · D sneak out for real,
    goblins follow (`goblinAllies`) · E Skorn fights 3 goblins (real combat). Then the village opens up (section 4).
-3. **Metocy Mart (evening, as Xylo):** Dulbers offers the midtocy → A everyone trips / B Skorn trips → boss fight vs
+3. **Metocy Mart (evening, as Xylo):** walking up the street only gets Xylo's "I can feel it" line; **Dulbers pops out
+   when you try the shop door** (Ebain 11/24, `MS.ARRIVE` → `MS.DULBERS_OUT`). Dulbers offers the midtocy → A everyone trips / B Skorn trips → boss fight vs
    demon Dulbers · C refuse → kicked out · D Xylo inspects it (Deloye Lore ch. 8,784 sec. B12) · E goblins handle it
    (if allies). Skorn pockets the midtocy in most paths (`hasMidtocy`).
 3½. **Side path: Old Ruins → Rat Cave → Rat Colony (RUINS_PLAN.md, built 11/24).** Optional, never blocks the story. A
@@ -60,7 +61,12 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    pillar/wall/boulder; each boulder (spoon / book / bowl) must stop on the plate with its symbol. Only **Skorn** can push the
    big spoon boulder, only **Lykor** fits through the crack into the side room (lever → the rubble drops and the bowl
    boulder rolls out of its alcove), only **Xylo** can read the wall carving, which makes the plates' symbols glow, and
-   the door won't open until it's been read. A rope resets the boulders; a hint line after 90 s stuck. Solution
+   the door won't open until it's been read. A rope resets the boulders. **Help (Ebain 11/24, he
+   couldn't figure it out):** Xylo explains the carving in plain words; a blue "stops here" ring shows where the boulder
+   you're next to would slide; a hint every 30 s stuck (first the general one, then an exact next move from a solver,
+   `cave.gd solve_next()`, or "pull the reset rope" when the boulders are in a dead end: ~35% of states are); after
+   3 min a **skip** is offered (and stays on the reset rope); the other two wait by the entrance while you're in the
+   chamber (`_followers_wait`). Solution
    (7 pushes): book W, S · spoon W, N · bowl N, E, N. **The colony:** King Nibbsworth III on a junk pile, Scrounge's stall,
    12 joke-labelled rats → 5-way choice: fight (boss fight `rat_colony`, Corncob Scepter drop, no trader) · Skorn
    crowned Rat King (Bottle-Cap Crown, trader half price) · business (trader's "good shelf": Lucky Crumb + Corncob
@@ -69,8 +75,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    (and back down). Flags: `ruinsStarted`, `ruinsLoot0..2`, `ruinsFell`, `caveEntered`, `caveLoot0..1`, `sealsRead`,
    `sealsLever`, `sealsSolved`, `ratsDone` (string: fight/king/trade/lore/mog), `ratPet`, `charisMet`. All lines DRAFT
    in `ruins_script.gd`.
-   **Charis's house:** the house right of the Mart (yard behind a gap in the back wall) can be entered in free roam after
-   the Mart scene. Interior built off to the side at x 340 (`mart.gd _charis_house`). Talking to Charis: `charisMet`.
+   **Charis's house:** the house right of the Mart (yard behind a gap in the back wall) can be entered **before and after**
+   the Mart scene (Ebain 11/24), no sign over the door. Inside: her **gaming setup** (desk, two glowing monitors, RGB
+   tower, pink gaming chair; `_gaming_setup`, "Look at" → `RS.CHARIS_PC`, DRAFT). Interior built off to the side at x 340 (`mart.gd _charis_house`). Talking to Charis: `charisMet`.
 🔒 **Secret: the Deloye Lore library (DELOYE_PLAN.md, built 11/24).** Never on the main route, no markers. 5 **Lost Deloye
    Lore Pages**, one per area (`lost_pages.gd SPOTS`: camp behind Skorn's tent, trail at the north end of the troll bridge,
    village behind the outhouse, Mart in the shop's back-left shelf corner, Pass in the rocks left of the sleeping giant).
@@ -97,7 +104,8 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    offer him fentocy (he dies) · call for Mattias ("Get lost midget fucker!", Mattias fights as a 4th fighter). Then the
    plaza, the tower, the hall. Walking up to Mattias before the hymn ends: "Peep the song first folk" (Asar) and a step
    back. In the study: the **OG Metocy** (Asar 11/23), his orange pill in a glass case on the old bust's pedestal with a
-   brass "OG Metocy" plaque; E Inspect glides the camera in, blurs the background and shows "OG Metocy / Dis shi was ahh
+   brass "OG Metocy" plaque; E Inspect hides the party, swings the camera to the south-west (`OG_YAW`,
+   clear of the study's armchairs; Ebain 11/24 couldn't see it), glides in, blurs the background and shows "OG Metocy / Dis shi was ahh
    folk, blue one way better" (Asar, `summit_script.gd OG_METOCY_*`, `summit.gd _inspect_og`). The hall's round wall is solid all the way round (doorway
    too: you leave with E), the camera pulls in near the walls so it never ends up outside (`_hall_camera`), and the star
    points at Mattias inside / the lair door outside (`_lair_objective`). Same idea in the Mart: inside the shop or
@@ -198,11 +206,13 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
   over). Reports script errors, softlocks, stuck dialogue, falling through the floor, endless fights and freezes, each
   with a screenshot + what it did just before. `godot --headless --path godot --audio-driver Dummy --script
   res://tools/explorer_bot.gd` (fast, no pictures) or the xvfb command with `--script res://tools/explorer_bot.gd` for
-  screenshots. Env: `BOT_MINUTES`, `BOT_SEED` (same seed = same picks), `BOT_START=res://summit.tscn`, `BOT_SPEED=2`
-  (headless only), `BOT_DIR` (report.md + shots/). Code: `tools/explorer_bot.gd` (launcher) + `explorer_bot_player.gd`.
+  screenshots. Env: `BOT_MINUTES`, `BOT_SEED` (same seed = same picks), `BOT_START=res://summit.tscn`, `BOT_SPEED=10`
+  (headless only; physics ticks scale with it so nothing walks through walls; 10x really runs ~8–10x and covers camp →
+  summit in ~3.5 min; 25x starts glitching the fight camera, so 10 is the sweet spot; the report shows the effective speed), `BOT_DIR` (report.md + shots/). Code: `tools/explorer_bot.gd` (launcher) + `explorer_bot_player.gd`.
   It overwrites user:// saves/progress, so not on your own PC. **On GitHub** it runs by itself after every push to main
-  (`.github/workflows/explorer-bot.yml`, 20 min, red = it found something; report on the run page, screenshots in the
-  `explorer-bot-report` download), or by hand: Actions → "Explorer bot" → Run workflow (minutes / seed / start area).
+  (`.github/workflows/explorer-bot.yml`, 20 min **at 10x headless** since 11/24 = ~3 hours of play, no screenshots; red =
+  it found something; report on the run page + `explorer-bot-report` download), or by hand: Actions → "Explorer bot" →
+  Run workflow (minutes / seed / start area / **speed**: 1 = the old normal-speed run with screenshots).
 Tours are slow in the sandbox (5–9 min); run them one at a time or they time out. `--check-only` always reports
 "Identifier not found: Game" — that's a false positive (the autoload). The sandbox has no TTS and no Forward+, so
 voices are silent and the screenshots look a bit flatter than the real game.
@@ -258,7 +268,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/achievements.gd` | **Achievements**: popup top-right + title-screen list, saved forever in `user://achievements.cfg`. Add one = one line in `LIST` with `when`: `progress:<id>` (any progress_data id), `flag:<name>` (any story flag), or `manual` (call `Game.achieve("id")`). `hidden` = shows ??? until unlocked. Lives on Game (`Game.ach`) so it survives scene changes. The 5 current ones are DRAFT examples; Ebain picks the real list |
 | `scripts/menu_ui.gd` | **MenuUI**: every menu (title, pause, settings, save/load, yes/no). Keyboard, controller and mouse. `MenuUI.open(parent, title, rows, opts)`, `MenuUI.confirm()`, `open_settings()` (section list → `_settings_audio/display/dialogue/gameplay/controls` pages), `open_slots()`. Rows: `text`, `value` (shown right, with ‹ › if the row has `change`; `"arrows": false` hides them), `icon` (play/pause/lock/note), `side` (a small button, L / Y). Looks from UITheme, restyles on `Game.ui_changed` |
 | `scripts/ui_theme.gd` | **UITheme**: the menu look. 3 themes (`NAMES`, colors in `T`): Gold & Night, Parchment, Wizard Arcane. `c(key)`, `panel()` (OrnateBox: chamfered, double frame, corner diamonds, top gem), `row(on)`, `lbl()`, `fs(px)` (× text size), `head_font()`/`row_font()` (Cinzel), `button()`, `bounce()/squash()/pop_in()`, `play("move/pick/back/open/page")` (synth sounds), drawn `Icon` + `Divider` |
-| `scripts/library_ui.gd` + `lyrics.gd` | **LibraryUI** (Title → Library): a hub (`hub`) → **Soundtrack** (`_soundtrack()`), **Voice Lines**, **Scrapbook**. Soundtrack: `SONGS`, play/pause/seek, lyrics page (always parchment). Songs unlock when heard (`mark_heard()`, called by AreaMusic once audible; title song always unlocked), saved in `user://library.cfg` across playthroughs. **Lyrics** go in `lyrics.gd` `TEXT[id]` (Ebain's, verbatim). New song = add to SONGS + Lyrics.TEXT |
+| `scripts/library_ui.gd` + `lyrics.gd` | **LibraryUI** (Title → Library, and pause menu → Library in game: area music goes silent while it's open, group `library_open`): a hub (`hub`) → **Soundtrack** (`_soundtrack()`), **Voice Lines**, **Scrapbook**. Soundtrack: `SONGS`, play/pause/seek, lyrics page (always parchment). Songs unlock when heard (`mark_heard()`, called by AreaMusic once audible; title song always unlocked), saved in `user://library.cfg` across playthroughs. **Lyrics** go in `lyrics.gd` `TEXT[id]` (Ebain's, verbatim). New song = add to SONGS + Lyrics.TEXT |
 | `scripts/voice_lines_ui.gd` | **VoiceLinesUI** (Library → Voice Lines): every recorded line, a tab per character (`ScriptScan.CATS`), search box (all words must match text or speaker), Enter/click plays. Plays on Master at Voice volume |
 | `scripts/scrapbook_ui.gd` | **ScrapbookUI** (Library → Scrapbook, always parchment): a page per story outcome (`ProgressData.ITEMS` with story = true), grouped by `SECTIONS`. Found: what you did, the choice text, the line said after it (+ Play). Not found: "? ? ?" + `HINTS` (# DRAFT, Ebain rewrites) |
 | `scripts/script_scan.gd` | **ScriptScan**: reads the dialogue scripts at runtime (`SCRIPTS`). `voice_lines()` = every recorded line with its speaker + file (recordings no script uses still show, by folder); `outcome(id)` = the choice option + first line after it. New dialogue script → add it to `SCRIPTS` |
@@ -310,14 +320,14 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   Mouse hover only moves a highlight on real mouse movement (`UITheme.hover_moved` / `key_nav`), see TIPS.
 - **Settings** (title + Esc menu), split into pages: **Audio** (master, music, sound effects, voice volume, voices,
   area music loop/once) · **Display & UI** (menu theme, UI size = root `content_scale_factor` 80–130%, text size 85–130%,
-  menu animations Bouncy/Calm, window, VSync, graphics) · **Dialogue** (text speed, buffer, go back, speed mode) ·
+  menu animations Bouncy/Calm, window, VSync, graphics) · **Dialogue** (text speed, buffer, go back, dialogue speed) ·
   **Gameplay** (camera speed, difficulty, timed hits) · **Controls** (keyboard rebinding, reset).
 - **Audio buses** (made in `Game._make_buses()`, no bus layout file): `Music` and `SFX` → Master. Any new player left on
   Master is moved to SFX automatically (`Game._route_audio`), except dialogue's `_vo`. Music players must set
   `bus = &"Music"` before `add_child` (title.gd, area_music.gd, library_ui.gd do).
 - **Controller:** left stick/d-pad move, right stick or LB/RB camera, A talk/confirm, B run (hold) / back in menus,
   Y switch leader, Back = party, Start = menu. Number keys 1–9 pick dialogue choices.
-- **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Speed mode** (button at the bottom-left of the dialogue box, asks Yes/No; off with one click or in Settings) removes the buffer and makes the **voices** 1.5x faster (Ebain 11/24: speed mode is for the voices, not the text). Recorded lines play at `pitch_scale` 1.5 on a runtime `VoiceFast` bus with a pitch-shift effect, so they don't sound like chipmunks; the robot voice gets `rate` × 1.5. Text types at the normal speed. Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.
+- **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Dialogue speed** (Ebain 11/24: a slider at the bottom-left of the dialogue box, 0.5x–3x in 0.25 steps, no Yes/No; also Settings → Dialogue) speeds up **voices and text typing** together; the buffer is divided by it. Recorded lines play at `pitch_scale` = speed on a runtime `VoiceFast` bus whose pitch-shift is 1/speed, so they keep their pitch; the robot voice gets `rate` × speed. `Game.dlg_speed` is a float now (old ON/OFF saves load as 1.5 / 1.0). Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.
 
 ### Leveling, boss scaling, gear (Ebain 11/24)
 - **Optional fights give more XP** (patrol 50, bar fight 70, troll 85) so you level before Diddy Chud. `LEVELS` curve unchanged.
@@ -338,10 +348,15 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 ### Combat in one paragraph
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
 FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T or the Esc menu), meters → ultimates
-(FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events, banter, XP +
+(FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events (+ **Dulbmeethus' lightning**, 3% of fights: "Y'all could hear me doe?" on the first enemy
+turn, a bolt on every enemy, regular ones drop, bosses lose 40%; `battle.gd _dulbmeethus_bolt`, `BOLT=1` forces it), banter, XP +
 levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (flat cut per hit), permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
-roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`, `rats` (roaming, cave), `rat_colony` (cave boss),
+roaming fights wake you at the area's `checkpoint`). **Roaming patrols** you beat or talk down stay gone for the run
+(flag `roamDone_<area>_<fight>_<n>`, `level.gd spawn_roamers`; Ebain 11/24: the goblin patrol came back). Running from
+one steps you back along your own trail (`_retreat_from`), not 4 m sideways (that went through the cave tunnel wall).
+The battle lineup squeezes/slides to fit between walls (`battle_view.gd _fit_lineup`, raycasts), so tunnel fights
+don't put anyone inside the rock. Party members' "Talk to" never wins E over anything else in reach. Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`, `rats` (roaming, cave), `rat_colony` (cave boss),
 `goblin_patrol` (roaming, village east road), `troll`, `dulbers_ambush` (summit, regular-size Dulbers; Mattias can join
 as a 4th fighter, `CombatD.PARTY["mattias"]`), `mattias` (the sucker-punch boss; every number in `CombatD.MATTIAS_BOSS`,
 balance with `SIM_ONLY=mattias godot --headless --path godot --script res://tools/sim_combat.gd`). `fight(key, { lose_ends

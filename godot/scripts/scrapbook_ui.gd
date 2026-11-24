@@ -126,6 +126,9 @@ func _build() -> void:
 	h.add_child(spine)
 	page = VBoxContainer.new()     # right page: the moment
 	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# (Ebain 11/24: "scrapbook is not scrollable") without a width, the page's autowrap labels measured one letter per
+	# line, the book grew ~2700 px tall off the screen and the list never needed to scroll. Give the page its width.
+	page.custom_minimum_size.x = 520
 	page.add_theme_constant_override("separation", 10)
 	h.add_child(page)
 	var hint := UITheme.lbl("W/S or ↑/↓ choose · E play the line · Esc back", 13, "faint", null, P)
@@ -165,6 +168,17 @@ func _build() -> void:
 	_render()
 	book.size = Vector2(1000, 630)
 	UITheme.pop_in(book)
+	_resettle(book)
+
+# The first layout measures the autowrap labels at width 0 (very tall), the book grows to fit, and a Control never
+# shrinks back by itself, so the list had nothing to scroll. Put the book back to its real size once it's laid out.
+func _resettle(book: Control) -> void:
+	for i in 2:
+		await get_tree().process_frame
+	if not is_instance_valid(book):
+		return
+	book.offset_left = -500; book.offset_right = 500; book.offset_top = -315; book.offset_bottom = 315
+	book.size = Vector2(1000, 630)
 
 func _render() -> void:
 	for i in _rows.size():
