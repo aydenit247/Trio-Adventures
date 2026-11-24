@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Ebain's notes batch (speed slider, Esc library, scrapbook scroll, Mart door/Charis house + gaming setup, signs, followers stealing E, patrol respawn, cave fixes, boulder hints/skip, Dulbmeethus lightning, fast bot, OG Metocy inspect) — files: dialogue.gd, game.gd, menu_ui.gd, level.gd, scrapbook_ui.gd, library_ui.gd, area_music.gd, mart.gd, mart_script.gd, cave.gd, ruins_script.gd, village.gd, summit.gd, combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, tools/explorer_bot*.gd, .github/workflows/explorer-bot.yml — branch: ebain/notes-batch — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -53,6 +54,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
+- [ebain] godot/scripts/{dialogue,game,menu_ui,level,scrapbook_ui,library_ui,area_music,mart,mart_script,cave,ruins_script,village,summit}.gd, godot/scripts/combat/{battle,battle_view,combat_data}.gd, godot/tools/explorer_bot*.gd, .github/workflows/explorer-bot.yml
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
