@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Combat settings: Battle speed (Gameplay) + fights follow menu theme — files: godot/scripts/game.gd, godot/scripts/menu_ui.gd, godot/scripts/combat/battle_view.gd, godot/scripts/combat/battle.gd — branch: ebain/combat-settings — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-24 [ebain] Combat settings: Battle speed (Settings → Gameplay: Normal/Fast/Very fast), fights follow the menu theme (Parchment too)
 - 2026-11-24 [asar] Dialogue map page (every line/choice/outcome, mp3 status, shared approve ticks), built from the code by tools/dialogue_map/build.sh
 - 2026-11-24 [ebain] Ebain's notes batch: dialogue speed slider (0.5–3x voices + text), Library in the pause menu, Scrapbook scrolls, Dulbers only at the Mart door, Charis's house before + after the Mart (gaming setup, no sign), wooden Giant's Pass sign, followers never steal E, patrols stay dead, tunnel fights fit between walls, fleeing can't drop you off the map, OG Metocy close-up clear, Dulbmeethus lightning (3%), boulder puzzle help (ghost ring, exact-move hints, skip after 3 min), explorer bot at 10x
 - 2026-11-24 [asar] Persona playtest (20 runs: speedrunner, toddler, exploiter, fun-seeker) + fixes: Mattias hall doorway no longer drops you off the map, camera stays inside the hall, objective star right inside/outside (hall, Mart shop, Charis's house), dev menu is Alt+F1
@@ -59,6 +59,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [ebain] **Combat settings merged.** Hot spots: **game.gd** `battle_speed` + `BATTLE_SPEED` (settings.cfg `[game] battle_speed`). **combat/battle_view.gd**: `speed` × battle speed; `_th()` now just returns the menu theme (Ebain: fights always follow it, no more forced dark on Parchment); new `_parch()`, `_ink(color)`, `_pl()` for text inside fight panels (party cards + chips, menu, status/loot tips, results). **menu_ui.gd**: Battle speed row on the Gameplay page. Not touched: battle.gd (claimed but not needed). **@asar:** new labels inside a fight panel → `_pl()`, new fight waits → `* speed` (TIPS). Tested: test_ui ALL OK; FIGHT goblins/giant/bouncer MENUS=1 on Parchment, Gold & Night and Wizard at Normal/Fast/Very fast, no script errors.
 - 2026-11-24 [asar] village_script.gd throne **speech ending** reordered (Asar's call): Chief's east directions → Xylo "They… sell it?" → Chief "For all yo metocy needs." → Chief "Here go some beezy…" → gift → Lykor "Y'all real for this." ("Real ones." cut; his recording never had it, so voice_lines.gd key updated) → Skorn "Why HE get the beezy?" → goodbye. The two Xylo/Chief lines moved out of `GOODBYE` into `SELL_IT`; chug-win and dethrone endings use `SELL_IT + GOODBYE`, so they're unchanged.
 - 2026-11-24 [asar] **Hot spot dialogue.gd:** a dialogue step can say `"voice": "none"` so it never borrows a recording
   with the same words (recordings are matched by text alone). `say()` passes it to `_speak(who, line, thought, use_rec)`
