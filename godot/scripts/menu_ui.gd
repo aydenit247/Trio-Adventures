@@ -130,14 +130,9 @@ func _make_row(i: int) -> Control:
 		side.pressed.connect(func(): _side(i))
 		hb.add_child(side)
 	var idx := i
-	rp.mouse_entered.connect(func():
-		if _enabled(idx) and sel != idx and _on_top():
-			sel = idx
-			_render()
-	)
 	rp.gui_input.connect(func(ev): _row_click(idx, rp, ev))
 	labels.append(nl)
-	_rows_ui.append({ "panel": rp, "name": nl, "val": val, "la": la, "ra": ra, "icon": ic, "side": side })
+	_rows_ui.append({ "panel": rp, "content": hb, "name": nl, "val": val, "la": la, "ra": ra, "icon": ic, "side": side })
 	return rp
 
 func _restyle() -> void:
@@ -154,9 +149,21 @@ func _restyle() -> void:
 			UITheme.style_button(r["side"], _font * 0.66)
 	UITheme.style_lbl(note_lbl, _note_size, _note_color)
 	UITheme.style_lbl(hint_lbl, 13, "faint")
+	_reserve_note()
 	for d in _dividers:
 		d.queue_redraw()
 	_render()
+
+# Keep room for the tallest note, so the panel doesn't change height (and slide rows under the mouse) as you move.
+func _reserve_note() -> void:
+	var font: Font = note_lbl.get_theme_font("font")
+	var size: int = note_lbl.get_theme_font_size("font_size")
+	var w: float = maxf(float(_opts.get("w", 640.0)) - 72.0, 200.0)
+	var tallest := 0.0
+	for t in [base_note] + rows.map(func(r): var n = r.get("note", ""); return str(n.call() if n is Callable else n)):
+		if str(t) != "":
+			tallest = maxf(tallest, font.get_multiline_string_size(str(t), HORIZONTAL_ALIGNMENT_CENTER, w, size).y)
+	note_lbl.custom_minimum_size.y = ceilf(tallest) + 4.0 if tallest > 0.0 else 0.0
 
 func _enabled(i: int) -> bool:
 	var e = rows[i].get("enabled", true)
@@ -206,7 +213,7 @@ func _render() -> void:
 			r["side"].disabled = not (se.call() if se is Callable else bool(se))
 		r["panel"].add_theme_stylebox_override("panel", UITheme.row(on))
 	if sel != _last_sel and sel < _rows_ui.size():
-		UITheme.bounce(_rows_ui[sel]["panel"])
+		UITheme.bounce(_rows_ui[sel]["content"])   # the content hops, the row's mouse area stays put
 		if _shown:
 			UITheme.play("move")
 		_last_sel = sel
@@ -215,7 +222,7 @@ func _render() -> void:
 	if n == "":
 		n = base_note
 	note_lbl.text = n
-	note_lbl.visible = n != ""
+	note_lbl.visible = n != "" or note_lbl.custom_minimum_size.y > 0.0
 	_recenter.call_deferred()
 
 # keep the panel centred on its anchor as rows/notes change height
@@ -238,6 +245,8 @@ func refresh() -> void:
 
 func set_note(text: String) -> void:
 	base_note = text
+	if text != "":
+		_reserve_note()
 	_render()
 
 # confirm boxes: a bigger, warmer note
@@ -255,6 +264,7 @@ func close() -> void:
 	queue_free()
 
 func _move(d: int) -> void:
+	UITheme.key_nav()
 	for k in rows.size():
 		sel = (sel + d + rows.size()) % rows.size()
 		if _enabled(sel):
@@ -265,7 +275,7 @@ func _pick() -> void:
 	if not _enabled(sel):
 		return
 	UITheme.play("pick")
-	UITheme.squash(_rows_ui[sel]["panel"])
+	UITheme.squash(_rows_ui[sel]["content"])
 	var r: Dictionary = rows[sel]
 	if r.has("pick"):
 		r["pick"].call()
@@ -302,6 +312,11 @@ func _back() -> void:
 		close()
 
 func _row_click(i: int, row: Control, ev: InputEvent) -> void:
+	if UITheme.hover_moved(ev):   # real mouse movement only (see UITheme.hover_moved)
+		if _enabled(i) and sel != i and _on_top():
+			sel = i
+			_render()
+		return
 	if not (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT):
 		return
 	if not _on_top() or not _enabled(i):
@@ -451,7 +466,7 @@ static func _settings_dialogue(parent: Node) -> MenuUI:
 		  "note": "Backspace replays the previous line. It can't go back past a choice or a scene event." },
 		{ "text": "Speed mode", "value": func(): return "ON" if Game.dlg_speed else "OFF",
 		  "change": func(_d): Game.dlg_speed = not Game.dlg_speed; _changed(),
-		  "note": "Spam E to skip and text types 2x faster. Also a button on the dialogue box." },
+		  "note": "Spam E to skip, and voices talk 1.5x faster (same pitch). Also a button on the dialogue box." },
 	])
 
 static func _settings_gameplay(parent: Node) -> MenuUI:

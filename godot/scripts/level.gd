@@ -558,12 +558,18 @@ func _build_ui() -> void:
 	title_box.add_theme_constant_override("separation", -2)
 	title_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.add_child(title_box)
-	for l in [_label("TRIO ADVENTURES", Vector2.ZERO, 30, Color("#e8b923"), 8), _label(subtitle, Vector2.ZERO, 16, Color("#c9c0e8"), 5)]:
+	for l in [_label("TRIO ADVENTURES", Vector2.ZERO, 30, Color("#f0c24a"), 8), _label(subtitle, Vector2.ZERO, 16, Color("#e6dcc0"), 5)]:
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.add_theme_font_override("font", UITheme.head_font() if l.text == "TRIO ADVENTURES" else UITheme.row_font())
 		title_box.add_child(l)
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, 6)
+	title_box.add_child(gap)
 	objective_lbl = _label("", Vector2.ZERO, 19, Color("#ffdf8a"), 6)
 	objective_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	objective_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	objective_lbl.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	objective_lbl.custom_minimum_size.x = 0
 	title_box.add_child(objective_lbl)
 	minimap = Minimap.new()
 	minimap.lv = self
@@ -582,7 +588,11 @@ func _build_ui() -> void:
 	leader_por.custom_minimum_size = Vector2(56, 56)
 	leader_por.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	leader_por.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	box.add_child(leader_por)
+	leader_frame = PanelContainer.new()   # themed frame around the leader's portrait
+	leader_frame.add_child(leader_por)
+	box.add_child(leader_frame)
+	leader_por.visibility_changed.connect(func(): leader_frame.visible = leader_por.visible)   # areas hide leader_por (summit ending)
+	leader_lbl.add_theme_font_override("font", UITheme.row_font())
 	set_leader(leader)
 
 	help_lbl = _label("WASD walk · Shift run · E talk · Q switch · ←/→ or right-drag camera · Tab inventory · M map · Esc menu (save/settings) · V voices", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 4)
@@ -595,8 +605,12 @@ func _build_ui() -> void:
 	toast.anchor_left = 0.5; toast.anchor_right = 0.5
 	toast.offset_left = -360; toast.offset_right = 360; toast.offset_top = 132
 	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	toast.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	toast.modulate.a = 0.0
 	hud.add_child(toast)
+	_hud_restyle()
+	Game.ui_changed.connect(_hud_restyle)
 
 	var post := CanvasLayer.new()
 	post.layer = 4
@@ -627,12 +641,48 @@ func _build_ui() -> void:
 	prompt.pixel_size = 0.0055
 	prompt.outline_size = 10
 	prompt.modulate = Color("#ffdf8a")
+	prompt.font = UITheme.row_font()
 	prompt.visible = false
 	add_child(prompt)
 
 	step_sfx = _sfx(Util.noise_burst(55, 0.18, 0.7), -12.0)
 	ui_sfx = _sfx(Util.chime(990.0, 180, 0.2), -10.0)
 	whoosh_sfx = _sfx(Util.noise_burst(700, 0.05, 0.9), -6.0)
+
+# HUD looks (UI overhaul part 2): the objective and toasts sit on small themed plates, the leader portrait gets a
+# frame. Follows Settings → Menu theme (Game.ui_changed). Text over the open world (title, help line) stays light.
+var leader_frame: PanelContainer
+
+func _plate(strong := false) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(UITheme.c("bg"), 0.86 if strong else 0.78)
+	sb.border_color = Color(UITheme.c("edge"), 0.9)
+	sb.border_width_top = 1; sb.border_width_bottom = 1
+	sb.border_width_left = 3 if strong else 1; sb.border_width_right = 3 if strong else 1
+	sb.set_corner_radius_all(4)
+	sb.content_margin_left = 18; sb.content_margin_right = 18; sb.content_margin_top = 5; sb.content_margin_bottom = 6
+	sb.shadow_color = Color(0, 0, 0, 0.3); sb.shadow_size = 6
+	return sb
+
+func _hud_restyle() -> void:
+	if not is_instance_valid(objective_lbl):
+		return
+	var light := UITheme.c("bg").get_luminance() > 0.5   # Parchment: dark ink on paper, no outline
+	for l in [objective_lbl, toast]:
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.0 if light else 0.85))
+		l.add_theme_constant_override("outline_size", 0 if light else 4)
+	objective_lbl.add_theme_color_override("font_color", UITheme.c("accent"))
+	objective_lbl.add_theme_font_override("font", UITheme.row_font())
+	objective_lbl.add_theme_stylebox_override("normal", _plate() if objective_lbl.text != "" else StyleBoxEmpty.new())
+	toast.add_theme_color_override("font_color", UITheme.c("text"))
+	toast.add_theme_stylebox_override("normal", _plate(true))
+	var pf := StyleBoxFlat.new()
+	pf.bg_color = Color(UITheme.c("bg2"), 0.7)
+	pf.border_color = UITheme.c("edge")
+	pf.set_border_width_all(2)
+	pf.set_corner_radius_all(4)
+	pf.set_content_margin_all(2)
+	leader_frame.add_theme_stylebox_override("panel", pf)
 
 func _label(text: String, pos: Vector2, size: int, color: Color, outline: int) -> Label:
 	var l := Label.new()
@@ -696,6 +746,7 @@ func show_toast(msg: String, secs := 1.6) -> void:
 func objective(text: String, at := Vector3.INF) -> void:
 	objective_at = at if text != "" else Vector3.INF
 	objective_lbl.text = ("Objective: " + text) if text != "" else ""
+	objective_lbl.add_theme_stylebox_override("normal", _plate() if text != "" else StyleBoxEmpty.new())
 	objective_lbl.modulate.a = 0.0
 	create_tween().tween_property(objective_lbl, "modulate:a", 1.0, 0.4)
 

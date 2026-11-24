@@ -12,7 +12,7 @@ signal closed
 const SONGS := [
 	{ "id": "prophecy_of_metocy", "title": "Prophecy of Metocy", "by": "Ebain", "where": "the title screen", "always": true },
 	{ "id": "the_mogging_elf", "title": "The Mogging Elf", "by": "Ebain", "where": "the goblin village" },
-	{ "id": "the_hymn_of_metocin_mattias", "title": "The Hymn of Metocin Mattias", "by": "Asar", "where": "the Summit Path" },
+	{ "id": "the_hymn_of_metocin_mattias", "title": "The Hymn of Metocin Mattias", "by": "Ebain", "where": "the Summit Path" },
 ]
 const CFG := "user://library.cfg"
 

@@ -238,6 +238,7 @@ func _build_ui() -> void:
 	root.add_child(log_lbl)
 
 	banner = lv._label("", Vector2.ZERO, 56, RED, 12)
+	banner.add_theme_font_override("font", UITheme.head_font())
 	banner.anchor_left = 0.5; banner.anchor_right = 0.5; banner.anchor_top = 0.32
 	banner.offset_left = -600; banner.offset_right = 600
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -254,6 +255,7 @@ func _build_ui() -> void:
 		var col := VBoxContainer.new()
 		col.add_theme_constant_override("separation", 1)
 		var nm := lv._label("%s %s" % [e["name"], e["tag"]], Vector2.ZERO, 17, Color("#ffcf9a"), 5)
+		nm.add_theme_font_override("font", UITheme.row_font())
 		col.add_child(nm)
 		var hp := _bar(RED, Vector2(300, 14))
 		hp.max_value = e["max_hp"]
@@ -272,7 +274,7 @@ func _build_ui() -> void:
 	for p in b.party:
 		var card := PanelContainer.new()
 		card.custom_minimum_size = Vector2(196, 0)
-		card.add_theme_stylebox_override("panel", _box(Color(0.06, 0.05, 0.12, 0.88), Color(1, 1, 1, 0.15), 2))
+		card.add_theme_stylebox_override("panel", _card_box())
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		card.add_child(row)
@@ -287,7 +289,9 @@ func _build_ui() -> void:
 		col.add_theme_constant_override("separation", 1)
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(col)
-		col.add_child(lv._label(p["name"] if p["id"] != "chief" else "The Chief", Vector2.ZERO, 16, GOLD, 4))
+		var pn := lv._label(p["name"] if p["id"] != "chief" else "The Chief", Vector2.ZERO, 16, UITheme.c("accent", _th()), 4)
+		pn.add_theme_font_override("font", UITheme.row_font())
+		col.add_child(pn)
 		var hp_lbl := lv._label("", Vector2.ZERO, 12, Color(1, 1, 1, 0.85), 3)
 		col.add_child(hp_lbl)
 		var hp := _bar(GREEN, Vector2(120, 10))
@@ -305,16 +309,19 @@ func _build_ui() -> void:
 	menu_panel.anchor_left = 1.0; menu_panel.anchor_right = 1.0; menu_panel.anchor_top = 1.0; menu_panel.anchor_bottom = 1.0
 	menu_panel.offset_left = -400; menu_panel.offset_right = -18; menu_panel.offset_bottom = -40
 	menu_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	menu_panel.add_theme_stylebox_override("panel", _box(Color(0.06, 0.045, 0.11, 0.94), GOLD, 3))
+	var mp := UITheme.panel(0.95, _th())
+	mp.content_margin_left = 22; mp.content_margin_right = 22; mp.content_margin_top = 20; mp.content_margin_bottom = 14
+	menu_panel.add_theme_stylebox_override("panel", mp)
 	var mcol := VBoxContainer.new()
 	mcol.add_theme_constant_override("separation", 2)
 	menu_panel.add_child(mcol)
-	menu_title = lv._label("", Vector2.ZERO, 19, GOLD, 5)
+	menu_title = lv._label("", Vector2.ZERO, 19, UITheme.c("accent", _th()), 5)
+	menu_title.add_theme_font_override("font", UITheme.head_font())
 	mcol.add_child(menu_title)
 	menu_list = VBoxContainer.new()
 	menu_list.add_theme_constant_override("separation", 0)
 	mcol.add_child(menu_list)
-	menu_desc = lv._label("", Vector2.ZERO, 14, Color(1, 1, 1, 0.75), 3)
+	menu_desc = lv._label("", Vector2.ZERO, 14, UITheme.c("note", _th()), 3)
 	menu_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	menu_desc.custom_minimum_size = Vector2(350, 0)
 	mcol.add_child(menu_desc)
@@ -334,6 +341,28 @@ func _build_ui() -> void:
 
 func _update_hint() -> void:
 	hint.text = "W/S choose · E select · Q back · T timed hits: %s" % ("AUTO" if Game.timed_auto else "MANUAL")
+
+# UI overhaul part 2: combat panels use UITheme. Fights always use a DARK theme (Parchment → Gold & Night), because
+# most fight text (status words, numbers, results) is light-colored with an outline, made to sit over the action.
+func _th() -> int:
+	return 0 if Game.ui_theme == UITheme.PARCHMENT else Game.ui_theme
+
+func _card_box() -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(UITheme.c("bg", _th()), 0.88)
+	sb.border_color = Color(UITheme.c("edge2", _th()), 0.9)
+	sb.set_border_width_all(2)
+	sb.border_width_top = 3
+	sb.set_corner_radius_all(4)
+	sb.content_margin_left = 12; sb.content_margin_right = 12; sb.content_margin_top = 8; sb.content_margin_bottom = 8
+	sb.shadow_color = Color(0, 0, 0, 0.35); sb.shadow_size = 6
+	return sb
+
+func _tip_box() -> StyleBoxFlat:
+	var sb := _card_box()
+	sb.bg_color = Color(UITheme.c("bg2", _th()), 0.97)
+	sb.border_color = UITheme.c("edge", _th())
+	return sb
 
 func _box(bg: Color, border: Color, bw: int) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -450,7 +479,7 @@ func _show_status_tip(over: Control, chip: Array) -> void:
 		return
 	if status_tip == null:
 		status_tip = PanelContainer.new()
-		status_tip.add_theme_stylebox_override("panel", _box(Color(0.08, 0.06, 0.12, 0.97), GOLD, 2))
+		status_tip.add_theme_stylebox_override("panel", _tip_box())
 		status_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		status_tip.z_index = 20
 		var tc := VBoxContainer.new()
@@ -490,8 +519,8 @@ func _timeline() -> void:
 		var pc := PanelContainer.new()
 		var sz := 54 if i == 0 else 42
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0, 0, 0, 0.6)
-		sb.border_color = GOLD if u["side"] == "party" else RED
+		sb.bg_color = Color(UITheme.c("bg2", _th()), 0.75)
+		sb.border_color = UITheme.c("edge", _th()) if u["side"] == "party" else RED
 		sb.set_border_width_all(3 if i == 0 else 2)
 		sb.set_corner_radius_all(6)
 		pc.add_theme_stylebox_override("panel", sb)
@@ -1248,7 +1277,12 @@ func _menu(title: String, opts: Array, can_back: bool):
 		bt.focus_mode = Control.FOCUS_NONE
 		bt.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		bt.add_theme_font_size_override("font_size", 17)
-		bt.mouse_entered.connect(func(): _menu_sel = i; _render_menu())
+		bt.add_theme_font_override("font", UITheme.row_font())
+		bt.gui_input.connect(func(ev):   # only real mouse movement moves the highlight (UITheme.hover_moved)
+			if UITheme.hover_moved(ev) and _menu_sel != i:
+				_menu_sel = i
+				sfx("move")
+				_render_menu())
 		bt.pressed.connect(func(): _menu_sel = i; _confirm_menu())
 		menu_list.add_child(bt)
 		_menu_btns.append(bt)
@@ -1274,18 +1308,25 @@ func _menu(title: String, opts: Array, can_back: bool):
 	menu_panel.visible = false
 	return v
 
+var _last_menu_sel := -1
 func _render_menu() -> void:
+	var T := _th()
 	for i in _menu_btns.size():
 		var o: Dictionary = _menu_opts[i]
 		var bt: Button = _menu_btns[i]
-		var col := Color.WHITE
-		if o.get("off", false): col = Color(1, 1, 1, 0.35)
+		var col := UITheme.c("text", T)
+		if o.get("off", false): col = UITheme.c("faint", T)
 		elif o.get("hot", false): col = Color("#fff07a")
-		if i == _menu_sel: col = GOLD if not o.get("off", false) else Color(0.9, 0.75, 0.3, 0.5)
-		bt.text = ("> " if i == _menu_sel else "   ") + o["text"]
+		if i == _menu_sel: col = UITheme.c("accent", T) if not o.get("off", false) else Color(UITheme.c("accent", T), 0.5)
+		bt.text = o["text"]
+		for st in ["normal", "hover", "pressed", "focus"]:
+			bt.add_theme_stylebox_override(st, UITheme.row(i == _menu_sel, T))
+		if i == _menu_sel and i != _last_menu_sel:
+			UITheme.bounce(bt, 0.03)
 		bt.add_theme_color_override("font_color", col)
 		bt.add_theme_color_override("font_hover_color", col)
 		bt.add_theme_color_override("font_pressed_color", col)
+	_last_menu_sel = _menu_sel
 	menu_desc.text = _menu_opts[_menu_sel].get("desc", "") if not _menu_opts.is_empty() else ""
 	menu_desc.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 
@@ -1307,10 +1348,10 @@ func _input(ev: InputEvent) -> void:
 	if _menu_active:
 		if ev.is_action_pressed("move_forward") or ev.is_action_pressed("ui_up"):
 			_menu_sel = (_menu_sel + _menu_opts.size() - 1) % _menu_opts.size()
-			sfx("move"); _render_menu()
+			UITheme.key_nav(); sfx("move"); _render_menu()
 		elif ev.is_action_pressed("move_back") or ev.is_action_pressed("ui_down"):
 			_menu_sel = (_menu_sel + 1) % _menu_opts.size()
-			sfx("move"); _render_menu()
+			UITheme.key_nav(); sfx("move"); _render_menu()
 		elif ev.is_action_pressed("interact"):
 			_confirm_menu()
 		elif _is_back(ev) and get_meta("can_back", false):
@@ -1577,7 +1618,7 @@ func _loot_icon(gear_id: String) -> Control:
 		box.add_child(l)
 	# hover card
 	var tip := PanelContainer.new()
-	tip.add_theme_stylebox_override("panel", _box(Color(0.08, 0.06, 0.12, 0.97), GOLD, 2))
+	tip.add_theme_stylebox_override("panel", _tip_box())
 	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tip.visible = false
 	tip.z_index = 10
@@ -1630,7 +1671,7 @@ func _results(res: String) -> void:
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.5; panel.anchor_right = 0.5; panel.anchor_top = 0.5; panel.anchor_bottom = 0.5
 	panel.offset_left = -330; panel.offset_right = 330; panel.offset_top = -190; panel.offset_bottom = 190
-	panel.add_theme_stylebox_override("panel", _box(Color(0.05, 0.04, 0.1, 0.95), GOLD, 3))
+	panel.add_theme_stylebox_override("panel", UITheme.panel(0.96, _th()))
 	root.add_child(panel)
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER

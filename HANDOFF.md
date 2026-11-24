@@ -243,6 +243,10 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   `can_resume()` / `can_resume_saved()` / `_resume(r)`; see camp.gd and village.gd). Anywhere else, a save keeps the
   state from when you **entered** the area, so loading replays that area from its start instead of landing mid-cutscene.
   Only `Game` state is saved, so story facts that matter later must be `Game.flags`.
+- **UI looks everywhere** (UI overhaul part 2): the dialogue box, choices, HUD plates (objective, toasts, leader
+  portrait), minimap frame and combat menus/cards/results all use UITheme and restyle on `Game.ui_changed`. Fights
+  always use a dark theme (`battle_view._th()`: Parchment → Gold & Night). Text size also grows the dialogue box.
+  Mouse hover only moves a highlight on real mouse movement (`UITheme.hover_moved` / `key_nav`), see TIPS.
 - **Settings** (title + Esc menu), split into pages: **Audio** (master, music, sound effects, voice volume, voices,
   area music loop/once) · **Display & UI** (menu theme, UI size = root `content_scale_factor` 80–130%, text size 85–130%,
   menu animations Bouncy/Calm, window, VSync, graphics) · **Dialogue** (text speed, buffer, go back, speed mode) ·
@@ -252,7 +256,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   `bus = &"Music"` before `add_child` (title.gd, area_music.gd, library_ui.gd do).
 - **Controller:** left stick/d-pad move, right stick or LB/RB camera, A talk/confirm, B run (hold) / back in menus,
   Y switch leader, Back = party, Start = menu. Number keys 1–9 pick dialogue choices.
-- **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Speed mode** (button at the bottom-left of the dialogue box, asks Yes/No; off with one click or in Settings) removes the buffer and types 2x faster. Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.
+- **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Speed mode** (button at the bottom-left of the dialogue box, asks Yes/No; off with one click or in Settings) removes the buffer and makes the **voices** 1.5x faster (Ebain 11/24: speed mode is for the voices, not the text). Recorded lines play at `pitch_scale` 1.5 on a runtime `VoiceFast` bus with a pitch-shift effect, so they don't sound like chipmunks; the robot voice gets `rate` × 1.5. Text types at the normal speed. Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.
 
 ### Combat in one paragraph
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
@@ -318,6 +322,10 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
   battle, boss, mountain/pass, victory jingle, "YOU GOT COOKED" sting. A new area track = add an AreaMusic node to
   that area's .tscn, and add it to `LibraryUI.SONGS` + `Lyrics.TEXT` so it shows in the Library.
 - **Lyrics:** Ebain will send lyrics for all 3 songs. Paste them into `scripts/lyrics.gd` as-is.
+- **Every song is Ebain's** (Prophecy of Metocy, The Mogging Elf, The Hymn of Metocin Mattias), made in Google Flow Music.
+  Older notes that call the hymn "Asar's track" are wrong: Asar wired it into the summit, Ebain made it.
+- **Secret Deloye Lore area (idea, not built):** Ebain wants it as a hidden easter-egg area, not on the normal route.
+  Before building, ask him: how you find it, what's inside, whether it gets its own song.
 - **Credits:** asked Ebain whether to keep "Code, Cutouts & Sounds: Claude". No answer yet.
 - **Chapter 2+:** Dulbers returns as a villain.
 

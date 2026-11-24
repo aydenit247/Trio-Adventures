@@ -163,6 +163,12 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] **Audio buses are made at runtime** (`Game._make_buses`). New music player? set `bus = &"Music"` BEFORE
   add_child, or `_route_audio` moves it to SFX. Voice-type players: name the var `_vo` on its parent to stay on Master.
 - [ebain] Fonts: Cinzel has no ◆ ▶ ✓ 🏆 glyphs. Draw them (`UITheme.Icon`, `Divider`) instead of putting them in text.
+- [ebain] **Hover = real mouse movement only.** For any hoverable row/button, select it in `gui_input` with
+  `if UITheme.hover_moved(ev)`, never `mouse_entered` (that fires when the layout moves under a still cursor, which made
+  menus "jump to the next one", Ebain 11/24). Call `UITheme.key_nav()` when keys/controller move the selection.
+  Also keep panels from changing height while you move (MenuUI reserves the tallest note; battle menus the tallest desc).
+- [ebain] Portraits are opaque squares with a dark backdrop. A green-screen portrait (chief.png had one) needs keying by
+  distance to the backdrop color + flood from the border, NOT by greenness: goblin skin is green too.
 - [ebain] UI logic test: `godot --headless --path godot res://tools/test_ui.tscn` → "UI TEST: ALL OK" (keybinds,
   buses, Library unlocks, every settings page in every theme).
 - [ebain] After rebasing onto someone's new `class_name` (e.g. ProgressData), tours fail with thousands of errors until

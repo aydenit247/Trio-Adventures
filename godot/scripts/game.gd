@@ -442,7 +442,7 @@ const DLG_BUFFER := ["Off", "Short", "Normal", "Long"]   # wait after a line is 
 const DLG_BUFFER_SEC := [0.0, 0.2, 0.4, 0.8]
 var dlg_buffer := 2               # index into DLG_BUFFER
 var dlg_back := true              # Backspace goes back one line
-var dlg_speed := false            # speed mode: no buffer (spam E) + 2x text. Turned on with the button on the dialogue box
+var dlg_speed := false            # speed mode: no buffer (spam E) + voices 1.5x faster (dialogue.gd SPEED_VOICE). Turned on with the button on the dialogue box
 # UI overhaul (Ebain 11/24): menu theme + sizes (ui_theme.gd), music/SFX buses (made in _make_buses), key rebinding (keybinds.gd)
 signal ui_changed                 # theme / sizes changed: open menus restyle
 var music_vol := 0.8              # 0..1, the "Music" bus (title, area songs, Library)

@@ -44,6 +44,9 @@ var _ready_at := 0               # msec: E can't advance before this (the buffer
 var _back_ok := false            # the step before this line is a plain line, so Backspace can replay it
 var _back_req := false
 var _choices: Array = []
+var name_line: Control
+var _speed_q: Label
+var _who := ""                   # current speaker (for restyling the name color)
 var _sel := 0
 var _voices: PackedStringArray = []
 var _vo: AudioStreamPlayer   # plays recorded voice lines
@@ -69,25 +72,14 @@ func _build() -> void:
 
 	panel = PanelContainer.new()
 	panel.anchor_left = 0.5; panel.anchor_right = 0.5; panel.anchor_top = 1.0; panel.anchor_bottom = 1.0
-	panel.offset_left = -600; panel.offset_right = 600; panel.offset_top = -214; panel.offset_bottom = -18
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.045, 0.11, 0.93)
-	sb.border_color = GOLD
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(14)
-	sb.content_margin_left = 18; sb.content_margin_right = 22; sb.content_margin_top = 14; sb.content_margin_bottom = 14
-	sb.shadow_color = Color(0, 0, 0, 0.5); sb.shadow_size = 12
-	panel.add_theme_stylebox_override("panel", sb)
-	root.add_child(panel)
+	panel.offset_left = -600; panel.offset_right = 600; panel.offset_top = -_box_h(); panel.offset_bottom = -18
+	root.add_child(panel)   # looks: _restyle() (UITheme, follows Settings → Menu theme / Text size)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 18)
 	panel.add_child(row)
 
 	portrait_frame = PanelContainer.new()
-	var pf := StyleBoxFlat.new()
-	pf.bg_color = Color(0, 0, 0, 0.4); pf.border_color = GOLD; pf.set_border_width_all(2); pf.set_corner_radius_all(10)
-	portrait_frame.add_theme_stylebox_override("panel", pf)
 	portrait_frame.custom_minimum_size = Vector2(164, 164)
 	row.add_child(portrait_frame)
 	portrait = TextureRect.new()
@@ -102,19 +94,17 @@ func _build() -> void:
 	row.add_child(col)
 
 	name_lbl = Label.new()
-	name_lbl.add_theme_font_size_override("font_size", 28)
-	name_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	name_lbl.add_theme_constant_override("outline_size", 6)
 	col.add_child(name_lbl)
+	name_line = UITheme.Divider.new()   # a thin ornament line under the speaker's name
+	name_line.custom_minimum_size = Vector2(260, 8)
+	name_line.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	col.add_child(name_line)
 
 	text_lbl = RichTextLabel.new()
 	text_lbl.bbcode_enabled = true
 	text_lbl.fit_content = false
 	text_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	text_lbl.scroll_active = false
-	text_lbl.add_theme_font_size_override("normal_font_size", 24)
-	text_lbl.add_theme_font_size_override("italics_font_size", 24)
-	text_lbl.add_theme_color_override("default_color", Color("#f4efff"))
 	col.add_child(text_lbl)
 
 	choice_box = VBoxContainer.new()
@@ -130,21 +120,62 @@ func _build() -> void:
 	_speed_ask.add_theme_constant_override("separation", 8)
 	_speed_ask.visible = false
 	foot.add_child(_speed_ask)
-	var q := Label.new()
-	q.text = "Speed mode: spam E to skip, text 2x. Turn on?"
-	q.add_theme_font_size_override("font_size", 15)
-	q.add_theme_color_override("font_color", GOLD)
-	_speed_ask.add_child(q)
+	_speed_q = Label.new()
+	_speed_q.text = "Speed mode: spam E to skip, voices talk 1.5x faster. Turn on?"
+	_speed_ask.add_child(_speed_q)
 	_speed_ask.add_child(_foot_button("Yes", func(): _set_speed(true)))
 	_speed_ask.add_child(_foot_button("No", func(): _speed_ask.visible = false; _speed_btn.visible = true))
 	hint = Label.new()
 	hint.text = "E / Space  >"
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hint.add_theme_font_size_override("font_size", 15)
-	hint.add_theme_color_override("font_color", Color("#a49cc4"))
 	foot.add_child(hint)
 	_refresh_speed_btn()
+	_restyle()
+	Game.ui_changed.connect(_restyle)
+
+# Colors, fonts and sizes from UITheme. Runs again when Settings change the theme or text size.
+func _restyle() -> void:
+	var sb := UITheme.panel(0.94)
+	sb.content_margin_left = 22; sb.content_margin_right = 26; sb.content_margin_top = 18; sb.content_margin_bottom = 14
+	panel.add_theme_stylebox_override("panel", sb)
+	var pf := StyleBoxFlat.new()
+	pf.bg_color = Color(UITheme.c("bg2"), 0.6)
+	pf.border_color = UITheme.c("edge")
+	pf.set_border_width_all(2)
+	pf.set_corner_radius_all(4)
+	pf.set_expand_margin_all(3)
+	pf.shadow_color = Color(0, 0, 0, 0.35); pf.shadow_size = 6
+	portrait_frame.add_theme_stylebox_override("panel", pf)
+	UITheme.style_lbl(name_lbl, 26, "text", UITheme.row_font())
+	if _who != "":
+		name_lbl.add_theme_color_override("font_color", _name_color(_who))
+	name_line.queue_redraw()
+	text_lbl.add_theme_font_size_override("normal_font_size", UITheme.fs(24))
+	text_lbl.add_theme_font_size_override("italics_font_size", UITheme.fs(24))
+	text_lbl.add_theme_color_override("default_color", UITheme.c("text"))
+	var ol := UITheme.c("outline")
+	text_lbl.add_theme_color_override("font_outline_color", ol)
+	text_lbl.add_theme_constant_override("outline_size", 0 if ol.a < 0.05 else 3)
+	UITheme.style_lbl(_speed_q, 15, "accent")
+	UITheme.style_lbl(hint, 15, "dim")
+	for b in [_speed_btn] + _speed_ask.get_children().filter(func(c): return c is Button):
+		b.add_theme_font_size_override("font_size", UITheme.fs(15))
+		b.add_theme_color_override("font_color", UITheme.c("dim"))
+		b.add_theme_color_override("font_hover_color", UITheme.c("accent"))
+	if _choices.is_empty():
+		panel.offset_top = -_box_h()
+	else:
+		_render_choices()
+
+# Box height: 214 px at 100% text size, taller with bigger text so 3 lines still fit.
+func _box_h() -> float:
+	return 214.0 + maxf(0.0, Game.text_scale - 1.0) * 220.0
+
+# A speaker's name color, darkened on light themes (Parchment) so it stays readable on paper.
+func _name_color(who: String) -> Color:
+	var c: Color = CHARS.get(who, CHARS["narrator"])["color"]
+	return c.darkened(0.55) if UITheme.c("bg").get_luminance() > 0.5 else c
 
 # Small clickable buttons in the bottom row. No keyboard focus, so E / Space never "presses" them.
 func _foot_button(txt: String, cb: Callable) -> Button:
@@ -153,9 +184,9 @@ func _foot_button(txt: String, cb: Callable) -> Button:
 	b.flat = true
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	b.add_theme_font_size_override("font_size", 15)
-	b.add_theme_color_override("font_color", Color("#a49cc4"))
-	b.add_theme_color_override("font_hover_color", GOLD)
+	b.add_theme_font_size_override("font_size", UITheme.fs(15))
+	b.add_theme_color_override("font_color", UITheme.c("dim"))
+	b.add_theme_color_override("font_hover_color", UITheme.c("accent"))
 	b.pressed.connect(cb)
 	return b
 
@@ -259,7 +290,9 @@ func say(s: Dictionary) -> void:
 	var thought: bool = s.get("thought", false)
 	var line: String = s.get("line", "")
 	name_lbl.text = s.get("name", c["name"]) + ("  (thinking)" if thought else "")   # "name" = one-off speaker (e.g. a named goblin)
-	name_lbl.add_theme_color_override("font_color", c["color"])
+	_who = who
+	name_lbl.add_theme_color_override("font_color", _name_color(who))
+	name_line.visible = name_lbl.text != ""
 	var tex := _portrait(s.get("portrait", c.get("portrait", who)), s.get("mood", ""))
 	portrait.texture = tex
 	portrait_frame.visible = tex != null
@@ -271,12 +304,10 @@ func say(s: Dictionary) -> void:
 	if who == "narrator":
 		text_lbl.text = "[center][i]%s[/i][/center]" % line
 	elif thought:
-		text_lbl.text = "[i][color=#c9c0e8]%s[/color][/i]" % line
+		text_lbl.text = "[i][color=#%s]%s[/color][/i]" % [UITheme.c("note").to_html(false), line]
 	else:
 		text_lbl.text = line
 	var speed: float = Game.TEXT_SPEED_MULT[Game.text_speed]   # Settings → Text speed (0 = instant)
-	if Game.dlg_speed:
-		speed *= 0.5   # speed mode: 2x text
 	if speed <= 0.0:
 		text_lbl.visible_ratio = 1.0
 		_typing = null
@@ -294,33 +325,47 @@ func ask(opts: Array) -> int:
 	hint.visible = false
 	foot.visible = false
 	text_lbl.visible = false
-	panel.offset_top = -214 - max(0, opts.size() - 3) * 34   # grow the box for long choice lists
+	panel.offset_top = -_box_h() - max(0, opts.size() - 3) * int(UITheme.fs(23) * 1.6)   # grow the box for long choice lists
+	name_line.visible = false
 	_choices = []
 	for o in opts:
+		var row := PanelContainer.new()   # themed row: glowing bar + diamond when selected (like the menus)
+		row.mouse_filter = Control.MOUSE_FILTER_STOP
 		var l := Label.new()
-		l.add_theme_font_size_override("font_size", 23)
-		l.mouse_filter = Control.MOUSE_FILTER_STOP
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(l)
 		var idx := _choices.size()
-		l.gui_input.connect(func(ev):
-			if ev is InputEventMouseButton and ev.pressed:
+		row.gui_input.connect(func(ev):
+			if UITheme.hover_moved(ev):   # only real mouse movement moves the highlight (no jumping)
+				if _sel != idx:
+					_sel = idx
+					_render_choices()
+					UITheme.play("move")
+			elif ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 				_sel = idx
+				UITheme.play("pick")
 				_picked.emit(idx)
 		)
-		l.mouse_entered.connect(func(): _sel = idx; _render_choices())
-		choice_box.add_child(l)
-		_choices.append({ "label": l, "text": o["text"] })
+		choice_box.add_child(row)
+		_choices.append({ "label": l, "row": row, "text": o["text"] })
 	_sel = 0
+	_last_sel = -1
 	_render_choices()
 	var i: int = await _picked
 	_clear_choices()
-	panel.offset_top = -214
+	panel.offset_top = -_box_h()
 	return i
 
+var _last_sel := -1
 func _render_choices() -> void:
 	for i in _choices.size():
 		var l: Label = _choices[i]["label"]
-		l.text = ("> " if i == _sel else "   ") + "%d.  %s" % [i + 1, _choices[i]["text"]]
-		l.add_theme_color_override("font_color", GOLD if i == _sel else Color("#f4efff"))
+		l.text = "%d.   %s" % [i + 1, _choices[i]["text"]]
+		UITheme.style_lbl(l, 23, "accent" if i == _sel else "text")
+		_choices[i]["row"].add_theme_stylebox_override("panel", UITheme.row(i == _sel))
+	if _sel != _last_sel and _sel >= 0 and _sel < _choices.size():
+		UITheme.bounce(_choices[_sel]["label"], 0.04)
+		_last_sel = _sel
 
 func _clear_choices() -> void:
 	for ch in choice_box.get_children():
@@ -343,10 +388,11 @@ func _unhandled_input(ev: InputEvent) -> void:
 		return
 	if not _choices.is_empty():
 		if ev.is_action_pressed("ui_up") or ev.is_action_pressed("move_forward"):
-			_sel = (_sel + _choices.size() - 1) % _choices.size(); _render_choices()
+			_sel = (_sel + _choices.size() - 1) % _choices.size(); UITheme.key_nav(); UITheme.play("move"); _render_choices()
 		elif ev.is_action_pressed("ui_down") or ev.is_action_pressed("move_back"):
-			_sel = (_sel + 1) % _choices.size(); _render_choices()
+			_sel = (_sel + 1) % _choices.size(); UITheme.key_nav(); UITheme.play("move"); _render_choices()
 		elif ev.is_action_pressed("interact"):
+			UITheme.play("pick")
 			_picked.emit(_sel)
 		elif ev is InputEventKey and ev.pressed and not ev.echo and ev.keycode >= KEY_1 and ev.keycode <= KEY_9:
 			var n: int = ev.keycode - KEY_1   # number keys pick a choice directly
@@ -407,6 +453,10 @@ func _speak(who: String, line: String, thought: bool) -> void:
 	var rec := VoiceLines.stream_for(line)   # thoughts too: the studio bakes their echo in
 	if rec:
 		_vo.volume_db = linear_to_db(Game.voice_vol) + VOICE_GAIN_DB.get(who, 0.0)
+		# Speed mode (Ebain 11/24: "makes the voices faster, not the text"): play 1.5x through a bus that shifts the
+		# pitch back down, so the line is quicker but doesn't sound like a chipmunk.
+		_vo.pitch_scale = SPEED_VOICE if Game.dlg_speed else 1.0
+		_vo.bus = _fast_bus() if Game.dlg_speed else &"Master"
 		_pending_rec = rec
 		_pump()
 		return
@@ -420,8 +470,20 @@ func _speak(who: String, line: String, thought: bool) -> void:
 	var v := _voices[CHARS.keys().find(who) % _voices.size()]
 	var vol := int((45 if thought else 80) * Game.voice_vol)
 	for part in sentences(clean):
-		_tts_queue.append({ "text": part, "voice": v, "vol": vol, "pitch": c["pitch"], "rate": c["rate"] })
+		_tts_queue.append({ "text": part, "voice": v, "vol": vol, "pitch": c["pitch"], "rate": minf(10.0, c["rate"] * (SPEED_VOICE if Game.dlg_speed else 1.0)) })
 	_pump()
+
+const SPEED_VOICE := 1.5
+static func _fast_bus() -> StringName:
+	if AudioServer.get_bus_index("VoiceFast") == -1:
+		AudioServer.add_bus()
+		var i := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(i, "VoiceFast")
+		AudioServer.set_bus_send(i, &"Master")
+		var fx := AudioEffectPitchShift.new()
+		fx.pitch_scale = 1.0 / SPEED_VOICE
+		AudioServer.add_bus_effect(i, fx)
+	return &"VoiceFast"
 
 func _process(_dt: float) -> void:
 	if _pending_rec or not _tts_queue.is_empty():

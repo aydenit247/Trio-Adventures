@@ -195,26 +195,24 @@ func _seen_at(p: Vector3, seen: PackedByteArray) -> bool:
 		return true
 	return seen[c.y * g.x + c.x] != 0
 
-# The frame: dark iron with a gold trim, corner studs and a little compass needle (red = north) that turns with the camera.
+# The frame: the themed ornate panel (UITheme, follows Settings → Menu theme) and a little compass needle
+# (red = north) that turns with the camera.
 func _draw() -> void:
 	var r := Rect2(Vector2.ZERO, Vector2(SIZE, SIZE))
-	draw_rect(Rect2(r.position + Vector2(4, 5), r.size), Color(0, 0, 0, 0.45))   # shadow
-	draw_style_box(_box(Color("#2a2420"), Color("#4d443b"), 4, 10), r)
-	draw_style_box(_box(Color(0, 0, 0, 0), Color(GOLD, 0.8), 2, 6), r.grow(-6))
+	draw_style_box(UITheme.panel(0.95), r)
 	draw_rect(Rect2(Vector2(PAD - 1, PAD - 1), Vector2(SIZE - PAD * 2 + 2, SIZE - PAD * 2 + 2)), Color.BLACK, false, 2.0)
-	for c in [Vector2(0, 0), Vector2(SIZE - 18, 0), Vector2(0, SIZE - 18), Vector2(SIZE - 18, SIZE - 18)]:
-		draw_style_box(_box(Color("#3b332c"), GOLD, 2, 4), Rect2(c, Vector2(18, 18)))
+	var edge_c := UITheme.c("edge")
 	# compass in the bottom-right stud area, overlapping the frame
 	var cc := Vector2(SIZE - 24, SIZE - 24)
-	draw_circle(cc, 15.0, Color("#2a2420"))
-	draw_arc(cc, 15.0, 0, TAU, 32, GOLD, 2.0, true)
+	draw_circle(cc, 15.0, UITheme.c("bg2"))
+	draw_arc(cc, 15.0, 0, TAU, 32, edge_c, 2.0, true)
 	var north := Vector2(0, -1).rotated(lv.yaw if lv else 0.0)   # world -z (north) on the minimap
 	var side := Vector2(-north.y, north.x)
 	draw_colored_polygon(PackedVector2Array([cc + north * 11, cc + side * 4, cc - side * 4]), Color("#e8413a"))
 	draw_colored_polygon(PackedVector2Array([cc - north * 11, cc + side * 4, cc - side * 4]), Color("#d8d0c0"))
-	draw_circle(cc, 2.0, GOLD)
+	draw_circle(cc, 2.0, edge_c)
 	var f := ThemeDB.fallback_font
-	draw_string(f, cc + north * 21 - Vector2(4, -5), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, GOLD)
+	draw_string(f, cc + north * 21 - Vector2(4, -5), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, edge_c)
 
 static func _box(bg: Color, border: Color, w: int, radius: int) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()

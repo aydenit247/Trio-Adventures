@@ -120,6 +120,22 @@ static func style_button(b: Button, size := 17.0) -> void:
 	b.add_theme_color_override("font_pressed_color", c("accent"))
 	b.add_theme_color_override("font_disabled_color", c("faint"))
 
+# ---------------------------------------------------------------- mouse hover (Ebain: "finicky, it jumps to the next one")
+# A row only takes the highlight from the mouse on REAL mouse movement (an InputEventMouseMotion), never from
+# mouse_entered: that one also fires when the layout shifts under a still cursor (a note changes height, a row
+# bounces), which made the selection hop. After keyboard/controller navigation the mouse must travel a few pixels
+# before it takes over again, so a bumped desk doesn't undo your arrow-key choice.
+static var _hover_acc := 99.0
+
+static func key_nav() -> void:   # call when the keyboard/controller moves the selection
+	_hover_acc = 0.0
+
+static func hover_moved(ev: InputEvent) -> bool:
+	if not (ev is InputEventMouseMotion):
+		return false
+	_hover_acc += ev.relative.length()
+	return _hover_acc > 8.0
+
 # ---------------------------------------------------------------- motion
 static func bounce(n: Control, amount := 0.05) -> void:
 	if not Game.ui_bouncy or not is_instance_valid(n) or not n.is_inside_tree():

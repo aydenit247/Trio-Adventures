@@ -1,6 +1,6 @@
 # Area: Goblin Woods Trail (between Camp and the Goblin Village, Asar's idea). A long forest trail in the early morning:
 # searchable loot spots for gold, a creek with a bridge, and Asar's Bridge Troll by his hut.
-#   "It's good" → Xylo follows him into his hut, comes back, the bridge is open.
+#   "It's good" → Xylo follows him into his hut, comes back, the bridge is open. His chest can still be opened.
 #   "Bad."      → fight (lots of gold), then loot his hut and his chest for more.
 # Walk north to reach the village (first time: the village story starts). The south end leads back to camp.
 extends Level
@@ -205,10 +205,10 @@ func _level_interactables() -> Array:
 	var t: String = str(Game.flags.get("trollDone", ""))
 	if t == "":
 		list.append({ "id": "troll", "label": "the Bridge Troll", "verb": "Talk to", "node": troll, "h": 2.4, "r": 2.6, "major": true, "steps": TS.TROLL_AGAIN })
-	elif t == "bad":
-		if not Game.flag("trollHut"):
+	else:
+		if t == "bad" and not Game.flag("trollHut"):
 			list.append({ "id": "hut", "label": "the troll's hut", "verb": "Search", "pos": HUT_DOOR, "h": 2.2, "r": 2.0, "steps": TS.HUT_SEARCH })
-		if not Game.flag("trollChest"):
+		if not Game.flag("trollChest"):   # Ebain 11/24: the chest opens on "It's good" too (the hut stays DO NOT DISTURB)
 			list.append({ "id": "chest", "label": "the troll's chest", "verb": "Open", "pos": CHEST_POS, "h": 1.0, "r": 1.6, "steps": TS.CHEST })
 	return list
 
