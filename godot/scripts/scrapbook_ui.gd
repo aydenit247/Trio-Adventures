@@ -52,6 +52,11 @@ const HINTS := {
 	"castle_punch": "Violence is always an option.",
 	"castle_bowl": "Everything is better in a Chipotle Bowl.",
 }
+# The secret page (DELOYE_PLAN.md): its own section at the very end, "???" until you've found the library.
+# Not a story outcome, so it isn't in the "x / N moments" count or the 100 completion points.
+const SECRET_ID := "deloye_found"
+const SECRET_HINT := "Flush."   # DRAFT
+const SECRET_TEXT := "Five lost pages. One outhouse. One flush. A library full of lore about nothing, and the guy who wrote it, spinning in the middle."   # DRAFT
 
 var entries: Array = []      # [{ id, title, section }]
 var sel := 0
@@ -80,6 +85,8 @@ func _build() -> void:
 		for it in story_items():
 			if String(it[0]).begins_with(sec[1]):
 				entries.append({ "id": it[0], "title": it[1], "section": sec[0], "note": sec[2] })
+	var secret_got: bool = Game.progress.has(SECRET_ID)
+	entries.append({ "id": SECRET_ID, "title": "Found the Deloye Lore library", "section": "The Deloye Lore Library" if secret_got else "? ? ?", "note": "", "secret": true })
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var dim := ColorRect.new()
@@ -98,7 +105,7 @@ func _build() -> void:
 	var t := UITheme.lbl("SCRAPBOOK", 30, "accent", UITheme.head_font(), P)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
-	var sub := UITheme.lbl("%d / %d moments found" % [found_count(), entries.size()], 16, "dim", null, P)
+	var sub := UITheme.lbl("%d / %d moments found" % [found_count(), story_items().size()], 16, "dim", null, P)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(sub)
 	var h := HBoxContainer.new()
@@ -179,13 +186,22 @@ func _render() -> void:
 	dv.custom_minimum_size = Vector2(0, 1)
 	page.add_child(dv)
 	if not got:
-		var hl := UITheme.lbl("Hint: " + HINTS.get(e["id"], "Try a different choice."), 18, "dim", null, P)
+		var hl := UITheme.lbl("Hint: " + (SECRET_HINT if e.get("secret", false) else HINTS.get(e["id"], "Try a different choice.")), 18, "dim", null, P)
 		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		page.add_child(hl)
 		if e["note"] != "":
 			var nl := UITheme.lbl(e["note"], 15, "faint", null, P)
 			nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			page.add_child(nl)
+		return
+	if e.get("secret", false):   # the secret page: its own text + Deloye's first words
+		var st := UITheme.lbl(SECRET_TEXT, 18, "text", null, P)
+		st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		page.add_child(st)
+		page.add_child(UITheme.lbl("Deloye", 16, "accent", UITheme.row_font(), P))
+		var dq := UITheme.lbl(_first_deloye_line(), 19, "text", null, P)
+		dq.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		page.add_child(dq)
 		return
 	var info := ScriptScan.outcome(e["id"])
 	if info.get("choice", "") != "":
@@ -209,9 +225,15 @@ func _render() -> void:
 		q.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		page.add_child(q)
 
+func _first_deloye_line() -> String:
+	for st in load("res://scripts/deloye_script.gd").MEET:
+		if st.get("who", "") == "deloye":
+			return st["line"]
+	return ""
+
 func _play() -> void:
 	var e: Dictionary = entries[sel]
-	if not Game.progress.has(e["id"]):
+	if not Game.progress.has(e["id"]) or e.get("secret", false):
 		UITheme.play("back")
 		return
 	var info := ScriptScan.outcome(e["id"])

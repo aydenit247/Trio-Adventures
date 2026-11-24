@@ -121,6 +121,9 @@ const GEAR := {
 	"toothpick_spear": { "slot": "weapon", "name": "Toothpick Spear", "desc": "Sharpened by a professional (a rat). +15% damage.", "power": 0.15 }, # DRAFT
 	"bottlecap_mail": { "slot": "armor", "name": "Bottle-Cap Mail", "desc": "Forty bottle caps and a dream. +4 armor and +10 max HP.", "armor": 4, "hp": 10 }, # DRAFT
 	"lucky_crumb": { "slot": "trinket", "name": "Lucky Crumb", "desc": "The rats say it's blessed. It's a crumb. +10% meter gain.", "meter": 1.1 }, # DRAFT
+	# the secret Deloye Lore library (DELOYE_PLAN.md): Deloye's gift to Xylo. Ebain picked the name + the first two perks;
+	# the third (start with 20 meter) is a DRAFT. "foresee" and "dodge" are read by battle.gd _gear_perks()
+	"neuralink": { "slot": "trinket", "name": "Deloye Lore Neuralink", "desc": "Deloye's gift. Plug it in and you just know. Shows what the next enemy is about to do, 15% chance to dodge a hit, and the lore pre-downloads: start fights with 20 meter.", "foresee": true, "dodge": 0.15, "start": 20 }, # DRAFT (desc + the meter perk)
 	"bottlecap_crown": { "slot": "helmet", "name": "Bottle-Cap Crown", "desc": "Crown of the Rat King. Smells like the Rat King. +3 armor, +10% damage.", "armor": 3, "power": 0.10 }, # DRAFT
 	"corncob_scepter": { "slot": "weapon", "name": "Corncob Scepter", "desc": "Half-eaten. Fully royal. +20% damage and +15 max HP.", "power": 0.20, "hp": 15 }, # DRAFT
 	"receipt": { "slot": "trinket", "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },

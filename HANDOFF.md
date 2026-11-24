@@ -28,6 +28,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 - **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?"
 - **King Nibbsworth III** (Rat King), **Scrounge** (rat trader), **Lil Nibbs** (pet rat): the Rat Cave. All three names
   are Claude DRAFTs (Ebain said "you draft names"), so he may rename them.
+- **Deloye:** wrote Deloye Lore. Floats and twirls in the middle of the secret library, earbuds in, chill, surprised
+  anyone actually read it (Ebain 11/24; his art = Ebain's pictures: grey hoodie, wired earbuds). Gives Xylo the
+  **Deloye Lore Neuralink**.
 - **Charis:** lives in the house right of the Metocy Mart. Ebain's art is in (11/24); one DRAFT greeting until he writes her lines.
 - **Items:** Beezy (heals 30), Chipotle Bowl (heals 60), Midtocy (the fake metocy), the d6 ("on some dice shi").
 
@@ -68,6 +71,16 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    in `ruins_script.gd`.
    **Charis's house:** the house right of the Mart (yard behind a gap in the back wall) can be entered in free roam after
    the Mart scene. Interior built off to the side at x 340 (`mart.gd _charis_house`). Talking to Charis: `charisMet`.
+🔒 **Secret: the Deloye Lore library (DELOYE_PLAN.md, built 11/24).** Never on the main route, no markers. 5 **Lost Deloye
+   Lore Pages**, one per area (`lost_pages.gd SPOTS`: camp behind Skorn's tent, trail at the north end of the troll bridge,
+   village behind the outhouse, Mart in the shop's back-left shelf corner, Pass in the rocks left of the sleeping giant).
+   Prompt only within 1.5 m; Xylo murmurs "…I smell parchment." when he leads within 8 m. Found pages are saved in
+   `Game.progress` (`lostpage_<area>`, across playthroughs, not part of the 100 points); Tab → Quests lists them with
+   their snippets. With 5/5 a **flush chain** appears on the outhouse's east side (`village.gd FLUSH_POS`, the outhouse
+   itself is Asar's village_buildings.gd) → everyone squeezes in, the outhouse spins, FLUSH, white → `deloye_library.tscn`:
+   a round hall of book walls, Deloye twirling over a rune dais, the giant manuscript turning above him. Talk to him →
+   the Neuralink for Xylo (flag `deloyeGift`, once per run; `deloyeMet` after). Arriving unlocks `deloye_found`
+   (hidden achievement "Lore Accurate" + the secret last Scrapbook page). EXIT door → back to the village by the outhouse.
 4. **The Pass (lava, as Skorn):** Mattias appears → the giant is asleep in the way → A throw the midtocy (giant trips)
    · B **Snore Sneak** minigame · C **Lore Session** minigame (pick the true Deloye Lore continuation) · D slap him ·
    E it's the Chief's cousin (if allies). Fights are real boss fights. The only way on is the gorge right behind where he
@@ -266,6 +279,8 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
 | `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
 | `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`): modelled shop exterior (`_shop_exterior`, street houses) + stocked interior at x = 300 (`_shop_interior`); the trip recolors `room_lights`/`glow_jars` |
+| `scripts/lost_pages.gd` | **LostPages** (static): the 5 Lost Deloye Lore Pages. `SPOTS` (area key → position), `SNIPPETS` (# DRAFT), `spawn/interactable/process/pickup` (Level calls them for every area; the "lost_page" action is routed in `Level.do_action`), `count()/has_all()`, `quest_text()` (Tab → Quests) |
+| `scripts/deloye_library.gd` + `deloye_script.gd` + `deloye_library.tscn` | The secret library. Deloye = a billboard that cycles front/side/back(/mirrored side) as `spin` turns (`_set_view`), eases to front while talking (`spin_speed` 0). Book shelves are QuadMeshes with the drawn `textures/book_spines` (2 m tile). Music: `SONG` (Ebain's `assets/music/deloye_lore.ogg`) becomes an AreaMusic automatically once the file exists, else the synthesized `library_hum`. Test: `deloye_library.tscn --shots` (+`DELOYE_EXIT=1`), or `VILLAGE_TOUR=flush` on village.tscn for the whole chain |
 | `scripts/progress_data.gd` | **ProgressData**: what counts toward "Outcomes x/31 · N% complete" (story outcomes 2 points each, quests 5, Chapter 1 6, Three Seals 3, Charis 3, trail loot 1 = 100) (title screen, end card). `Game.unlock(id)` / `outcomes_found()` / `completion_pct()`; saved in `user://progress.cfg` across playthroughs. `ProgressData.pick_outcome(id)` (called by dialogue.gd + dev mode when a choice with `"outcome"` is picked) also sets the **per-run** string flag `way_<scene>` (`village_skorn_king` → `way_village = "skorn_king"`), since outcomes themselves are saved across playthroughs |
 | `scripts/summit.gd` + `summit_script.gd` | Scene 5 (`summit.tscn`): the climb (z +62 → plaza at -52), tower (`_lair_exterior`), the hall built off to the side at `INT` (x 400, `_hall`: round wall open toward the camera, pillars, dais + throne, statues, chandeliers, alchemy + study corners, floating candles/books/orb via `floaters`). Uses Ebain's wizard-lair Poly Haven pack. **Finale:** `_begin` (arrival) → `_halfway` → `_ambush` → `_finale` → `_hard_end` / `_goblin_party` (set at `PARTY_POS`, x -400) / `end_card`. Script steps with a `"dyn"` key get their line from `_dyn_line()` (tables `DYN_*` in summit_script: first matching flag wins). Trip look = `_take_metocy` + `TRIP_SHADER`. Test: `SUMMIT_TOUR=finale SUMMIT_FLAGS=… SUMMIT_PICKS=… [AUTOWIN=1]` (see the comment above `_finale_tour`) |
 | `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`): rock-face canyon + animated lava (`_canyon`, `_lava`), giant lying across the path (`giant_lying`, Asar's `giant_sleep.png`; `_giant_wakes` crossfades sleep → sit → standing, no black cut); Snore Sneak + Lore Session minigames |
@@ -311,6 +326,11 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 - **Haggle's top shelf** (`shop_ui.gd STOCK`, gear in `CombatD.GEAR`, names/descs # DRAFT): Crispy Air Forces 220,
   Haggle's Gold Chain 280, Goblin King's Helm 320, Designer Spoon Mail 400, The Golden Ladle 650 (the first weapon).
   No item pictures yet (placeholder crate). The shop list scrolls now.
+- **Deloye Lore Neuralink** (trinket `neuralink`, the secret library's gift): `foresee` = at the start of each party turn
+  battle.gd plans the next enemy's move early and shows "NEURALINK: Goblin is about to use Spoon Bonk on Xylo."
+  (`_foresee()`; `enemy_plan()` hands that exact plan back unless its target died or a phase change cut in; a skipped
+  enemy turn drops it), `dodge` 0.15 (a dodged hit = no damage), `start` 20. `dodge`/`foresee` aren't summed by
+  `Game.gear_stats()` (game.gd was claimed), so `battle.gd _gear_perks()` reads them from the equipped gear.
 
 ### Combat in one paragraph
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
@@ -380,10 +400,10 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
 - **Lyrics:** Ebain will send lyrics for all 3 songs. Paste them into `scripts/lyrics.gd` as-is.
 - **Every song is Ebain's** (Prophecy of Metocy, The Mogging Elf, The Hymn of Metocin Mattias), made in Google Flow Music.
   Older notes that call the hymn "Asar's track" are wrong: Asar wired it into the summit, Ebain made it.
-- **Secret Deloye Lore library (planned, DELOYE_PLAN.md):** a hidden easter egg. Find 5 Lost Deloye Lore Pages (one
-  per area: Camp, Trail, Village, Mart, Pass), then **Flush** the village outhouse to drop into a giant library with a
-  book floating in the center. **Deloye himself** is there (his look: Ebain decides later) and gives Xylo a gift.
-  Rewards: hidden achievement, secret Scrapbook page, Ebain's Deloye Lore song. No fight or test: pure easter egg.
+- **Secret Deloye Lore library (built, see section 1):** still wanted from Ebain: the **Deloye Lore song** (drop it in as
+  `godot/assets/music/deloye_lore.ogg`; then add it to `LibraryUI.SONGS` + `Lyrics.TEXT`), his real lines (all of
+  `deloye_script.gd`, the page snippets and Xylo's barks in `lost_pages.gd` are DRAFT), a voice for Deloye, and whether
+  the shaman should hint at the pages (her tent is Asar's file).
 - **Credits:** asked Ebain whether to keep "Code, Cutouts & Sounds: Claude". No answer yet.
 - **Chapter 2+:** Dulbers returns as a villain.
 

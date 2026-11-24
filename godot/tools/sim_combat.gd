@@ -27,6 +27,9 @@ func _init() -> void:
 		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 3, "inv": { "beer": 3, "bowl": 2 } }],
 		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 4, "inv": { "beer": 3, "bowl": 2 } }],
 		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 5, "inv": { "beer": 5, "bowl": 3 } }],
+		# the Deloye Lore Neuralink on Xylo (forecast + 15% dodge + 20 start meter): should help a little, not trivialize
+		["giant", { "party": ["skorn", "lykor", "xylo"], "level": 3, "inv": { "beer": 3, "bowl": 2 }, "mods": { "enraged": true }, "gear": { "xylo": "neuralink" } }],
+		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 4, "inv": { "beer": 3, "bowl": 2 }, "gear": { "xylo": "neuralink" } }],
 	]
 	if OS.get_environment("SIM_ONLY") != "":   # SIM_ONLY=mattias,dulbers_ambush: just those fights
 		var only := OS.get_environment("SIM_ONLY").split(",")

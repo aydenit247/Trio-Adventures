@@ -19,6 +19,7 @@ const LIST := [
 	{ "id": "purple_king", "name": "Long Live the Purple King", "desc": "Crowned Skorn king of the goblins.", "when": "progress:village_skorn_king" }, # DRAFT
 	{ "id": "bar_tab", "name": "Fiscally Responsible", "desc": "Settled the bar tab.", "when": "progress:quest_bar_tab" }, # DRAFT
 	{ "id": "chapter1", "name": "On Some Type Shi", "desc": "Finished Chapter 1.", "when": "progress:chapter1", "hidden": true }, # DRAFT
+	{ "id": "lore_accurate", "name": "Lore Accurate", "desc": "Found the Deloye Lore library.", "when": "progress:deloye_found", "hidden": true }, # DRAFT (name)
 ]
 
 var got := {}            # id -> true

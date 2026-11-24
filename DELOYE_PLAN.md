@@ -1,6 +1,7 @@
 # The Secret Deloye Lore Library (plan, Ebain 2026-11-24)
 
-Status: **planned, not built.** A chat that builds this claims it on the COLLAB board first and follows CLAUDE.md.
+Status: **built 2026-11-24 (ebain).** How it works now: HANDOFF section 1 ("Secret Deloye Lore library"). Still open:
+Ebain's song, his real lines (everything in `deloye_script.gd` is DRAFT), Deloye's voice, the shaman hint.
 Everything marked DRAFT is a placeholder: Ebain writes the real lines and has the final say on story and characters.
 
 ## Ebain's answers (don't re-ask)
@@ -10,9 +11,15 @@ Everything marked DRAFT is a placeholder: Ebain writes the real lines and has th
   everyone down into the library.
 - **Inside:** a **giant library** with **a book floating in the center**. **Pure easter egg:** no fight, no test.
 - **Who's there:** **Deloye himself**, who wrote Deloye Lore (the huge book about a universe with almost no lore).
-  **What he looks like is undecided: Ebain describes him later.** Placeholder until then.
+  **His look (Ebain's pictures, 11/24):** messy black hair, grey zip hoodie, wired white earbuds, dark jeans, DC shoes.
+  **He floats and twirls in the center** of the library (Ebain). **Vibe:** chill, earbuds in, barely looks up,
+  surprised anyone actually read it.
 - **Rewards (all four):** a hidden achievement, a secret Scrapbook page, Ebain's Deloye Lore song in the Library
   Soundtrack (once heard), and a gift from Deloye to Xylo.
+- **The gift (Ebain 11/24):** the **Deloye Lore Neuralink**: shows what the enemy is about to do next, 15% dodge chance,
+  "and maybe something else" (Claude's DRAFT third perk: start fights with 20 meter, "the lore pre-downloads").
+- **The entrance, as built:** the outhouse is Asar's file, so (Ebain's pick) a **separate flush chain** appears on the
+  outhouse's east side with all 5 pages (village.gd). Same spinning flush.
 - **Song:** Ebain makes it later. It plays in the library (AreaMusic).
 
 ## 1. The Lost Pages (the hunt)

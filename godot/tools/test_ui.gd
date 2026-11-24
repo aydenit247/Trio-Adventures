@@ -114,7 +114,8 @@ func _ready() -> void:
 	Game.progress["village_speech"] = true
 	var sb := ScrapbookUI.open(ui)
 	await get_tree().process_frame
-	ok(sb.entries.size() == story, "scrapbook has a page per outcome")
+	ok(sb.entries.filter(func(e): return not e.get("secret", false)).size() == story, "scrapbook has a page per outcome")
+	ok(sb.entries.back().get("secret", false), "scrapbook ends with the secret Deloye Lore page")
 	sb.sel = 0
 	sb._render()
 	await get_tree().process_frame

@@ -30,6 +30,11 @@ var chug_rival := 0.0
 var chug_running := false
 var forehead: Label3D
 var king_label: Label3D
+# The secret Deloye Lore library (DELOYE_PLAN.md): with all 5 Lost Pages a flush handle shows up on the outhouse's
+# east side. Built here so the outhouse itself (village_buildings.gd) stays untouched.
+const FLUSH_POS := VB.OUTHOUSE_POS + Vector3(0.66, 0, 0)       # the handle on the outhouse's east wall
+const FLUSH_STAND := VB.OUTHOUSE_POS + Vector3(1.8, 0, -0.2)    # where you stand to pull it (out of the outhouse prompt's range)
+var flush_handle: Node3D
 
 func _configure() -> void:
 	night = false
@@ -197,6 +202,8 @@ func _build_throne() -> void:
 func _level_process(_delta: float) -> void:
 	fire_light.light_energy = 2.0 * (1.0 + noise.get_noise_1d(t * 9.0) * 0.3)
 	vb.process(_delta)
+	if flush_handle == null and LostPages.has_all():
+		_build_flush_handle()
 	if band:
 		$Music.gain_db = band.gain_db   # the village song only plays while the band is with you
 		if $Music.played_once and band.state == "playing" and not busy:   # Music: Play once, song's over: the band packs up
@@ -254,6 +261,9 @@ func _level_interactables() -> Array:
 		elif band:
 			list += band.interactables()
 		list += vb.interactables()
+		if vb.room == "" and flush_handle:
+			list.append({ "id": "flush", "label": "a suspicious chain on the outhouse", "verb": "Flush", "pos": FLUSH_STAND, "h": 2.2, "r": 1.25, "major": true,
+				"steps": [{ "who": "skorn" if not Game.flag("skornAway") else "lykor", "line": "Five lost pages and a toilet chain. I don't like where this is going." }, { "do": "deloye_flush" }] }) # DRAFT
 	return list
 
 # ---------------------------------------------------------------- story
@@ -357,6 +367,8 @@ func _on_action(n: String) -> void:
 			await wait(0.4)
 		"leave":
 			_leave()
+		"deloye_flush":
+			await _deloye_flush()
 		_:
 			if n.begins_with("band_") and band:
 				await band.on_action(n)
@@ -674,6 +686,90 @@ func _leave() -> void:
 func bounds_exempt() -> bool:
 	return vb != null and vb.room != ""   # building interiors are built far away (x = 400+)
 
+# ---------------------------------------------------------------- the secret Deloye Lore library: flush handle + flush
+func _build_flush_handle() -> void:
+	flush_handle = Node3D.new()
+	add_child(flush_handle)
+	flush_handle.position = FLUSH_POS
+	var metal := Models.mat("rusty_metal_02", 1.0, Color(0.8, 0.72, 0.6))
+	var tank := Models.block(flush_handle, Vector3(0.12, 2.15, 0), Vector3(0.22, 0.32, 0.5), Models.mat("weathered_planks", 1.0, Color(0.7, 0.6, 0.5)))
+	tank.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for k in 8:   # a little chain of links
+		var ln := Models.block(flush_handle, Vector3(0.2, 1.95 - k * 0.11, 0), Vector3(0.025, 0.09, 0.025), metal)
+		ln.rotation.y = (k % 2) * PI / 2.0
+	var grip := Models.cylinder(flush_handle, Vector3(0.2, 1.05, 0), 0.04, 0.04, 0.18, Models.mat("dark_wood", 1.0, Color(0.6, 0.45, 0.35)), 10)
+	grip.rotation.z = PI / 2.0
+	var glow := OmniLight3D.new()   # a faint glow so it reads as "new" without a marker
+	glow.light_color = Color(1.0, 0.86, 0.5)
+	glow.light_energy = 0.35
+	glow.omni_range = 1.4
+	glow.position = Vector3(0.35, 1.2, 0)
+	flush_handle.add_child(glow)
+
+func _deloye_flush() -> void:
+	busy = true
+	freeze_all(true)
+	follow_enabled = false
+	dialogue.hide_box()
+	# everyone squeezes in
+	for u in party:
+		await walk_to(u, VB.OUTHOUSE_POS + Vector3(0, 0, 1.0), 1.3, 1.2)
+		u.visible = false
+		play_sound("sfx_door", -10.0, 1.2)
+	# grab the outhouse (everything built at its spot) onto a pivot so it can spin
+	var pivot := Node3D.new()
+	add_child(pivot)
+	pivot.global_position = VB.OUTHOUSE_POS
+	for c in get_children():
+		if c == pivot or c is Unit or not (c is Node3D) or c == flush_handle:
+			continue
+		var p: Vector3 = c.global_position
+		if Vector2(p.x - VB.OUTHOUSE_POS.x, p.z - VB.OUTHOUSE_POS.z).length() < 1.25 and p.y < 3.2 and not c.name.begins_with("LostPage"):
+			c.reparent(pivot, true)
+	flush_handle.reparent(pivot, true)
+	play_sound("sfx_chug_loop", -6.0, 0.45)   # the gurgle
+	await wait(0.8)
+	play_sound("flush", -2.0)
+	var spin_t := 0.0
+	var speed := 0.5
+	while spin_t < 2.4:   # faster and faster
+		var dt := get_process_delta_time()
+		spin_t += dt
+		speed += dt * 9.0
+		pivot.rotation.y += speed * dt
+		shake = 0.15 + spin_t * 0.15
+		await get_tree().process_frame
+	fade.color = Color(1, 1, 1, 0)   # white flash
+	var tw := create_tween()
+	tw.tween_property(fade, "color:a", 1.0, 0.35)
+	await tw.finished
+	stage = "end"
+	Game.goto("res://deloye_library.tscn")
+
+# VILLAGE_TOUR=flush: all 5 Lost Pages → the handle shows up → Flush → the library (its tour runs; DELOYE_EXIT=1 walks
+# out the EXIT) → back here next to the outhouse, which ends the run.
+func _flush_tour() -> void:
+	if Game.flag("deloyeMet"):   # came back up from the library (tours skip the normal resume, so do it here)
+		await _resume(Game.pending_resume)
+		await wait(1.0)
+		print("FLUSH TOUR back: stage=", stage, " leader at ", leader.global_position, " near outhouse=", leader.global_position.distance_to(VB.OUTHOUSE_POS) < 4.0)
+		get_tree().quit()
+		return
+	for a in LostPages.AREAS:
+		Game.unlock("lostpage_" + a)
+	Game.set_flag("villageOpen")
+	fade.color.a = 0.0
+	await _resume({ "pos": Vector3.INF, "from": "trail", "leader": "lykor", "travel": true })
+	await wait(0.6)
+	print("FLUSH TOUR handle=", flush_handle != null)
+	place_party(FLUSH_STAND + Vector3(0.3, 0, 0.3), Vector3(-1, 0, 0))
+	await wait(0.6)
+	var near := _nearest_interactable()
+	print("FLUSH TOUR nearest=", near.get("id", ""))
+	start(near)
+	await advance(2, 0.6)
+	await wait(8.0)
+
 # ---------------------------------------------------------------- saves: resume village free roam
 func can_resume() -> bool:
 	return stage == "after" and vb.room == ""
@@ -718,6 +814,8 @@ func back_exit() -> Dictionary:
 	return {}
 
 func arrival(from: String) -> Array:
+	if from == "library":   # back up from the Deloye Lore library: right next to the outhouse
+		return [FLUSH_STAND + Vector3(0.6, 0, 1.4), Vector3(-1, 0, 0)]
 	if from == "camp" or from == "trail":
 		return [Vector3(0, 0, 25.0), Vector3(0, 0, -1)]
 	if from == "mart":
@@ -732,6 +830,9 @@ func _shot_tour() -> void:
 		return
 	if OS.get_environment("VILLAGE_TOUR") == "band":
 		await _band_tour()
+		return
+	if OS.get_environment("VILLAGE_TOUR") == "flush":
+		await _flush_tour()
 		return
 	if OS.get_environment("VILLAGE_TOUR") == "buildings":
 		roam_group = spawn_roamers("goblin_patrol", Vector3(21, 0, -1.5), 2.5)

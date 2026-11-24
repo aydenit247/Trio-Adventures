@@ -64,7 +64,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		var id: String = ids[i]
 		var P: Dictionary = D.PARTY[id]
 		var gv = gear.get(id, "")   # combined stats from Game.gear_stats() (or one gear id, e.g. from the balance sim)
-		var g: Dictionary = gv if gv is Dictionary else D.GEAR.get(gv, {})
+		var g: Dictionary = _gear_perks(id, gv, gv if gv is Dictionary else D.GEAR.get(gv, {}))
 		var max_hp := int(round((P["hp"] + g.get("hp", 0)) * lvl))
 		var moves: Dictionary = P["moves"].duplicate()
 		for at in P.get("learn", {}):
@@ -193,12 +193,12 @@ func next_actor() -> Dictionary:
 			u["st"].erase("flattened")
 			ev.append({ "t": "say", "text": "%s is still flattened. Can't move." % u["name"], "sound": "miss" })
 			return { "u": u, "events": ev, "skip": true }
-		return { "u": u, "events": ev, "skip": false }
+		return { "u": u, "events": ev + _foresee(), "skip": false }
 
 	# Enemy: burns and copium first
 	if had.has("cooked"):
 		ev += damage_enemy({}, u, 6, { "text": "%s is Cooked. The fire is still going." % u["name"], "sound": "fire", "raw": true })
-		if u["hp"] <= 0: return { "u": u, "events": ev, "skip": true }
+		if u["hp"] <= 0: return _skip(u, ev)
 	if had.has("copium") and u["st"].has("copium"):
 		var h := mini(8, u["max_hp"] - u["hp"])
 		u["hp"] += h
@@ -214,11 +214,11 @@ func next_actor() -> Dictionary:
 		else:
 			u["eat_pending"] = false
 			ev.append({ "t": "say", "text": "%s drops his Chipotle Bowl. It's over for the bowl." % u["name"], "sound": "miss" })
-		return { "u": u, "events": ev, "skip": true }
+		return _skip(u, ev)
 	if u["st"].has("stun"):
 		u["st"].erase("stun")
 		ev.append({ "t": "say", "text": "%s is being sat on and can't move." % u["name"], "sound": "miss" })
-		return { "u": u, "events": ev + lock_in(u), "skip": true }
+		return _skip(u, ev + lock_in(u))
 	if u["st"].has("charm"):
 		u["st"].erase("charm")
 		var others := alive(enemies).filter(func(x): return not is_same(x, u))
@@ -227,14 +227,81 @@ func next_actor() -> Dictionary:
 			ev += damage_enemy({}, t, 6, { "text": "%s is GLAZED. He bonks %s to impress Lykor." % [u["name"], t["name"]], "sound": "bonk", "raw": true })
 		else:
 			ev.append({ "t": "say", "text": "%s is too busy staring at Lykor's hair." % u["name"], "sound": "sparkle" })
-		return { "u": u, "events": ev + lock_in(u), "skip": true }
+		return _skip(u, ev + lock_in(u))
 	if had.has("itis") and rnd() < 0.7:
 		ev.append({ "t": "say", "text": "%s has the itis. He's taking a little nap. Zzz." % u["name"], "sound": "miss" })
-		return { "u": u, "events": ev, "skip": true }
+		return _skip(u, ev)
 	if had.has("lorepill") and rnd() < 0.5:
 		ev.append({ "t": "say", "text": "%s is Lore-pilled and dozes off mid-turn. Zzz." % u["name"], "sound": "miss" })
-		return { "u": u, "events": ev + lock_in(u), "skip": true }
+		return _skip(u, ev + lock_in(u))
 	return { "u": u, "events": ev, "skip": false }
+
+# An enemy loses its turn: a Neuralink forecast for that turn is thrown away (it never happened)
+func _skip(u: Dictionary, ev: Array) -> Dictionary:
+	_drop_plan(u)
+	return { "u": u, "events": ev, "skip": true }
+
+func _drop_plan(e: Dictionary) -> void:
+	if e.has("planned"):
+		e.erase("planned")
+		e["turn"] -= 1   # enemy_plan counted the turn when it was forecast
+	e["foresaw"] = false
+
+# ---- the Deloye Lore Neuralink (DELOYE_PLAN.md): gear perks Game.gear_stats() doesn't add up (game.gd), so they're
+# read straight from the equipped gear here. gv = Game.gear_stats() dict (the game) or one gear id (the balance sim).
+func _gear_perks(id: String, gv, g: Dictionary) -> Dictionary:
+	if g.has("dodge") or g.has("foresee"):
+		return g
+	var ids: Array = []
+	if gv is String:
+		ids = [gv]
+	else:
+		var ml = Engine.get_main_loop()
+		var G = ml.root.get_node_or_null("Game") if ml is SceneTree else null
+		if G and G.has_method("slots_of"):
+			ids = G.slots_of(id).values()
+	var out := g.duplicate()
+	for gid in ids:
+		var X: Dictionary = D.GEAR.get(gid, {})
+		if X.get("dodge", 0.0) > 0.0:
+			out["dodge"] = float(out.get("dodge", 0.0)) + X["dodge"]
+		if X.get("foresee", false):
+			out["foresee"] = true
+	return out
+
+# Foresee: at the start of a party turn, plan the next enemy's move early and say what it is. enemy_plan() hands that
+# exact plan back when the enemy's turn comes (re-planned only if its target is gone or a phase change cut in).
+func _foresee() -> Array:
+	if not alive(party).any(func(p): return p["gear"].get("foresee", false)):
+		return []
+	for s in preview(8):
+		var e: Dictionary = s["u"]
+		if e["side"] != "enemy":
+			continue
+		if s["skip"] or e["hp"] <= 0:
+			return []
+		if e.get("foresaw", false):
+			return []   # already said this one
+		if not e.has("planned"):
+			e["planned"] = enemy_plan(e)
+		e["foresaw"] = true
+		return [{ "t": "say", "text": "NEURALINK: " + _intent_text(e, e["planned"]), "sound": "sparkle", "ms": 1500 }]
+	return []
+
+func _intent_text(e: Dictionary, it: Dictionary) -> String:   # DRAFT wording
+	var who: String = e["name"]
+	match it["kind"]:
+		"hit":
+			var on: String = "everyone" if it.get("aoe", false) else it["targets"][0]["name"]
+			return "%s is about to use %s on %s." % [who, it.get("name", "an attack"), on]
+		"telegraph": return "%s is winding up something BIG." % who
+		"eat": return "%s is about to snack. (Heals.)" % who
+		"steal": return "%s is eyeing your Beezys." % who
+		"shield": return "%s is about to steal Lykor's aura." % who
+		"buff": return "%s is about to buff up (%s)." % [who, String(it.get("status", "")).to_upper()]
+		"hype": return "%s is about to hype up %s." % [who, it["other"]["name"]]
+		"phase": return "%s is about to switch it up." % who
+	return "%s is about to do... nothing useful." % who
 
 # Bosses get Locked In after losing a turn, so you can't chain charm/stun forever
 func lock_in(u: Dictionary) -> Array:
@@ -710,6 +777,19 @@ func target(_e: Dictionary, mode := "weak") -> Dictionary:
 
 # Decide what the enemy does. Returns an intent the view animates and then resolves.
 func enemy_plan(e: Dictionary) -> Dictionary:
+	if e.has("planned"):   # foreseen by the Neuralink: keep the promise unless it can't happen any more
+		var it: Dictionary = e["planned"]
+		e.erase("planned")
+		e["foresaw"] = false
+		var ok: bool = not e.get("phase_pending", false)
+		if ok and it.has("targets"):
+			it["targets"] = it["targets"].filter(func(p): return p["hp"] > 0)
+			ok = not it["targets"].is_empty()
+		if ok and it.has("other"):
+			ok = it["other"]["hp"] > 0
+		if ok:
+			return it
+		e["turn"] -= 1
 	e["turn"] += 1
 	var ps := alive(party)
 	var all := { "aoe": true, "targets": ps }
@@ -912,6 +992,9 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 		ev.append({ "t": "tex", "u": e, "tex": e["E"]["tex"] })   # back to standing after the sit
 	for p in it["targets"]:
 		if p["hp"] <= 0:
+			continue
+		if p["gear"].get("dodge", 0.0) > 0.0 and block != "perfect" and rnd() < p["gear"]["dodge"]:   # Neuralink
+			ev.append({ "t": "say", "text": "%s saw that coming. Dodged!" % p["name"], "sound": "miss", "ms": 900 }) # DRAFT
 			continue
 		var dmg: float = it["power"] * mult * (BLOCK[block] if block != "" else 1.0)
 		if p["defending"]:

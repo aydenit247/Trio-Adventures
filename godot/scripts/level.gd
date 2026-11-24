@@ -95,6 +95,7 @@ func _ready() -> void:
 	_build_ui()
 	_after_build()
 	spawn_pet()
+	LostPages.spawn(self)   # secret Deloye Lore library: this area's Lost Page, if not found yet
 	apply_graphics()
 	_show_forehead()
 	if not Game.title_mode and not Game.visited.has(area_key()):
@@ -175,6 +176,9 @@ func _title_mode() -> void:
 	fade_in(1.8)
 
 func do_action(n: String) -> void:
+	if n == "lost_page":   # lost_pages.gd (any area)
+		await LostPages.pickup(self)
+		return
 	await _on_action(n)
 
 # ---------------------------------------------------------------- input
@@ -952,6 +956,7 @@ func _process(delta: float) -> void:
 
 	_keep_in_bounds(delta)
 	_roam_process(delta)
+	LostPages.process(self, delta)
 	_level_process(delta)
 
 	interact_cooldown = max(0.0, interact_cooldown - delta)
@@ -1055,6 +1060,9 @@ func _it_pos(it: Dictionary) -> Vector3:
 
 func current_interactables() -> Array:
 	var list: Array = _level_interactables().duplicate()
+	var lp := LostPages.interactable(self)
+	if not lp.is_empty():
+		list.append(lp)
 	for u in party:
 		if u != leader and talk.has(u.id):
 			list.append({ "id": u.id, "label": u.display_name, "verb": "Talk to", "node": u, "h": 2.15, "r": 1.9, "steps": talk[u.id] })
@@ -1640,7 +1648,7 @@ func open_map() -> void:   # M: big map (area + world tabs)
 
 # ---------------------------------------------------------------- maps (Minimap top-left, MapUI on M)
 # Areas override these: map_buildings() (blue dots + names), map_extra() (e.g. the giant), map_place() (inside a building).
-const AREA_KEYS := { "main": "camp", "trail": "trail", "village": "village", "mart": "mart", "pass": "pass", "summit": "summit", "ruins": "ruins", "cave": "cave" }
+const AREA_KEYS := { "main": "camp", "trail": "trail", "village": "village", "mart": "mart", "pass": "pass", "summit": "summit", "ruins": "ruins", "cave": "cave", "deloye_library": "library" }
 func area_key() -> String:
 	return AREA_KEYS.get(scene_file_path.get_file().get_basename(), scene_file_path.get_file().get_basename())
 

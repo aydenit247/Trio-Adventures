@@ -21,6 +21,8 @@ const CHARS := {
 	"rat_king": { "name": "King Nibbsworth III", "color": Color("#d9a85a"), "pitch": 1.2, "rate": 0.8 },
 	"rat_trader": { "name": "Scrounge", "color": Color("#a8c07a"), "pitch": 1.7, "rate": 1.45 },
 	"charis":   { "name": "Charis", "color": Color("#e08ac8"), "pitch": 1.2, "rate": 1.0 },
+	# the secret Deloye Lore library (DELOYE_PLAN.md): chill, earbuds in. Voice is a placeholder robot until Ebain picks one
+	"deloye":   { "name": "Deloye", "color": Color("#c9b8ff"), "pitch": 0.9, "rate": 0.85 },
 	"narrator": { "name": "", "color": Color("#c9c0e8"), "pitch": 1.0, "rate": 1.0 },
 }
 const GOLD := Color("#e8b923")

@@ -19,6 +19,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Camp has no choice on purpose. Every other main event needs a 5-way choice with at least one combat option.
 - [ebain] Ebain wants lots of optional open-world stuff between the main events (joke NPCs, side quests, gear).
 - [ebain] **Lykor is pronounced LIE-core** ("lie" + "core"). Spell it `Lie-core` for TTS/song generators.
+- [ebain] Deloye (Ebain 11/24): his look = Ebain's pictures (grey hoodie, wired earbuds), floats + twirls in the library's
+  center, chill with earbuds in. His gift to Xylo = the Deloye Lore Neuralink (see next-move + 15% dodge).
 - [ebain] Still unanswered: pronunciations (Xylo, metocy, Deloye, ts/mf/ngl) and the "Code, Cutouts & Sounds:
   Claude" credit. Ask again only if it matters for your task.
 - [asar] Spoon Mail is called **Spoon Mail Armor** (Asar's call).
@@ -248,6 +250,24 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] **Outcomes / completion %** (title screen + end card): `progress_data.gd` lists what counts (17 story outcomes +
   side quests + Chapter 1 + trail loot = 100 points). Saved in `user://progress.cfg`, never reset by New Game. New story
   choice? Add `"outcome": "<id>"` to the choice option and an entry in `progress_data.gd` (rebalance the points to 100).
+
+## Deloye Lore library (ebain, 11/24)
+- [ebain] **`get_meta(key, null)` still errors when the key is missing** (a null default counts as "no default"). Use
+  `obj.get_meta(k) if obj.has_meta(k) else null`.
+- [ebain] **A script parse error makes a `--shots` tour hang until `timeout`**, with nothing printed if you pipe it to
+  grep/head. Write the log to a file (`> /tmp/x.log 2>&1`) and read that.
+- [ebain] Poly Haven's `book_pattern` is book *cloth*, not shelves of books (its color map is `col1`, which
+  fetch_polyhaven.py doesn't know, so the repo copy has no albedo). Book walls use the drawn `textures/book_spines/albedo.jpg`
+  (2 m × 2 m, 4 shelves) on a QuadMesh with `uv1_scale = (w/2, h/2)`: triplanar smears it on rotated walls.
+- [ebain] Lost Page spots: check with a temp `--script` that does `intersect_shape` with a capsule at the spot (that's how
+  the Mart page was found sitting inside a shelf). Pages have no collision; you only need to stand within 1.5 m.
+- [ebain] To spin something an area built from loose blocks (the outhouse is ~6 MeshInstances in Asar's file), reparent
+  the nodes near its position onto a pivot with `reparent(pivot, true)` (village.gd `_deloye_flush`). Only right before
+  leaving the scene: nothing puts them back.
+- [ebain] Tours skip `_resume()` (shots mode goes straight to `_shot_tour`), so a tour that arrives by `Game.travel` must call
+  `await _resume(Game.pending_resume)` itself (village `_flush_tour`).
+- [ebain] A twirling billboard: swap front/side/back textures by quarter turn (mirror the side with `flip_h`) and squash
+  `scale.x` near each quarter (deloye_library.gd `_level_process`). Reads as spinning in place.
 
 ## Summit finale (ebain, 11/24)
 - [ebain] **`way_<scene>` flags are Strings** (`Game.flags["way_pass"] == "lore"`). Read them with `Game.flags.get("way_pass", "")`,

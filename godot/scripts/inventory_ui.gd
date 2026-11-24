@@ -284,6 +284,9 @@ func _draw_quests() -> void:
 			txt += "✓  %s  (done)\n\n" % q["title"]
 		else:
 			txt += "•  %s\n     %s\n\n" % [q["title"], q["note"]]
+	var pages := LostPages.quest_text()   # secret Deloye Lore library: only shows once you've found a page
+	if pages != "":
+		txt = (txt if not Game.quests.is_empty() else "") + "•  " + pages
 	var body := _txt(txt.strip_edges(), Vector2(120, 132), 17, INK, serif)
 	body.size = Vector2(pw - 240, 400)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -784,6 +787,8 @@ static func gear_stat_lines(G: Dictionary) -> Array:
 	if G.get("start", 0): out.append("Start fights with %d meter" % G["start"])
 	if G.get("no_ones", false): out.append("Crash Out dice never roll a 1")
 	if G.get("gouge_proof", false): out.append("Immune to Price Gouged")
+	if G.get("dodge", 0.0): out.append("%d%% chance to dodge a hit" % int(round(G["dodge"] * 100)))
+	if G.get("foresee", false): out.append("Shows what the next enemy is about to do")
 	return out
 
 static func _make_coin() -> Texture2D:
