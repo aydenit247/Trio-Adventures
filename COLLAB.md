@@ -10,8 +10,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Leveling + boss scaling + new boss buffs + expensive Haggle's gear (+ RUINS_PLAN.md, planning only) — files: combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd (short), game.gd (LEVELS), shop_ui.gd, tools/sim_combat.gd — branch: ebain/leveling — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
+- **Ruins → cave → rat colony + Charis's house: see RUINS_PLAN.md** (Ebain answered everything; needs rat + Charis art from Ebain, placeholders until then)
 - Secret Deloye Lore area (Ebain: a hidden easter egg, not on the main route). Ask Ebain first: how you find it, what's inside, its own song?
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
@@ -46,6 +48,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
+- [ebain] godot/scripts/combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, game.gd, shop_ui.gd, tools/sim_combat.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
