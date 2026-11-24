@@ -9,6 +9,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
+- [asar] Dialogue map: a page that shows every line, choice and outcome with mp3 status + shared approve ticks, built from the code — files: tools/dialogue_map/* (new), godot/tools/dialogue_map_dump.gd (new), HANDOFF.md/TIPS.md (a section each) — branch: asar/dialogue-map — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -54,6 +55,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
+- [asar] tools/dialogue_map/*, godot/tools/dialogue_map_dump.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
