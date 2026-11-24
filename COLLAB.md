@@ -10,9 +10,9 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] UI overhaul part 2 (dialogue box + choices, HUD/minimap/toasts, combat menus, text size in dialogue) + steadier mouse hover in menus + Library credits + troll chest openable on "It's good" — files: dialogue.gd, level.gd (HUD parts), minimap.gd, combat/battle_view.gd, menu_ui.gd, ui_theme.gd, library_ui.gd, trail.gd — branch: ebain/ui-part2 — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
-- UI overhaul part 2 (Ebain): restyle the dialogue box + choices, HUD/minimap/toasts and combat menus with UITheme, and make Settings → Text size apply to dialogue. (Inventory: Ebain is asking Asar first.)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
 - Character art as it arrives (Gemini) — swap into godot/assets/characters/ with tools/key_chars.py
@@ -45,6 +45,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
+- [ebain] godot/scripts/dialogue.gd, level.gd, minimap.gd, combat/battle_view.gd, menu_ui.gd, ui_theme.gd, library_ui.gd, trail.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
