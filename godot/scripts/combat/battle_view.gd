@@ -71,7 +71,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	key = fight_key
 	fdef = D.FIGHTS[key]
 	cinematic = fdef.get("boss", false)
-	speed = 1.0 if cinematic else 0.7
+	speed = (1.0 if cinematic else 0.7) * Game.BATTLE_SPEED[Game.battle_speed][1]   # Settings → Battle speed
 	auto_play = lv.shots_mode
 	mog_cam_test = auto_play
 	shi_cam_test = auto_play
@@ -367,10 +367,10 @@ func _build_ui() -> void:
 		col.add_theme_constant_override("separation", 1)
 		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(col)
-		var pn := lv._label(p["name"] if p["id"] != "chief" else "The Chief", Vector2.ZERO, 16, UITheme.c("accent", _th()), 4)
+		var pn := _pl(p["name"] if p["id"] != "chief" else "The Chief", 16, UITheme.c("accent", _th()), 4)
 		pn.add_theme_font_override("font", UITheme.row_font())
 		col.add_child(pn)
-		var hp_lbl := lv._label("", Vector2.ZERO, 12, Color(1, 1, 1, 0.85), 3)
+		var hp_lbl := _pl("", 12, Color(1, 1, 1, 0.85), 3)
 		col.add_child(hp_lbl)
 		var hp := _bar(GREEN, Vector2(120, 10))
 		hp.max_value = p["max_hp"]
@@ -379,6 +379,7 @@ func _build_ui() -> void:
 		meter.max_value = 100
 		col.add_child(meter)
 		var st := _status_row(12)
+		st.set_meta("panel", true)   # inside a party card: chips use _pl
 		col.add_child(st)
 		party_box.add_child(card)
 		pbars[p["key"]] = { "hp": hp, "hp_lbl": hp_lbl, "meter": meter, "st": st, "card": card }
@@ -393,13 +394,13 @@ func _build_ui() -> void:
 	var mcol := VBoxContainer.new()
 	mcol.add_theme_constant_override("separation", 2)
 	menu_panel.add_child(mcol)
-	menu_title = lv._label("", Vector2.ZERO, 19, UITheme.c("accent", _th()), 5)
+	menu_title = _pl("", 19, UITheme.c("accent", _th()), 5)
 	menu_title.add_theme_font_override("font", UITheme.head_font())
 	mcol.add_child(menu_title)
 	menu_list = VBoxContainer.new()
 	menu_list.add_theme_constant_override("separation", 0)
 	mcol.add_child(menu_list)
-	menu_desc = lv._label("", Vector2.ZERO, 14, UITheme.c("note", _th()), 3)
+	menu_desc = _pl("", 14, UITheme.c("note", _th()), 3)
 	menu_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	menu_desc.custom_minimum_size = Vector2(350, 0)
 	mcol.add_child(menu_desc)
@@ -420,10 +421,30 @@ func _build_ui() -> void:
 func _update_hint() -> void:
 	hint.text = "W/S choose · E select · Q back · T timed hits: %s" % ("AUTO" if Game.timed_auto else "MANUAL")
 
-# UI overhaul part 2: combat panels use UITheme. Fights always use a DARK theme (Parchment → Gold & Night), because
-# most fight text (status words, numbers, results) is light-colored with an outline, made to sit over the action.
+# Combat panels use UITheme and follow Settings → Menu theme, Parchment too (Ebain 11/24: "always follow menu theme").
+# Text INSIDE a panel goes through _pl()/_ink() so light fight colors turn into dark ink on Parchment. Text over the
+# 3D world (log, banner, floating numbers, enemy names/bars on the right) keeps light colors + black outline.
 func _th() -> int:
-	return 0 if Game.ui_theme == UITheme.PARCHMENT else Game.ui_theme
+	return Game.ui_theme
+
+func _parch() -> bool:
+	return UITheme.c("outline", _th()).a < 0.05
+
+# A fight color made readable on the current panel: on Parchment, near-white → the theme's text color, any other
+# color → a deep shade of the same hue (gold → dark gold, green → dark green). Dark themes: unchanged.
+func _ink(c: Color) -> Color:
+	if not _parch():
+		return c
+	if c.s < 0.25:
+		return Color(UITheme.c("text", _th()), c.a)
+	return Color.from_hsv(c.h, maxf(c.s, 0.7), 0.42, c.a)
+
+# Label that sits inside a fight panel (cards, menu, tips, results). No outline on Parchment.
+func _pl(text: String, size: int, color: Color, outline: int) -> Label:
+	var l := lv._label(text, Vector2.ZERO, size, _ink(color), outline)
+	if _parch():
+		l.add_theme_constant_override("outline_size", 0)
+	return l
 
 func _card_box() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -623,7 +644,11 @@ func _set_status(row: HFlowContainer, chips: Array) -> void:
 	for c in row.get_children():
 		c.queue_free()
 	for c in chips:
-		var l := lv._label(c[0], Vector2.ZERO, row.get_meta("size"), GREEN if c[2] else PURPLE, 3)
+		var l: Label
+		if row.get_meta("panel", false):
+			l = _pl(c[0], row.get_meta("size"), GREEN if c[2] else PURPLE, 3)
+		else:
+			l = lv._label(c[0], Vector2.ZERO, row.get_meta("size"), GREEN if c[2] else PURPLE, 3)
 		l.mouse_filter = Control.MOUSE_FILTER_STOP
 		l.mouse_default_cursor_shape = Control.CURSOR_HELP
 		var chip: Array = c
@@ -644,15 +669,15 @@ func _show_status_tip(over: Control, chip: Array) -> void:
 		var tc := VBoxContainer.new()
 		tc.add_theme_constant_override("separation", 2)
 		status_tip.add_child(tc)
-		tc.add_child(lv._label("", Vector2.ZERO, 18, GOLD, 4))
-		var d := lv._label("", Vector2.ZERO, 15, Color.WHITE, 3)
+		tc.add_child(_pl("", 18, GOLD, 4))
+		var d := _pl("", 15, Color.WHITE, 3)
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		d.custom_minimum_size = Vector2(260, 0)
 		tc.add_child(d)
 		root.add_child(status_tip)
 	var tc: VBoxContainer = status_tip.get_child(0)
 	tc.get_child(0).text = chip[0]
-	tc.get_child(0).add_theme_color_override("font_color", GREEN if chip[2] else PURPLE)
+	tc.get_child(0).add_theme_color_override("font_color", _ink(GREEN if chip[2] else PURPLE))
 	tc.get_child(1).text = chip[1]
 	status_tip.visible = true
 	status_tip.reset_size()
@@ -1484,7 +1509,7 @@ func _render_menu() -> void:
 		var bt: Button = _menu_btns[i]
 		var col := UITheme.c("text", T)
 		if o.get("off", false): col = UITheme.c("faint", T)
-		elif o.get("hot", false): col = Color("#fff07a")
+		elif o.get("hot", false): col = _ink(Color("#fff07a"))
 		if i == _menu_sel: col = UITheme.c("accent", T) if not o.get("off", false) else Color(UITheme.c("accent", T), 0.5)
 		bt.text = o["text"]
 		for st in ["normal", "hover", "pressed", "focus"]:
@@ -1744,7 +1769,7 @@ func _row() -> HBoxContainer:
 	return r
 
 func _row_label(text: String, size: int, color: Color) -> Label:
-	var l := lv._label(text, Vector2.ZERO, size, color, 5)
+	var l := _pl(text, size, color, 5)
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	return l
 
@@ -1793,15 +1818,15 @@ func _loot_icon(gear_id: String) -> Control:
 	var tc := VBoxContainer.new()
 	tc.add_theme_constant_override("separation", 2)
 	tip.add_child(tc)
-	tc.add_child(lv._label(G.get("name", gear_id), Vector2.ZERO, 20, GOLD, 4))
-	tc.add_child(lv._label(G.get("slot", "trinket").capitalize(), Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 3))
-	var d := lv._label(G.get("desc", ""), Vector2.ZERO, 15, Color.WHITE, 3)
+	tc.add_child(_pl(G.get("name", gear_id), 20, GOLD, 4))
+	tc.add_child(_pl(G.get("slot", "trinket").capitalize(), 14, Color(1, 1, 1, 0.6), 3))
+	var d := _pl(G.get("desc", ""), 15, Color.WHITE, 3)
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(300, 0)
 	tc.add_child(d)
 	for s in InventoryUI.gear_stat_lines(G):
-		tc.add_child(lv._label("• " + s, Vector2.ZERO, 15, Color("#7dff8a"), 3))
-	tc.add_child(lv._label("Equip it in your inventory (Tab)", Vector2.ZERO, 13, Color(1, 1, 1, 0.55), 3))
+		tc.add_child(_pl("• " + s, 15, Color("#7dff8a"), 3))
+	tc.add_child(_pl("Equip it in your inventory (Tab)", 13, Color(1, 1, 1, 0.55), 3))
 	root.add_child(tip)
 	box.mouse_entered.connect(func():
 		tip.visible = true
@@ -1846,7 +1871,7 @@ func _results(res: String) -> void:
 	col.add_theme_constant_override("separation", 8)
 	panel.add_child(col)
 	var line := func(text: String, size: int, color: Color) -> void:
-		var l := lv._label(text, Vector2.ZERO, size, color, 5)
+		var l := _pl(text, size, color, 5)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size = Vector2(620, 0)

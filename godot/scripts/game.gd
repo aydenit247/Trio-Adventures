@@ -37,6 +37,8 @@ var dev_autowin := false          # fights are skipped and count as won
 # settings
 var difficulty := 1               # 0 Chill · 1 Normal · 2 Crashout
 var timed_auto := false           # timed hits/blocks resolve on their own
+var battle_speed := 0             # Settings → Gameplay → Battle speed, index into BATTLE_SPEED (Ebain 11/24)
+const BATTLE_SPEED := [["Normal", 1.0], ["Fast", 0.65], ["Very fast", 0.4]]   # [label, pause/animation multiplier]
 
 func flag(name: String) -> bool:
 	return flags.get(name, false)
@@ -495,6 +497,7 @@ func load_settings() -> void:
 	cam_speed = cf.get_value("game", "cam_speed", cam_speed)
 	difficulty = cf.get_value("game", "difficulty", difficulty)
 	timed_auto = cf.get_value("game", "timed_auto", timed_auto)
+	battle_speed = clampi(int(cf.get_value("game", "battle_speed", battle_speed)), 0, BATTLE_SPEED.size() - 1)
 	dlg_buffer = clampi(int(cf.get_value("game", "dlg_buffer", dlg_buffer)), 0, 3)
 	dlg_back = cf.get_value("game", "dlg_back", dlg_back)
 	var ds = cf.get_value("game", "dlg_speed", dlg_speed)   # old saves: speed mode was ON/OFF
@@ -520,6 +523,7 @@ func save_settings() -> void:
 	cf.set_value("game", "cam_speed", cam_speed)
 	cf.set_value("game", "difficulty", difficulty)
 	cf.set_value("game", "timed_auto", timed_auto)
+	cf.set_value("game", "battle_speed", battle_speed)
 	cf.set_value("game", "dlg_buffer", dlg_buffer)
 	cf.set_value("game", "dlg_back", dlg_back)
 	cf.set_value("game", "dlg_speed", dlg_speed)
