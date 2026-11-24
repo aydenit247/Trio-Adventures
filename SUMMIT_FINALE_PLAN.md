@@ -1,5 +1,7 @@
 # Summit finale plan (Ebain's spec, 11/24)
 
+Answers from Ebain (11/24): only the goblin chase kills Dulbers (beating him in the Mart boss fight leaves him alive, so he ambushes here); Ebain and Asar build this together.
+
 Planning doc for the end of Chapter 1: Summit arrival → Dulbers ambush → Mattias's castle → ending. Ebain's quoted
 lines are verbatim (`# Ebain`). Everything Claude wrote is **DRAFT**. Scene files are Asar's (`summit.gd`,
 `summit_script.gd`), so check the board before building.
@@ -47,8 +49,13 @@ Per-run facts available after that fix:
 **C. Dulbers ambush (only if `dulbersDead` is false)**
 - Right after Lykor's line, normal Dulbers (`dulbers.png`, not the demon) sprints up from the Pass behind them and says
   **<line from 2b>**.
-- Choices: 1 apologize + swear loyalty to Dulbmeethus · 2 fight · 3 offer midtocy (`if: hasMidtocy`) · 4 call Mattias →
-  "Get lost midget fucker!" `# Ebain` → fight normal Dulbers with Mattias as a 4th fighter (same slot Chief Bogdrinker uses).
+- Choices (Ebain's answers 11/24):
+  1. **Apologize + swear loyalty to Dulbmeethus** → Dulbers: "Good boy." `# Ebain` and he leaves.
+  2. **Fight him** (normal Dulbers, not the demon).
+  3. **"Offer him fentocy"** `# Ebain` → he takes it thinking it's midtocy, and dies. Sets `dulbersDead`. (Available on
+     every run, since it's a different pill from the midtocy.)
+  4. **Call for Mattias** → "Get lost midget fucker!" `# Ebain` → fight normal Dulbers, with Mattias fighting alongside the
+     trio as a 4th fighter (same slot Chief Bogdrinker uses).
 - Store the pick as `way_ambush` so Mattias can mention it.
 
 **D. The castle**
@@ -57,7 +64,9 @@ Per-run facts available after that fix:
 - Mattias: "Here yall go folk, have at it." `# Ebain` (the glowing blue pill)
 - Choices: 1 "Bet. Here we go folk." · 2 "you had said u was fuckin wit one too?" → "Bet." (all 4 take it) · 3 "Bad." →
   "Oh okay." → hard end · 4 sucker punch → near-impossible boss (new `mattias` fight in combat_data.gd, numbers kept
-  in one place so new items/levels can be balanced against it later).
+  in one place so new items/levels can be balanced against it later). **Losing it is its own ending** (Ebain), not a
+  retry. DRAFT idea: the trio wakes up face-down outside the castle, Mattias in the doorway: "Bad." Door shuts. END OF
+  CHAPTER 1. Winning: Mattias, on the floor: "...Bet." and they take the metocy (goes to E).
 
 **E. After the metocy (choices 1 and 2)**
 - Mattias asks about giving every goblin metocy. No → end right there. Yes → cut to the goblin village dancing → end.
@@ -85,8 +94,9 @@ Per-run facts available after that fix:
 
 **2c. Mattias: "I had heard that y'all ..."** (ambush first, then the biggest thing from the run)
 - `way_ambush=apologize`: "swore loyalty to Dulbmeethus on the way up" (Mattias pauses: "...That's OD.")
+- `way_ambush=fentocy` also works as the top pick. It's the darkest thing the trio can do.
 - `way_ambush=fight` or `mattias`: "made Dulbers cry on a mountain"
-- `way_ambush=midtocy`: "gave Dulbers his own midtocy back"
+- `way_ambush=fentocy`: "gave Dulbers fentocy. That's crazy"
 - `dulbersDead`: "had the goblins handle Dulbers"
 - `skornKing`: "made Skorn king of the goblins"
 - `chugWon`: "outdrank Chief Bogdrinker"
