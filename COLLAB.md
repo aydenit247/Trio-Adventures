@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] UI overhaul part 1 (themes Gold & Night / Parchment / Wizard Arcane, UI + text size, menus restyle, new settings, main-menu Library: soundtrack unlocks when heard + lyrics) — files: menu_ui.gd, title.gd, game.gd (settings vars, short), area_music.gd, shop_ui.gd, job_board_ui.gd, map_ui.gd, achievements.gd, new ui_theme.gd + library_ui.gd — branch: ebain/ui-overhaul — started 2026-11-24. Dialogue/HUD/combat restyle waits for the summit finale to merge.
-- [ebain] Summit finale (SUMMIT_FINALE_PLAN.md: arrival lines, Dulbers ambush, Mattias castle, endings) — files: summit.gd, summit_script.gd, summit.tscn, mart.gd, pass_script.gd, progress_data.gd, dev_mode.gd, hot spots dialogue.gd + level.gd (1–2 lines each) + combat/combat_data.gd + combat/battle.gd + combat/battle_view.gd (short) — branch: ebain/summit-finale — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-24 [ebain] **Summit finale** (Ebain's SUMMIT_FINALE_PLAN.md): arrival, Mattias's echo, Dulbers ambush, castle with 5 choices, 4 endings
 - 2026-11-22 [asar] Title screen shows Outcomes x/17 + completion % (saved across playthroughs)
 - 2026-11-22 [asar] Goblins voiced by Asar's 86 recordings; Gorbo (open mic) removed completely
 - 2026-11-22 [asar] Summit hymn (Mattias waits for it: "Peep the song first folk"); camp: sleep in the tents → the next morning
@@ -43,12 +43,12 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/summit.gd, summit_script.gd, godot/summit.tscn, mart.gd, pass_script.gd, progress_data.gd, dev_mode.gd, dialogue.gd, level.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 - [ebain ui] godot/scripts/menu_ui.gd, title.gd, game.gd, area_music.gd, shop_ui.gd, job_board_ui.gd, map_ui.gd, achievements.gd, ui_theme.gd, library_ui.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [ebain] **Summit finale merged** (SUMMIT_FINALE_PLAN.md, all of sections 1–3; how it works: HANDOFF section 1 item 5). **@asar:** it's in your scene files (summit.gd/summit_script.gd); Ebain said to build it, nothing of yours was removed: the hymn, "Peep the song first" and the lair are all still there. **Hot spots:** **dialogue.gd** one line: a choice's `"outcome"` now goes through new `ProgressData.pick_outcome()` (unlocks it + sets the per-run string flag `way_<scene>`; read those with `Game.flags.get()`, not `Game.flag()`). **level.gd** `fight()`: new opt `lose_ends` (a loss returns "lose", no penalty/retry). **combat/**: `CombatD.PARTY["mattias"]` ally, fights `dulbers_ambush` + `mattias` (numbers in `MATTIAS_BOSS`), talk `apologize_mattias`, banter; battle.gd: ai `mattias`, party move kind `beam`, `healone` takes an optional `say` text, Dulbers never disguises as Mattias/the Chief; battle_view.gd: enemy `portrait` override, **Auto battle bug fix** (a heal in the bonus slot healed the enemy). Also: **mart.gd** the boss-fight win sets `dulbersDead` (Ebain: beating him = killing him). **pass_script.gd** ENDING lost Mattias's echo (moved to the summit) and Skorn's reply "finna slap this old head too". **progress_data.gd**: 9 new outcomes (26 total), points rebalanced (story 3, quests 3, Chapter 1 4, loot 1 = 100). **dev_mode.gd** skip mode sets the way_ flags too. **tools/sim_combat.gd** was broken (old `b.inv`), fixed + `SIM_ONLY`. Test: `SUMMIT_TOUR=finale SUMMIT_FLAGS=... SUMMIT_PICKS=... [AUTOWIN=1]`; ran all 5 castle choices, all 4 ambush picks, no-ambush and old-save runs, plus Mart/Pass/summit tours. New lines on the robot voice: VOICE_LINES.md; art wishlist: ASSETS_NEEDED.md.
 - 2026-11-24 [ebain] **SUMMIT_FINALE_PLAN.md** (planning only, no code): Ebain's spec for the summit → Dulbers ambush → Mattias castle → ending, with dynamic lines grounded in real flags. **@asar:** it's your scene files; nothing touched. Key finding: outcomes are saved across playthroughs, so the game can't tell how *this run* passed the giant/troll. Proposed 1-line dialogue.gd fix (`way_<scene>` flags) is in the doc.
 - 2026-11-23 [ebain] **Achievement system foundation merged** (new `achievements.gd`). Hot spot **game.gd**: `var ach` + `achieve(id)`, `_ready()` adds the popup layer, `set_flag()` and `unlock()` each fire one `ach.event()` line. **title.gd**: an "Achievements (x/N)" menu row. To add one, see the comment at the top of achievements.gd: most need zero extra code (trigger on a progress id or a flag). 5 DRAFT examples; Ebain is choosing the real ones.
 - 2026-11-23 [ebain] **Dialogue controls merged.** Hot spot **dialogue.gd**: `_run_steps` is now an index loop (Backspace = replay the previous plain line, never over a `do`/`choice`); E has a buffer after a line is fully shown (`_ready_at`, `_arm_buffer()`); speed-mode button + Yes/No in a new footer row (`foot`, hint moved into it); `say()` halves the typing time in speed mode. `game.gd`: `dlg_buffer`, `dlg_back`, `dlg_speed` (saved in settings.cfg). `menu_ui.gd`: three Settings rows. **@asar:** if you add a step type to `_run_steps`, make sure `_is_line()` rejects it. No controller button for back (Ebain's call). Tested: headless dialogue test + camp/village/Mart/Pass tours.
