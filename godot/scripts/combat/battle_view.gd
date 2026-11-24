@@ -149,21 +149,26 @@ func _place(party_units: Array, enemy_units: Array, c) -> void:
 		m /= max(1, enemy_nodes.size())
 		c = a.lerp(m, 0.5)
 		c.y = 0.0
-	center = c
 	var np := party_units.size()
+	var ne := enemy_nodes.size()
+	# (Ebain 11/24) fit the lineup between the walls: in a narrow tunnel the old fixed spacing put units inside the rock
+	var fit := _fit_lineup(c, 1.9 + (np - 1) * 1.15, 1.9 + (ne - 1) * 1.15 if not giant else 4.6)
+	c = fit[0]
+	var sc: float = fit[1]
+	var stagger := 0.55 if sc > 0.85 else 1.0   # squeezed: stagger more in depth so they don't overlap
+	center = c
 	for i in np:
 		var u: Unit = party_units[i]
 		var k: String = b.party[i]["key"]
 		nodes[k] = u
-		spots[k] = center - right * (1.9 + i * 1.15) + fwd * (0.55 if i % 2 == 1 else 0.0)
-	var ne := enemy_nodes.size()
+		spots[k] = center - right * (1.9 + i * 1.15) * sc + fwd * (stagger if i % 2 == 1 else 0.0)
 	for i in ne:
 		var k: String = b.enemies[i]["key"]
 		nodes[k] = enemy_nodes[i]
 		if giant:
-			spots[k] = center + right * 4.6 + fwd * 1.8
+			spots[k] = center + right * 4.6 * sc + fwd * 1.8
 		else:
-			spots[k] = center + right * (1.9 + i * 1.15) + fwd * (0.55 if i % 2 == 1 else 0.0)
+			spots[k] = center + right * (1.9 + i * 1.15) * sc + fwd * (stagger if i % 2 == 1 else 0.0)
 	for k in nodes:
 		var u: Unit = nodes[k]
 		base_tint[k] = u.get_meta("tint") if u.has_meta("tint") else Color.WHITE
@@ -179,6 +184,60 @@ func _place(party_units: Array, enemy_units: Array, c) -> void:
 		var tex := _tex(E["tex"])
 		if tex and u.sprite.texture != tex:
 			u.set_pose(tex, E["h"])
+
+# How much room is there left and right of `c` (raycasts against the world, layer 1)? Returns [new center, spacing
+# scale]: the center slides over if one side is short, and the spacing shrinks if both are.
+func _fit_lineup(c: Vector3, need_l: float, need_r: float) -> Array:
+	var space := lv.get_world_3d().direct_space_state
+	var room := func(dir: Vector3) -> float:
+		var from := c + Vector3(0, 1.0, 0)
+		var q := PhysicsRayQueryParameters3D.create(from, from + dir * 12.0, 1)
+		var hit := space.intersect_ray(q)
+		return 12.0 if hit.is_empty() else maxf(0.0, from.distance_to(hit["position"]) - 0.7)
+	var rl: float = room.call(-right)
+	var rr: float = room.call(right)
+	need_l += 0.3
+	need_r += 0.3
+	if rl >= need_l and rr >= need_r:
+		return [c, 1.0]
+	if rl + rr >= need_l + need_r:   # enough room in total: slide toward the open side
+		var shift := (need_l - rl) if rl < need_l else -(need_r - rr)
+		return [c + right * shift, 1.0]
+	var sc := maxf(0.35, (rl + rr) / (need_l + need_r))
+	return [c + right * (need_l * sc - rl), sc]   # left end touches the left wall, right end the right one
+
+# a jagged bolt from the sky onto a unit (unshaded, bright), gone after a moment
+func _bolt(n: Node3D) -> void:
+	if n == null:
+		return
+	var im := ImmediateMesh.new()
+	var mi := MeshInstance3D.new()
+	mi.mesh = im
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(0.85, 0.9, 1.0)
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = m
+	lv.add_child(mi)
+	var base: Vector3 = n.global_position
+	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	var p := base + Vector3(randf_range(-0.6, 0.6), 14.0, 0)
+	var w := 0.12
+	while p.y > base.y + 0.2:
+		var q := Vector3(base.x + randf_range(-0.5, 0.5), maxf(base.y, p.y - randf_range(1.0, 2.2)), base.z)
+		for v in [p + Vector3(-w, 0, 0), p + Vector3(w, 0, 0), q + Vector3(w, 0, 0), p + Vector3(-w, 0, 0), q + Vector3(w, 0, 0), q + Vector3(-w, 0, 0)]:
+			im.surface_add_vertex(v)
+		p = q
+	im.surface_end()
+	var l := OmniLight3D.new()
+	l.light_color = Color(0.7, 0.8, 1.0)
+	l.light_energy = 6.0
+	l.omni_range = 8.0
+	l.position = base + Vector3(0, 2.0, 0)
+	lv.add_child(l)
+	get_tree().create_timer(0.35).timeout.connect(func():
+		mi.queue_free()
+		l.queue_free())
 
 func _tex(n: String) -> Texture2D:
 	var p := "res://assets/characters/%s.png" % n
@@ -1117,7 +1176,14 @@ func _event(ev: Dictionary) -> void:
 			var c: Dictionary = ev["c"]
 			flash(0.5, Color(0.8, 0.6, 1.0))
 			_say(c["title"])
-			await _banner("CHAOS EVENT", PURPLE, 1.6)
+			await _banner("DULBMEETHUS" if c["id"] == "dulbmeethus_bolt" else "CHAOS EVENT", PURPLE, 1.6)
+		"lightning":   # Dulbmeethus smites the enemy side: a white flash, bolts on every enemy, a big shake
+			for e in ev["us"]:
+				_bolt(_node(e))
+			flash(0.8, Color(1, 1, 1))
+			lv.shake = 1.2
+			sfx("blast", 0.6)
+			await lv.wait(0.5)
 		"attack":
 			sfx(ev.get("sound", "hit"))
 			if ev.get("sit", false):

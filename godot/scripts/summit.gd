@@ -20,6 +20,7 @@ const DAIS := INT + Vector3(0, 0, -10)
 const DOOR_IN := INT + Vector3(0, 0, 12.6)
 const OG_POS := INT + Vector3(6.4, 0, -1.6)     # the OG Metocy's case, on the old marble bust's pedestal (Asar 11/23)
 const OG_CASE_Y := 1.56                         # middle of the glass case
+const OG_YAW := -0.6                            # Inspect camera: from the south-west, clear of the study's armchairs
 const HALFWAY_Z := 8.0                          # Mattias's echo + Dulbers' ambush trigger here (by the shrine)
 const PARTY_POS := Vector3(-400, 0, 0)          # the goblin metocy party (ending), built off to the other side
 # Empty clearings along the climb for future events (Asar: "potential for other events"). Each has a little scenery
@@ -515,6 +516,16 @@ func _inspect_og() -> void:
 	var h0 := cam_look_h
 	var c0 := cam_height
 	var case_c := OG_POS + Vector3(0, OG_CASE_Y, 0)
+	# (Ebain 11/24) "you can't get a good look at it": the party (standing right in front of the case) and the study's
+	# armchairs were between the camera and the case. Hide the party for the close-up and swing the camera round to
+	# the open, hall-centre side (south-west) so nothing's in the way.
+	var yaw0 := target_yaw
+	var hidden: Array = []
+	for u in party + npcs:
+		if u.visible and u != mattias and u.global_position.distance_to(OG_POS) < 6.0:
+			u.visible = false
+			hidden.append(u)
+	target_yaw = OG_YAW
 	focus_override = cam_target
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(self, "focus_override", OG_POS, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -573,7 +584,11 @@ func _inspect_og() -> void:
 	back.tween_property(self, "zoom", z0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	back.tween_property(self, "cam_look_h", h0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	back.tween_property(self, "cam_height", c0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	target_yaw = yaw0
 	await back.finished
+	for u in hidden:
+		if is_instance_valid(u):
+			u.visible = true
 	focus_override = null
 	layer.queue_free()
 	_cinematic_hud(true)
@@ -1812,6 +1827,16 @@ func map_place_door() -> Vector3:
 func _shot_tour() -> void:
 	if OS.get_environment("SUMMIT_TOUR") == "finale":
 		await _finale_tour()
+		return
+	if OS.get_environment("SUMMIT_TOUR") == "og":   # just the OG Metocy close-up (Ebain 11/24)
+		fade.color.a = 0.0
+		busy = false
+		await _enter_lair()
+		await wait(1.0)
+		place_party(OG_POS + Vector3(-0.6, 0, 1.6), Vector3(0, 0, -1))
+		await wait(1.0)
+		await _inspect_og()
+		get_tree().quit()
 		return
 	fade.color.a = 0.0
 	busy = false

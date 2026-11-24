@@ -85,6 +85,7 @@ const CARVING := {   # the wall carving: only Xylo can read it (the plates' symb
 	"xylo": [
 		{ "who": "xylo", "mood": "vision", "line": "Ancient rat runes. 'The SPOON sleeps beside the first pillar. The BOOK hides by the west wall. The BOWL rests in the corner of the sun.'" }, # DRAFT
 		{ "do": "read_carving" },
+		{ "who": "xylo", "line": "In plain words: each boulder goes on the plate with its picture. Spoon on spoon, book on book, bowl on bowl. They slide till they hit something, so use the pillars as stoppers." }, # DRAFT
 		{ "who": "xylo", "mood": "unimpressed", "line": "Also somebody carved 'Nibbsworth is mid' under it." }, # DRAFT
 	],
 	"skorn": [
@@ -104,7 +105,7 @@ const RESET := [
 	{ "who": "rat", "line": "skill issue." }, # DRAFT (a rat pops out of a hole)
 ]
 
-const HINT := {   # after 90 s without progress, whoever's leading says one
+const HINT := {   # after 30 s without progress, whoever's leading says one (then cave.gd gives exact next moves)
 	"skorn": [{ "who": "skorn", "mood": "confused", "line": "Man, these rocks don't stop till they hit somethin'. So… make 'em hit somethin'." }], # DRAFT
 	"lykor": [{ "who": "lykor", "line": "They slide till they hit something, folk. Use the pillars. And the big one's Skorn's job." }], # DRAFT
 	"xylo": [{ "who": "xylo", "line": "A boulder only stops when something stops it. The pillars are the key. Also: there's a crack in the east wall only a slim man could fit through." }], # DRAFT

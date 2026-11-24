@@ -33,6 +33,9 @@ var used67 := false
 var hype := 0
 var now := 0.0
 var chaos_used := false
+var bolt_pending := false         # Dulbmeethus' lightning this fight (rolled once in _init)
+const BOLT_CHANCE := 0.03
+const BOLT_BOSS := 0.4            # bosses aren't one-shot: they lose 40% of their max HP
 var emergency_given := false
 var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 0, "perfects": 0 }
 var party: Array = []
@@ -112,6 +115,9 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		party[i]["next"] = delay(party[i]) * (0.35 + i * 0.02)
 	for i in enemies.size():
 		enemies[i]["next"] = delay(enemies[i]) * (0.7 + i * 0.12)
+	# Dulbmeethus' lightning (Ebain 11/24): 3% of fights, he pulls up on the first enemy turn and smites their side.
+	# BOLT=1 forces it (tests).
+	bolt_pending = rnd() < BOLT_CHANCE or OS.get_environment("BOLT") != ""
 
 # ------------------------------------------------------------------ helpers
 func delay(u: Dictionary) -> float:
@@ -724,6 +730,8 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 
 # ------------------------------------------------------------------ chaos (very rare)
 func roll_chaos() -> Array:
+	if bolt_pending:
+		return _dulbmeethus_bolt()
 	if chaos_used or rnd() > 0.015:
 		return []
 	var pool := D.CHAOS.filter(func(c): return (not c.has("only_in") or c["only_in"].has(key)) and (not c.has("not_in") or not c["not_in"].has(key)))
@@ -749,6 +757,22 @@ func roll_chaos() -> Array:
 		"rock":
 			var t: Dictionary = pick(alive(enemies))
 			ev += damage_enemy({}, t, 25, { "raw": true, "text": "It lands on %s." % t["name"], "sound": "sit", "shake": true })
+	return ev
+
+# "Y'all could hear me doe?" + a lightning strike on the whole enemy side. Regular enemies drop; bosses lose 40%.
+func _dulbmeethus_bolt() -> Array:
+	bolt_pending = false
+	chaos_used = true
+	var ev := [{ "t": "chaos", "c": D.BOLT_EVENT }, { "t": "lightning", "us": alive(enemies) }]
+	for e in alive(enemies):
+		var amt: float
+		if e["boss"]:
+			amt = e["max_hp"] * BOLT_BOSS
+		else:
+			e["st"].erase("shield")
+			e["st"].erase("braced")
+			amt = e["hp"] / (1.25 if e["st"].has("mogged") else 1.0) + 1.0
+		ev += damage_enemy({}, e, amt, { "raw": true, "text": "Smitten by Dulbmeethus.", "sound": "blast", "shake": true, "quick": true })
 	return ev
 
 # ------------------------------------------------------------------ enemies

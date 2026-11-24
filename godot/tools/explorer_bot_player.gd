@@ -13,7 +13,9 @@
 #   BOT_SEED=12345     the random seed. Same seed = the bot makes the same picks (timing can still differ a bit)
 #   BOT_DIR=path       where report.md + shots/ go (default user://bot)
 #   BOT_SHOT_EVERY=30  a screenshot every N seconds of play (plus one per area, fight and problem)
-#   BOT_SPEED=1.0      game speed (Engine.time_scale). 2 = twice as fast; fine for headless runs
+#   BOT_SPEED=1.0      game speed. 10 = ten times as fast (Ebain 11/24). Physics ticks scale with it, so walls and
+#                      fights behave the same as at 1x; the only limit is how fast the machine is. The report says
+#                      how fast it really ran ("Effective speed"). Headless only (pictures can't keep up)
 #   BOT_START=res://summit.tscn   start in that area instead of a New Game (no story flags set, like an old save)
 #
 # What counts as a problem (makes the run fail, exit code 1):
@@ -38,6 +40,7 @@ var G: Node                      # the Game autoload
 var rng := RandomNumberGenerator.new()
 var seed_val := 0
 var minutes := 15.0
+var asked_speed := 1.0
 var out_dir := "user://bot"
 var shot_every := 30.0
 var pics := true
@@ -90,7 +93,13 @@ func _ready() -> void:
 	minutes = float(_env("BOT_MINUTES", "15"))
 	out_dir = _env("BOT_DIR", "user://bot")
 	shot_every = float(_env("BOT_SHOT_EVERY", "30"))
-	Engine.time_scale = float(_env("BOT_SPEED", "1.0"))
+	var spd := maxf(0.1, float(_env("BOT_SPEED", "1.0")))
+	asked_speed = spd
+	Engine.time_scale = spd
+	# keep each physics step 1/60 s of game time at any speed (big steps let people walk through walls)
+	Engine.physics_ticks_per_second = int(round(60.0 * maxf(1.0, spd)))
+	Engine.max_physics_steps_per_frame = maxi(8, int(ceil(8.0 * spd)))
+	Engine.max_fps = 0
 	pics = DisplayServer.get_name() != "headless"
 	seed(seed_val)
 	rng.seed = seed_val
@@ -134,7 +143,7 @@ func _finish() -> void:
 	if pics and lv:
 		await _snap("zz_end")
 	_write_report()
-	print("BOT DONE: %d problem(s). Report: %s" % [problems.size(), ProjectSettings.globalize_path(out_dir + "/report.md")])
+	print("BOT DONE: %d problem(s), effective speed %.1fx. Report: %s" % [problems.size(), play_t / maxf(0.001, (Time.get_ticks_msec() - start_ms) / 1000.0), ProjectSettings.globalize_path(out_dir + "/report.md")])
 	get_tree().quit(1 if not problems.is_empty() else 0)
 
 # ================================================================ main loop
@@ -149,6 +158,8 @@ func _process(delta: float) -> void:
 		_finish()
 		return
 	play_t += delta
+	if Engine.time_scale == 1.0 and asked_speed != 1.0:   # the summit's slow-mo resets to 1.0: back to bot speed
+		Engine.time_scale = asked_speed
 	var cur := get_tree().current_scene
 	if cur != lv:
 		_entered(cur)
@@ -598,6 +609,7 @@ func _write_report() -> void:
 	L.append("")
 	L.append("- Seed: **%d** (replay the same picks: `BOT_SEED=%d`)" % [seed_val, seed_val])
 	L.append("- Played: %s · areas: %s" % [_clock(play_t), " → ".join(stats["areas"]) if not stats["areas"].is_empty() else "none"])
+	L.append("- Effective speed: %.1fx (asked for %sx)" % [play_t / maxf(0.001, (Time.get_ticks_msec() - start_ms) / 1000.0), str(asked_speed)])
 	L.append("- Fights: %d · choices picked: %d · things used/talked to: %d · lines read: %d · character switches: %d" %
 		[stats["fights"], stats["choices"], stats["uses"], stats["lines"], stats["switches"]])
 	L.append("- Chapter 1 finished: %d time(s) · level %d · gold %d · story flags set: %d" % [stats["chapters"], G.level, G.gold, G.flags.size()])

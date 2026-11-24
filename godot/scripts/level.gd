@@ -1066,17 +1066,21 @@ func current_interactables() -> Array:
 		list.append(lp)
 	for u in party:
 		if u != leader and talk.has(u.id):
-			list.append({ "id": u.id, "label": u.display_name, "verb": "Talk to", "node": u, "h": 2.15, "r": 1.9, "steps": talk[u.id] })
+			list.append({ "id": u.id, "label": u.display_name, "verb": "Talk to", "node": u, "h": 2.15, "r": 1.9, "steps": talk[u.id], "party_talk": true })
 	return list
 
 func _nearest_interactable() -> Dictionary:
 	var best := {}
 	var best_d := 999.0
 	var lp := leader.global_position
+	# (Ebain 11/24) party members following you never steal E from a door, boulder or anything else in reach:
+	# their "Talk to" only wins when nothing else is close enough.
 	for it in current_interactables():
 		var p := _it_pos(it)
 		var d := Vector2(p.x - lp.x, p.z - lp.z).length()
-		if d < it["r"] and d < best_d:
+		if it.get("party_talk", false):
+			d += 100.0
+		if d < it["r"] + (100.0 if it.get("party_talk", false) else 0.0) and d < best_d:
 			best = it
 			best_d = d
 	return best
@@ -1446,6 +1450,12 @@ func _show_forehead() -> void:
 func spawn_roamers(fight_key: String, home: Vector3, radius := 4.0) -> Dictionary:
 	var def: Dictionary = CombatD.FIGHTS[fight_key]
 	var g := { "key": fight_key, "home": home, "radius": radius, "units": [], "state": "wander", "cool": 0.0, "done": false, "busy": false }
+	# (Ebain 11/24) a beaten (or talked-down) patrol stays gone for the rest of the run, even after leaving the area
+	g["flag"] = "roamDone_%s_%s_%d" % [scene_file_path.get_file().get_basename(), fight_key, roamers.filter(func(o): return o["key"] == fight_key).size()]
+	if Game.flag(g["flag"]):
+		g["done"] = true
+		roamers.append(g)
+		return g
 	for i in def["enemies"].size():
 		var E: Dictionary = def["enemies"][i]
 		var p := home + Vector3(rng.randf_range(-radius, radius) * 0.6, 0, rng.randf_range(-radius, radius) * 0.6)
@@ -1515,6 +1525,7 @@ func _roam_fight(g: Dictionary) -> void:
 	match res:
 		"win":
 			g["done"] = true
+			Game.set_flag(g["flag"])
 			for u in g["units"]:
 				knock(u, 80.0, 0.3)
 			await wait(1.5)
@@ -1522,6 +1533,7 @@ func _roam_fight(g: Dictionary) -> void:
 				_poof_out(u)
 		"talked":
 			g["done"] = true
+			Game.set_flag(g["flag"])
 			for u in g["units"]:
 				u.set_meta("goal", g["home"] + Vector3(30, 0, rng.randf_range(-6, 6)))
 				u.set_meta("goal_speed", 1.0)
@@ -1534,9 +1546,26 @@ func _roam_fight(g: Dictionary) -> void:
 			for u in g["units"]:
 				u.global_position = g["home"] + Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)) * g["radius"] * 0.5
 			if res == "fled":
-				var away: Vector3 = (leader.global_position - g["home"]).normalized()
-				away.y = 0.0
-				place_party(leader.global_position + away * 4.0, away)
+				_retreat_from(g["home"])
+
+# After running from a roaming fight: step the party back along the way they came (the leader's breadcrumb trail),
+# not 4 m in a straight line, which in a tunnel went straight through the wall and off the map (Ebain 11/24).
+func _retreat_from(home: Vector3) -> void:
+	var tr: Array = leader.trail
+	var spots: Array = []
+	for i in tr.size():
+		if Vector2(tr[i].x - home.x, tr[i].z - home.z).length() >= 6.0:
+			spots = [tr[i], tr[mini(i + 6, tr.size() - 1)], tr[mini(i + 12, tr.size() - 1)]]
+			break
+	if spots.is_empty():   # no trail far enough: the checkpoint (always somewhere you can stand)
+		spots = [checkpoint, checkpoint + Vector3(-1, 0, 1.2), checkpoint + Vector3(1, 0, 1.2)] if checkpoint != null else [party_start[0], party_start[0], party_start[0]]
+	var others := party.filter(func(u): return u != leader)
+	leader.global_position = spots[0]
+	for i in others.size():
+		others[i].global_position = spots[mini(i + 1, 2)]
+	for u in party:
+		u.trail.clear()
+	cam_target = leader.global_position
 
 func _poof_out(u: Unit) -> void:
 	if not is_instance_valid(u):

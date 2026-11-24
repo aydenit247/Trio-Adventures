@@ -377,6 +377,9 @@ const CHAOS := [
 	{ "id": "rock", "portrait": "", "title": "ACT OF DELOYE: a rock falls out of the sky." },
 ]
 
+# Dulbmeethus' lightning (3% of fights, battle.gd _dulbmeethus_bolt). Not in the CHAOS pool. Line: Ebain 11/24
+const BOLT_EVENT := { "id": "dulbmeethus_bolt", "portrait": "", "title": "\"Y'all could hear me doe?\" (Dulbmeethus pulls up)" }
+
 # Funny penalties when the whole party gets knocked out (you wake up, slightly worse off)
 const PENALTIES := [
 	{ "text": "A goblin went through your pockets while you were out.", "lose": "beer" },

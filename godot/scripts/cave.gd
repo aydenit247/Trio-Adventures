@@ -48,7 +48,13 @@ var door_body: StaticBody3D
 var torches: Array = []    # [OmniLight3D, base energy]
 var lead_light: OmniLight3D
 var lead_glow: Dictionary
-var progress_t := 0.0      # seconds since the last puzzle progress (hint after 90)
+var progress_t := 0.0      # seconds since the last puzzle progress (a hint every HINT_EVERY)
+var puzzle_t := 0.0        # total seconds spent in the chamber while it's unsolved (skip offered after SKIP_AFTER)
+var hint_level := 0        # 0 = none yet, 1 = the general hint was said, 2+ = concrete next-move hints
+var skip_offered := false
+var push_ghost: Node3D     # glowing ring where the boulder in reach would stop
+const HINT_EVERY := 30.0   # (Ebain 11/24: was 90)
+const SKIP_AFTER := 180.0
 var hinted_at := 0.0
 var not_read_said := false
 var in_side_room := false
@@ -392,6 +398,29 @@ func _build_puzzle() -> void:
 	dcs.position = Vector3(0, 1.5, 0)
 	door_body.add_child(dcs)
 	door.add_child(door_body)
+	# where the boulder you're next to would stop (Ebain 11/24: the puzzle was hard to read)
+	push_ghost = Node3D.new()
+	add_child(push_ghost)
+	var gm := Util.mat(Color(0.6, 0.9, 1.0, 0.8))
+	gm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	gm.emission_enabled = true
+	gm.emission = Color(0.5, 0.85, 1.0)
+	gm.emission_energy_multiplier = 1.4
+	var gt := TorusMesh.new()
+	gt.inner_radius = 0.55
+	gt.outer_radius = 0.66
+	Util.add_mesh(push_ghost, gt, gm, Vector3(0, 0.1, 0))
+	var arrow := Label3D.new()
+	arrow.text = "stops here"
+	arrow.font_size = 30
+	arrow.pixel_size = 0.006
+	arrow.outline_size = 8
+	arrow.modulate = Color("#9fe3ff")
+	arrow.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	arrow.no_depth_test = true
+	arrow.position = Vector3(0, 0.6, 0)
+	push_ghost.add_child(arrow)
+	push_ghost.visible = false
 
 func _free(c: Vector2i, moving: String) -> bool:
 	if c.x < 0 or c.x >= COLS or c.y < 0 or c.y >= ROWS:
@@ -419,6 +448,7 @@ func push(sym: String, dir: Vector2i) -> bool:
 	var steps: int = absi(to.x - b["cell"].x) + absi(to.y - b["cell"].y)
 	b["cell"] = to
 	progress_t = 0.0
+	hint_level = mini(hint_level, 1)   # progress: next hint is about the new state
 	not_read_said = false
 	play_sound("sfx_door", -6.0, 0.45)
 	var tw := create_tween()
@@ -641,7 +671,7 @@ func _level_interactables() -> Array:
 			list.append({ "id": "boulder_" + sym, "label": "the %s boulder" % ("BIG" if b["big"] else sym), "verb": "Push", "node": b["node"], "h": 1.9, "r": 1.75, "steps": steps })
 		list.append({ "id": "carving", "label": "the carving", "verb": "Read" if leader.id == "xylo" else "Look at", "pos": CARVING + Vector3(0.6, 0, 0), "h": 2.4, "r": 1.8,
 			"steps": RS.CARVING_AGAIN if Game.flag("sealsRead") else RS.CARVING[leader.id] })
-		list.append({ "id": "rope", "label": "the reset rope", "verb": "Pull", "pos": ROPE, "h": 1.8, "r": 1.6, "steps": RS.RESET })
+		list.append({ "id": "rope", "label": "the reset rope", "verb": "Pull", "pos": ROPE, "h": 1.8, "r": 1.6, "steps": _rope_steps() })
 		list.append({ "id": "door_look", "label": "the sealed door", "verb": "Look at", "pos": DOOR + Vector3(0, 0, 0.8), "h": 3.0, "r": 1.9, "steps": RS.DOOR_LOOK })
 		if not Game.flag("sealsLever"):
 			list.append({ "id": "crack", "label": "the crack in the wall", "verb": "Squeeze through" if leader.id == "lykor" else "Look at", "pos": CRACK, "h": 2.0, "r": 1.5,
@@ -676,13 +706,22 @@ func _level_process(delta: float) -> void:
 	if busy or stage != "walk" or in_side_room:
 		return
 	var lp := leader.global_position
-	if not Game.flag("sealsSolved") and lp.z < 4.0 and lp.z > -11.0:   # in the puzzle chamber: hint after 90 s stuck
+	var in_chamber: bool = not Game.flag("sealsSolved") and lp.z < 4.0 and lp.z > -11.0
+	_followers_wait(in_chamber)
+	_update_ghost(in_chamber)
+	if in_chamber:   # in the puzzle chamber: a hint every 30 s stuck, the skip after 3 min
 		progress_t += delta
+		puzzle_t += delta
 		if objective_lbl.text.find("Find a way") >= 0:
 			_walk_objective()
-		if progress_t > 90.0:
+		if puzzle_t > SKIP_AFTER and not skip_offered:
+			skip_offered = true
 			progress_t = 0.0
-			run_dialogue(RS.HINT[leader.id])
+			run_dialogue(_skip_offer())
+		elif progress_t > HINT_EVERY:
+			progress_t = 0.0
+			hint_level += 1
+			run_dialogue(RS.HINT[leader.id] if hint_level == 1 else _next_move_hint())
 	if Game.flag("sealsSolved") and not Game.flags.has("ratsDone") and lp.z < COLONY_Z:
 		_colony_scene()
 
@@ -724,6 +763,8 @@ func _on_action(n: String) -> void:
 				await _solved()
 		"reset":
 			await _reset()
+		"skip_puzzle":
+			await _skip_puzzle()
 		"crack_in":
 			await _crack_in()
 		"crack_out":
@@ -832,6 +873,143 @@ func _solved() -> void:
 	if Game.flag("sealsSolved"):
 		return
 	await run_nested(RS.SOLVED)
+
+# ---- puzzle help (Ebain 11/24: "honestly couldn't figure out the boulder puzzle")
+# Followers wait by the entrance while you're in the chamber, so they're not in the way of the boulders.
+const WAIT_SPOTS := [Vector3(-5.6, 0, 2.3), Vector3(5.6, 0, 2.3)]
+func _followers_wait(on: bool) -> void:
+	var i := 0
+	for u in party:
+		if u == leader:
+			if u.has_meta("waiting"):
+				u.remove_meta("waiting"); u.remove_meta("goal")
+			continue
+		if on:
+			u.set_meta("waiting", true)
+			u.set_meta("goal", WAIT_SPOTS[i % 2])
+			u.set_meta("goal_speed", 0.8)
+		elif u.has_meta("waiting"):
+			u.remove_meta("waiting"); u.remove_meta("goal")
+		i += 1
+
+# The ring that shows where the boulder you're next to would stop if you pressed E now.
+func _update_ghost(on: bool) -> void:
+	push_ghost.visible = false
+	if not on or busy:
+		return
+	var it := _nearest_interactable()
+	var id: String = it.get("id", "")
+	if not id.begins_with("boulder_"):
+		return
+	var sym := id.substr(8)
+	if boulders[sym]["big"] and leader.id != "skorn":
+		return
+	var to := slide_target(sym, _push_dir(sym))
+	if to == boulders[sym]["cell"]:
+		return
+	push_ghost.global_position = cell_pos(to)
+	push_ghost.visible = true
+
+# Shortest way from here to all-on-plates (breadth-first over boulder positions, ~2.5k states). Returns
+# [sym, dir] for the next push, or [] if there's no way from this state (time to pull the reset rope).
+func solve_next() -> Array:
+	var syms: Array = []
+	for s in boulders:
+		if boulders[s]["cell"].x < COLS:
+			syms.append(s)
+	var start: Array = syms.map(func(s): return boulders[s]["cell"])
+	var goal: Array = syms.map(func(s): return PLATES[s])
+	if start == goal:
+		return []
+	var prev := { str(start): null }
+	var q: Array = [start]
+	var found := false
+	while not q.is_empty():
+		var st: Array = q.pop_front()
+		for i in syms.size():
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var behind: Vector2i = st[i] - d
+				if PILLARS.has(behind) or st.has(behind):   # you have to stand on the other side to push
+					continue
+				var c: Vector2i = st[i]
+				while _free_in(c + d, st, i):
+					c += d
+				if c == st[i]:
+					continue
+				var n := st.duplicate()
+				n[i] = c
+				var key := str(n)
+				if prev.has(key):
+					continue
+				prev[key] = [st, i, d]
+				if n == goal:
+					found = true
+					break
+				q.append(n)
+			if found: break
+		if found: break
+	if not found:
+		return []
+	var k := str(goal)
+	var step: Array = prev[k]
+	while prev[str(step[0])] != null:
+		step = prev[str(step[0])]
+	return [syms[step[1]], step[2]]
+
+func _free_in(c: Vector2i, st: Array, moving: int) -> bool:
+	if c.x < 0 or c.x >= COLS or c.y < 0 or c.y >= ROWS or PILLARS.has(c):
+		return false
+	for j in st.size():
+		if j != moving and st[j] == c:
+			return false
+	return true
+
+const DIR_WORD := { Vector2i(0, -1): "toward the door", Vector2i(0, 1): "toward the entrance", Vector2i(-1, 0): "left (west)", Vector2i(1, 0): "right (east)" }
+const SIDE_WORD := { Vector2i(0, -1): "the entrance side", Vector2i(0, 1): "the door side", Vector2i(-1, 0): "its right side", Vector2i(1, 0): "its left side" }
+func _next_move_hint() -> Array:
+	var who: String = leader.id
+	if not Game.flag("sealsRead"):
+		return [{ "who": who, "line": "Somebody gotta read that carving on the west wall first. That's a Xylo job." }]   # DRAFT
+	if not Game.flag("sealsLever"):
+		return [{ "who": who, "line": "The bowl boulder's stuck behind that rubble. There's a crack in the east wall only Lykor fits through." }]   # DRAFT
+	var mv := solve_next()
+	if mv.is_empty():
+		return [{ "who": who, "line": "Yeah, we cooked it. A boulder's stuck where it can't come back. Pull the reset rope." }]   # DRAFT
+	var sym: String = mv[0]
+	var d: Vector2i = mv[1]
+	var name := "BIG spoon boulder" if boulders[sym]["big"] else "%s boulder" % sym
+	var line := "Next move: push the %s %s. Stand on %s and press E." % [name, DIR_WORD[d], SIDE_WORD[d]]   # DRAFT
+	if boulders[sym]["big"] and who != "skorn":
+		line += " That one's Skorn's. Q to switch."
+	return [{ "who": who, "line": line }]
+
+func _skip_offer() -> Array:
+	return [
+		{ "who": leader.id, "line": "We been at these rocks a minute. Want to just… not?" },   # DRAFT
+		{ "choice": [
+			{ "text": "Skip the puzzle", "steps": [{ "do": "skip_puzzle" }] },
+			{ "text": "Keep trying (the reset rope can skip it later)", "steps": [] },
+		] },
+	]
+
+func _rope_steps() -> Array:
+	if puzzle_t < SKIP_AFTER:
+		return RS.RESET
+	return [{ "choice": [
+		{ "text": "Reset the boulders", "steps": RS.RESET },
+		{ "text": "Skip the puzzle", "steps": [{ "do": "skip_puzzle" }] },
+		{ "text": "Never mind", "steps": [] },
+	] }]
+
+func _skip_puzzle() -> void:
+	Game.set_flag("sealsRead")
+	Game.set_flag("sealsLever")
+	for s in boulders:
+		boulders[s]["cell"] = PLATES[s]
+	await _poof(PZ + Vector3(0, 1, 0))
+	_apply_puzzle_state()
+	push_ghost.visible = false
+	await _solved()
 
 func _reset() -> void:
 	var rat := spawn_npc("rat_tiny", "Rat (Reset Guy)", "rat_tiny", 0.62, ROPE + Vector3(0.9, 0, -0.6))

@@ -19,6 +19,9 @@ on:
       start:
         description: "Start in an area instead of a New Game, e.g. res://summit.tscn (empty = New Game)"
         default: ""
+      speed:
+        description: "Game speed. 10 = ten times as fast, no screenshots (default). 1 = normal speed with screenshots"
+        default: "10"
 
 concurrency:
   group: explorer-bot
@@ -63,11 +66,18 @@ jobs:
           BOT_START: ${{ inputs.start }}
           BOT_DIR: ${{ github.workspace }}/bot-report
           BOT_SHOT_EVERY: "30"
+          BOT_SPEED: ${{ inputs.speed || '10' }}
         run: |
           set -o pipefail
-          xvfb-run -a -s "-screen 0 1280x720x24" ~/godot-linux/godot --path godot \
-            --rendering-method gl_compatibility --rendering-driver opengl3 --resolution 960x540 \
-            --audio-driver Dummy --script res://tools/explorer_bot.gd 2>&1 | tee bot.log | grep --line-buffered "^BOT"
+          # (Ebain 11/24) 10x by default: headless, no pictures, ~10 times more play per run. speed 1 = the old picture run
+          if [ "$BOT_SPEED" = "1" ]; then
+            xvfb-run -a -s "-screen 0 1280x720x24" ~/godot-linux/godot --path godot \
+              --rendering-method gl_compatibility --rendering-driver opengl3 --resolution 960x540 \
+              --audio-driver Dummy --script res://tools/explorer_bot.gd 2>&1 | tee bot.log | grep --line-buffered "^BOT"
+          else
+            ~/godot-linux/godot --headless --path godot --audio-driver Dummy \
+              --script res://tools/explorer_bot.gd 2>&1 | tee bot.log | grep --line-buffered "^BOT"
+          fi
 
       - name: Summary
         if: always()
