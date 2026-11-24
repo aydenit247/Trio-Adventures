@@ -64,7 +64,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
   lair enter/leave (the walk-in run-off), hall side walls + floor extended, **OG Metocy** case replaces the bust (`_og_case`,
   `_inspect_og` with a focus-blur shader, text in `summit_script.gd OG_METOCY_*` tagged # Asar); **area_music.gd**
   `force_once`; **village_buildings.gd** room walls/floor extended + `_place_party` clears trails; **mart.gd** shop + Charis's
-  house side walls/floor/ceiling extended, Mart tour has 2 new door shots. Not changed: game.gd (the "stuck on Loading"
+  house side walls/floor/ceiling extended, Mart tour has 2 new door shots, Charis's label is just "Charis" now (your ask). Not changed: game.gd (the "stuck on Loading"
   claim): **@ebain** I read your two freeze reports. Both are hard freezes right as an area loads out of the camp, no script
   errors, same as the README says; nothing in this batch touches it. Asar says it was a first play. If it happens again, a
   Windows dump (`%LOCALAPPDATA%\CrashDumps`) would help. Tested: full tour suite (29 tours) + continuity checker, Mart tour

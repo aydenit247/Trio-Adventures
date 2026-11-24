@@ -1085,7 +1085,7 @@ func _charis_house() -> void:
 	add_glow(HOUSE + Vector3(0, 1, -1), Color(1.0, 0.72, 0.45), 9.0, func(): return 0.75, true)
 	charis = spawn_npc("charis", "Charis", "charis", 1.75, HOUSE + Vector3(1.8, 0, -1.2))
 	var tag := Label3D.new()
-	tag.text = "Charis (Art Coming Soon)"   # placeholder until Ebain's art
+	tag.text = "Charis"   # her art is in (Ebain 11/24)
 	tag.font_size = 30
 	tag.pixel_size = 0.0065
 	tag.outline_size = 8
