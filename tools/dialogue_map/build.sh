@@ -1,7 +1,8 @@
 #!/bin/bash
 # Rebuilds the dialogue map (every line, choice and outcome, with mp3 status) into build/dialogue_map/.
 #   GODOT=/path/to/godot tools/dialogue_map/build.sh
-# Then republish build/dialogue_map/index.html + dialogue.json to the map's artifact (slug in HANDOFF.md, "Dialogue map").
+# Then republish to the map's artifact (slug in HANDOFF.md, "Dialogue map"): index.html, dialogue.json and any voices/**
+# file that's new or changed (publish_files, mode patch; compare with list_files' sha256). Max 256 files per call.
 set -e
 cd "$(dirname "$0")/../.."
 G=${GODOT:-godot}

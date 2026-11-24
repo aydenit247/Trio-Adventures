@@ -224,8 +224,10 @@ into their outcomes), each line marked **mp3 / no mp3** and Ebain / Asar / draft
 pins one). Filters: missing an mp3, not approved, drafts, speaker, search; "Copy lines missing an mp3" gives a recording list.
 Live at https://claude.ai/artifact/TVQYniLFUFbsRBkhpb62aV (artifact slug `d684f157-0ae8-4e3a-b0d7-31aec6733b82`, owned
 by Asar; approvals are in its database, collection `approvals`, keyed by speaker + text, so rewording a line resets it).
+Every line with a recording has a ▶ play button (the recordings sit beside the page as `v/<hash>.<ext>`).
 **After you change any dialogue or add recordings:** `GODOT=<godot> tools/dialogue_map/build.sh`, then republish
-`build/dialogue_map/index.html` + `dialogue.json` to that slug (publish_files, mode patch). Asar's Claude does this; it
+`build/dialogue_map/index.html` + `dialogue.json` + any `v/` file the artifact's list_files doesn't have yet to that slug
+(publish_files, mode patch, max 256 files per call; copy the folder to a short path like /home/claude/m first). Asar's Claude does this; it
 also rebuilds nightly. Ebain's Claude can do it only if Asar shares the page with Ebain as an Editor.
 New dialogue script or level file → add it to `SCENES` in `tools/dialogue_map/build.py` (and `ScriptScan.SCRIPTS`).
 

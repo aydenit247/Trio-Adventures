@@ -69,6 +69,8 @@ button,select,input{font:inherit;color:inherit}
 .b.mood{color:var(--mute);border-style:dashed}
 .ln.ap{opacity:.55}.ln.ap .tx{text-decoration:line-through;text-decoration-color:var(--appr)}
 .ln.cx{opacity:.5}
+.play{border:1px solid var(--ok);background:none;color:var(--ok);border-radius:999px;width:26px;height:26px;padding:0;cursor:pointer;font-size:11px;line-height:24px;vertical-align:-6px;margin-left:2px}
+.play[aria-pressed=true]{background:var(--ok);color:var(--bg)}
 .pin{border:0;background:none;color:var(--mute);cursor:pointer;font-size:12px;padding:0 4px;text-decoration:underline}
 .stub{display:inline-block;margin:2px 0 2px 34px;font-size:12.5px;color:var(--mute);background:none;border:1px dashed var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
 .act{margin:2px 0 2px 34px;font-size:12.5px;color:var(--mute)}
@@ -102,7 +104,7 @@ button,select,input{font:inherit;color:inherit}
     <div class="figs" id="figs"></div>
   </div>
   <div class="bar" id="bigbar" aria-hidden="true"></div>
-  <div class="legend"><span><span class="b ok">mp3</span> has a recording</span><span><span class="b miss">no mp3</span> needs one</span><span><span class="b eb">Ebain</span> <span class="b as">Asar</span> exact wording</span><span><span class="b dr">draft</span> Claude's draft</span><span>☑ approved (hides once ticked)</span></div>
+  <div class="legend"><span><span class="b ok">mp3</span> has a recording</span><span><span class="b miss">no mp3</span> needs one</span><span><span class="b eb">Ebain</span> <span class="b as">Asar</span> exact wording</span><span><span class="b dr">draft</span> Claude's draft</span><span>▶ play the recording</span><span>☑ approved (hides once ticked)</span></div>
   <div class="note" id="dbnote"></div>
 </header>
 <div class="tools">
@@ -132,6 +134,15 @@ const approvals = new Map();   // line id -> {by, at, keep}
 const expanded = new Set();
 const st = { mode: "all", who: "", q: "", showAp: false };
 const names = {};
+let playing = "";
+const au = v => (DATA && DATA.audio && DATA.audio[v]) || "";
+const audio = new Audio();
+audio.addEventListener("ended", () => setPlaying(""));
+audio.addEventListener("error", () => { setPlaying(""); dbNote("Couldn't play that recording.", true); });
+function setPlaying(src) {
+  playing = src;
+  for (const b of document.querySelectorAll(".play")) { const on = b.dataset.play === src; b.setAttribute("aria-pressed", on ? "true" : "false"); b.textContent = on ? "■" : "▶"; }
+}
 
 const lineId = n => "l" + fnv((n.who || "") + "|" + n.text);
 const isLine = n => n && (n.t === "line" || n.t === "str");
@@ -171,7 +182,7 @@ function eachLine(v, f) {
 function lineHTML(n, ctx) {
   const id = lineId(n), ap = approvals.get(id);
   const tag = n.tag === "Ebain" ? '<span class="b eb">Ebain</span>' : n.tag === "Asar" ? '<span class="b as">Asar</span>' : n.tag === "DRAFT" ? '<span class="b dr">draft</span>' : "";
-  const mp3 = n.voice ? `<span class="b ok" title="${esc(n.voice.replace("res://assets/voices/", ""))}">mp3</span>` : '<span class="b miss">no mp3</span>';
+  const mp3 = n.voice ? `<span class="b ok" title="${esc(n.voice.replace("res://assets/voices/", ""))}">mp3</span>${au(n.voice) ? `<button class="play" data-play="${esc(au(n.voice))}" aria-label="Play the recording" aria-pressed="${playing === au(n.voice) ? "true" : "false"}">${playing === au(n.voice) ? "■" : "▶"}</button>` : ""}` : '<span class="b miss">no mp3</span>';
   const mood = n.mood ? `<span class="b mood">${esc(n.mood)}</span>` : "";
   const th = n.thought === "true" ? '<span class="b mood">thinking</span>' : "";
   const by = ap ? `<span class="b as" data-by="${esc(ap.by || "")}">approved</span>` : "";
@@ -273,7 +284,7 @@ function render() {
     main += `<section class="scene" id="s-${sc.id}"><div class="shead"><h2>${esc(sc.title)}</h2><span class="sub">${c.lines} lines · ${c.voiced} with an mp3 · ${c.lines - c.voiced} missing · ${c.ap} approved</span></div>${hidden ? `<p class="hidden-note">${hidden} conversation${hidden > 1 ? "s" : ""} hidden by the filters or fully approved.</p>` : ""}${body || '<p class="empty">Nothing to show here with these filters.</p>'}</section>`;
   }
   if (DATA.unused_voice && DATA.unused_voice.length) {
-    main += `<section class="scene" id="s-unused"><div class="shead"><h2>Recordings no line uses</h2><span class="sub">${DATA.unused_voice.length} files</span></div><div class="conv"><div class="cbody">${DATA.unused_voice.map(v => `<div class="act">${esc(v.replace("res://assets/voices/", ""))}</div>`).join("")}</div></div></section>`;
+    main += `<section class="scene" id="s-unused"><div class="shead"><h2>Recordings no line uses</h2><span class="sub">${DATA.unused_voice.length} files</span></div><div class="conv"><div class="cbody">${DATA.unused_voice.map(v => `<div class="act">${esc(v.replace("res://assets/voices/", ""))} ${au(v) ? `<button class="play" data-play="${esc(au(v))}" aria-label="Play the recording" aria-pressed="false">▶</button>` : ""}</div>`).join("")}</div></div></section>`;
     nav += `<a href="#s-unused">Recordings no line uses<small>${DATA.unused_voice.length} files</small></a>`;
   }
   document.getElementById("nav").innerHTML = nav;
@@ -309,6 +320,15 @@ let qt = 0;
 document.getElementById("q").addEventListener("input", e => { clearTimeout(qt); qt = setTimeout(() => { st.q = e.target.value.trim().toLowerCase(); render(); }, 200); });
 document.getElementById("showap").addEventListener("change", e => { st.showAp = e.target.checked; render(); });
 document.getElementById("main").addEventListener("click", async e => {
+  const pl = e.target.closest("[data-play]");
+  if (pl) {
+    const src = pl.dataset.play;
+    if (playing === src) { audio.pause(); setPlaying(""); return; }
+    audio.src = src;
+    setPlaying(src);
+    try { await audio.play(); } catch (err) { setPlaying(""); dbNote("Couldn't play that recording.", true); }
+    return;
+  }
   const s = e.target.closest("[data-x]");
   if (s) { expanded.add(s.dataset.x); render(); return; }
   const p = e.target.closest("[data-pin]");

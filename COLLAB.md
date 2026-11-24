@@ -9,7 +9,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
-- [asar] Dialogue map play buttons (recordings beside the page) — files: tools/dialogue_map/* — branch: asar/dialogue-map-play — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -59,6 +58,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [asar] **Dialogue map: ▶ play buttons** on every line with a recording (Asar asked). The recordings are copied beside the page as `v/<hash>.<ext>` (a new take gets a new name), mapped in dialogue.json `audio`. A shortcut `Dialogue Map.url` in Asar's game folder opens the live page. Republish = index.html + dialogue.json + only the v/ files list_files doesn't have yet.
 - 2026-11-24 [asar] **Dialogue map is live:** https://claude.ai/artifact/TVQYniLFUFbsRBkhpb62aV — every line, choice and
   outcome as a branching script, mp3 / no mp3 on each line, Ebain/Asar/draft tags, and an approve tick per line (shared
   between you two once Asar shares the page with you). Right now: 795 lines, 420 with an mp3, 375 missing (most in the

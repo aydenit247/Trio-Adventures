@@ -199,6 +199,25 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "..", "build", "d
 os.makedirs(OUT, exist_ok=True)
 json.dump(out, open(OUT + "/dialogue.json", "w"), ensure_ascii=False)
 import shutil
+# the recordings go beside the page as v/<hash>.<ext> (content-addressed: a new take gets a new name, so a republish
+# only uploads what changed); dialogue.json "audio" maps each res:// path to its file
+import hashlib
+vdir = os.path.join(OUT, "v")
+os.makedirs(vdir, exist_ok=True)
+out["audio"] = {}
+for v in sorted(used_voice | set(out["unused_voice"])):
+    srcf = ROOT + v.replace("res://", "")
+    if not os.path.exists(srcf):
+        continue
+    h = hashlib.sha1(open(srcf, "rb").read()).hexdigest()[:10]
+    name = "v/%s.%s" % (h, srcf.rsplit(".", 1)[-1])
+    out["audio"][v] = name
+    if not os.path.exists(os.path.join(OUT, name)):
+        shutil.copy(srcf, os.path.join(OUT, name))
+for f in os.listdir(vdir):   # drop old takes
+    if "v/" + f not in out["audio"].values():
+        os.remove(os.path.join(vdir, f))
+json.dump(out, open(OUT + "/dialogue.json", "w"), ensure_ascii=False)
 shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html"), OUT + "/index.html")
 # quick stats
 def count(n, c):
