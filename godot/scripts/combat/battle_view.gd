@@ -48,7 +48,9 @@ var menu_list: VBoxContainer
 var menu_desc: Label
 var hint: Label
 var flash_rect: ColorRect
-var ebars := {}          # key -> { hp, st, name }
+var ebars := {}          # key -> { hp, hp_lbl, st, name }
+var overhead: Control    # (Asar 11/23) small red HP bars floating over each enemy's head
+var head_bars := {}      # key -> { box, fill, lag, w }
 var pbars := {}          # key -> { hp, hp_lbl, meter, st, card }
 var actor_marker: MeshInstance3D
 var target_marker: MeshInstance3D
@@ -246,6 +248,13 @@ func _build_ui() -> void:
 	banner.modulate.a = 0.0
 	root.add_child(banner)
 
+	overhead = Control.new()
+	overhead.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overhead.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(overhead)   # under the timeline, log, panels and menus
+	for e in b.enemies:
+		head_bars[e["key"]] = _head_bar(e)
+
 	enemy_box = VBoxContainer.new()
 	enemy_box.anchor_left = 1.0; enemy_box.anchor_right = 1.0
 	enemy_box.offset_left = -330; enemy_box.offset_right = -18; enemy_box.offset_top = 92
@@ -254,9 +263,19 @@ func _build_ui() -> void:
 	for e in b.enemies:
 		var col := VBoxContainer.new()
 		col.add_theme_constant_override("separation", 1)
+		var head := HBoxContainer.new()   # name on the left, HP x/x on the right (Asar 11/23)
+		head.add_theme_constant_override("separation", 8)
 		var nm := lv._label("%s %s" % [e["name"], e["tag"]], Vector2.ZERO, 17, Color("#ffcf9a"), 5)
 		nm.add_theme_font_override("font", UITheme.row_font())
-		col.add_child(nm)
+		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		nm.clip_text = true
+		head.add_child(nm)
+		var hp_lbl := lv._label("", Vector2.ZERO, 15, Color(1, 1, 1, 0.9), 4)
+		hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		hp_lbl.size_flags_vertical = Control.SIZE_SHRINK_END
+		head.add_child(hp_lbl)
+		col.add_child(head)
 		var hp := _bar(RED, Vector2(300, 14))
 		hp.max_value = e["max_hp"]
 		hp.value = e["hp"]
@@ -264,7 +283,7 @@ func _build_ui() -> void:
 		var st := _status_row(14)
 		col.add_child(st)
 		enemy_box.add_child(col)
-		ebars[e["key"]] = { "hp": hp, "st": st, "name": nm, "col": col }
+		ebars[e["key"]] = { "hp": hp, "hp_lbl": hp_lbl, "st": st, "name": nm, "col": col }
 
 	party_box = HBoxContainer.new()
 	party_box.anchor_top = 1.0; party_box.anchor_bottom = 1.0
@@ -408,6 +427,85 @@ func _process(_d: float) -> void:
 		if mk and mk.visible and mk.has_meta("over"):
 			var u: Unit = mk.get_meta("over")
 			mk.global_position = u.global_position + Vector3(0, u.height_m + 0.45 + sin(lv.t * 5.0) * 0.07, 0)
+	_place_head_bars()
+
+# ---- (Asar 11/23) small red HP bar over each enemy: a dark frame, a pale "just lost" strip that drains a beat
+# after a hit, and the red fill on top. Lives in the HUD and follows the enemy's head on screen every frame.
+const HEAD_BAR_W := 74.0
+const HEAD_BAR_H := 7.0
+func _head_bar(e: Dictionary) -> Dictionary:
+	var w := HEAD_BAR_W * (1.6 if key == "giant" or e.get("boss", false) else 1.0)
+	var box := Panel.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.size = Vector2(w + 2.0, HEAD_BAR_H + 2.0)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.02, 0.02, 0.8)
+	sb.border_color = Color(0, 0, 0, 0.95)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(2)
+	box.add_theme_stylebox_override("panel", sb)
+	var lag := ColorRect.new()
+	lag.color = Color(1.0, 0.86, 0.72, 0.85)
+	lag.position = Vector2(1, 1)
+	lag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(lag)
+	var fill := ColorRect.new()
+	fill.color = Color("#e8382b")
+	fill.position = Vector2(1, 1)
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(fill)
+	var shine := ColorRect.new()   # thin highlight along the top so it reads as a bar, not a line
+	shine.color = Color(1, 1, 1, 0.22)
+	shine.position = Vector2(0, 0)
+	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fill.add_child(shine)
+	var ratio := clampf(float(e["hp"]) / maxf(1.0, e["max_hp"]), 0.0, 1.0)
+	fill.size = Vector2(w * ratio, HEAD_BAR_H)
+	lag.size = fill.size
+	shine.size = Vector2(fill.size.x, 2)
+	box.visible = false
+	overhead.add_child(box)
+	return { "box": box, "fill": fill, "lag": lag, "shine": shine, "w": w, "ratio": ratio }
+
+func _set_head_bar(e: Dictionary) -> void:
+	var hb: Dictionary = head_bars.get(e["key"], {})
+	if hb.is_empty() or not is_instance_valid(hb["box"]):
+		return
+	var ratio := clampf(float(e["hp"]) / maxf(1.0, e["max_hp"]), 0.0, 1.0)
+	if is_equal_approx(ratio, hb["ratio"]):
+		return
+	var w: float = hb["w"]
+	var to := Vector2(w * ratio, HEAD_BAR_H)
+	var t := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t.tween_property(hb["fill"], "size", to, 0.25)
+	t.tween_property(hb["shine"], "size", Vector2(to.x, 2), 0.25)
+	if ratio < hb["ratio"]:   # took damage: the pale strip waits, then catches up
+		create_tween().tween_property(hb["lag"], "size", to, 0.5).set_delay(0.45)
+	else:                     # healed: the strip jumps ahead with the fill
+		hb["lag"].size = to
+	hb["ratio"] = ratio
+
+func _place_head_bars() -> void:
+	if overhead == null or not is_instance_valid(overhead) or lv.cam == null:
+		return
+	var vp := overhead.get_viewport_rect().size
+	for e in b.enemies:
+		var hb: Dictionary = head_bars.get(e["key"], {})
+		if hb.is_empty():
+			continue
+		var box: Panel = hb["box"]
+		var n = nodes.get(e["key"])
+		var show: bool = e["hp"] > 0 and n != null and is_instance_valid(n) and n.visible
+		var top := Vector3.ZERO
+		if show:
+			top = n.global_position + Vector3(0, n.height_m + 0.2, 0)
+			show = not lv.cam.is_position_behind(top)
+		box.visible = show
+		if show:
+			var p := lv.cam.unproject_position(top)
+			p.x = clampf(p.x, box.size.x * 0.5 + 6.0, vp.x - box.size.x * 0.5 - 6.0)
+			p.y = clampf(p.y, 10.0, vp.y - 10.0)   # the giant's head is off the top of the screen: pin it to the edge
+			box.position = (p - Vector2(box.size.x * 0.5, box.size.y)).round()
 
 func _point(mk: MeshInstance3D, u) -> void:
 	if u == null:
@@ -431,6 +529,8 @@ func _refresh() -> void:
 	for e in b.enemies:
 		var eb: Dictionary = ebars[e["key"]]
 		create_tween().tween_property(eb["hp"], "value", e["hp"], 0.35)
+		eb["hp_lbl"].text = "HP %d/%d" % [maxi(0, e["hp"]), e["max_hp"]]
+		_set_head_bar(e)
 		var chips := _status_chips(e)
 		if e.get("eat_pending", false): chips.push_front(["HOLDING A CHIPOTLE BOWL", "He's about to eat it and heal. Stun or charm him first and he drops it.", false])
 		if e.get("sit_pending", false): chips.push_front(["GETTING READY TO SIT", "He sits on someone next turn. Stun or charm him first and he sits on his own foot.", false])
@@ -800,7 +900,7 @@ func _mog_cam(u: Dictionary, move: Dictionary, ult: bool, shi := false) -> void:
 	tw.tween_property(lv, "zoom", close, 0.3)
 	tw.tween_property(lv, "cam_height", face_h / close, 0.3)
 	tw.tween_property(lv, "cam_look_h", face_h, 0.3)
-	for box in [party_box, enemy_box, menu_panel]:
+	for box in [party_box, enemy_box, menu_panel, overhead]:
 		if box: tw.tween_property(box, "modulate:a", 0.0, 0.2)
 	if shi:
 		sounds["shi"].pitch_scale = 1.0
@@ -824,7 +924,7 @@ func _mog_cam(u: Dictionary, move: Dictionary, ult: bool, shi := false) -> void:
 	var back := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	for k in keep:
 		back.tween_property(lv, k, keep[k], 0.3)
-	for box in [party_box, enemy_box, menu_panel]:
+	for box in [party_box, enemy_box, menu_panel, overhead]:
 		if box: back.tween_property(box, "modulate:a", 1.0, 0.25)
 	await back.finished
 	for o in hidden:

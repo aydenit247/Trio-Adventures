@@ -39,7 +39,8 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    lines → head north. Walking out before sleeping: Lykor says "We leave at sunrise" and sends you back.
 1½. **Goblin Woods Trail (morning, Asar 11/22):** a long walk between Camp and the Village to earn gold before the shop:
    6 searchable loot spots (sparkles) and Asar's **Bridge Troll** by the creek: "Y'all had said i could get some
-   bussy?" → "It's good" (Xylo follows him into his hut; bridge opens) or "Bad." (troll fight, lots of gold, then loot
+   bussy?" → "It's good" (Xylo follows him into his hut, black screen while Asar's three "love and light" clips play,
+   Hold [E] to skip with a ring that fills while held and drains when let go, `trail.gd _love_and_light()`; bridge opens) or "Bad." (troll fight, lots of gold, then loot
    his hut and chest). Flags `trailStarted`, `trollMet`, `trollDone` ("good"/"bad"), `trollHut`, `trollChest`,
    `trailLoot0..5`, `trailDone`.
 2. **Goblin Village (day, as Lykor):** ambush → kneel → the Chief → crowned at the spoon throne → choice: A royal
@@ -74,14 +75,17 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 5. **The Summit Path + the Wizard's Lair (night, Asar 11/22; finale built from Ebain's `SUMMIT_FINALE_PLAN.md` 11/24):
    the final event of Chapter 1.** Arriving: a slow camera dolly while Skorn/Xylo/Lykor catch their breath (Xylo's line
    changes with how this run got past the giant/troll), then a toast "Don't walk yet if you want to hear the song." and
-   Asar's "The Hymn of Metocin Mattias" starts (plays once). A long climb (3 clearings saved for future events:
+   Ebain's "The Hymn of Metocin Mattias" starts (plays once; hearing it once counts for good: `hymnHeard` flag + progress
+   id `hymn_heard`, it never restarts and Mattias is talkable from then on, `summit.gd _hymn_watch`). A long climb (3 clearings saved for future events:
    `EVENT_SPOTS` overlook / shrine / cart). **Halfway** (z < 8, by the shrine): Mattias's echo "Impressive, my beloved
    trio…" (moved here from the Pass) + Lykor "Bet. Here we go, folk". **Dulbers' ambush** right after, only if he's alive
    on this run (`dulbersEscaped` and not `dulbersDead` = the Mart refuse / Xylo paths): regular-size Dulbers sprints up
    from behind (the song ducks to the background) → apologize + swear loyalty to Dulbmeethus ("Good boy.") · fight him ·
    offer him fentocy (he dies) · call for Mattias ("Get lost midget fucker!", Mattias fights as a 4th fighter). Then the
    plaza, the tower, the hall. Walking up to Mattias before the hymn ends: "Peep the song first folk" (Asar) and a step
-   back. **The castle:** the music drops out, torches flare, "Welcome to da crib folk… I had heard that y'all ___. That's
+   back. In the study: the **OG Metocy** (Asar 11/23), his orange pill in a glass case on the old bust's pedestal with a
+   brass "OG Metocy" plaque; E Inspect glides the camera in, blurs the background and shows "OG Metocy / Dis shi was ahh
+   folk, blue one way better" (Asar, `summit_script.gd OG_METOCY_*`, `summit.gd _inspect_og`). **The castle:** the music drops out, torches flare, "Welcome to da crib folk… I had heard that y'all ___. That's
    OD." (the blank = the biggest thing from this run), the metocy hovers → 5 choices: "Bet. Here we go folk." · "you had
    said u was fuckin wit one too?" (all four take it) · "Bad." ("Oh okay." → hard cut to black, END OF CHAPTER 1, silence)
    · sucker punch → near-impossible Mattias boss (**losing is its own ending**: "Y'all must be geeking off that midtocy…") ·
@@ -318,13 +322,15 @@ roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `
 `goblin_patrol` (roaming, village east road), `troll`, `dulbers_ambush` (summit, regular-size Dulbers; Mattias can join
 as a 4th fighter, `CombatD.PARTY["mattias"]`), `mattias` (the sucker-punch boss; every number in `CombatD.MATTIAS_BOSS`,
 balance with `SIM_ONLY=mattias godot --headless --path godot --script res://tools/sim_combat.gd`). `fight(key, { lose_ends
-= true })` makes a loss return "lose" instead of the penalty + retry.
+= true })` makes a loss return "lose" instead of the penalty + retry. Enemies show **HP x/x** in the top-right panel and a
+small red bar over their heads (Asar 11/23, `battle_view.gd _head_bar/_place_head_bars`, hidden during close-up cams).
 
 ### Polish (Asar 11/22)
 Village names are wooden signs (`Level.wood_sign`, art goes in `assets/signs/`, list in ASSETS_NEEDED.md). Esc ends optional
 conversations in free roam (`dialogue.can_leave`, `Level.free_roam()`). The chapter title shows once at New Game
 (`camp._chapter_card`) instead of on the title screen. Settings → Music: Loop / Play once (`Game.music_once`). The Pass has
-a rest campfire near the entrance.
+a rest campfire near the entrance. Interiors (village buildings, Mart shop, Charis's house, Mattias's hall) have side walls
+that run on past the door toward the camera, so walking back to the exit never shows the void (Asar 11/23).
 
 ### Walking between areas (Asar 11/22)
 Once an area is finished you can walk back: Pass → Mart → Village → Trail → Camp (each area's start edge has a "Back to …"

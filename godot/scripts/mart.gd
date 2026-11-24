@@ -322,8 +322,8 @@ func _shop_interior() -> void:
 	var dark := Models.mat("weathered_planks", 1.0, Color(0.5, 0.42, 0.36))
 	var wall := Models.mat("raw_plank_wall", 2.0, Color(0.7, 0.62, 0.55))
 	Models.block(self, INT + Vector3(0, 3.5, -5.0), Vector3(14, 7, 0.3), wall)                  # back wall
-	for x in [-6.9, 6.9]:
-		Models.block(self, INT + Vector3(x, 3.5, 0), Vector3(0.3, 7, 11), wall)                   # side walls
+	for x in [-6.9, 6.9]:   # side walls; (Asar 11/23) they run on past the door toward the camera so you can't see out the sides
+		Models.block(self, INT + Vector3(x, 3.5, 7.0), Vector3(0.3, 7, 25), wall)
 	for z in [-3.5, -0.5, 2.5]:                                                                     # ceiling beams
 		Models.block(self, INT + Vector3(0, 5.2, z), Vector3(14, 0.3, 0.3), dark)
 	# tall shelves along the back wall, packed with jars
@@ -477,19 +477,21 @@ func _build_room() -> void:
 	floor_body.add_child(cs)
 	add_child(floor_body)
 	var pm := PlaneMesh.new()
-	pm.size = Vector2(16, 24)
-	Util.add_mesh(self, pm, Models.mat("old_wooden_floor_01", 2.0, Color(0.75, 0.65, 0.58)), INT + Vector3(0, 0.001, 5))
+	pm.size = Vector2(16, 30)
+	Util.add_mesh(self, pm, Models.mat("old_wooden_floor_01", 2.0, Color(0.75, 0.65, 0.58)), INT + Vector3(0, 0.001, 8))
 	_shop_interior()
 	var wall_m := Util.mat(Color(0.1, 0.065, 0.045))
 	wall_m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var wall := PlaneMesh.new()
-	wall.size = Vector2(14, 8)
-	Util.add_mesh(self, wall, wall_m, INT + Vector3(-7.0, 4, 2), Vector3(0, 0, -PI / 2.0))
-	Util.add_mesh(self, wall, wall_m, INT + Vector3(7.0, 4, 2), Vector3(0, 0, PI / 2.0))
+	wall.size = Vector2(14, 26)
+	Util.add_mesh(self, wall, wall_m, INT + Vector3(-7.0, 4, 7), Vector3(0, 0, -PI / 2.0))
+	Util.add_mesh(self, wall, wall_m, INT + Vector3(7.0, 4, 7), Vector3(0, 0, PI / 2.0))
 	var shell := PlaneMesh.new()   # dark back wall + ceiling so no sky shows around the backdrop
 	shell.size = Vector2(40, 20)
 	Util.add_mesh(self, shell, wall_m, INT + Vector3(0, 6, -5.3), Vector3(PI / 2.0, 0, 0))
-	Util.add_mesh(self, shell, wall_m, INT + Vector3(0, 7.6, 0), Vector3(PI, 0, 0))
+	var lid := PlaneMesh.new()
+	lid.size = Vector2(40, 34)
+	Util.add_mesh(self, lid, wall_m, INT + Vector3(0, 7.6, 7), Vector3(PI, 0, 0))
 	_walls(INT, 6.5, -4.2, 5.5, false)
 	_room_props()
 	add_glow(INT + Vector3(0, 1, -1), Color(1.0, 0.72, 0.45), 10.0, func(): return 0.75, true)
@@ -1041,13 +1043,13 @@ func _charis_house() -> void:
 	floor_body.add_child(cs)
 	add_child(floor_body)
 	var pm := PlaneMesh.new()
-	pm.size = Vector2(14, 20)
-	Util.add_mesh(self, pm, Models.mat("old_wooden_floor_01", 2.0, Color(0.72, 0.62, 0.55)), HOUSE + Vector3(0, 0.001, 4))
+	pm.size = Vector2(14, 30)
+	Util.add_mesh(self, pm, Models.mat("old_wooden_floor_01", 2.0, Color(0.72, 0.62, 0.55)), HOUSE + Vector3(0, 0.001, 9))
 	var wall := Models.mat("clay_plaster", 2.0, Color(0.78, 0.7, 0.62))
 	var beam := Models.mat("dark_wood", 1.0, Color(0.5, 0.4, 0.32))
 	Models.block(self, HOUSE + Vector3(0, 3.0, -4.5), Vector3(12, 6, 0.3), wall)
-	for x in [-6.0, 6.0]:
-		Models.block(self, HOUSE + Vector3(x, 3.0, -0.5), Vector3(0.3, 6, 8.6), wall)
+	for x in [-6.0, 6.0]:   # (Asar 11/23) side walls run on toward the camera, like the shop
+		Models.block(self, HOUSE + Vector3(x, 3.0, 6.7), Vector3(0.3, 6, 23), wall)
 	for z in [-3.0, 0.0]:
 		Models.block(self, HOUSE + Vector3(0, 4.6, z), Vector3(12, 0.25, 0.25), beam)
 	var dark := Util.mat(Color(0.08, 0.055, 0.045))
@@ -1055,7 +1057,9 @@ func _charis_house() -> void:
 	var shell := PlaneMesh.new()
 	shell.size = Vector2(40, 20)
 	Util.add_mesh(self, shell, dark, HOUSE + Vector3(0, 6, -4.7), Vector3(PI / 2.0, 0, 0))
-	Util.add_mesh(self, shell, dark, HOUSE + Vector3(0, 6.5, 0), Vector3(PI, 0, 0))
+	var lid := PlaneMesh.new()
+	lid.size = Vector2(40, 34)
+	Util.add_mesh(self, lid, dark, HOUSE + Vector3(0, 6.5, 7), Vector3(PI, 0, 0))
 	_walls(HOUSE, 5.6, -4.2, 4.6, false)
 	Models.block(self, HOUSE + Vector3(-1.5, 0.01, 0.6), Vector3(4.2, 0.02, 2.8), Models.mat("quatrefoil_jacquard_fabric", 1.0, Color(0.85, 0.6, 0.65)))   # rug
 	Models.place(self, "GothicBed_01", HOUSE + Vector3(3.8, 0, -2.8), 0.0, 1.0, true, Color(0.9, 0.8, 0.85))
@@ -1176,12 +1180,21 @@ func _shot_tour() -> void:
 		start(hd[0])
 		await wait(1.5)
 		await shot("m_10_charis_house")
+		place_party(HOUSE + Vector3(0, 0, 3.9), Vector3(0, 0, 1))   # walking back to the door: no gaps at the sides
+		await wait(1.2)
+		await shot("m_10b_house_by_door")
+		place_party(HOUSE + Vector3(0, 0, 2.6), Vector3(0, 0, -1))
+		await wait(0.6)
 		start(current_interactables().filter(func(i): return i["id"] == "charis")[0])
 		await advance(1, 0.6)
 		await wait(0.8)
 		start(current_interactables().filter(func(i): return i["id"] == "house_exit")[0])
 		await wait(1.5)
 		print("MART TOUR charis met=", Game.flag("charisMet"), " in_house=", in_house)
+	await _shop_in()   # the shop room by its door, facing out (the side walls used to stop short)
+	place_party(INT + Vector3(0, 0, 4.9), Vector3(0, 0, 1))
+	await wait(1.2)
+	await shot("m_11_shop_by_door")
 	get_tree().quit()
 
 const PLANK_SHADER := """

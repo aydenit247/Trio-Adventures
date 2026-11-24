@@ -62,6 +62,19 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   torch glows + a glow that follows the leader) and set the environment to `BG_COLOR` black, sun off.
 - [ebain] **Battle items are hard-coded to beer/bowl** (battle.gd bags, battle_view menus). A new shop "item" is either one
   of those or a BOOSTS item (permanent, used from Tab), like `cave_cheese`.
+- [asar] **Teleporting the party? Clear `u.trail` for every unit.** Followers walk the leader's old breadcrumb trail, so after a
+  `global_position` jump they run off toward where the leader used to be (the castle walk-in bug). `place_party` doesn't
+  clear it; `summit._enter_lair/_leave_lair` and `village_buildings._place_party` do now.
+- [asar] **Don't release `focus_override` while a tween on it is still running.** `focus_override = null` after a fixed
+  `wait()` lost the race with the tween, the tween set it back, and the camera stayed parked (summit start). `await
+  tw.finished` first.
+- [asar] **"Heard it once" needs its own saved flag.** `AreaMusic.played_once` resets with the scene, so the summit uses the
+  `hymnHeard` flag + `Game.unlock("hymn_heard")`; `AreaMusic.force_once` makes one track play once no matter the Music setting.
+- [asar] **Interior side walls must run past the door toward the camera** (about +15 m on z). The camera trails 8–9 m
+  behind the leader, so walls that stop at the door line show the void when you walk back out.
+- [asar] **Screen-space overlays that follow 3D things** (enemy HP bars, the timed-hit ring): `lv.cam.unproject_position()`
+  straight into a Control under `lv.hud`, every frame; skip it when `cam.is_position_behind()`, and clamp to the screen
+  for giants.
 
 ## Testing tricks
 - [asar] **Windows crash dumps** are in `%LOCALAPPDATA%\CrashDumps\TrioAdventures.exe.*.dmp`. You can parse the minidump with plain Python `struct` (exception stream 6, module list 4, thread list 3, memory64 list 9). Asar's 4 crashes were all worker threads with GPU shader-compiler DLLs on the stack (Vulkan driver), not scripts or TTS.

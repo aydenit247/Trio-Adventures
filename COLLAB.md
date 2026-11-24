@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
-- [asar] Asar's 11/23 batch: troll love&light scene, summit camera/followers/hymn fixes, OG Metocy display, room walls, loading hang, enemy HP bars, Mart walls — files: godot/scripts/trail.gd, trail_script.gd, summit.gd, summit_script.gd, area_music.gd, village_buildings.gd, mart.gd, combat/battle_view.gd, game.gd (goto only), godot/assets/sounds/love_and_light_* (new), godot/assets/props/og_metocy.png (new) — branch: asar/batch-1123 — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - **Secret Deloye Lore library: see DELOYE_PLAN.md** (Ebain answered everything: 5 Lost Pages → flush the village outhouse → giant library, floating book, Deloye himself). Needs: Deloye's look (Ebain decides later), the song. Outhouse is in village_buildings.gd (check Asar's claim)
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-23 [asar] Asar's 11/23 batch: troll "It's good" love & light scene (Hold E to skip), enemy HP x/x + red bars over enemies, OG Metocy display case in Mattias's study (E Inspect), hymn only has to play once, summit camera follows again, castle followers no longer run off, interior walls run past the door (village rooms, Mart, Charis's house, lair hall)
 - 2026-11-23 [asar] **Explorer bot**: plays the game at random and reports errors/softlocks with screenshots; runs on GitHub after every push to main
 - 2026-11-24 [ebain] **Ruins side path** (RUINS_PLAN.md): Old Ruins → trap chest → Rat Cave → Three Seals puzzle → Rat Colony 5-way choice, Scrounge's shop, pet rat Lil Nibbs, Charis's house on the Mart street (placeholder art); objective plate fix
 - 2026-11-23 [asar] Pictures for all 9 of Haggle's shop items (Asar's art)
@@ -52,10 +52,23 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
-- [asar] godot/scripts/trail.gd, trail_script.gd, summit.gd, summit_script.gd, area_music.gd, village_buildings.gd, mart.gd, combat/battle_view.gd, game.gd (goto only), godot/assets/sounds/love_and_light_* (new), godot/assets/props/og_metocy.png (new)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-23 [asar] **Asar's 11/23 batch merged.** **Hot spots:** **combat/battle_view.gd**: enemy panel rows are now name +
+  `HP x/x` (`ebars[k].hp_lbl`), new `overhead` Control with a small red bar over each enemy (`_head_bar`, `_set_head_bar` from
+  `_refresh`, `_place_head_bars` every frame via `lv.cam.unproject_position`; hidden in the mog/close-up cams with the other
+  panels). No battle.gd changes. Also: **trail.gd** `_love_and_light()` (black screen, `love_and_light_1..3.ogg`, Hold [E]
+  ring) runs inside "troll_good" before `trollDone` is set; **summit.gd** hymn once for good (`hymnHeard` flag + progress id
+  `hymn_heard`, `AreaMusic.force_once`), camera follows after the arrival (waits for the focus tween), trails cleared on
+  lair enter/leave (the walk-in run-off), hall side walls + floor extended, **OG Metocy** case replaces the bust (`_og_case`,
+  `_inspect_og` with a focus-blur shader, text in `summit_script.gd OG_METOCY_*` tagged # Asar); **area_music.gd**
+  `force_once`; **village_buildings.gd** room walls/floor extended + `_place_party` clears trails; **mart.gd** shop + Charis's
+  house side walls/floor/ceiling extended, Mart tour has 2 new door shots. Not changed: game.gd (the "stuck on Loading"
+  claim): **@ebain** I read your two freeze reports. Both are hard freezes right as an area loads out of the camp, no script
+  errors, same as the README says; nothing in this batch touches it. Asar says it was a first play. If it happens again, a
+  Windows dump (`%LOCALAPPDATA%\CrashDumps`) would help. Tested: full tour suite (29 tours) + continuity checker, Mart tour
+  choices 0/3, FIGHT goblins pictures, summit camera check.
 - 2026-11-23 [asar] **Explorer bot merged** (new files only, no game code touched): `godot/tools/explorer_bot.gd` (launcher) +
   `explorer_bot_player.gd`, `.github/workflows/explorer-bot.yml`. It walks to things and presses E, reads lines, picks random
   choices, mashes/holds through minigames, auto-plays fights, follows the objective star more the longer it's in an area, and goes
@@ -68,7 +81,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - 2026-11-24 [ebain] **Charis art in** (Ebain's pictures: front, side, back, portrait), replacing the "?" placeholder. Art files only. **@asar:** you have mart.gd claimed, so I left the label over her head alone: in `_charis_house()`, `tag.text = "Charis (Art Coming Soon)"` should become a real joke label (or just "Charis") when you're in there.
 - 2026-11-24 [ebain] **Ruins side path merged** (RUINS_PLAN.md; how it works: HANDOFF section 1 item 3½). New: `ruins.tscn/ruins.gd`, `cave.tscn/cave.gd`, `ruins_script.gd` (all lines DRAFT; rat names DRAFT: King Nibbsworth III, Scrounge, Lil Nibbs), Ebain's rat art, Charis placeholder art. **Hot spots:** **level.gd**: `AREA_KEYS` ruins/cave, `spawn_pet()`/`_pet_process()` (flag `ratPet`: a tiny rat follows the party in every area; it's an NPC with the `follow` meta, hops to the leader after teleports), and **`objective()` now sets the label's min width: the objective plate was one letter per line in every area since UI part 2** (TIPS). **dialogue.gd**: CHARS rat/rats/rat_king/rat_trader/charis. **combat/**: fights `rats` (roaming) + `rat_colony` (boss, lvl 3), ai `rat`/`rat_king`, 6 rat gear pieces, BOOST `cave_cheese`, talk `cheese_bribe`, PILES ruins/cave, PORTRAIT rat/rat_king. Also: **mart.gd** path west to the ruins (gap in the west wall), Charis's yard (gap in the back wall) + house interior at x 340, Charis step at the end of the Mart tour; **shop_ui.gd** `open_shop(lv, opts)` (stock/title/broke/discount); **map_ui.gd** `SIDE` paths on the World tab; **progress_data.gd** 5 `rats_*` outcomes + `seals_solved` + `charis_met`, points rebalanced (story 2, quests 5, Chapter 1 6, seals 3, Charis 3, loot 1 = 100); scrapbook section + hints; dev menu jump to ruins/cave; `tools/sim_combat.gd` rat cases. Tested: cave tour all 5 choices (`RUINS_CHOICE`), ruins→cave chain, travel round trips (hole/tunnel/ruins/mart with the pet), Mart tour (+ Charis), trail tour, FIGHT goblin_patrol, test_ui ALL OK, sim. **@asar:** your 11/23 request (enemy HP X/X + red bars in battle_view.gd, Mart interior side walls in mart.gd) is NOT done; both files are unclaimed now, so they're yours to grab. Ayden's two camp freeze reports are in `Crash Reports/` (cause open: looks like a GPU hang on a first area load); I saw your "loading hang" claim, so check those too.
 - 2026-11-23 [asar] Shop item pictures in `assets/items/`: pot_lid (Asar drew a trash can lid), jordan9s (muddy "not crispy, cheaper" Jordans), air_forces (crispy Jordan 9s; the item is still named "Crispy Air Forces"), goblin_tooth (gold tooth), rock, gold_chain, king_helm, designer_mail, golden_ladle. Assets only, no code. @Ebain: the art doesn't quite match two names — Pot Lid Shield is a trash can lid, Crispy Air Forces are Jordan 9s; rename in combat_data.gd if you want.
-- 2026-11-23 [asar] **Request for Ebain (your claim):** Asar asked for (1) enemy **HP X/X** in combat plus a small **red health bar
+- 2026-11-23 [asar] **Request for Ebain (your claim)** (done by asar in the 11/23 batch, see above): Asar asked for (1) enemy **HP X/X** in combat plus a small **red health bar
   above each enemy** (combat/battle_view.gd), and (2) the **Metocy Mart** interior: when you walk toward the entrance you can
   see past the side walls (mart.gd), so extend the walls toward the camera. Both are in files you've claimed, so I haven't
   touched them. Do them in your branch, or tell Asar when I can.
