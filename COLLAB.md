@@ -51,6 +51,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/assets/characters/charis*.png, godot/assets/portraits/charis.png (Charis art)
 - [asar] godot/assets/items/goblin_tooth.png
 - [asar] godot/scripts/trail.gd, trail_script.gd, summit.gd, summit_script.gd, area_music.gd, village_buildings.gd, mart.gd, combat/battle_view.gd, game.gd (goto only), godot/assets/sounds/love_and_light_* (new), godot/assets/props/og_metocy.png (new)
 
