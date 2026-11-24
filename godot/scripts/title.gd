@@ -6,6 +6,7 @@ var bg: Node        # the camp, running in title mode
 var ui: CanvasLayer
 var menu: MenuUI
 var music: AudioStreamPlayer   # "Prophecy of Metocy" (Ebain's track), loops on the title
+var prog_lbl_font: Font
 const MUSIC_DB := -3.0
 
 func _ready() -> void:
@@ -29,7 +30,9 @@ func _start_music() -> void:
 	music = AudioStreamPlayer.new()
 	music.stream = stream
 	music.volume_db = -40.0
+	music.bus = &"Music"
 	add_child(music)
+	LibraryUI.mark_heard("prophecy_of_metocy")
 	music.play()
 	create_tween().tween_property(music, "volume_db", MUSIC_DB, 2.0)
 	if bg and "amb" in bg and bg.amb:   # menu = just the song (Ebain): no campfire crackle, no crickets
@@ -68,17 +71,35 @@ func _logo() -> void:
 	box.offset_top = 46
 	box.add_theme_constant_override("separation", 0)
 	ui.add_child(box)
-	var t := _lbl("TRIO ADVENTURES", 84, Color("#e8b923"), 18)
+	var t := _lbl("TRIO ADVENTURES", 84, Color("#f0c24a"), 18)   # always gold over the night camp, whatever the menu theme
+	t.add_theme_font_override("font", UITheme.head_font())
+	t.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	t.add_theme_constant_override("shadow_offset_y", 6)
+	t.add_theme_constant_override("shadow_outline_size", 22)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(t)
+	var orn := Control.new()   # gold ornament line under the logo
+	orn.custom_minimum_size = Vector2(0, 22)
+	orn.draw.connect(func():
+		var y := 11.0
+		var mid := orn.size.x * 0.5
+		var g := Color("#f0c24a")
+		for side in [-1.0, 1.0]:
+			orn.draw_polyline_colors([Vector2(mid + side * 16, y), Vector2(mid + side * 300, y)], [g, Color(g, 0.0)], 2.0, true)
+			orn.draw_colored_polygon([Vector2(mid + side * 30, y - 4), Vector2(mid + side * 34, y), Vector2(mid + side * 30, y + 4), Vector2(mid + side * 26, y)], g)
+		orn.draw_colored_polygon([Vector2(mid, y - 9), Vector2(mid + 9, y), Vector2(mid, y + 9), Vector2(mid - 9, y)], g)
+		orn.draw_colored_polygon([Vector2(mid, y - 4), Vector2(mid + 4, y), Vector2(mid, y + 4), Vector2(mid - 4, y)], Color("#2a1a08")))
+	box.add_child(orn)
 	var st := _lbl("", 26, Color("#f3e3b0"), 8)   # (the chapter title now shows once when a new game starts, camp._chapter_card)
 	st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(st)
 	t.modulate.a = 0.0
 	st.modulate.a = 0.0
+	orn.modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_interval(0.6)
 	tw.tween_property(t, "modulate:a", 1.0, 1.0)
+	tw.tween_property(orn, "modulate:a", 1.0, 0.5)
 	tw.tween_property(st, "modulate:a", 1.0, 0.6)
 	var foot := _lbl("by Ebain  ·  F11 fullscreen  ·  controller supported", 15, Color(1, 1, 1, 0.55), 4)
 	foot.anchor_left = 0.0; foot.anchor_right = 1.0; foot.anchor_top = 1.0; foot.anchor_bottom = 1.0
@@ -86,9 +107,11 @@ func _logo() -> void:
 	foot.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	ui.add_child(foot)
 	# (Asar) how much of the game you've seen, across every playthrough (progress_data.gd)
+	prog_lbl_font = UITheme.row_font()
 	var prog := _lbl("Outcomes  %d / %d      %d%% complete" % [Game.outcomes_found(), Game.outcomes_total(), Game.completion_pct()], 22, Color("#f3e3b0"), 6)
 	prog.anchor_left = 0.0; prog.anchor_top = 1.0; prog.anchor_bottom = 1.0
 	prog.offset_left = 34; prog.offset_top = -46
+	prog.add_theme_font_override("font", prog_lbl_font)
 	ui.add_child(prog)
 	prog.modulate.a = 0.0
 	create_tween().tween_property(prog, "modulate:a", 1.0, 0.8).set_delay(1.6)
@@ -102,13 +125,15 @@ func _open_menu() -> void:
 		  "note": _continue_note(latest) },
 		{ "text": "New Game", "pick": func(): _new_game() },
 		{ "text": "Load Game", "enabled": latest != "", "pick": func(): await _sub(MenuUI.open_slots(ui, "load")) },
+		{ "text": "Library", "pick": func(): await _sub_lib(),
+		  "note": "Soundtrack: %d / %d songs found. Hear the rest in the game." % [LibraryUI.heard_count(), LibraryUI.SONGS.size()] },
 		{ "text": "Achievements  (%d/%d)" % [Game.ach.count(), Achievements.LIST.size()], "pick": func():
 			await _sub(MenuUI.open(ui, "Achievements", Game.ach.menu_rows(), { "w": 560 })) },
 		{ "text": "Settings", "pick": func(): await _sub(MenuUI.open_settings(ui)) },
 		{ "text": "Quit", "pick": func(): get_tree().quit() },
 	]
 	menu = MenuUI.open(ui, "", rows, { "w": 420, "anchor_x": 0.2, "anchor_y": 0.66, "dim": false, "panel_alpha": 0.82,
-		"font": 28, "hint": "E / Enter / A to pick · mouse works too" })
+		"font": 28, "hint": "E / Enter / A to pick · mouse works too", "silent": true })
 	menu.on_back = func(): pass   # Esc does nothing on the title
 
 func _continue_note(slot: String) -> String:
@@ -124,6 +149,14 @@ func _new_game() -> void:
 			return
 	await _fade_music()
 	Game.new_game()
+
+func _sub_lib() -> void:
+	menu.visible = false
+	var lib := LibraryUI.open(ui, music)
+	await lib.closed
+	if is_instance_valid(menu):
+		menu.visible = true
+		menu.refresh()
 
 func _sub(m: MenuUI) -> void:
 	menu.visible = false
@@ -146,4 +179,18 @@ func _shot_tour() -> void:
 	await get_tree().create_timer(0.5).timeout
 	await lv.shot("t_03_load")
 	sl.close()
+	var lib := LibraryUI.open(ui, music)
+	await get_tree().create_timer(0.5).timeout
+	await lv.shot("t_04_library")
+	lib._lyrics(0)
+	await get_tree().create_timer(0.6).timeout
+	await lv.shot("t_05_lyrics")
+	for th in UITheme.NAMES.size():   # each theme on the settings page
+		Game.ui_theme = th
+		Game.ui_changed.emit()
+		var dp := MenuUI._settings_display(ui)
+		await get_tree().create_timer(0.5).timeout
+		await lv.shot("t_06_theme_%d" % th)
+		dp.close()
+	Game.ui_theme = 0
 	get_tree().quit()

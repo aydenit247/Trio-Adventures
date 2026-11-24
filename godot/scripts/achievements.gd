@@ -75,7 +75,7 @@ func menu_rows() -> Array:
 	for a in LIST:
 		var have := got.has(a["id"])
 		var secret: bool = a.get("hidden", false) and not have
-		rows.append({ "text": ("✓  " if have else "     ") + ("???" if secret else a["name"]),
+		rows.append({ "text": "???" if secret else a["name"], "value": "Unlocked" if have else "Locked",
 			"note": "Hidden achievement." if secret else a["desc"], "pick": func(): pass })
 	return rows
 
@@ -86,29 +86,17 @@ func _show_next() -> void:
 		return
 	_showing = true
 	var a: Dictionary = _queue.pop_front()
-	var p := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.045, 0.11, 0.94)
-	sb.border_color = Color("#e8b923")
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(8)
-	sb.content_margin_left = 16; sb.content_margin_right = 16; sb.content_margin_top = 10; sb.content_margin_bottom = 10
+	var p := PanelContainer.new()   # themed (UITheme): ornate panel, Cinzel
+	var sb := UITheme.panel(0.95)
+	sb.content_margin_left = 24; sb.content_margin_right = 24; sb.content_margin_top = 16; sb.content_margin_bottom = 14
 	p.add_theme_stylebox_override("panel", sb)
 	var col := VBoxContainer.new()
 	p.add_child(col)
-	var top := Label.new()
-	top.text = "🏆  ACHIEVEMENT UNLOCKED"
-	top.add_theme_font_size_override("font_size", 14)
-	top.add_theme_color_override("font_color", Color("#e8b923"))
-	col.add_child(top)
-	var nm := Label.new()
-	nm.text = a["name"]
-	nm.add_theme_font_size_override("font_size", 22)
-	col.add_child(nm)
-	var ds := Label.new()
-	ds.text = a["desc"]
-	ds.add_theme_font_size_override("font_size", 15)
-	ds.add_theme_color_override("font_color", Color("#c9c0e8"))
+	col.add_child(UITheme.lbl("ACHIEVEMENT UNLOCKED", 13, "accent", UITheme.head_font()))
+	col.add_child(UITheme.lbl(a["name"], 22, "text", UITheme.row_font()))
+	var ds := UITheme.lbl(a["desc"], 15, "note")
+	ds.autowrap_mode = TextServer.AUTOWRAP_WORD
+	ds.custom_minimum_size.x = 300
 	col.add_child(ds)
 	add_child(p)
 	# top-right, below the "Controlling: ..." label; slides in from the right edge

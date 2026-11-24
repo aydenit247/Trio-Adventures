@@ -22,6 +22,7 @@ var lv: Node
 var state := "silent"                  # silent / full / ducked / out: what it's aiming for (tests + dev)
 var gain_db := 0.0                     # extra volume set by the area each frame (village: 0 while the goblin band plays, -60 when it's gone)
 var _since_dialogue := 99.0
+var _heard := false                    # already sent to the Library this visit
 var played_once := false               # Settings → Music: Play once, and the song has finished: stay quiet
 
 func _ready() -> void:
@@ -29,6 +30,7 @@ func _ready() -> void:
 	player = AudioStreamPlayer.new()
 	player.stream = track
 	player.volume_db = SILENT
+	player.bus = &"Music"   # Settings → Audio → Music (Game._make_buses)
 	add_child(player)
 	player.finished.connect(func(): played_once = true)
 	if Game.music_once and track is AudioStreamOggVorbis:   # play it through once, no loop
@@ -57,6 +59,10 @@ func _process(delta: float) -> void:
 			player.play()
 		else:
 			return
+	if not _heard and player.volume_db > -24.0 and track:   # audible: unlock it in the Library (title → Library)
+		_heard = true
+		if LibraryUI.mark_heard(track.resource_path) and lv and lv.has_method("show_toast"):
+			lv.show_toast("New song in the Library: " + LibraryUI.song(track.resource_path.get_file().get_basename())["title"], 2.6)
 	if state == "out":   # leaving the area: drop fast, like the title song does
 		player.volume_db = max(SILENT, player.volume_db - delta * 140.0)
 	elif target > player.volume_db:

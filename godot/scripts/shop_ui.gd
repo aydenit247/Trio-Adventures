@@ -56,6 +56,7 @@ static func open_shop(level: Node) -> void:
 func _build() -> void:
 	_opened_at = Engine.get_process_frames()
 	MenuUI.stack.append(self)
+	UITheme.play("page")
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var cz := FontVariation.new()
@@ -275,9 +276,9 @@ func _input(ev: InputEvent) -> void:
 	elif ev.is_action_pressed("interact") or ev.is_action_pressed("ui_accept"):
 		_buy()
 	elif ev.is_action_pressed("move_back") or ev.is_action_pressed("ui_down"):
-		sel = (sel + 1) % STOCK.size(); _refresh()
+		sel = (sel + 1) % STOCK.size(); _refresh(); UITheme.play("move")
 	elif ev.is_action_pressed("move_forward") or ev.is_action_pressed("ui_up"):
-		sel = (sel - 1 + STOCK.size()) % STOCK.size(); _refresh()
+		sel = (sel - 1 + STOCK.size()) % STOCK.size(); _refresh(); UITheme.play("move")
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -286,6 +287,7 @@ func close() -> void:
 	if not is_inside_tree():
 		return
 	MenuUI.stack.erase(self)
+	UITheme.play("back")
 	closed.emit()
 	queue_free()
 

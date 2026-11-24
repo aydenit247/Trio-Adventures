@@ -42,6 +42,7 @@ static func open(parent: Node, level: Node) -> MapUI:
 func _build() -> void:
 	_opened_at = Engine.get_process_frames()
 	MenuUI.stack.append(self)
+	UITheme.play("page")
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var blur := ColorRect.new()
@@ -62,21 +63,23 @@ func _build() -> void:
 	var frame := Panel.new()
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_theme_stylebox_override("panel", _box(Color("#2a2420"), Color("#4d443b"), 4, 10, true))
+	frame.add_theme_stylebox_override("panel", UITheme.panel(0.97))   # themed frame (UI overhaul); the map drawing inside is unchanged
 	root.add_child(frame)
 	var trim := Panel.new()
 	trim.position = Vector2(9, 9); trim.size = Vector2(W - 18, H - 18)
 	trim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	trim.add_theme_stylebox_override("panel", _box(Color(0, 0, 0, 0), Color(GOLD, 0.55), 2, 6))
+	trim.visible = false   # the themed frame has its own inner trim
 	root.add_child(trim)
 	for c in [Vector2(2, 2), Vector2(W - 26, 2), Vector2(2, H - 26), Vector2(W - 26, H - 26)]:
 		var stud := Panel.new()
 		stud.position = c; stud.size = Vector2(24, 24)
 		stud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		stud.add_theme_stylebox_override("panel", _box(Color("#3b332c"), GOLD, 2, 4))
+		stud.visible = false   # (UI overhaul) the themed frame draws its own corner diamonds
 		root.add_child(stud)
 
 	var title := _lbl("MAP", 30, GOLD, 7)
+	title.add_theme_font_override("font", UITheme.head_font())
 	title.position = Vector2(36, 18)
 	root.add_child(title)
 	var tb := HBoxContainer.new()
@@ -129,10 +132,11 @@ func _set_tab(k: String) -> void:
 	tab = k
 	for n in tabs:
 		var on: bool = n == k
-		tabs[n].add_theme_stylebox_override("normal", _box(Color("#4a3c22") if on else Color("#1d1814"), GOLD if on else Color("#4d443b"), 2, 5))
-		tabs[n].add_theme_stylebox_override("hover", _box(Color("#5a4a2a"), GOLD, 2, 5))
-		tabs[n].add_theme_stylebox_override("pressed", _box(Color("#5a4a2a"), GOLD, 2, 5))
-		tabs[n].add_theme_color_override("font_color", GOLD if on else Color(1, 1, 1, 0.75))
+		var acc := UITheme.c("accent")
+		tabs[n].add_theme_stylebox_override("normal", _box(Color(UITheme.c("hi"), 0.4) if on else Color(UITheme.c("bg2"), 0.9), acc if on else UITheme.c("edge2"), 2, 5))
+		tabs[n].add_theme_stylebox_override("hover", _box(Color(UITheme.c("hi"), 0.5), acc, 2, 5))
+		tabs[n].add_theme_stylebox_override("pressed", _box(Color(UITheme.c("hi"), 0.5), acc, 2, 5))
+		tabs[n].add_theme_color_override("font_color", acc if on else UITheme.c("dim"))
 	_build_legend()
 	hover_lbl.visible = false
 	box.queue_redraw()
@@ -290,12 +294,14 @@ func _input(ev: InputEvent) -> void:
 			or (ev is InputEventKey and ev.physical_keycode in [KEY_E, KEY_Q]) \
 			or (ev is InputEventJoypadButton and ev.button_index in [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER]):
 		_set_tab("world" if tab == "area" else "area")
+		UITheme.play("page")
 	get_viewport().set_input_as_handled()
 
 func close() -> void:
 	if not is_inside_tree():
 		return
 	MenuUI.stack.erase(self)
+	UITheme.play("back")
 	closed.emit()
 	queue_free()
 

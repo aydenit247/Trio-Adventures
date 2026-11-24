@@ -77,6 +77,7 @@ static func show_board(level: Node, buildings: Node) -> void:
 func _build() -> void:
 	_opened_at = Engine.get_process_frames()
 	MenuUI.stack.append(self)
+	UITheme.play("page")
 	for ch in get_parent().get_children():   # the HUD (map, title, portraits, tracker) peeked out around the board
 		if ch != self and ch is CanvasItem and ch.visible:
 			ch.visible = false
@@ -258,6 +259,7 @@ func _input(ev: InputEvent) -> void:
 		or ev.is_action_pressed("switch") or (ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_B)
 	if reading >= 0:
 		if cancel:
+			UITheme.play("back")
 			_close_note()
 			get_viewport().set_input_as_handled()
 		return   # buttons handle E / Enter / clicks themselves
@@ -266,13 +268,13 @@ func _input(ev: InputEvent) -> void:
 	elif ev.is_action_pressed("interact") or ev.is_action_pressed("ui_accept"):
 		_open(sel)
 	elif ev.is_action_pressed("ui_right") or ev.is_action_pressed("move_right"):
-		sel = (sel + 1) % cards.size(); _refresh()
+		sel = (sel + 1) % cards.size(); _refresh(); UITheme.play("move")
 	elif ev.is_action_pressed("ui_left") or ev.is_action_pressed("move_left"):
-		sel = (sel - 1 + cards.size()) % cards.size(); _refresh()
+		sel = (sel - 1 + cards.size()) % cards.size(); _refresh(); UITheme.play("move")
 	elif ev.is_action_pressed("ui_down") or ev.is_action_pressed("move_back"):
-		sel = mini(sel + 4, cards.size() - 1); _refresh()
+		sel = mini(sel + 4, cards.size() - 1); _refresh(); UITheme.play("move")
 	elif ev.is_action_pressed("ui_up") or ev.is_action_pressed("move_forward"):
-		sel = maxi(sel - 4, 0); _refresh()
+		sel = maxi(sel - 4, 0); _refresh(); UITheme.play("move")
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -281,6 +283,7 @@ func close() -> void:
 	if not is_inside_tree():
 		return
 	MenuUI.stack.erase(self)
+	UITheme.play("back")
 	closed.emit()
 	queue_free()
 

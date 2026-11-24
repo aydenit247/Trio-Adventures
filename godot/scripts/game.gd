@@ -443,6 +443,14 @@ const DLG_BUFFER_SEC := [0.0, 0.2, 0.4, 0.8]
 var dlg_buffer := 2               # index into DLG_BUFFER
 var dlg_back := true              # Backspace goes back one line
 var dlg_speed := false            # speed mode: no buffer (spam E) + 2x text. Turned on with the button on the dialogue box
+# UI overhaul (Ebain 11/24): menu theme + sizes (ui_theme.gd), music/SFX buses (made in _make_buses), key rebinding (keybinds.gd)
+signal ui_changed                 # theme / sizes changed: open menus restyle
+var music_vol := 0.8              # 0..1, the "Music" bus (title, area songs, Library)
+var sfx_vol := 0.9                # 0..1, the "SFX" bus (every other sound; dialogue voice lines stay on Voice volume)
+var ui_theme := 0                 # index into UITheme.NAMES
+var ui_scale := 1.0               # whole UI (root content_scale_factor), 0.8 .. 1.3
+var text_scale := 1.0             # menu text, 0.85 .. 1.3
+var ui_bouncy := true             # Menu animations: Bouncy / Calm
 
 # Achievements (achievements.gd): the popup layer lives on Game so it survives scene changes.
 var ach: Achievements
@@ -457,6 +465,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(load("res://scripts/crash_reporter.gd").new())   # crash/freeze reports (see crash_reporter.gd)
 	load_progress()
+	_make_buses()
 	load_settings()
 	apply_settings()
 
@@ -487,6 +496,13 @@ func load_settings() -> void:
 	dlg_buffer = clampi(int(cf.get_value("game", "dlg_buffer", dlg_buffer)), 0, 3)
 	dlg_back = cf.get_value("game", "dlg_back", dlg_back)
 	dlg_speed = cf.get_value("game", "dlg_speed", dlg_speed)
+	music_vol = cf.get_value("audio", "music", music_vol)
+	sfx_vol = cf.get_value("audio", "sfx", sfx_vol)
+	ui_theme = clampi(int(cf.get_value("ui", "theme", ui_theme)), 0, UITheme.NAMES.size() - 1)
+	ui_scale = clampf(float(cf.get_value("ui", "scale", ui_scale)), 0.8, 1.3)
+	text_scale = clampf(float(cf.get_value("ui", "text_scale", text_scale)), 0.85, 1.3)
+	ui_bouncy = cf.get_value("ui", "bouncy", ui_bouncy)
+	Keybinds.load_from(cf)
 
 func save_settings() -> void:
 	var cf := ConfigFile.new()
@@ -504,12 +520,27 @@ func save_settings() -> void:
 	cf.set_value("game", "dlg_buffer", dlg_buffer)
 	cf.set_value("game", "dlg_back", dlg_back)
 	cf.set_value("game", "dlg_speed", dlg_speed)
+	cf.set_value("audio", "music", music_vol)
+	cf.set_value("audio", "sfx", sfx_vol)
+	cf.set_value("ui", "theme", ui_theme)
+	cf.set_value("ui", "scale", ui_scale)
+	cf.set_value("ui", "text_scale", text_scale)
+	cf.set_value("ui", "bouncy", ui_bouncy)
+	Keybinds.save_to(cf)
 	cf.save(SETTINGS_PATH)
 
 # Audio + window. (Graphics quality is applied per area by Level.apply_graphics().)
 func apply_settings() -> void:
 	AudioServer.set_bus_volume_db(0, linear_to_db(max(master_vol, 0.0001)))
 	AudioServer.set_bus_mute(0, master_vol <= 0.001)
+	for b in [["Music", music_vol], ["SFX", sfx_vol]]:
+		var i := AudioServer.get_bus_index(b[0])
+		if i >= 0:
+			AudioServer.set_bus_volume_db(i, linear_to_db(maxf(b[1], 0.0001)))
+			AudioServer.set_bus_mute(i, b[1] <= 0.001)
+	if get_tree():
+		get_tree().root.content_scale_factor = ui_scale
+	ui_changed.emit()
 	if DisplayServer.get_name() != "headless":
 		var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
 		if DisplayServer.window_get_mode() != want and not (want == DisplayServer.WINDOW_MODE_WINDOWED and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MAXIMIZED):
@@ -518,6 +549,26 @@ func apply_settings() -> void:
 	var lv = get_tree().current_scene if get_tree() else null
 	if lv and lv.has_method("apply_graphics"):
 		lv.apply_graphics()
+
+# Music + SFX buses (no bus layout file: made here). Every new AudioStreamPlayer left on Master goes to SFX,
+# except dialogue voice lines (dialogue.gd `_vo`, already on Voice volume). Music players set bus = &"Music"
+# BEFORE add_child (title.gd, area_music.gd, library_ui.gd). A player with its own bus (pass.gd snore) is left alone.
+func _make_buses() -> void:
+	for n in ["Music", "SFX"]:
+		if AudioServer.get_bus_index(n) == -1:
+			AudioServer.add_bus()
+			var i := AudioServer.bus_count - 1
+			AudioServer.set_bus_name(i, n)
+			AudioServer.set_bus_send(i, &"Master")
+	get_tree().node_added.connect(_route_audio)
+
+func _route_audio(n: Node) -> void:
+	if not (n is AudioStreamPlayer or n is AudioStreamPlayer3D) or n.bus != &"Master":
+		return
+	var p := n.get_parent()
+	if p and p.get("_vo") == n:
+		return
+	n.bus = &"SFX"
 
 # ================================================================ saves (user://saves/<slot>.sav)
 # A save holds the game state, the area, and — if the area was in free roam — where you stood.
