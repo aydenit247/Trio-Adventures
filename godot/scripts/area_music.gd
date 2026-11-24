@@ -24,6 +24,7 @@ var gain_db := 0.0                     # extra volume set by the area each frame
 var _since_dialogue := 99.0
 var _heard := false                    # already sent to the Library this visit
 var played_once := false               # Settings → Music: Play once, and the song has finished: stay quiet
+var force_once := false                # set before adding: always play it through once, whatever the setting (summit hymn)
 
 func _ready() -> void:
 	lv = get_parent()
@@ -33,7 +34,7 @@ func _ready() -> void:
 	player.bus = &"Music"   # Settings → Audio → Music (Game._make_buses)
 	add_child(player)
 	player.finished.connect(func(): played_once = true)
-	if Game.music_once and track is AudioStreamOggVorbis:   # play it through once, no loop
+	if (Game.music_once or force_once) and track is AudioStreamOggVorbis:   # play it through once, no loop
 		var once: AudioStreamOggVorbis = track.duplicate()
 		once.loop = false
 		player.stream = once

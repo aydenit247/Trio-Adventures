@@ -6,6 +6,10 @@
 # viewer shows for them is the fallback.
 extends RefCounted
 
+# The OG Metocy display case in the castle (Asar 11/23): the caption when you inspect it (on-screen text, not voiced)
+const OG_METOCY_TITLE := "OG Metocy" # Asar
+const OG_METOCY_TEXT := "Dis shi was ahh folk, blue one way better" # Asar
+
 # Walking up to him while "The Hymn of Metocin Mattias" is still playing (Asar's wording, verbatim).
 const PEEP_THE_SONG := [
 	{ "who": "mattias", "line": "Peep the song first folk, shit is gas" }, # Asar

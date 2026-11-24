@@ -254,7 +254,7 @@ func _on_action(n: String) -> void:
 			await fade_out(0.6)
 			troll.visible = false
 			xylo.visible = false
-			await wait(1.5)
+			await _love_and_light()   # (Asar) black screen + his three clips, Hold E to skip
 			Game.set_flag("trollDone", "good")
 			_apply_state()
 			fade_in(0.6)
@@ -292,6 +292,75 @@ func _on_action(n: String) -> void:
 			show_toast("+55 gold (the troll's life savings)", 2.4)
 			objective("Follow the trail to the goblin village.", Vector3(0, 0, END_Z + 2))
 			await wait(0.4)
+
+# ---------------------------------------------------------------- "It's good": love & light (Asar 11/23)
+# The screen stays black while Asar's three clips play in order (assets/sounds/love_and_light_1..3.ogg).
+# "Hold [E] to skip": the ring fills while you hold E (or A) and slowly drains when you let go.
+const LOVE_CLIPS := ["love_and_light_1", "love_and_light_2", "love_and_light_3"]
+const SKIP_FILL_S := 1.2     # hold this long to skip
+const SKIP_DRAIN_S := 3.0    # a full ring drains in this long when you let go
+
+func _love_and_light() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 90
+	add_child(layer)
+	var black := ColorRect.new()
+	black.color = Color.BLACK
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	black.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(black)
+	var ring := SkipRing.new()
+	ring.anchor_left = 1.0; ring.anchor_right = 1.0; ring.anchor_top = 1.0; ring.anchor_bottom = 1.0
+	ring.offset_left = -300; ring.offset_right = -36; ring.offset_top = -92; ring.offset_bottom = -36
+	ring.key_text = Keybinds.key_name(Keybinds.key_of("interact")) if Keybinds.key_of("interact") > 0 else "E"
+	layer.add_child(ring)
+	var player := AudioStreamPlayer.new()
+	add_child(player)
+	var skipped := false
+	if shots_mode:   # tests: show it for a moment, then skip
+		await wait(1.0)
+		await shot("t_04b_love_and_light")
+		skipped = true
+	for id in LOVE_CLIPS:
+		if skipped:
+			break
+		var st = load("res://assets/sounds/%s.ogg" % id)
+		if st == null:
+			continue
+		player.stream = st
+		player.play()
+		while player.playing and not skipped:
+			var dt := get_process_delta_time()
+			if Input.is_action_pressed("interact"):
+				ring.progress = minf(1.0, ring.progress + dt / SKIP_FILL_S)
+			else:
+				ring.progress = maxf(0.0, ring.progress - dt / SKIP_DRAIN_S)
+			ring.queue_redraw()
+			if ring.progress >= 1.0:
+				skipped = true
+			await get_tree().process_frame
+	player.stop()
+	player.queue_free()
+	interact_cooldown = 0.5   # the held E shouldn't also press the next prompt
+	var tw := create_tween()
+	tw.tween_property(ring, "modulate:a", 0.0, 0.3)
+	await tw.finished
+	layer.queue_free()
+
+class SkipRing extends Control:
+	var progress := 0.0
+	var key_text := "E"
+	func _draw() -> void:
+		var r := 20.0
+		var c := Vector2(size.x - r - 6.0, size.y * 0.5)
+		draw_arc(c, r, 0.0, TAU, 48, Color(1, 1, 1, 0.22), 5.0, true)
+		if progress > 0.0:
+			draw_arc(c, r, -PI / 2.0, -PI / 2.0 + TAU * progress, 48, Color("#e8b923"), 5.0, true)
+		var f := get_theme_default_font()
+		var txt := "Hold [%s] to skip" % key_text
+		var fs := 22
+		var w := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		draw_string(f, Vector2(c.x - r - 14.0 - w, c.y + fs * 0.35), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, 0.85))
 
 func _member(id: String) -> Unit:
 	for u in party:

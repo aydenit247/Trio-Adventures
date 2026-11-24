@@ -159,8 +159,8 @@ func _room_shell(id: String) -> void:
 	lv.add_child(floor_body)
 	var fm: Material = Models.mat("rustic_stone_wall", 2.0, Color(0.8, 0.75, 0.7)) if id == "smith" else Models.mat("old_wooden_floor_01", 2.0)
 	var pm := PlaneMesh.new()   # floor runs on toward the camera so there's no black band at the bottom
-	pm.size = Vector2(ROOM_W + 2, 24)
-	Util.add_mesh(lv, pm, fm, o + Vector3(0, 0.002, 6))
+	pm.size = Vector2(ROOM_W + 2, 34)
+	Util.add_mesh(lv, pm, fm, o + Vector3(0, 0.002, 11))
 	var dark := Util.mat(Color(0.05, 0.035, 0.03))
 	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var wm: Material = {
@@ -172,10 +172,10 @@ func _room_shell(id: String) -> void:
 	var back := PlaneMesh.new()
 	back.size = Vector2(ROOM_W + 2, 7)
 	Util.add_mesh(lv, back, wm, o + Vector3(0, 3.5, BACK_Z - 0.3), Vector3(PI / 2.0, 0, 0))
-	var side := PlaneMesh.new()
-	side.size = Vector2(7, 12)
-	Util.add_mesh(lv, side, wm, o + Vector3(-ROOM_W / 2.0 - 0.6, 3.5, 0), Vector3(0, 0, -PI / 2.0))
-	Util.add_mesh(lv, side, wm, o + Vector3(ROOM_W / 2.0 + 0.6, 3.5, 0), Vector3(0, 0, PI / 2.0))
+	var side := PlaneMesh.new()   # (Asar 11/23) side walls run on past the camera: walking to the door you can't see past them
+	side.size = Vector2(7, 30)
+	Util.add_mesh(lv, side, wm, o + Vector3(-ROOM_W / 2.0 - 0.6, 3.5, 9), Vector3(0, 0, -PI / 2.0))
+	Util.add_mesh(lv, side, wm, o + Vector3(ROOM_W / 2.0 + 0.6, 3.5, 9), Vector3(0, 0, PI / 2.0))
 	var under := PlaneMesh.new()   # dark ground in front of the room so the camera never sees the void
 	under.size = Vector2(60, 40)
 	Util.add_mesh(lv, under, dark, o + Vector3(0, -0.02, 14))
@@ -564,6 +564,7 @@ func _place_party(p: Vector3, ahead: Vector3) -> void:
 	var k := 0
 	for u in lv.party:
 		u.velocity = Vector3.ZERO
+		u.trail.clear()   # (Asar 11/23) a stale trail from the last room made the others wander off
 		if u == lv.leader:
 			u.global_position = p
 		else:
@@ -804,6 +805,9 @@ func tour() -> void:
 		await auto_talk("door_bar")
 		await lv.wait(1.0)
 		await lv.shot("b_06_bar_room")
+		_place_party(origin("bar") + Vector3(0, 0, FRONT_Z - 0.6), Vector3(0, 0, -1))   # (Asar 11/23) by the door
+		await lv.wait(1.2)
+		await lv.shot("b_06b_bar_by_door")
 		await auto_talk("sludge", [2], "b_08_sludge", 3)
 		await lv.shot("b_09_after_fight")
 		await auto_talk("gulpo", [0])

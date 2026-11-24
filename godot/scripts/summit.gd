@@ -18,6 +18,8 @@ const HALL_R := 15.0
 const ORB_Y := 10.5
 const DAIS := INT + Vector3(0, 0, -10)
 const DOOR_IN := INT + Vector3(0, 0, 12.6)
+const OG_POS := INT + Vector3(6.4, 0, -1.6)     # the OG Metocy's case, on the old marble bust's pedestal (Asar 11/23)
+const OG_CASE_Y := 1.56                         # middle of the glass case
 const HALFWAY_Z := 8.0                          # Mattias's echo + Dulbers' ambush trigger here (by the shrine)
 const PARTY_POS := Vector3(-400, 0, 0)          # the goblin metocy party (ending), built off to the other side
 # Empty clearings along the climb for future events (Asar: "potential for other events"). Each has a little scenery
@@ -124,6 +126,7 @@ func _build_level() -> void:
 	hymn.volume_db = -5.0
 	hymn.duck_db = -16.0
 	hymn.fade_in_db_per_s = 25.0
+	hymn.force_once = true   # (Asar 11/23) never loops: one time through, then quiet
 	add_child(hymn)
 	# arrival mood: cold wind on the climb, a few embers drifting up the path
 	wind = AudioStreamPlayer.new()
@@ -301,6 +304,17 @@ func _hall_build() -> void:
 			_glow_window(p + Vector3(0, 8.0, 0) - dir * 0.52, Vector2(1.6, 5.4), Color(0.45, 0.35, 0.95) if k % 4 == 0 else Color(0.3, 0.55, 1.0), rot)
 		elif abs(dir.x) < 0.95:                     # purple banners between them
 			Models.block(self, p + Vector3(0, 9.0, 0) - dir * 0.56, Vector3(1.5, 5.0, 0.06), Models.mat("velour_velvet", 1.0, Color(0.42, 0.18, 0.62)), rot)
+	# (Asar 11/23) straight walls carry on from the round wall toward the camera, so walking to the door you
+	# can't see past the sides; the floor runs on under them
+	for sgn in [-1.0, 1.0]:
+		var wp := PlaneMesh.new()
+		wp.size = Vector2(15.0, 30.0)
+		Util.add_mesh(self, wp, wall, INT + Vector3(sgn * 14.2, 7.5, 19.0), Vector3(0, 0, sgn * PI / 2.0))   # faces inward
+		Models.block(self, INT + Vector3(sgn * 13.95, 0.4, 19.0), Vector3(0.4, 0.8, 30.0), trim)
+		Models.block(self, INT + Vector3(sgn * 13.95, 14.6, 19.0), Vector3(0.5, 0.8, 30.0), trim)
+	var floor_more := PlaneMesh.new()
+	floor_more.size = Vector2(28.4, 22)
+	Util.add_mesh(self, floor_more, Models.mat("marble_mosaic_tiles", 3.0, Color(0.62, 0.58, 0.7)), INT + Vector3(0, 0.0015, 27.0))
 	# pillars ringing the hall (none on the camera side)
 	for k in 10:
 		var a := TAU * k / 10.0 + PI / 10.0
@@ -385,8 +399,8 @@ func _hall_build() -> void:
 	Models.place(self, "vintage_grandfather_clock_01", INT + Vector3(12.2, 0, -3.4), -PI / 2.0 - 0.3, 1.4, true)
 	var mir := Models.place(self, "ornate_mirror_01", INT + Vector3(13.4, 4.2, 0.6), -PI / 2.0 - 0.15, 2.6)
 	mir.rotation.y = -PI / 2.0 - 0.15
-	Models.block(self, INT + Vector3(6.4, 0.6, -1.6), Vector3(0.7, 1.2, 0.7), marble, 0.0, true)
-	Models.place(self, "marble_bust_01", INT + Vector3(6.4, 1.2, -1.6), -0.6, 2.0)
+	Models.block(self, OG_POS + Vector3(0, 0.6, 0), Vector3(0.7, 1.2, 0.7), marble, 0.0, true)   # the bust's pedestal, kept
+	_og_case()   # (Asar 11/23) the OG Metocy in a glass case instead of the Greek head
 	# floating candles all through the hall
 	for k in 22:
 		var a := rng.randf() * TAU
@@ -411,6 +425,152 @@ func _hall_build() -> void:
 	add_child(mattias_light)
 
 # ================================================================ little builders
+# ---------------------------------------------------------------- the OG Metocy (Asar 11/23)
+var og_pill: Sprite3D
+
+func _og_case() -> void:
+	var base := OG_POS + Vector3(0, 1.2, 0)
+	var brass := StandardMaterial3D.new()
+	brass.albedo_color = Color(0.78, 0.6, 0.3)
+	brass.metallic = 0.85
+	brass.roughness = 0.3
+	Models.block(self, base + Vector3(0, 0.03, 0), Vector3(0.66, 0.06, 0.66), brass)   # brass base plate
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.8, 0.9, 1.0, 0.13)
+	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glass.metallic = 0.4
+	glass.roughness = 0.04
+	glass.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.6, 0.72, 0.6)
+	Util.add_mesh(self, bm, glass, base + Vector3(0, 0.42, 0))
+	for x in [-0.3, 0.3]:   # brass edges + lid
+		for z in [-0.3, 0.3]:
+			Models.block(self, base + Vector3(x, 0.42, z), Vector3(0.03, 0.72, 0.03), brass)
+	Models.block(self, base + Vector3(0, 0.79, 0), Vector3(0.64, 0.04, 0.64), brass)
+	og_pill = Sprite3D.new()
+	og_pill.texture = load("res://assets/props/og_metocy.png")
+	og_pill.pixel_size = 0.44 / 640.0
+	og_pill.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	og_pill.shaded = false
+	og_pill.transparent = true
+	og_pill.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+	og_pill.position = OG_POS + Vector3(0, OG_CASE_Y, 0)
+	add_child(og_pill)
+	floaters.append([og_pill, OG_CASE_Y, 1.1, 0.0, 0.0])
+	_light(OG_POS + Vector3(0, OG_CASE_Y, 0.2), Color(1.0, 0.6, 0.25), 0.7, 2.6)
+	# small brass plaque on the pedestal: "OG Metocy"
+	Models.block(self, OG_POS + Vector3(0, 0.88, 0.36), Vector3(0.46, 0.15, 0.02), brass)
+	var plaque := Label3D.new()
+	plaque.text = "OG Metocy"
+	plaque.font_size = 48
+	plaque.pixel_size = 0.0016
+	plaque.modulate = Color(0.16, 0.1, 0.05)
+	plaque.outline_size = 0
+	plaque.shaded = false
+	plaque.position = OG_POS + Vector3(0, 0.88, 0.375)
+	add_child(plaque)
+
+const FOCUS_BLUR_SHADER := """
+shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
+uniform vec2 center = vec2(0.5);   // the case, in screen UV
+uniform vec2 radius = vec2(0.16, 0.26);
+uniform float amount = 0.0;        // 0 = sharp everywhere, 1 = full blur outside the case
+void fragment() {
+	float d = length((SCREEN_UV - center) / radius);
+	float m = smoothstep(0.75, 1.35, d) * amount;
+	vec3 sharp = texture(screen_tex, SCREEN_UV).rgb;
+	vec2 px = SCREEN_PIXEL_SIZE * 3.0;
+	vec3 c = vec3(0.0);
+	float w = 0.0;
+	for (int x = -4; x <= 4; x++) {
+		for (int y = -4; y <= 4; y++) {
+			float k = exp(-float(x * x + y * y) / 10.0);
+			c += texture(screen_tex, SCREEN_UV + vec2(float(x), float(y)) * px).rgb * k;
+			w += k;
+		}
+	}
+	vec3 blurred = c / w * 0.78;
+	COLOR = vec4(mix(sharp, blurred, m), 1.0);
+}
+"""
+
+# Inspect: the camera glides in to the case, the room blurs around it, a caption fades up. E / Esc steps back.
+func _inspect_og() -> void:
+	busy = true
+	freeze_all(true)
+	_cinematic_hud(false)
+	var z0 := zoom
+	var h0 := cam_look_h
+	var c0 := cam_height
+	var case_c := OG_POS + Vector3(0, OG_CASE_Y, 0)
+	focus_override = cam_target
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(self, "focus_override", OG_POS, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(self, "zoom", 2.3, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(self, "cam_look_h", OG_CASE_Y, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(self, "cam_height", 0.22, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# the blur + caption layer
+	var layer := CanvasLayer.new()
+	layer.layer = 60
+	add_child(layer)
+	var blur := ColorRect.new()
+	blur.set_anchors_preset(Control.PRESET_FULL_RECT)
+	blur.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sm := ShaderMaterial.new()
+	sm.shader = Shader.new()
+	sm.shader.code = FOCUS_BLUR_SHADER
+	blur.material = sm
+	layer.add_child(blur)
+	var box := VBoxContainer.new()
+	box.anchor_left = 0.0; box.anchor_right = 1.0; box.anchor_top = 1.0; box.anchor_bottom = 1.0
+	box.offset_top = -150; box.offset_bottom = -30
+	box.alignment = BoxContainer.ALIGNMENT_END
+	box.modulate.a = 0.0
+	layer.add_child(box)
+	for row in [[SS.OG_METOCY_TITLE, 40, Color("#e8b923")], [SS.OG_METOCY_TEXT, 22, Color("#f3e3b0")], ["[E] / Esc to step back", 15, Color(1, 1, 1, 0.55)]]:
+		var l := Label.new()
+		l.text = row[0]
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.add_theme_font_size_override("font_size", row[1])
+		l.add_theme_color_override("font_color", row[2])
+		l.add_theme_color_override("font_outline_color", Color.BLACK)
+		l.add_theme_constant_override("outline_size", 8)
+		box.add_child(l)
+	var follow_case := func():   # keep the sharp spot on the case while the camera moves
+		if cam and is_instance_valid(blur):
+			var vp := get_viewport().get_visible_rect().size
+			sm.set_shader_parameter("center", cam.unproject_position(case_c) / vp)
+	var t2 := create_tween().set_parallel(true)
+	t2.tween_method(func(v): sm.set_shader_parameter("amount", v); follow_case.call(), 0.0, 1.0, 1.0).set_delay(0.3)
+	t2.tween_property(box, "modulate:a", 1.0, 0.6).set_delay(0.9)
+	play_sound("sfx_magic", -10.0, 1.4)
+	await tw.finished
+	if shots_mode:
+		await wait(0.8)
+		await shot("s_og_metocy")
+	else:
+		while true:   # wait for E / Esc (a fresh press)
+			follow_case.call()
+			await get_tree().process_frame
+			if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_cancel") or Input.is_action_just_pressed("ui_accept"):
+				break
+	var back := create_tween().set_parallel(true)
+	back.tween_method(func(v): sm.set_shader_parameter("amount", v); follow_case.call(), 1.0, 0.0, 0.6)
+	back.tween_property(box, "modulate:a", 0.0, 0.4)
+	back.tween_property(self, "focus_override", leader.global_position, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	back.tween_property(self, "zoom", z0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	back.tween_property(self, "cam_look_h", h0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	back.tween_property(self, "cam_height", c0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await back.finished
+	focus_override = null
+	layer.queue_free()
+	_cinematic_hud(true)
+	interact_cooldown = 0.4
+	freeze_all(false)
+	busy = false
+
 func _emissive(c: Color, energy: float) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = c
@@ -631,6 +791,7 @@ func _level_process(delta: float) -> void:
 		mattias_light.light_energy = 1.5 + sin(t * 2.0) * 0.35
 	if hymn:
 		hymn.gain_db = move_toward(hymn.gain_db, music_gain, delta * 30.0)
+		_hymn_watch(delta)
 	if wind:
 		wind.volume_db = move_toward(wind.volume_db, -60.0 if (inside or stage == "end") else -22.0, delta * 40.0)
 	_trip_process(delta)
@@ -680,7 +841,7 @@ func _begin() -> void:
 	tw.tween_property(self, "zoom", z0, 1.4).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(self, "cam_look_h", h0, 1.4).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(self, "focus_override", leader.global_position, 1.4).set_trans(Tween.TRANS_SINE)
-	await wait(1.4)
+	await tw.finished   # (Asar 11/23) not wait(1.4): the tween's last frame used to land after this and pin the camera
 	focus_override = null
 	show_toast("Don't walk yet if you want to hear the song.", 4.0)   # Ebain
 	await wait(0.4)
@@ -718,10 +879,13 @@ func _level_interactables() -> Array:
 		list.append({ "id": "lair_door", "label": "the Wizard's Lair", "verb": "Enter", "pos": DOOR_OUT, "h": 2.6, "r": 2.8, "steps": [{ "do": "enter_lair" }] })
 	else:
 		list.append({ "id": "lair_leave", "label": "the lair", "verb": "Leave", "pos": DOOR_IN, "h": 1.6, "r": 2.2, "steps": [{ "do": "leave_lair" }] })
+		list.append({ "id": "og_metocy", "label": "the OG Metocy", "verb": "Inspect", "pos": OG_POS, "h": 2.1, "r": 1.9, "steps": [{ "do": "inspect_og" }] })
 	return list
 
 func _on_action(n: String) -> void:
 	match n:
+		"inspect_og":
+			await _inspect_og()
 		"enter_lair":
 			await _enter_lair()
 		"leave_lair":
@@ -781,6 +945,7 @@ func _enter_lair() -> void:
 	for i in party.size():
 		party[i].global_position = spots[i]
 		party[i].set_view("back")
+		party[i].trail.clear()   # (Asar 11/23) or the other two run back toward the old outdoor trail (off to the left)
 	cam_target = leader.global_position
 	if not Game.flag("lairEntered"):   # first time in: the hall opens up, Mattias appears on his dais in a flash
 		Game.set_flag("lairEntered")
@@ -817,6 +982,8 @@ func _leave_lair() -> void:
 	await fade_out(0.5)
 	_set_inside(false)
 	place_party(DOOR_OUT + Vector3(0, 0, 2.6), Vector3(0, 0, 1))
+	for u in party:
+		u.trail.clear()
 	fade_in(0.5)
 	await wait(0.4)
 
@@ -846,8 +1013,28 @@ func _set_inside(on: bool) -> void:
 		cam_look_h = 2.2
 
 # Is Asar's hymn still going? (Mattias makes you listen to the whole thing.)
+# (Asar 11/23) You only have to hear it through once, ever: summit.gd counts how long it has actually played
+# (_hymn_watch), then sets hymnHeard (this save) + Game.unlock("hymn_heard") (every playthrough after).
 func hymn_playing() -> bool:
-	return hymn != null and hymn.player != null and hymn.player.playing and not hymn.played_once
+	if hymn_heard():
+		return false
+	return hymn != null and hymn.player != null and hymn.player.playing
+
+func hymn_heard() -> bool:
+	return Game.flag("hymnHeard") or Game.progress.has("hymn_heard")
+
+var _hymn_secs := 0.0
+func _hymn_watch(delta: float) -> void:
+	if hymn == null or hymn.player == null or hymn_heard():
+		return
+	if hymn.player.playing and not hymn.player.stream_paused:
+		_hymn_secs += delta
+		var length: float = hymn.player.stream.get_length() if hymn.player.stream else 165.0
+		if _hymn_secs >= length - 1.0 or hymn.played_once:
+			Game.set_flag("hymnHeard")
+			Game.unlock("hymn_heard")
+			if inside and stage == "lair":
+				objective("Approach Metocin Mattias.", DAIS + Vector3(0, 0, 4))
 
 func _peep_the_song() -> void:
 	busy = true
@@ -1610,12 +1797,21 @@ func _shot_tour() -> void:
 	await shot("s_08_hall_reveal")
 	await wait(3.5)
 	await shot("s_09_hall")
+	place_party(DOOR_IN + Vector3(0, 0, -0.6), Vector3(0, 0, -1))   # (Asar 11/23) by the door: no seeing past the walls
+	await wait(1.2)
+	await shot("s_09b_by_the_door")
 	place_party(INT + Vector3(-6.0, 0, 5.0), Vector3(0, 0, -1))
 	await wait(1.0)
 	await shot("s_10_alchemy")
 	place_party(INT + Vector3(6.0, 0, 5.0), Vector3(0, 0, -1))
 	await wait(1.0)
 	await shot("s_11_study")
+	place_party(OG_POS + Vector3(-0.6, 0, 1.6), Vector3(0, 0, -1))   # (Asar 11/23) inspect the OG Metocy
+	await wait(0.8)
+	await shot("s_11b_og_case")
+	var og_it: Array = current_interactables().filter(func(i): return i["id"] == "og_metocy")
+	if not og_it.is_empty():
+		await _inspect_og()
 	place_party(DAIS + Vector3(0, 0, 9.0), Vector3(0, 0, -1))
 	await wait(0.8)
 	await shot("s_12_mattias")
