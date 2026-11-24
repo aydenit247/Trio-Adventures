@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Bigger Deloye Lore library: a walkable multi-room library with Deloye's rotunda as the final room — files: godot/scripts/deloye_library.gd, godot/scripts/deloye_script.gd, godot/deloye_library.tscn, DELOYE_PLAN.md — branch: ebain/big-library — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-24 [ebain] **Big Deloye Lore library**: Atrium → Grand Stacks → Hall of Wind / Restricted Section / Rock Room / Reading Corner; 3 overdue volumes open the rune curtain to Deloye's rotunda (the end)
 - 2026-11-24 [ebain] Combat settings: Battle speed (Settings → Gameplay: Normal/Fast/Very fast), fights follow the menu theme (Parchment too)
 - 2026-11-24 [asar] Dialogue map page (every line/choice/outcome, mp3 status, shared approve ticks), built from the code by tools/dialogue_map/build.sh
 - 2026-11-24 [ebain] Ebain's notes batch: dialogue speed slider (0.5–3x voices + text), Library in the pause menu, Scrapbook scrolls, Dulbers only at the Mart door, Charis's house before + after the Mart (gaming setup, no sign), wooden Giant's Pass sign, followers never steal E, patrols stay dead, tunnel fights fit between walls, fleeing can't drop you off the map, OG Metocy close-up clear, Dulbmeethus lightning (3%), boulder puzzle help (ghost ring, exact-move hints, skip after 3 min), explorer bot at 10x
@@ -57,9 +57,9 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
-- [ebain] godot/scripts/deloye_library.gd, godot/scripts/deloye_script.gd, godot/deloye_library.tscn, DELOYE_PLAN.md
 
 ## Log (newest first)
+- 2026-11-24 [ebain] **Deloye library is now a big place to walk around** (Ebain asked: Deloye = the end destination). Only my files: **deloye_library.gd** (rooms south of the rotunda, walls/curtain/lecterns, free-roam saves now resume where you stood) + **deloye_script.gd** (new DRAFT lines for every room). No hot spots touched. New per-run flags `libEntered`, `libBook_wind/blank/rock`, `libGateOpen`, `libRotunda`. **@asar:** the dialogue map picks up the new lines on its next rebuild (build.sh runs clean; didn't republish, it's your page). Tested: library tour (walks every doorway: LIB ROUTE ALL OK, curtain holds, books, gate, rotunda, gift), VILLAGE_TOUR=flush + DELOYE_EXIT=1, save/resume mid-library, explorer bot 2 min in the library (no problems).
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
 - 2026-11-24 [ebain] **Combat settings merged.** Hot spots: **game.gd** `battle_speed` + `BATTLE_SPEED` (settings.cfg `[game] battle_speed`). **combat/battle_view.gd**: `speed` × battle speed; `_th()` now just returns the menu theme (Ebain: fights always follow it, no more forced dark on Parchment); new `_parch()`, `_ink(color)`, `_pl()` for text inside fight panels (party cards + chips, menu, status/loot tips, results). **menu_ui.gd**: Battle speed row on the Gameplay page. Not touched: battle.gd (claimed but not needed). **@asar:** new labels inside a fight panel → `_pl()`, new fight waits → `* speed` (TIPS). Tested: test_ui ALL OK; FIGHT goblins/giant/bouncer MENUS=1 on Parchment, Gold & Night and Wizard at Normal/Fast/Very fast, no script errors.
 - 2026-11-24 [asar] village_script.gd throne **speech ending** reordered (Asar's call): Chief's east directions → Xylo "They… sell it?" → Chief "For all yo metocy needs." → Chief "Here go some beezy…" → gift → Lykor "Y'all real for this." ("Real ones." cut; his recording never had it, so voice_lines.gd key updated) → Skorn "Why HE get the beezy?" → goodbye. The two Xylo/Chief lines moved out of `GOODBYE` into `SELL_IT`; chug-win and dethrone endings use `SELL_IT + GOODBYE`, so they're unchanged.
