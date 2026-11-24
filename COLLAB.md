@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Ebain's notes batch (speed slider, Esc library, scrapbook scroll, Mart door/Charis house + gaming setup, signs, followers stealing E, patrol respawn, cave fixes, boulder hints/skip, Dulbmeethus lightning, fast bot, OG Metocy inspect) — files: dialogue.gd, game.gd, menu_ui.gd, level.gd, scrapbook_ui.gd, library_ui.gd, area_music.gd, mart.gd, mart_script.gd, cave.gd, ruins_script.gd, village.gd, summit.gd, combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, tools/explorer_bot*.gd, .github/workflows/explorer-bot.yml — branch: ebain/notes-batch — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-24 [ebain] Ebain's notes batch: dialogue speed slider (0.5–3x voices + text), Library in the pause menu, Scrapbook scrolls, Dulbers only at the Mart door, Charis's house before + after the Mart (gaming setup, no sign), wooden Giant's Pass sign, followers never steal E, patrols stay dead, tunnel fights fit between walls, fleeing can't drop you off the map, OG Metocy close-up clear, Dulbmeethus lightning (3%), boulder puzzle help (ghost ring, exact-move hints, skip after 3 min), explorer bot at 10x
 - 2026-11-24 [asar] Persona playtest (20 runs: speedrunner, toddler, exploiter, fun-seeker) + fixes: Mattias hall doorway no longer drops you off the map, camera stays inside the hall, objective star right inside/outside (hall, Mart shop, Charis's house), dev menu is Alt+F1
 - 2026-11-24 [ebain] **Secret Deloye Lore library** (DELOYE_PLAN.md): 5 Lost Pages (one per area) → flush chain on the outhouse → round library, Deloye (Ebain's art) twirling in the middle, Deloye Lore Neuralink for Xylo, secret achievement + Scrapbook page. Waiting on Ebain's song + real lines
 - 2026-11-23 [asar] Asar's 11/23 batch: troll "It's good" love & light scene (Hold E to skip), enemy HP x/x + red bars over enemies, OG Metocy display case in Mattias's study (E Inspect), hymn only has to play once, summit camera follows again, castle followers no longer run off, interior walls run past the door (village rooms, Mart, Charis's house, lair hall)
@@ -54,10 +54,21 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
-- [ebain] godot/scripts/{dialogue,game,menu_ui,level,scrapbook_ui,library_ui,area_music,mart,mart_script,cave,ruins_script,village,summit}.gd, godot/scripts/combat/{battle,battle_view,combat_data}.gd, godot/tools/explorer_bot*.gd, .github/workflows/explorer-bot.yml
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [ebain] **Ebain's notes batch merged.** **Hot spots:** `dialogue.gd` (speed mode → `_speed_slider`,
+  `Game.dlg_speed` is a float 0.5–3 now, voices + typing + buffer scale with it; `_fast_bus(x)`), `game.gd` (dlg_speed
+  float + old-save migration), `level.gd` (pause menu "Library" row, `_pause_sub(Node)`, party "Talk to" marked
+  `party_talk` and loses to anything else in reach, roam groups save `roamDone_*` flags so beaten patrols stay gone,
+  `_retreat_from()` replaces the 4 m sideways jump after fleeing), `combat/battle.gd` (`bolt_pending`, 3% per fight,
+  `BOLT=1` forces it), `combat/battle_view.gd` (`_fit_lineup` raycasts so lineups fit in tunnels, `lightning` event +
+  `_bolt`), `combat/combat_data.gd` (`BOLT_EVENT`). Also: `mart.gd/mart_script.gd` (`MS.DULBERS_OUT` runs from the
+  door; house open in "arrived" stage; `_gaming_setup`; wooden pass sign), `cave.gd` (`solve_next()` BFS, ghost ring,
+  30 s hints, skip at 3 min on the rope, followers wait at the entrance), `summit.gd` (`OG_YAW`, party hidden during
+  inspect, `SUMMIT_TOUR=og`), `scrapbook_ui.gd` (`_resettle`), `area_music.gd` (silent while `library_open`),
+  explorer bot `BOT_SPEED` now scales physics ticks; CI runs **10x headless** by default (input `speed: 1` = old
+  picture run). Asar: your bot's picture run is still there, it's just not the default any more (Ebain's call).
 - 2026-11-24 [asar] **Persona playtest fixes merged.** Asar had me play 20 runs as a speedrunner, a toddler, an exploiter
   and a fun-seeker. **Hot spot level.gd:** the dev menu now needs **Alt+F1** (one line in `_process`, plain F1 does
   nothing). Toddler mashing in F1 had flipped the dialogue filter to "only Xylo" and broken the village for good.
