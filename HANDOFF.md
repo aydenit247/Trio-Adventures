@@ -173,6 +173,16 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
 - **Fast logic-only check:** add `--headless` (no xvfb, no rendering flags). Tours run in about a minute, print
   `SHOT <name>` instead of saving pictures, and any script error shows up. Use this to check that a flow still
   finishes, and the xvfb run when you need to see it.
+- **Explorer bot (Asar 11/23):** plays the game on its own at random: wanders, presses E on things, reads every line,
+  picks random choices, mashes through minigames, auto-plays fights, area after area (it can finish Chapter 1 and start
+  over). Reports script errors, softlocks, stuck dialogue, falling through the floor, endless fights and freezes, each
+  with a screenshot + what it did just before. `godot --headless --path godot --audio-driver Dummy --script
+  res://tools/explorer_bot.gd` (fast, no pictures) or the xvfb command with `--script res://tools/explorer_bot.gd` for
+  screenshots. Env: `BOT_MINUTES`, `BOT_SEED` (same seed = same picks), `BOT_START=res://summit.tscn`, `BOT_SPEED=2`
+  (headless only), `BOT_DIR` (report.md + shots/). Code: `tools/explorer_bot.gd` (launcher) + `explorer_bot_player.gd`.
+  It overwrites user:// saves/progress, so not on your own PC. **On GitHub** it runs by itself after every push to main
+  (`.github/workflows/explorer-bot.yml`, 20 min, red = it found something; report on the run page, screenshots in the
+  `explorer-bot-report` download), or by hand: Actions → "Explorer bot" → Run workflow (minutes / seed / start area).
 Tours are slow in the sandbox (5–9 min); run them one at a time or they time out. `--check-only` always reports
 "Identifier not found: Game" — that's a false positive (the autoload). The sandbox has no TTS and no Forward+, so
 voices are silent and the screenshots look a bit flatter than the real game.

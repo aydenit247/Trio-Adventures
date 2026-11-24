@@ -1,0 +1,90 @@
+# Explorer bot (Asar 11/23): plays the game at random for a while on every push to main (or by hand: Actions →
+# "Explorer bot" → Run workflow) and reports anything that broke. Red = it found a problem. The report + screenshots
+# are in the run's "explorer-bot-report" download; the report text is also on the run's summary page.
+# The bot itself: godot/tools/explorer_bot_player.gd
+name: Explorer bot
+
+on:
+  push:
+    branches: [main]
+    paths: ['godot/**', '.github/workflows/explorer-bot.yml']
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "How long to play (minutes)"
+        default: "20"
+      seed:
+        description: "Seed (leave empty for a random one; reuse a report's seed to replay its picks)"
+        default: ""
+      start:
+        description: "Start in an area instead of a New Game, e.g. res://summit.tscn (empty = New Game)"
+        default: ""
+
+concurrency:
+  group: explorer-bot
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot-linux
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/godot-linux && cd ~/godot-linux
+          curl -fsSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip && rm godot.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot && chmod +x godot
+
+      - name: Virtual screen
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri >/dev/null
+
+      - name: Import assets
+        run: ~/godot-linux/godot --headless --path godot --import >/dev/null 2>&1 || true
+
+      - name: Play
+        env:
+          BOT_MINUTES: ${{ inputs.minutes || '20' }}
+          BOT_SEED: ${{ inputs.seed }}
+          BOT_START: ${{ inputs.start }}
+          BOT_DIR: ${{ github.workspace }}/bot-report
+          BOT_SHOT_EVERY: "30"
+        run: |
+          set -o pipefail
+          xvfb-run -a -s "-screen 0 1280x720x24" ~/godot-linux/godot --path godot \
+            --rendering-method gl_compatibility --rendering-driver opengl3 --resolution 960x540 \
+            --audio-driver Dummy --script res://tools/explorer_bot.gd 2>&1 | tee bot.log | grep --line-buffered "^BOT"
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f bot-report/report.md ]; then
+            cat bot-report/report.md >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Screenshots: download **explorer-bot-report** at the bottom of this page." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "The bot didn't write a report (it probably crashed). See the Play step's log." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          cp bot.log bot-report/ 2>/dev/null || true
+
+      - name: Upload report + screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: explorer-bot-report
+          path: bot-report/
+          retention-days: 14

@@ -80,6 +80,17 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   Interiors far away? Override `bounds_exempt()` (village does it for rooms).
 - [ebain] Dev mode `DEV_DIALOGUE=skip` + `DEV_PICK=n` runs any tour with no dialogue: quick "does this path still finish".
 
+- [asar] **Explorer bot** (`--script res://tools/explorer_bot.gd`, HANDOFF "Testing"): random play for N minutes, report +
+  screenshots. Good after a big merge: `BOT_MINUTES=10 BOT_SPEED=2` headless covers camp → summit in about 10 minutes.
+- [asar] A `--script` SceneTree file is compiled before the `Game` autoload exists, so naming ANY game class in it (Level,
+  MenuUI, BattleView…) fails with "Identifier not found: Game" in those scripts. Keep the --script file tiny and `load()` a
+  Node script at runtime (see `tools/explorer_bot.gd`). Nodes added to `root` survive `change_scene`.
+- [asar] **No sound card (Dummy audio, sandbox + CI): songs never play and never end.** `player.playing` stays false, AreaMusic
+  calls `play()` again every frame, and `summit.hymn_playing()` reads true forever, so Mattias says "Peep the song first"
+  on a loop. The explorer bot marks a play-once song finished after its length; tours need their own way around it.
+- [asar] `Level.auto_dir` is NOT gated by `busy` (unlike keyboard input): zero it during dialogue/cutscenes or the party
+  keeps walking. `BattleView.auto_play` can be switched on from outside after `run()` started (it's read every turn).
+
 ## Performance (players have laptops)
 - [ebain] Budget about 1M triangles per frame. Poly Haven boulders/trunks are 65–100k each; use `rock_07`, `rock_09` or
   `rock_face_01` (12–20k) for anything repeated. Check with `Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME`.
