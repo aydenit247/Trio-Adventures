@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 - [asar] Asar's 11/23 batch: troll love&light scene, summit camera/followers/hymn fixes, OG Metocy display, room walls, loading hang — files: godot/scripts/trail.gd, trail_script.gd, summit.gd, area_music.gd, village_buildings.gd, game.gd (goto only), godot/assets/sounds/love_and_light_* (new), godot/assets/props/og_metocy.png (new) — branch: asar/batch-1123 — started 2026-11-23
 - [asar] Explorer bot: plays the game randomly (wanders, talks, picks random choices, auto-fights), screenshots, reports errors/softlocks; GitHub Action on push to main + Run button — files: godot/tools/explorer_bot.gd (new), .github/workflows/explorer-bot.yml (new) — branch: asar/explorer-bot — started 2026-11-23
 
@@ -50,6 +51,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/assets/items/goblin_tooth.png
 - [asar] godot/scripts/trail.gd, trail_script.gd, summit.gd, area_music.gd, village_buildings.gd, game.gd (goto only), godot/assets/sounds/love_and_light_* (new), godot/assets/props/og_metocy.png (new)
 
 ## Log (newest first)
