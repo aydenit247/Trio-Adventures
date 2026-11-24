@@ -32,10 +32,14 @@ const CHIEF_WAITING := [
 	{ "who": "chief", "line": "Your throne awaits, Mogging Elf. Sit. SIT." }, # DRAFT
 ]
 
-# Shared goodbye (A, B-win and E)
-const GOODBYE := [
+# "They sell it?" — after the chief's directions (B-win and E add it before GOODBYE; A has it right after the directions)
+const SELL_IT := [
 	{ "who": "xylo", "mood": "unimpressed", "line": "They… sell it?" },
 	{ "who": "chief", "line": "For all yo metocy needs." },
+]
+
+# Shared goodbye (A, B-win and E)
+const GOODBYE := [
 	{ "do": "goblins_cry" },
 	{ "who": "goblins", "line": "*sobbing* BYE!! YOU BETTER COME BACK ONE DAY!!" },
 	{ "who": "xylo", "mood": "smug", "line": "On my Dragon Mama, I'm leading from here." },
@@ -63,10 +67,11 @@ const THRONE := [
 			{ "who": "lykor", "mood": "smug", "line": "Y'all need to quit being OD and let me dip on a mf, and that's on some type shi. I'll spin the block on y'all and bring u some metocy n shi, trust. Y'all type coo." }, # Ebain
 			{ "who": "chief", "line": "Bet dat." }, # Ebain
 			{ "who": "chief", "line": "Aight, so if you could keep walking doe, over there, on some east shit. As far as I know, that's the best metocy a goblin like me could get his hands on." }, # Ebain
+		] + SELL_IT + [   # Asar 11/24: Xylo/Chief "sell it" right after the directions, then the beezy
 			{ "who": "chief", "line": "Here go some beezy, folk. Take it for the road." }, # Ebain
 			{ "do": "gift_beezy" },
 			{ "who": "narrator", "line": "Lykor got: Beezy ×3 (heals)" },
-			{ "who": "lykor", "mood": "flattered", "line": "Y'all real for this. Real ones." },
+			{ "who": "lykor", "mood": "flattered", "line": "Y'all real for this." },
 			{ "who": "skorn", "mood": "angry", "line": "Why HE get the beezy?" },
 		] + GOODBYE },
 		# B — chugging contest (mash minigame)
@@ -79,7 +84,7 @@ const THRONE := [
 				{ "who": "chief", "line": "…The Mogging Elf… out-drank… BOGDRINKER?" },
 				{ "who": "goblins", "line": "LEGEND! LEGEND! LEGEND!" },
 				{ "who": "chief", "line": "*hic* The Metocy Mart. East. Go before I cry." },
-			] + GOODBYE },
+			] + SELL_IT + GOODBYE },
 			{ "if_not": "chugWon", "steps": [
 				{ "do": "pass_out" },
 				{ "who": "narrator", "line": "Lykor passes out." },
@@ -131,7 +136,7 @@ const THRONE := [
 			{ "who": "lykor", "mood": "angry", "line": "Y'all DEADASS?" },
 			{ "who": "skorn", "mood": "smug", "line": "Finally. Somebody in this forest got taste." },
 			{ "who": "chief", "line": "The Metocy Mart is east. Purple one, come back anytime. Elf… don't." },
-		] + GOODBYE },
+		] + SELL_IT + GOODBYE },
 	] },
 ]
 

@@ -105,7 +105,7 @@ const LINES := {
 	"Y'all DEADASS?": "lykor/yall_deadass",
 	"Y'all had said you got some beezy or some shit?": "lykor/yall_had_said_you_got_some_beezy_or_some_shit",
 	"Y'all need to quit being OD and let me dip on a mf, and that's on some type shi. I'll spin the block on y'all and bring u some metocy n shi, trust. Y'all type coo.": "lykor/yall_need_to_quit_being_od_and_let_me_dip_on_a_mf",
-	"Y'all real for this. Real ones.": "lykor/yall_real_for_this",
+	"Y'all real for this.": "lykor/yall_real_for_this",   # the recording never had "Real ones."
 	"You robbed a sleeping giant?": "lykor/you_robbed_a_sleeping_giant",
 	"You was a god for five minutes, bro. Pipe down.": "lykor/you_was_a_god_for_five_minutes_bro",
 	"You was finna lace us with MIDTOCY?": "lykor/you_was_finna_lace_us_with_midtocy",
