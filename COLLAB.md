@@ -11,6 +11,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 - [asar] "voice": "none" per line so the troll's "Aight bet" doesn't play the giant's recording — files: godot/scripts/dialogue.gd (say/_speak only), script_scan.gd, trail_script.gd, godot/tools/dialogue_map_dump.gd — branch: asar/voice-none — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Throne speech ending: reorder Xylo/Chief/beezy lines, trim "Real ones." off Lykor's line — files: godot/scripts/village_script.gd, godot/scripts/voice_lines.gd, godot/assets/voices/lykor/yall_real_for_this.* — branch: asar/speech-order — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -55,6 +56,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [asar] godot/scripts/village_script.gd, voice_lines.gd, assets/voices/lykor/yall_real_for_this.*
 - [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
