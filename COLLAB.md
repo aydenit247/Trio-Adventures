@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] UI overhaul part 1 (themes Gold & Night / Parchment / Wizard Arcane, UI + text size, menus restyle, new settings, main-menu Library: soundtrack unlocks when heard + lyrics) — files: menu_ui.gd, title.gd, game.gd (settings vars, short), area_music.gd, shop_ui.gd, job_board_ui.gd, map_ui.gd, achievements.gd, new ui_theme.gd + library_ui.gd — branch: ebain/ui-overhaul — started 2026-11-24. Dialogue/HUD/combat restyle waits for the summit finale to merge.
 - [ebain] Summit finale (SUMMIT_FINALE_PLAN.md: arrival lines, Dulbers ambush, Mattias castle, endings) — files: summit.gd, summit_script.gd, summit.tscn, mart.gd, pass_script.gd, progress_data.gd, dev_mode.gd, hot spots dialogue.gd + level.gd (1–2 lines each) + combat/combat_data.gd + combat/battle.gd + combat/battle_view.gd (short) — branch: ebain/summit-finale — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -44,6 +45,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [ebain] godot/scripts/summit.gd, summit_script.gd, godot/summit.tscn, mart.gd, pass_script.gd, progress_data.gd, dev_mode.gd, dialogue.gd, level.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
+- [ebain ui] godot/scripts/menu_ui.gd, title.gd, game.gd, area_music.gd, shop_ui.gd, job_board_ui.gd, map_ui.gd, achievements.gd, ui_theme.gd, library_ui.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
