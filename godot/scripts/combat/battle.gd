@@ -19,7 +19,7 @@ const D = preload("res://scripts/combat/combat_data.gd")
 const BASE := 100.0
 const TIMING := { "perfect": 1.5, "good": 1.2, "mid": 0.9 }
 const BLOCK := { "perfect": 0.35, "good": 0.7, "mid": 1.0 }
-const DURATION := ["mogged", "lorepill", "downbad", "cooked", "gouged", "locked", "copium", "itis"]
+const DURATION := ["mogged", "lorepill", "downbad", "cooked", "gouged", "locked", "copium", "itis", "braced"]
 
 var key := ""
 var def: Dictionary
@@ -38,6 +38,7 @@ var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 
 var party: Array = []
 var enemies: Array = []
 var dmg_scale := 1.0
+var boss_dmg := 1.0               # D.BOSS_SCALE: bosses hit harder when you out-level them
 var throwables: Array = []        # names of the real props piled next to the party (BattleView); empty = D.THROWABLES
 var ended := ""          # "fled" / "talked" when the fight ends without a winner
 
@@ -86,6 +87,10 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 	var hp_mul: float = (1.15 if mods.get("enraged", false) else 1.0) * diff["hp"] * (0.75 if ids.size() < full_party else 1.0)
 	if ids.size() > full_party and def.get("boss", false):
 		hp_mul *= 1.08   # the Chief came along: bosses get a little beefier
+	if def.get("boss", false) and def.has("lvl"):   # out-leveled the boss? it keeps up (D.BOSS_SCALE)
+		var over := clampi(level - int(def["lvl"]), 0, int(D.BOSS_SCALE["cap"]))
+		hp_mul *= 1.0 + D.BOSS_SCALE["hp"] * over
+		boss_dmg = 1.0 + D.BOSS_SCALE["dmg"] * over
 	if not def.get("story", false):
 		# roaming fights scale with how many of you there are
 		hp_mul *= 0.55 + 0.3 * ids.size()
@@ -613,6 +618,8 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 			label = { "perfect": "PERFECT!", "good": "GOOD", "mid": "MID" }[timing]
 	if e["st"].has("mogged"):
 		dmg *= 1.25
+	if e["st"].has("braced"):
+		dmg *= 0.7
 	var d := maxi(1, int(round(dmg)))
 	var ev := []
 	if e["st"].has("shield"):
@@ -719,6 +726,18 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			return { "kind": "phase", "text": "Dulbers SHAPESHIFTS… into %s?! (Bootleg version)" % D.PARTY[e["disguise"]]["name"], "bark": "phase", "disguise": e["disguise"] }
 		if e["ai"] == "mattias":
 			return { "kind": "phase", "text": "Metocin Mattias stops holding back. (Every hit lands harder now.)", "bark": "phase" }
+
+	# Boss buffs (Ebain 11/24: "think of more buffs bosses can do"). Texts are # DRAFT.
+	if e.get("boss", false):
+		if e["hp"] < e["max_hp"] * 0.3 and not e.get("last_stand", false):   # once: refuses to lose
+			e["last_stand"] = true
+			return { "kind": "buff", "status": "hyped", "turns": 1,
+				"text": "%s refuses to lose like this. HYPED UP: the next hit does double damage." % e["name"] } # DRAFT
+		var every: int = 7 if e["ai"] == "mattias" else 5
+		if e["turn"] % every == every - 1 and not e["st"].has("braced"):
+			var why: String = { "giant": "Diddy Chud flexes his big back.", "dulbers": "Dulbers pins on a MANAGER badge.",
+				"mattias": "Mattias adjusts his robe. Unbothered." }.get(e["ai"], "%s braces." % e["name"]) # DRAFT
+			return { "kind": "buff", "status": "braced", "turns": 2, "text": why + " BRACED: takes 30% less damage for 2 turns." }
 
 	if mods.get("enemy_tripping", false) and rnd() < 0.3:
 		if rnd() < 0.5:
@@ -858,7 +877,7 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 		if rnd() < 0.6:
 			ev.append({ "t": "miss", "u": e, "text": "%s swings at nothing. BLINDED." % e["name"], "sound": "miss" })
 			return ev
-	var mult: float = diff["dmg"] * dmg_scale * (1.1 if mods.get("enraged", false) else 1.0)
+	var mult: float = diff["dmg"] * dmg_scale * (boss_dmg if e.get("boss", false) else 1.0) * (1.1 if mods.get("enraged", false) else 1.0)
 	if e["st"].has("hyped"):
 		mult *= 2.0
 		e["st"].erase("hyped")

@@ -17,11 +17,14 @@ const INK := Color("#f3e3b0")
 const STOCK := [
 	["beer", "item", 8], ["bowl", "item", 15],
 	["pot_lid", "gear", 25], ["jordan9s", "gear", 30], ["goblin_tooth", "gear", 45], ["rock", "gear", 3],
+	# the top shelf (Ebain 11/24: really expensive, worth coming back for)
+	["air_forces", "gear", 220], ["gold_chain", "gear", 280], ["king_helm", "gear", 320], ["designer_mail", "gear", 400], ["golden_ladle", "gear", 650],
 ]
 
 var lv: Node
 var root: Control
 var rows: Array = []
+var scroll: ScrollContainer
 var sel := 0
 var gold_lbl: Label
 var who_lbl: Label
@@ -114,10 +117,13 @@ func _build() -> void:
 	who_lbl.position = Vector2(34, 92)
 	root.add_child(who_lbl)
 	# item list (left)
+	scroll = ScrollContainer.new()   # scrolls: the top shelf made the list longer than the box (11 items)
+	scroll.position = Vector2(30, 128); scroll.size = Vector2(446, 380)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(scroll)
 	var list := VBoxContainer.new()
-	list.position = Vector2(30, 128); list.size = Vector2(430, 380)
 	list.add_theme_constant_override("separation", 6)
-	root.add_child(list)
+	scroll.add_child(list)
 	for i in STOCK.size():
 		var r := Panel.new()
 		r.custom_minimum_size = Vector2(430, 56)
@@ -226,6 +232,8 @@ static func _placeholder() -> Texture2D:   # until the item picture exists: a li
 	return _ph
 
 func _refresh() -> void:
+	if scroll and sel < rows.size():
+		scroll.ensure_control_visible.call_deferred(rows[sel]["panel"])
 	gold_lbl.text = str(Game.gold)
 	who_lbl.text = "Buying for: %s" % CombatD.PARTY[Game.active_fighter]["name"]
 	for i in rows.size():

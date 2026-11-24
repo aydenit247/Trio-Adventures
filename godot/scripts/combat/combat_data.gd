@@ -110,6 +110,12 @@ const GEAR := {
 	"jordan9s": { "slot": "shoes", "name": "Jordan 9's", "desc": "Fresh out the box. Don't step in anything. +1 speed.", "spd": 1 }, # DRAFT desc
 	"goblin_tooth": { "slot": "trinket", "name": "Lucky Goblin Tooth", "desc": "The goblin wasn't using it anymore. +5% damage.", "power": 0.05 }, # DRAFT desc
 	"rock": { "slot": "trinket", "name": "A Rock (Pre-Owned)", "desc": "It's a rock. It does nothing. You paid for it." }, # DRAFT desc
+	# Haggle's top shelf (Ebain 11/24: "really expensive gear that makes you wanna go back"). Names/descs: # DRAFT
+	"gold_chain": { "slot": "trinket", "name": "Haggle's Gold Chain", "desc": "Real gold. Probably. +15% damage and +10 max HP.", "power": 0.15, "hp": 10 }, # DRAFT
+	"air_forces": { "slot": "shoes", "name": "Crispy Air Forces", "desc": "Never been creased. Never will be. +3 speed.", "spd": 3 }, # DRAFT
+	"king_helm": { "slot": "helmet", "name": "Goblin King's Helm", "desc": "Spoons, but make them royal. +3 armor, start fights with 20 meter.", "armor": 3, "start": 20 }, # DRAFT
+	"designer_mail": { "slot": "armor", "name": "Designer Spoon Mail", "desc": "Same spoons, better logo. +5 armor and +20 max HP.", "armor": 5, "hp": 20 }, # DRAFT
+	"golden_ladle": { "slot": "weapon", "name": "The Golden Ladle", "desc": "Haggle's prized possession. He cried a little. +25% damage, +20% meter gain.", "power": 0.25, "meter": 1.2 }, # DRAFT
 	"receipt": { "slot": "trinket", "name": "Metocy Mart Receipt", "desc": "NO REFUNDS. Start every fight with 25 meter, and Price Gouge can't touch you.", "start": 25, "gouge_proof": true },
 }
 
@@ -137,6 +143,7 @@ const STATUS := {
 	"gouged": { "label": "PRICE GOUGED", "good": false, "desc": "Healing is cut in half." },
 	"flattened": { "label": "FLATTENED", "good": false, "desc": "Loses their next turn." },
 	"bricked": { "label": "BRICKED", "good": false, "desc": "Special cooldown +1." },
+	"braced": { "label": "BRACED", "good": true, "desc": "Takes 30% less damage." },   # bosses (Ebain 11/24: more boss buffs)
 	"buzzed": { "label": "BUZZED", "good": false, "desc": "25% chance the next move misfires." },
 }
 
@@ -174,37 +181,37 @@ const FIGHTS := {
 		"loot": "spoon",
 	},
 	"dulbers": {
-		"title": "The Party vs. Dulbers Frint", "party": ["skorn", "lykor", "xylo"], "xp": 60, "story": true, "boss": true,
+		"title": "The Party vs. Dulbers Frint", "party": ["skorn", "lykor", "xylo"], "xp": 60, "story": true, "boss": true, "lvl": 2,
 		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "gold": 75, "hp": 300, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
 		"talk": ["refund", "compliment_store"],
 		"loot": "receipt",
 	},
 	"giant": {
-		"title": "BOSS: Diddy Chud Giant", "party": ["skorn", "lykor", "xylo"], "xp": 100, "story": true, "boss": true,
+		"title": "BOSS: Diddy Chud Giant", "party": ["skorn", "lykor", "xylo"], "xp": 100, "story": true, "boss": true, "lvl": 3,
 		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "gold": 150, "hp": 520, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
 		"talk": ["feed_giant", "lullaby"],
 	},
 	# ---- the Summit Path (Ebain's summit plan 11/24)
 	"dulbers_ambush": {   # regular-size Dulbers (not the demon) catches up on the climb; Mattias can join as a 4th fighter
-		"title": "Dulbers Frint (Regular Size) Wants Smoke", "party": ["skorn", "lykor", "xylo"], "xp": 70, "story": true, "boss": true,
+		"title": "Dulbers Frint (Regular Size) Wants Smoke", "party": ["skorn", "lykor", "xylo"], "xp": 70, "story": true, "boss": true, "lvl": 4,
 		"enemies": [{ "name": "Dulbers Frint", "tag": "(Regular Size) (Still Mad)", "gold": 60, "hp": 480, "spd": 16, "tex": "dulbers", "portrait": "dulbers", "h": 1.3, "ai": "dulbers", "boss": true }],
 		"talk": ["refund", "compliment_store"],
 	},
 	"mattias": {   # the sucker punch. Numbers: MATTIAS_BOSS
-		"title": "FINAL BOSS(?): Metocin Mattias", "party": ["skorn", "lykor", "xylo"], "xp": MATTIAS_BOSS["xp"], "story": true, "boss": true,
+		"title": "FINAL BOSS(?): Metocin Mattias", "party": ["skorn", "lykor", "xylo"], "xp": MATTIAS_BOSS["xp"], "story": true, "boss": true, "lvl": 5,
 		"enemies": [{ "name": "Metocin Mattias", "tag": "(Got Sucker Punched) (Unbothered)", "gold": MATTIAS_BOSS["gold"], "hp": MATTIAS_BOSS["hp"], "spd": MATTIAS_BOSS["spd"], "tex": "mattias", "portrait": "mattias", "h": 2.2, "ai": "mattias", "boss": true }],
 		"talk": ["apologize_mattias"],
 	},
 	# ---- village side fights
 	"bouncer": {
-		"title": "Bar Fight: Big Thumbs", "xp": 40, "story": true,
+		"title": "Bar Fight: Big Thumbs", "xp": 70, "story": true,
 		"enemies": [
 			{ "name": "Big Thumbs", "tag": "(Bouncer) (Has a Gym Membership)", "gold": 25, "hp": 150, "spd": 8, "tex": "goblin_fight", "h": 1.75, "ai": "goblin", "second_wind": true },
 		],
 		"talk": ["bribe_goblin", "kings_decree"],
 	},
 	"troll": {   # (Asar) the Bridge Troll, if you tell him "Bad."
-		"title": "The Bridge Troll", "xp": 45,
+		"title": "The Bridge Troll", "xp": 85,
 		"enemies": [
 			{ "name": "Bridge Troll", "tag": "(Was Told \"Bad.\")", "gold": 80, "hp": 170, "spd": 7, "tex": "troll", "h": 2.3, "ai": "goblin", "second_wind": true },
 		],
@@ -212,7 +219,7 @@ const FIGHTS := {
 	},
 	# ---- roaming (optional) fights
 	"goblin_patrol": {
-		"title": "Goblin Patrol", "xp": 25,
+		"title": "Goblin Patrol", "xp": 50,
 		"enemies": [
 			{ "name": "Goblin", "tag": "(Unpaid Internship)", "gold": 2, "hp": 24, "spd": 8, "tex": "goblin_fight", "h": 1.2, "ai": "goblin" },
 			{ "name": "Goblin", "tag": "(Hall Monitor)", "gold": 6, "hp": 30, "spd": 7, "tex": "goblin_fight", "h": 1.32, "ai": "goblin" },
@@ -253,6 +260,11 @@ const DIFFICULTY := [
 	{ "name": "Crashout", "label": "Crashout (on some hard shi)", "dmg": 1.25, "hp": 1.1, "window": 0.75 },
 ]
 
+
+# Bosses keep up when you out-level them (Ebain 11/24: leveling got easier, bosses must stay powerful).
+# A boss fight's "lvl" = the level you're expected to be at. Each level you're above it: +hp HP and +dmg damage,
+# up to `cap` levels. Under it: no change (it's already balanced for that).
+const BOSS_SCALE := { "hp": 0.12, "dmg": 0.06, "cap": 4 }
 
 # XP needed to reach each level (index = level)
 const LEVELS := [0, 0, 50, 120, 220, 350, 520, 740, 1000, 1300, 1650]

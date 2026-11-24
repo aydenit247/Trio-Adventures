@@ -261,6 +261,17 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   Y switch leader, Back = party, Start = menu. Number keys 1–9 pick dialogue choices.
 - **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Speed mode** (button at the bottom-left of the dialogue box, asks Yes/No; off with one click or in Settings) removes the buffer and makes the **voices** 1.5x faster (Ebain 11/24: speed mode is for the voices, not the text). Recorded lines play at `pitch_scale` 1.5 on a runtime `VoiceFast` bus with a pitch-shift effect, so they don't sound like chipmunks; the robot voice gets `rate` × 1.5. Text types at the normal speed. Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.
 
+### Leveling, boss scaling, gear (Ebain 11/24)
+- **Optional fights give more XP** (patrol 50, bar fight 70, troll 85) so you level before Diddy Chud. `LEVELS` curve unchanged.
+- **Bosses keep up:** each boss fight has `"lvl"` (expected level: Dulbers 2, giant 3, ambush 4, Mattias 5). Every level
+  you're above it gives the boss +12% HP and +6% damage, up to 4 levels (`CombatD.BOSS_SCALE`, `battle.gd boss_dmg`).
+  The sim shows out-leveled bosses win/lose about the same as on-level ones.
+- **Boss buffs** (`battle.gd enemy_plan`, texts # DRAFT): every boss once goes HYPED at 30% HP ("refuses to lose"), and
+  every 5th turn (Mattias 7th) gets **BRACED** (new status: takes 30% less damage for 2 turns).
+- **Haggle's top shelf** (`shop_ui.gd STOCK`, gear in `CombatD.GEAR`, names/descs # DRAFT): Crispy Air Forces 220,
+  Haggle's Gold Chain 280, Goblin King's Helm 320, Designer Spoon Mail 400, The Golden Ladle 650 (the first weapon).
+  No item pictures yet (placeholder crate). The shop list scrolls now.
+
 ### Combat in one paragraph
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
 FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T or the Esc menu), meters → ultimates

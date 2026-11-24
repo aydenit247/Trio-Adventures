@@ -172,6 +172,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Library Voice Lines + Scrapbook read the scripts at runtime (ScriptScan), so nothing to update by hand when
   lines/recordings/outcomes change. A NEW dialogue script file must be added to `ScriptScan.SCRIPTS`. Some script
   dicts have int keys: compare `str(k)`, not `k != "line"`.
+- [ebain] Balance: run `godot --headless --path godot --script res://tools/sim_combat.gd` after touching fight numbers. It now
+  also runs out-leveled bosses (Dulbers L4, giant L5, ambush L6) to check BOSS_SCALE keeps them tough.
 - [ebain] UI logic test: `godot --headless --path godot res://tools/test_ui.tscn` → "UI TEST: ALL OK" (keybinds,
   buses, Library unlocks, every settings page in every theme).
 - [ebain] After rebasing onto someone's new `class_name` (e.g. ProgressData), tours fail with thousands of errors until
