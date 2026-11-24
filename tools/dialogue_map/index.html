@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trio Adventures Dialogue Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE work tool for two people revising and recording a game script
+   IDEA the game's own dialogue box and quest-log look: purple night, gold lettering, a recording-session checklist
+   PICTURE the branching map itself: each conversation drawn as a script, choices drop off a bracket into columns
+   COLOUR night purple ground, gold for the title and choices, green for recorded, coral for missing a recording
+   TYPE Cinzel (the game's title face) for headings + Inter for the lines
+   LAYOUT sticky toolbar with counts and filters; scene list on the left above 900px, conversations on the right; one column on phones */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#150e20);--panel:light-dark(#f6f2fb,#1f1530);--panel2:light-dark(#efe8f8,#281c3c);--ink:light-dark(#1d1230,#f1eafc);--mute:light-dark(#5f5272,#a99cbd);--line:light-dark(#ddd2ea,#3a2c52);--gold:light-dark(#8a5d00,#f2c14e);--ok:light-dark(#127a3d,#5ed68b);--miss:light-dark(#c23a2b,#ff7b6b);--appr:light-dark(#0d6e66,#4fd1c5)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Cinzel,Georgia,serif;letter-spacing:-.01em;margin:0;line-height:1.1}
+h1{font-size:clamp(24px,3.4vw,36px);color:var(--gold)}
+h2{font-size:24px;color:var(--gold)}
+h3{font-size:17px}
+button,select,input{font:inherit;color:inherit}
+.top{padding:16px max(3vw,16px) 4px}
+.tools{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:8px max(3vw,16px)}
+.trow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.sub{color:var(--mute);font-size:13px}
+.figs{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--mute)}
+.figs b{font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;margin-right:4px}
+.figs .g b{color:var(--ok)}.figs .r b{color:var(--miss)}.figs .a b{color:var(--appr)}
+.bar{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;display:flex;margin-top:8px}
+.bar i{display:block;height:100%}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 14px;min-height:40px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:600}
+.ctl input[type=search],.ctl select{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 12px;min-height:40px;font-size:16px}
+.ctl input[type=search]{width:min(260px,100%)}
+.tog{display:flex;gap:6px;align-items:center;font-size:14px;cursor:pointer;padding:0 6px}
+.tog input{width:18px;height:18px;accent-color:var(--appr)}
+.note{font-size:13px;color:var(--mute);margin-top:6px}
+.note.warn{color:var(--miss)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;padding:20px max(3vw,16px) 80px;max-width:1500px;margin:0 auto}
+@media(min-width:900px){.wrap{grid-template-columns:240px minmax(0,1fr)}.nav{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 100px);overflow:auto}}
+.nav a{display:block;padding:8px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14px}
+.nav a:hover,.nav a:focus-visible{background:var(--panel)}
+.nav small{display:block;color:var(--mute);font-size:12px}
+.nav .bar{height:4px;margin-top:4px}
+@media(max-width:899px){.nav{display:flex;overflow-x:auto;gap:4px}.nav a{flex:none}}
+.scene{margin-bottom:40px;scroll-margin-top:90px}
+.shead{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;border-bottom:2px solid var(--gold);padding-bottom:8px;margin-bottom:14px}
+.conv{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:0 0 14px;scroll-margin-top:90px}
+.conv>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.conv>summary::-webkit-details-marker{display:none}
+.conv>summary::before{content:"▸";color:var(--gold);transition:transform .15s}
+.conv[open]>summary::before{transform:rotate(90deg)}
+.when{color:var(--mute);font-size:13px;flex-basis:100%;padding-left:18px}
+.cbody{padding:4px 14px 14px}
+.ln{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 8px;align-items:start;padding:5px 6px;border-radius:8px}
+.ln:hover{background:var(--panel2)}
+.ln .ck{width:20px;height:20px;margin-top:2px;accent-color:var(--appr);cursor:pointer}
+.who{font-weight:600;color:var(--c);white-space:nowrap;margin-right:6px}
+.tx{overflow-wrap:anywhere}
+.bd{display:inline-flex;gap:4px;flex-wrap:wrap;margin-left:6px;vertical-align:1px}
+.b{font-size:11.5px;border-radius:5px;padding:0 6px;border:1px solid currentColor;white-space:nowrap;line-height:18px}
+.b.ok{color:var(--ok)}.b.miss{color:var(--miss);font-weight:600}
+.b.eb{color:var(--gold)}.b.dr{color:var(--mute)}.b.as{color:var(--appr)}
+.b.mood{color:var(--mute);border-style:dashed}
+.ln.ap{opacity:.55}.ln.ap .tx{text-decoration:line-through;text-decoration-color:var(--appr)}
+.ln.cx{opacity:.5}
+.pin{border:0;background:none;color:var(--mute);cursor:pointer;font-size:12px;padding:0 4px;text-decoration:underline}
+.stub{display:inline-block;margin:2px 0 2px 34px;font-size:12.5px;color:var(--mute);background:none;border:1px dashed var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.act{margin:2px 0 2px 34px;font-size:12.5px;color:var(--mute)}
+.act a{color:var(--gold)}
+.fork{margin:8px 0 10px 34px}
+.flab{font-family:Cinzel,Georgia,serif;font-size:13px;color:var(--gold)}
+.prongs{display:flex;gap:14px;overflow-x:auto;border-top:2px solid var(--gold);margin-top:6px;padding-bottom:4px}
+.prongs.wrapv{flex-wrap:wrap}
+.prong{flex:1 0 280px;position:relative;padding-top:14px}
+.prong::before{content:"";position:absolute;top:0;left:16px;width:2px;height:12px;background:var(--gold)}
+.opt{background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:6px 10px;font-weight:600;margin-bottom:4px}
+.opt .b{font-weight:400}
+.prong .ln,.prong .stub,.prong .act,.prong .fork{margin-left:0}
+.cond{margin:6px 0 6px 34px;border-left:2px dashed var(--line);padding-left:10px}
+.cond .flab{color:var(--mute);font-family:Inter,system-ui,sans-serif;font-size:12.5px}
+.empty{color:var(--mute);font-style:italic;font-size:13px;margin-left:34px}
+.hidden-note{color:var(--mute);font-size:13px;margin:-6px 0 14px}
+.modal{position:fixed;inset:0;background:rgb(0 0 0/.55);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+.modal.on{display:flex}
+.modal div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;width:min(720px,100%)}
+.modal textarea{width:100%;height:50vh;font:13px/1.5 ui-monospace,monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--mute);margin-top:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(max-width:600px){.prong{flex-basis:240px}.chip{padding:8px 11px;flex:none}.ctl{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.ctl select,.ctl input[type=search]{flex:none;width:200px}.tog{flex:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="trow">
+    <div><h1>Trio Adventures dialogue map</h1><div class="sub" id="built">Loading the script…</div></div>
+    <div class="figs" id="figs"></div>
+  </div>
+  <div class="bar" id="bigbar" aria-hidden="true"></div>
+  <div class="legend"><span><span class="b ok">mp3</span> has a recording</span><span><span class="b miss">no mp3</span> needs one</span><span><span class="b eb">Ebain</span> <span class="b as">Asar</span> exact wording</span><span><span class="b dr">draft</span> Claude's draft</span><span>☑ approved (hides once ticked)</span></div>
+  <div class="note" id="dbnote"></div>
+</header>
+<div class="tools">
+  <div class="ctl" role="toolbar" aria-label="Filters">
+    <button class="chip" data-mode="all" aria-pressed="true">Everything</button>
+    <button class="chip" data-mode="missing" aria-pressed="false">Missing an mp3</button>
+    <button class="chip" data-mode="todo" aria-pressed="false">Not approved yet</button>
+    <button class="chip" data-mode="draft" aria-pressed="false">Drafts (not Ebain's/Asar's wording)</button>
+    <select id="who" aria-label="Speaker"><option value="">Every speaker</option></select>
+    <input type="search" id="q" placeholder="Search lines" aria-label="Search lines">
+    <label class="tog"><input type="checkbox" id="showap"> Show approved lines</label>
+    <button class="chip" id="copymiss">Copy lines missing an mp3</button>
+  </div>
+</div>
+<div class="wrap">
+  <nav class="nav" id="nav" aria-label="Scenes"></nav>
+  <main id="main"></main>
+</div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Copy list"><div><h3>Lines missing an mp3</h3><p class="sub">Copy this and use it as the recording list.</p><textarea id="mtext" readonly></textarea><p><button class="chip" id="mclose">Close</button></p></div></div>
+<script>
+{
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const human = k => { const s = String(k).toLowerCase().replace(/_/g, " "); return s.charAt(0).toUpperCase() + s.slice(1); };
+const fnv = s => { let h = 0x811c9dc5; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, "0"); };
+let DATA = null, CH = {}, db = null, user = null, canWrite = true;
+const approvals = new Map();   // line id -> {by, at, keep}
+const expanded = new Set();
+const st = { mode: "all", who: "", q: "", showAp: false };
+const names = {};
+
+const lineId = n => "l" + fnv((n.who || "") + "|" + n.text);
+const isLine = n => n && (n.t === "line" || n.t === "str");
+const whoName = n => n.name || (CH[n.who] && CH[n.who].name) || (n.who === "narrator" ? "Narrator" : n.who || "—");
+const whoCol = n => (CH[n.who] && CH[n.who].color) || "var(--mute)";
+
+function matches(n) {
+  if (st.mode === "missing" && n.voice) return false;
+  if (st.mode === "draft" && (n.tag === "Ebain" || n.tag === "Asar")) return false;
+  if (st.mode === "todo" && approvals.has(lineId(n))) return false;
+  if (st.who && n.who !== st.who) return false;
+  if (st.q && !(n.text + " " + whoName(n)).toLowerCase().includes(st.q)) return false;
+  return true;
+}
+const hiddenAp = n => approvals.has(lineId(n)) && !st.showAp && !approvals.get(lineId(n)).keep;
+const shows = n => matches(n) && !hiddenAp(n);
+
+// does this subtree contain a line that should show?
+function anyShow(v) {
+  if (Array.isArray(v)) return v.some(anyShow);
+  if (!v || typeof v !== "object") return false;
+  if (isLine(v)) return shows(v);
+  if (v.t === "choice") return v.options.some(o => anyShow(o.steps));
+  if (v.t === "if") return anyShow(v.steps);
+  if (v.t === "dict") return Object.values(v.items).some(anyShow);
+  return false;
+}
+function eachLine(v, f) {
+  if (Array.isArray(v)) return v.forEach(x => eachLine(x, f));
+  if (!v || typeof v !== "object") return;
+  if (isLine(v)) return f(v);
+  if (v.t === "choice") v.options.forEach(o => eachLine(o.steps, f));
+  if (v.t === "if") eachLine(v.steps, f);
+  if (v.t === "dict") Object.values(v.items).forEach(x => eachLine(x, f));
+}
+
+function lineHTML(n, ctx) {
+  const id = lineId(n), ap = approvals.get(id);
+  const tag = n.tag === "Ebain" ? '<span class="b eb">Ebain</span>' : n.tag === "Asar" ? '<span class="b as">Asar</span>' : n.tag === "DRAFT" ? '<span class="b dr">draft</span>' : "";
+  const mp3 = n.voice ? `<span class="b ok" title="${esc(n.voice.replace("res://assets/voices/", ""))}">mp3</span>` : '<span class="b miss">no mp3</span>';
+  const mood = n.mood ? `<span class="b mood">${esc(n.mood)}</span>` : "";
+  const th = n.thought === "true" ? '<span class="b mood">thinking</span>' : "";
+  const by = ap ? `<span class="b as" data-by="${esc(ap.by || "")}">approved</span>` : "";
+  const pin = ap ? `<button class="pin" data-pin="${id}">${ap.keep ? "let it hide" : "keep showing"}</button>` : "";
+  return `<div class="ln${ap ? " ap" : ""}${ctx ? " cx" : ""}"><input type="checkbox" class="ck" data-id="${id}" data-who="${esc(n.who)}" data-text="${esc(n.text)}" ${ap ? "checked" : ""} aria-label="Approved"><span class="tx"><span class="who" style="--c:${esc(whoCol(n))}">${esc(whoName(n))}</span>${esc(n.text)}<span class="bd">${mp3}${tag}${mood}${th}${by}${ctx ? '<span class="b mood">context</span>' : ""}${pin}</span></span></div>`;
+}
+
+let stubN = 0;
+function steps(arr, path) {
+  if (!Array.isArray(arr)) arr = [arr];
+  let out = "", fold = 0, foldAp = 0, foldStart = -1;
+  const flush = i => { if (fold) { const k = path + ":" + foldStart; if (expanded.has(k)) { for (let j = foldStart; j < i; j++) out += lineHTML(arr[j], false); } else out += `<button class="stub" data-x="${esc(k)}">${fold} line${fold > 1 ? "s" : ""} hidden${foldAp ? ` (${foldAp} approved)` : ""} · show</button>`; } fold = 0; foldAp = 0; foldStart = -1; };
+  arr.forEach((n, i) => {
+    if (isLine(n)) {
+      if (shows(n)) { flush(i); out += lineHTML(n, false); return; }
+      // approved but the next thing still needs attention: keep it as context
+      if (matches(n) && hiddenAp(n)) {
+        const next = arr.slice(i + 1).find(x => isLine(x) || (x && (x.t === "choice" || x.t === "if")));
+        if (next && anyShow(next)) { flush(i); out += lineHTML(n, true); return; }
+      }
+      if (foldStart < 0) foldStart = i;
+      fold++; if (approvals.has(lineId(n))) foldAp++;
+      return;
+    }
+    flush(i);
+    out += node(n, path + "." + i);
+  });
+  flush(arr.length);
+  return out;
+}
+
+function node(n, path) {
+  if (!n || typeof n !== "object") return "";
+  if (Array.isArray(n)) {
+    // [flag, value, text] rows (summit lines that depend on what you did earlier)
+    if (n.length === 3 && n.every(x => x && x.t === "str")) {
+      const f = n[0].text, v = n[1].text;
+      const cond = f === "" ? "Otherwise" : v === "" ? "If " + human(f) : `If ${human(f)} = ${v}`;
+      return `<div class="prong"><div class="opt">${esc(cond)}</div>${steps([n[2]], path)}</div>`;
+    }
+    if (n.length && n.every(x => Array.isArray(x) && x.length === 3)) {
+      return `<div class="fork"><div class="flab">Depends on what you did earlier</div><div class="prongs wrapv">${n.map((x, i) => node(x, path + "." + i)).join("")}</div></div>`;
+    }
+    return steps(n, path);
+  }
+  if (n.t === "do") {
+    const links = (n.links || []).map(l => { const [f, c] = l.split("|"); return `<a href="#c-${esc(f.replace(/\W/g, ""))}-${esc(c)}">${esc(human(c))}</a>`; });
+    return `<div class="act">⟶ ${esc(human(n.id))}${links.length ? " · then plays " + links.join(", ") : ""}</div>`;
+  }
+  if (n.t === "choice") {
+    const opts = n.options.map((o, i) => {
+      const tag = o.tag === "Ebain" ? ' <span class="b eb">Ebain</span>' : o.tag === "Asar" ? ' <span class="b as">Asar</span>' : "";
+      const iff = o.if ? ` <span class="b mood">only if ${esc(human(o.if))}</span>` : "";
+      const oc = o.outcome ? ` <span class="b mood">outcome</span>` : "";
+      const body = o.steps && o.steps.length ? steps(o.steps, path + "." + i) : '<div class="empty">(nothing else is said)</div>';
+      return `<div class="prong"><div class="opt">${i + 1}. ${esc(o.text)}${tag}${iff}${oc}</div>${body}</div>`;
+    }).join("");
+    return `<div class="fork"><div class="flab">You pick</div><div class="prongs">${opts}</div></div>`;
+  }
+  if (n.t === "if") {
+    return `<div class="cond"><div class="flab">${n.neg ? "Only if NOT" : "Only if"}: ${esc(human(n.flag))}</div>${steps(n.steps, path)}</div>`;
+  }
+  if (n.t === "dict") {
+    const ks = Object.keys(n.items);
+    return `<div class="fork"><div class="flab">Depends on who / which</div><div class="prongs wrapv">${ks.map(k => `<div class="prong"><div class="opt">${esc(human(k))}</div>${node(n.items[k], path + "." + k)}</div>`).join("")}</div></div>`;
+  }
+  if (isLine(n)) return steps([n], path);
+  return "";
+}
+
+function counts(v) {
+  const c = { lines: 0, voiced: 0, ap: 0 };
+  eachLine(v, n => { c.lines++; if (n.voice) c.voiced++; if (approvals.has(lineId(n))) c.ap++; });
+  return c;
+}
+const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
+const barHTML = c => `<i style="width:${pct(c.ap, c.lines)}%;background:var(--appr)"></i><i style="width:${pct(c.voiced - Math.min(c.voiced, c.ap), c.lines)}%;background:var(--ok)"></i><i style="width:${pct(c.lines - c.voiced - Math.max(0, c.ap - c.voiced), c.lines)}%;background:var(--miss);opacity:.6"></i>`;
+
+function render() {
+  if (!DATA) return;
+  const total = { lines: 0, voiced: 0, ap: 0 };
+  let nav = "", main = "";
+  for (const sc of DATA.scenes) {
+    const all = sc.convs.map(c => c.node).concat([sc.inline]);
+    const c = counts(all);
+    total.lines += c.lines; total.voiced += c.voiced; total.ap += c.ap;
+    nav += `<a href="#s-${sc.id}">${esc(sc.title)}<small>${c.lines} lines · ${c.lines - c.voiced} missing an mp3 · ${c.ap} approved</small><div class="bar">${barHTML(c)}</div></a>`;
+    let body = "", hidden = 0;
+    for (const cv of sc.convs) {
+      if (!anyShow(cv.node)) { hidden++; continue; }
+      const cc = counts(cv.node);
+      const id = `c-${cv.file.replace(/\W/g, "")}-${cv.name}`;
+      const when = cv.when.length ? "Plays: " + cv.when.map(w => esc(w.replace(/\.gd:/, ":").replace(/in _?(\w+)\(\)/, (m, f) => "in " + human(f).toLowerCase()))).join(" · ") : "";
+      body += `<details class="conv" id="${esc(id)}" open><summary><h3>${esc(human(cv.name))}</h3><span class="sub">${cc.lines} lines · ${cc.lines - cc.voiced} missing an mp3 · ${cc.ap} approved</span>${when ? `<span class="when">${when}</span>` : ""}</summary><div class="cbody">${node(cv.node, id)}</div></details>`;
+    }
+    if (sc.inline.length && anyShow(sc.inline)) {
+      body += `<details class="conv" open><summary><h3>Short lines in the level code</h3><span class="sub">idle chatter, hints and one-offs that live in the level scripts</span></summary><div class="cbody">${sc.inline.map((l, i) => `<div class="sub" style="margin:6px 0 0 34px">${esc(l.src)} · ${esc(human(l.ctx || ""))}</div>${steps([l], "in-" + sc.id + i)}`).join("")}</div></details>`;
+    } else if (sc.inline.length) hidden++;
+    main += `<section class="scene" id="s-${sc.id}"><div class="shead"><h2>${esc(sc.title)}</h2><span class="sub">${c.lines} lines · ${c.voiced} with an mp3 · ${c.lines - c.voiced} missing · ${c.ap} approved</span></div>${hidden ? `<p class="hidden-note">${hidden} conversation${hidden > 1 ? "s" : ""} hidden by the filters or fully approved.</p>` : ""}${body || '<p class="empty">Nothing to show here with these filters.</p>'}</section>`;
+  }
+  if (DATA.unused_voice && DATA.unused_voice.length) {
+    main += `<section class="scene" id="s-unused"><div class="shead"><h2>Recordings no line uses</h2><span class="sub">${DATA.unused_voice.length} files</span></div><div class="conv"><div class="cbody">${DATA.unused_voice.map(v => `<div class="act">${esc(v.replace("res://assets/voices/", ""))}</div>`).join("")}</div></div></section>`;
+    nav += `<a href="#s-unused">Recordings no line uses<small>${DATA.unused_voice.length} files</small></a>`;
+  }
+  document.getElementById("nav").innerHTML = nav;
+  document.getElementById("main").innerHTML = main;
+  document.getElementById("figs").innerHTML = `<span><b>${total.lines}</b>lines</span><span class="g"><b>${total.voiced}</b>with an mp3</span><span class="r"><b>${total.lines - total.voiced}</b>missing an mp3</span><span class="a"><b>${total.ap}</b>approved</span>`;
+  document.getElementById("bigbar").innerHTML = barHTML(total);
+  resolveNames();
+}
+
+async function resolveNames() {
+  if (!user || !user.profiles) return;
+  const ids = [...new Set([...approvals.values()].map(a => a.by).filter(Boolean))];
+  if (!ids.length) return;
+  try {
+    const ps = await user.profiles(ids);
+    for (const el of document.querySelectorAll("[data-by]")) {
+      const p = ps && ps[el.dataset.by];
+      el.title = "Approved by " + ((p && p.name) || "someone");
+    }
+  } catch (e) {}
+}
+
+// ---- events
+document.querySelector(".ctl").addEventListener("click", e => {
+  const b = e.target.closest("[data-mode]");
+  if (!b) return;
+  st.mode = b.dataset.mode;
+  document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  render();
+});
+document.getElementById("who").addEventListener("change", e => { st.who = e.target.value; render(); });
+let qt = 0;
+document.getElementById("q").addEventListener("input", e => { clearTimeout(qt); qt = setTimeout(() => { st.q = e.target.value.trim().toLowerCase(); render(); }, 200); });
+document.getElementById("showap").addEventListener("change", e => { st.showAp = e.target.checked; render(); });
+document.getElementById("main").addEventListener("click", async e => {
+  const s = e.target.closest("[data-x]");
+  if (s) { expanded.add(s.dataset.x); render(); return; }
+  const p = e.target.closest("[data-pin]");
+  if (p && db) {
+    const id = p.dataset.pin, a = approvals.get(id);
+    try { await db.doc("approvals/" + id).update({ keep: !(a && a.keep) }); } catch (err) { dbNote("Couldn't save that: " + (err.code || err.message), true); }
+  }
+});
+document.getElementById("main").addEventListener("change", async e => {
+  const c = e.target.closest(".ck");
+  if (!c) return;
+  const id = c.dataset.id;
+  if (!db) { c.checked = !c.checked; dbNote("Approvals save on the shared page only. Open it on claude.ai while signed in.", true); return; }
+  if (!canWrite) { c.checked = !c.checked; dbNote("You can look but not approve: ask Asar to share this page with you as an Editor or Contributor.", true); return; }
+  c.disabled = true;
+  try {
+    if (c.checked) await db.doc("approvals/" + id).set({ who: c.dataset.who, text: c.dataset.text, by: user && user.id ? (await user.id()) || "" : "", at: new Date().toISOString(), keep: false });
+    else await db.doc("approvals/" + id).delete();
+  } catch (err) {
+    c.checked = !c.checked;
+    if (err.code === "invalid_argument") { canWrite = false; dbNote("You can look but not approve: ask Asar to share this page with you as an Editor or Contributor.", true); }
+    else dbNote("Couldn't save that: " + (err.code || err.message), true);
+  }
+  c.disabled = false;
+});
+document.getElementById("copymiss").addEventListener("click", async () => {
+  const seen = new Set(), rows = [];
+  for (const sc of DATA.scenes) {
+    const mine = [];
+    eachLine(sc.convs.map(c => c.node).concat([sc.inline]), n => { const k = lineId(n); if (!n.voice && !seen.has(k)) { seen.add(k); mine.push(`${whoName(n)}: ${n.text}`); } });
+    if (mine.length) rows.push(sc.title, ...mine.map(m => "  " + m), "");
+  }
+  const text = rows.join("\n");
+  document.getElementById("mtext").value = text;
+  document.getElementById("modal").classList.add("on");
+  try { await navigator.clipboard.writeText(text); } catch (e) {}
+});
+document.getElementById("mclose").addEventListener("click", () => document.getElementById("modal").classList.remove("on"));
+function dbNote(t, warn) { const n = document.getElementById("dbnote"); n.textContent = t; n.className = "note" + (warn ? " warn" : ""); }
+
+// ---- load
+fetch("dialogue.json").then(r => r.json()).then(d => {
+  DATA = d;
+  for (const k in d.chars) CH[k] = d.chars[k];
+  const whos = new Set();
+  d.scenes.forEach(sc => eachLine(sc.convs.map(c => c.node).concat([sc.inline]), n => whos.add(n.who)));
+  document.getElementById("who").innerHTML += [...whos].filter(Boolean).sort().map(w => `<option value="${esc(w)}">${esc((CH[w] && CH[w].name) || human(w))}</option>`).join("");
+  document.getElementById("built").textContent = `Pulled straight from the game's code (${d.commit}), rebuilt ${d.built}. Every choice drops off a bracket into its outcomes.`;
+  render();
+}).catch(() => { document.getElementById("built").textContent = "Couldn't load the dialogue data."; });
+
+(async () => {
+  dbNote("Connecting the shared approvals…");
+  const timer = setTimeout(() => dbNote("Can't reach the shared approvals yet. Ticks won't save until it connects.", true), 10000);
+  try {
+    user = await window.claude?.use("user");
+    db = await window.claude?.use("db");
+  } catch (e) { db = null; }
+  if (!db) { clearTimeout(timer); dbNote("Approvals are off in this view (open the page on claude.ai, signed in, to tick lines)."); return; }
+  try { const w = user && user.can ? await user.can("data.write") : null; if (w === false) canWrite = false; } catch (e) {}
+  db.collection("approvals").onSnapshot(snap => {
+    if (!snap.metadata.fromCache) { clearTimeout(timer); dbNote(canWrite ? "Approvals are shared: Asar and Ebain see the same ticks." : "You can look but not approve: ask Asar to share this page with you as an Editor or Contributor."); }
+    approvals.clear();
+    for (const doc of snap.docs) { const v = doc.data() || {}; approvals.set(doc.id, { by: String(v.by || ""), at: String(v.at || ""), keep: !!v.keep }); }
+    render();
+  }, err => { clearTimeout(timer); dbNote("Shared approvals stopped (" + err.code + "). Reload the page to reconnect.", true); });
+})();
+}
+</script>
+</body>
+</html>

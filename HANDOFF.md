@@ -217,6 +217,18 @@ Tours are slow in the sandbox (5–9 min); run them one at a time or they time o
 "Identifier not found: Game" — that's a false positive (the autoload). The sandbox has no TTS and no Forward+, so
 voices are silent and the screenshots look a bit flatter than the real game.
 
+### Dialogue map (Asar 11/24)
+A page with **every line, choice and outcome** in the game, drawn as a branching script (choices drop off a gold bracket
+into their outcomes), each line marked **mp3 / no mp3** and Ebain / Asar / draft, with a shared **approve tick** per line
+(approved lines fold away; the line right before something still unapproved stays as dimmed context; "keep showing"
+pins one). Filters: missing an mp3, not approved, drafts, speaker, search; "Copy lines missing an mp3" gives a recording list.
+Live at https://claude.ai/artifact/TVQYniLFUFbsRBkhpb62aV (artifact slug `d684f157-0ae8-4e3a-b0d7-31aec6733b82`, owned
+by Asar; approvals are in its database, collection `approvals`, keyed by speaker + text, so rewording a line resets it).
+**After you change any dialogue or add recordings:** `GODOT=<godot> tools/dialogue_map/build.sh`, then republish
+`build/dialogue_map/index.html` + `dialogue.json` to that slug (publish_files, mode patch). Asar's Claude does this; it
+also rebuilds nightly. Ebain's Claude can do it only if Asar shares the page with Ebain as an Editor.
+New dialogue script or level file → add it to `SCENES` in `tools/dialogue_map/build.py` (and `ScriptScan.SCRIPTS`).
+
 ### Dev mode (Alt+F1 in game)
 **Alt+F1** opens the developer menu (plain F1 does nothing since 11/24: players were finding it, and mashing in it broke runs) (`scripts/dev_mode.gd`, class **DevMode**). It lets you:
 - pick a **dialogue mode**: normal · choices (only choice menus) · skip (no dialogue at all; choices are auto-picked
@@ -271,6 +283,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/library_ui.gd` + `lyrics.gd` | **LibraryUI** (Title → Library, and pause menu → Library in game: area music goes silent while it's open, group `library_open`): a hub (`hub`) → **Soundtrack** (`_soundtrack()`), **Voice Lines**, **Scrapbook**. Soundtrack: `SONGS`, play/pause/seek, lyrics page (always parchment). Songs unlock when heard (`mark_heard()`, called by AreaMusic once audible; title song always unlocked), saved in `user://library.cfg` across playthroughs. **Lyrics** go in `lyrics.gd` `TEXT[id]` (Ebain's, verbatim). New song = add to SONGS + Lyrics.TEXT |
 | `scripts/voice_lines_ui.gd` | **VoiceLinesUI** (Library → Voice Lines): every recorded line, a tab per character (`ScriptScan.CATS`), search box (all words must match text or speaker), Enter/click plays. Plays on Master at Voice volume |
 | `scripts/scrapbook_ui.gd` | **ScrapbookUI** (Library → Scrapbook, always parchment): a page per story outcome (`ProgressData.ITEMS` with story = true), grouped by `SECTIONS`. Found: what you did, the choice text, the line said after it (+ Play). Not found: "? ? ?" + `HINTS` (# DRAFT, Ebain rewrites) |
+| `godot/tools/dialogue_map_dump.gd` + `tools/dialogue_map/` | **Dialogue map** builder (see "Dialogue map"): the dump runs in Godot (every script constant + the mp3 the game would play), `build.py` adds tags, where each conversation plays and the level-code lines, `index.html` is the page |
 | `scripts/script_scan.gd` | **ScriptScan**: reads the dialogue scripts at runtime (`SCRIPTS`). `voice_lines()` = every recorded line with its speaker + file (recordings no script uses still show, by folder); `outcome(id)` = the choice option + first line after it. New dialogue script → add it to `SCRIPTS` |
 | `scripts/keybinds.gd` | **Keybinds** (Settings → Controls): rebind each action's main keyboard key (swaps on clash, Space/Enter always work for interact). Saved in settings.cfg `[keys]`, applied by Game before any level's `_setup_input()`. `ACTIONS` defaults must match level.gd |
 | `scripts/game.gd` | **Game** autoload: story `flags`, per-character `bags`, XP/level, gear, HP between fights (`hurt`, `hp()`, `heal()`), `quests`; `goto(scene)` (shows a loading card with a joke tip); **settings** (saved in `user://settings.cfg`; F11/Alt+Enter fullscreen); **saves** (`user://saves/<auto/1/2/3>.sav`: `save_game`, `load_game`, `latest_slot`, `new_game`) |

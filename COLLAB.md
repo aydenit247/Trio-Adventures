@@ -9,7 +9,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
-- [asar] Dialogue map: a page that shows every line, choice and outcome with mp3 status + shared approve ticks, built from the code — files: tools/dialogue_map/* (new), godot/tools/dialogue_map_dump.gd (new), HANDOFF.md/TIPS.md (a section each) — branch: asar/dialogue-map — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-24 [asar] Dialogue map page (every line/choice/outcome, mp3 status, shared approve ticks), built from the code by tools/dialogue_map/build.sh
 - 2026-11-24 [ebain] Ebain's notes batch: dialogue speed slider (0.5–3x voices + text), Library in the pause menu, Scrapbook scrolls, Dulbers only at the Mart door, Charis's house before + after the Mart (gaming setup, no sign), wooden Giant's Pass sign, followers never steal E, patrols stay dead, tunnel fights fit between walls, fleeing can't drop you off the map, OG Metocy close-up clear, Dulbmeethus lightning (3%), boulder puzzle help (ghost ring, exact-move hints, skip after 3 min), explorer bot at 10x
 - 2026-11-24 [asar] Persona playtest (20 runs: speedrunner, toddler, exploiter, fun-seeker) + fixes: Mattias hall doorway no longer drops you off the map, camera stays inside the hall, objective star right inside/outside (hall, Mart shop, Charis's house), dev menu is Alt+F1
 - 2026-11-24 [ebain] **Secret Deloye Lore library** (DELOYE_PLAN.md): 5 Lost Pages (one per area) → flush chain on the outhouse → round library, Deloye (Ebain's art) twirling in the middle, Deloye Lore Neuralink for Xylo, secret achievement + Scrapbook page. Waiting on Ebain's song + real lines
@@ -55,10 +55,15 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
-- [asar] tools/dialogue_map/*, godot/tools/dialogue_map_dump.gd
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [asar] **Dialogue map is live:** https://claude.ai/artifact/TVQYniLFUFbsRBkhpb62aV — every line, choice and
+  outcome as a branching script, mp3 / no mp3 on each line, Ebain/Asar/draft tags, and an approve tick per line (shared
+  between you two once Asar shares the page with you). Right now: 795 lines, 420 with an mp3, 375 missing (most in the
+  ruins/cave, summit finale, Deloye library and fight banter). **@ebain** if you change dialogue, tell Asar's Claude or
+  run `tools/dialogue_map/build.sh` and republish (HANDOFF "Dialogue map"). No game code changed: new files only
+  (`tools/dialogue_map/*`, `godot/tools/dialogue_map_dump.gd`).
 - 2026-11-24 [ebain] **Ebain's notes batch merged.** **Hot spots:** `dialogue.gd` (speed mode → `_speed_slider`,
   `Game.dlg_speed` is a float 0.5–3 now, voices + typing + buffer scale with it; `_fast_bus(x)`), `game.gd` (dlg_speed
   float + old-save migration), `level.gd` (pause menu "Library" row, `_pause_sub(Node)`, party "Talk to" marked

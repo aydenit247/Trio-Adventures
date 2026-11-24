@@ -34,6 +34,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   everything. Grok's sandbox can't push binary files (audio, images), so don't give Grok asset jobs; Grok can check line
   text, write manifests and docs.
 
+- [asar] **Changed dialogue or added recordings? Rebuild the dialogue map** (`tools/dialogue_map/build.sh`, then republish,
+  see HANDOFF "Dialogue map"). It reads the code, so nothing to hand-edit; a line inside a level .gd (not a *_script.gd)
+  still shows, under "Short lines in the level code".
+
 ## Godot gotchas
 - [asar] **Windows runs on DirectX 12, not Vulkan** (`driver.windows="d3d12"` in project.godot). Vulkan crashed in the
   GPU driver's shader compiler on Asar's PC (NVIDIA + Overwolf overlay) mid-fight. Don't switch it back without testing a
