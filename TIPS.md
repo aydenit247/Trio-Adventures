@@ -74,6 +74,14 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   `hymnHeard` flag + `Game.unlock("hymn_heard")`; `AreaMusic.force_once` makes one track play once no matter the Music setting.
 - [asar] **Interior side walls must run past the door toward the camera** (about +15 m on z). The camera trails 8–9 m
   behind the leader, so walls that stop at the door line show the void when you walk back out.
+- [asar] **Interiors built off to the side (x 300/400) need their own objective star.** A star left on an outdoor spot points
+  through the wall, and anyone following it (or the explorer bot) walks into the wall forever. Re-point it on every
+  enter/leave (`summit._lair_objective`, `mart._star_indoors`).
+- [asar] **Any gap in a room's colliders is a fall off the map**, even a doorway you only leave by E. Walk every wall in a
+  test (the persona playtest found the Mattias hall doorway this way).
+- [asar] **Big round rooms + a camera 15 m back = the camera ends up outside the wall.** Shrink `zoom` near the edges
+  (`summit._hall_camera`), don't just add walls (those then cover the screen).
+- [asar] **The dev menu is Alt+F1.** Bots/tests that need it must hold Alt (`Input.is_key_pressed(KEY_ALT)` is checked).
 - [asar] **Screen-space overlays that follow 3D things** (enemy HP bars, the timed-hit ring): `lv.cam.unproject_position()`
   straight into a Control under `lv.hud`, every frame; skip it when `cam.is_position_behind()`, and clamp to the screen
   for giants.

@@ -979,6 +979,23 @@ func arrival(from: String) -> Array:
 	return super.arrival(from)
 
 # the empty shop: walk in and out freely once Dulbers is gone
+# (Asar 11/24) indoors the star points at the way out (it used to point at the road through the wall); back
+# outside it goes back to where it was. Also clear the follow trails on every teleport (see TIPS).
+var _star_out := Vector3.INF
+func _star_indoors(door: Vector3) -> void:
+	_star_out = objective_at
+	if objective_at.is_finite():
+		objective(objective_lbl.text.trim_prefix("Objective: "), door)
+	for u in party:
+		u.trail.clear()
+
+func _star_outdoors() -> void:
+	if _star_out.is_finite() and objective_at.is_finite():
+		objective(objective_lbl.text.trim_prefix("Objective: "), _star_out)
+	_star_out = Vector3.INF
+	for u in party:
+		u.trail.clear()
+
 func _shop_in() -> void:
 	busy = true
 	await fade_out(0.4)
@@ -992,6 +1009,7 @@ func _shop_in() -> void:
 	cam_look_h = 1.8
 	cam_target = leader.global_position
 	fade_in(0.4)
+	_star_indoors(DOOR_IN)
 	show_toast("Metocy Mart (Dulbers is gone) (still NO REFUNDS)", 2.0)
 	busy = false
 
@@ -1002,6 +1020,7 @@ func _shop_out() -> void:
 	place_party(DOOR_OUT + Vector3(0, 0, 1.6), Vector3(0, 0, 1))
 	for i in allies.size():
 		allies[i].global_position = DOOR_OUT + Vector3(-1.5 + i * 0.9, 0, 2.6)
+	_star_outdoors()
 	zoom = 11.0
 	cam_height = 0.3
 	cam_look_h = 2.6
@@ -1106,6 +1125,7 @@ func _house_in() -> void:
 	cam_look_h = 1.8
 	cam_target = leader.global_position
 	fade_in(0.4)
+	_star_indoors(HOUSE + Vector3(0, 0, 3.6))
 	show_toast("Charis's House", 1.6)
 	busy = false
 
@@ -1116,6 +1136,7 @@ func _house_out() -> void:
 	place_party(HOUSE_DOOR + Vector3(-1.2, 0, 2.6), Vector3(0, 0, -1))   # followers land on the street side, not in the wall
 	for i in allies.size():
 		allies[i].global_position = HOUSE_DOOR + Vector3(-2.0 + i * 0.8, 0, 2.4)
+	_star_outdoors()
 	zoom = 11.0
 	cam_height = 0.3
 	cam_look_h = 2.6

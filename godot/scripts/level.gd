@@ -992,7 +992,8 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("pause"):
 		open_pause_menu()
 		return
-	if Input.is_action_just_pressed("dev_menu"):
+	# Alt+F1 only (Asar 11/24): plain F1 opened it in the shipped game, and mashing in it broke runs
+	if Input.is_action_just_pressed("dev_menu") and Input.is_key_pressed(KEY_ALT):
 		var dm := DevMode.new()
 		add_child(dm)
 		dm.open(self)

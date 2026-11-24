@@ -9,7 +9,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
-- [asar] Persona playtest fixes: Mattias hall doorway fall, hall wall hiding the player, objective star inside/outside (hall + Mart shop), dev menu moves to Alt+F1 — files: godot/scripts/summit.gd, mart.gd, level.gd (dev_menu key only) — branch: asar/playtest-fixes — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-24 [asar] Persona playtest (20 runs: speedrunner, toddler, exploiter, fun-seeker) + fixes: Mattias hall doorway no longer drops you off the map, camera stays inside the hall, objective star right inside/outside (hall, Mart shop, Charis's house), dev menu is Alt+F1
 - 2026-11-24 [ebain] **Secret Deloye Lore library** (DELOYE_PLAN.md): 5 Lost Pages (one per area) → flush chain on the outhouse → round library, Deloye (Ebain's art) twirling in the middle, Deloye Lore Neuralink for Xylo, secret achievement + Scrapbook page. Waiting on Ebain's song + real lines
 - 2026-11-23 [asar] Asar's 11/23 batch: troll "It's good" love & light scene (Hold E to skip), enemy HP x/x + red bars over enemies, OG Metocy display case in Mattias's study (E Inspect), hymn only has to play once, summit camera follows again, castle followers no longer run off, interior walls run past the door (village rooms, Mart, Charis's house, lair hall)
 - 2026-11-23 [asar] **Explorer bot**: plays the game at random and reports errors/softlocks with screenshots; runs on GitHub after every push to main
@@ -53,10 +53,22 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
-- [asar] godot/scripts/summit.gd, mart.gd, level.gd (dev_menu key only)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [asar] **Persona playtest fixes merged.** Asar had me play 20 runs as a speedrunner, a toddler, an exploiter
+  and a fun-seeker. **Hot spot level.gd:** the dev menu now needs **Alt+F1** (one line in `_process`, plain F1 does
+  nothing). Toddler mashing in F1 had flipped the dialogue filter to "only Xylo" and broken the village for good.
+  **@ebain** your loading tip "Press F1 if you're a developer…" (game.gd) still says F1, and the key-rebind note in
+  menu_ui.gd still says "F1 = dev menu" (F1 stays reserved); change them if you want, I didn't touch those files.
+  **summit.gd:** every round-wall segment is solid now (walking out the doorway past "Leave" dropped you off the map),
+  `_hall_camera` pulls the camera in near the walls (it ended up outside the hall and you couldn't see yourself), my
+  11/23 straight side walls start past the round wall and fade near the camera, `_lair_objective` re-points the star
+  on every enter/leave (it pointed 400 m away). **mart.gd:** `_star_indoors/_star_outdoors` point the star at the door
+  out inside the shop/Charis's house, plus trail clears on those teleports. Other playtest results, no change: no gold/item
+  dupes, save-scum rolls back, shop can't overspend, fastest Chapter 1 ≈ 14 min, the camp star sits on the fire pit
+  before you have the paper (left alone, Asar didn't ask). Tested: full tour suite + continuity, probes for the
+  doorway/star/Alt+F1, hall pictures.
 - 2026-11-24 [ebain] **Secret Deloye Lore library merged** (DELOYE_PLAN.md; how it works: HANDOFF section 1 🔒 + code map).
   New: `lost_pages.gd` (LostPages), `deloye_library.tscn/.gd`, `deloye_script.gd` (all lines # DRAFT), Deloye's art (Ebain's
   pictures) + portrait, `props/lost_page.png`, `props/book_page.png`, `items/neuralink.png`, `textures/book_spines/` (drawn),

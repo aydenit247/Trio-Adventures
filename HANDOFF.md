@@ -98,7 +98,10 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    plaza, the tower, the hall. Walking up to Mattias before the hymn ends: "Peep the song first folk" (Asar) and a step
    back. In the study: the **OG Metocy** (Asar 11/23), his orange pill in a glass case on the old bust's pedestal with a
    brass "OG Metocy" plaque; E Inspect glides the camera in, blurs the background and shows "OG Metocy / Dis shi was ahh
-   folk, blue one way better" (Asar, `summit_script.gd OG_METOCY_*`, `summit.gd _inspect_og`). **The castle:** the music drops out, torches flare, "Welcome to da crib folk… I had heard that y'all ___. That's
+   folk, blue one way better" (Asar, `summit_script.gd OG_METOCY_*`, `summit.gd _inspect_og`). The hall's round wall is solid all the way round (doorway
+   too: you leave with E), the camera pulls in near the walls so it never ends up outside (`_hall_camera`), and the star
+   points at Mattias inside / the lair door outside (`_lair_objective`). Same idea in the Mart: inside the shop or
+   Charis's house the star points at the door out (`mart.gd _star_indoors/_star_outdoors`). **The castle:** the music drops out, torches flare, "Welcome to da crib folk… I had heard that y'all ___. That's
    OD." (the blank = the biggest thing from this run), the metocy hovers → 5 choices: "Bet. Here we go folk." · "you had
    said u was fuckin wit one too?" (all four take it) · "Bad." ("Oh okay." → hard cut to black, END OF CHAPTER 1, silence)
    · sucker punch → near-impossible Mattias boss (**losing is its own ending**: "Y'all must be geeking off that midtocy…") ·
@@ -186,7 +189,7 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
 - `LOOK="x,z,yaw;..."` (camp) — close-up screenshots of spots with the fire lit
 - `--views` instead of `--shots` walks the trio in 4 directions
 - `DEV_DIALOGUE=skip|choices|only:<speaker>` (+ `DEV_PICK=1..5`) — run a tour in a dev dialogue mode (see Dev mode below)
-- `DEV_MENU=1` — screenshots of the F1 dev menu + dialogue viewer
+- `DEV_MENU=1` — screenshots of the Alt+F1 dev menu + dialogue viewer
 - **Fast logic-only check:** add `--headless` (no xvfb, no rendering flags). Tours run in about a minute, print
   `SHOT <name>` instead of saving pictures, and any script error shows up. Use this to check that a flow still
   finishes, and the xvfb run when you need to see it.
@@ -204,8 +207,8 @@ Tours are slow in the sandbox (5–9 min); run them one at a time or they time o
 "Identifier not found: Game" — that's a false positive (the autoload). The sandbox has no TTS and no Forward+, so
 voices are silent and the screenshots look a bit flatter than the real game.
 
-### Dev mode (F1 in game)
-F1 opens the developer menu (`scripts/dev_mode.gd`, class **DevMode**). It lets you:
+### Dev mode (Alt+F1 in game)
+**Alt+F1** opens the developer menu (plain F1 does nothing since 11/24: players were finding it, and mashing in it broke runs) (`scripts/dev_mode.gd`, class **DevMode**). It lets you:
 - pick a **dialogue mode**: normal · choices (only choice menus) · skip (no dialogue at all; choices are auto-picked
   with option #`Skip-all pick`) · `only:skorn|lykor|xylo|goblins|dulbers|mattias_giant|narrator` (only that speaker's lines)
 - open the **dialogue viewer**: read every line of a scene's script without playing it, filtered by speaker
@@ -284,7 +287,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/progress_data.gd` | **ProgressData**: what counts toward "Outcomes x/31 · N% complete" (story outcomes 2 points each, quests 5, Chapter 1 6, Three Seals 3, Charis 3, trail loot 1 = 100) (title screen, end card). `Game.unlock(id)` / `outcomes_found()` / `completion_pct()`; saved in `user://progress.cfg` across playthroughs. `ProgressData.pick_outcome(id)` (called by dialogue.gd + dev mode when a choice with `"outcome"` is picked) also sets the **per-run** string flag `way_<scene>` (`village_skorn_king` → `way_village = "skorn_king"`), since outcomes themselves are saved across playthroughs |
 | `scripts/summit.gd` + `summit_script.gd` | Scene 5 (`summit.tscn`): the climb (z +62 → plaza at -52), tower (`_lair_exterior`), the hall built off to the side at `INT` (x 400, `_hall`: round wall open toward the camera, pillars, dais + throne, statues, chandeliers, alchemy + study corners, floating candles/books/orb via `floaters`). Uses Ebain's wizard-lair Poly Haven pack. **Finale:** `_begin` (arrival) → `_halfway` → `_ambush` → `_finale` → `_hard_end` / `_goblin_party` (set at `PARTY_POS`, x -400) / `end_card`. Script steps with a `"dyn"` key get their line from `_dyn_line()` (tables `DYN_*` in summit_script: first matching flag wins). Trip look = `_take_metocy` + `TRIP_SHADER`. Test: `SUMMIT_TOUR=finale SUMMIT_FLAGS=… SUMMIT_PICKS=… [AUTOWIN=1]` (see the comment above `_finale_tour`) |
 | `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`): rock-face canyon + animated lava (`_canyon`, `_lava`), giant lying across the path (`giant_lying`, Asar's `giant_sleep.png`; `_giant_wakes` crossfades sleep → sit → standing, no black cut); Snore Sneak + Lore Session minigames |
-| `scripts/dev_mode.gd` | **DevMode**: the F1 developer menu, dialogue modes, line viewer (see "Dev mode") |
+| `scripts/dev_mode.gd` | **DevMode**: the Alt+F1 developer menu, dialogue modes, line viewer (see "Dev mode") |
 | `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter. Rat cave: fights `rats` (roaming) + `rat_colony` (boss, `lvl` 3), ai `rat`/`rat_king` (battle.gd), rat gear (thimble_helm, toothpick_spear, bottlecap_mail, lucky_crumb, bottlecap_crown, corncob_scepter), boost `cave_cheese`, talk `cheese_bribe` |
 | `scripts/combat/battle.gd` | pure combat rules (turn timeline, meters, ultimates, team-ups, statuses, boss AI, talk/flee) |
 | `scripts/combat/battle_view.gd` | in-world fight presentation (line-up, menus, timed ring, dice, events, results, hoverable status words, Lykor's Mog close-up `_mog_cam`) |

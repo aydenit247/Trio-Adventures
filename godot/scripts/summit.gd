@@ -293,8 +293,9 @@ func _hall_build() -> void:
 		var dir := Vector3(sin(a), 0, -cos(a))
 		var p := INT + dir * HALL_R
 		var rot := -a
-		if dir.z < 0.95 or abs(dir.x) > 0.2:        # every segment but the doorway is solid
-			Util.static_box(self, p + Vector3(0, 2, 0), Vector3(4.2, 4, 1.0), rot)
+		# every segment is solid, the doorway too (Asar 11/24): you come and go with the E prompts, and walking out
+		# through the gap used to drop you off the end of the floor
+		Util.static_box(self, p + Vector3(0, 2, 0), Vector3(4.2, 4, 1.0), rot)
 		if dir.z > 0.35:
 			continue                                   # camera side: no wall mesh, so you can see in
 		Models.block(self, p + Vector3(0, 7.5, 0), Vector3(4.2, 15, 1.0), wall, rot)
@@ -305,13 +306,22 @@ func _hall_build() -> void:
 		elif abs(dir.x) < 0.95:                     # purple banners between them
 			Models.block(self, p + Vector3(0, 9.0, 0) - dir * 0.56, Vector3(1.5, 5.0, 0.06), Models.mat("velour_velvet", 1.0, Color(0.42, 0.18, 0.62)), rot)
 	# (Asar 11/23) straight walls carry on from the round wall toward the camera, so walking to the door you
-	# can't see past the sides; the floor runs on under them
+	# can't see past the sides; the floor runs on under them. (11/24) They start where the round wall ends and fade
+	# out when the camera is close, so walking along the hall's sides they don't cover the screen or hide you.
+	var wall_far: BaseMaterial3D = wall.duplicate()
+	wall_far.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_DITHER
+	wall_far.distance_fade_min_distance = 2.5
+	wall_far.distance_fade_max_distance = 6.0
+	var trim_far: BaseMaterial3D = trim.duplicate()
+	trim_far.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_DITHER
+	trim_far.distance_fade_min_distance = 2.5
+	trim_far.distance_fade_max_distance = 6.0
 	for sgn in [-1.0, 1.0]:
 		var wp := PlaneMesh.new()
-		wp.size = Vector2(15.0, 30.0)
-		Util.add_mesh(self, wp, wall, INT + Vector3(sgn * 14.2, 7.5, 19.0), Vector3(0, 0, sgn * PI / 2.0))   # faces inward
-		Models.block(self, INT + Vector3(sgn * 13.95, 0.4, 19.0), Vector3(0.4, 0.8, 30.0), trim)
-		Models.block(self, INT + Vector3(sgn * 13.95, 14.6, 19.0), Vector3(0.5, 0.8, 30.0), trim)
+		wp.size = Vector2(15.0, 20.0)
+		Util.add_mesh(self, wp, wall_far, INT + Vector3(sgn * 14.2, 7.5, 24.0), Vector3(0, 0, sgn * PI / 2.0))   # faces inward
+		Models.block(self, INT + Vector3(sgn * 13.95, 0.4, 24.0), Vector3(0.4, 0.8, 20.0), trim_far)
+		Models.block(self, INT + Vector3(sgn * 13.95, 14.6, 24.0), Vector3(0.5, 0.8, 20.0), trim_far)
 	var floor_more := PlaneMesh.new()
 	floor_more.size = Vector2(28.4, 22)
 	Util.add_mesh(self, floor_more, Models.mat("marble_mosaic_tiles", 3.0, Color(0.62, 0.58, 0.7)), INT + Vector3(0, 0.0015, 27.0))
@@ -789,6 +799,7 @@ func _level_process(delta: float) -> void:
 			s[0].rotation.y += s[1] * delta
 	if mattias_light:
 		mattias_light.light_energy = 1.5 + sin(t * 2.0) * 0.35
+	_hall_camera(delta)
 	if hymn:
 		hymn.gain_db = move_toward(hymn.gain_db, music_gain, delta * 30.0)
 		_hymn_watch(delta)
@@ -974,6 +985,7 @@ func _enter_lair() -> void:
 		focus_override = null
 		objective("Approach Metocin Mattias.", DAIS + Vector3(0, 0, 4))
 	else:
+		_lair_objective()
 		fade_in(0.5)
 		await wait(0.4)
 
@@ -984,6 +996,7 @@ func _leave_lair() -> void:
 	place_party(DOOR_OUT + Vector3(0, 0, 2.6), Vector3(0, 0, 1))
 	for u in party:
 		u.trail.clear()
+	_lair_objective()
 	fade_in(0.5)
 	await wait(0.4)
 
@@ -1036,7 +1049,39 @@ func _hymn_watch(delta: float) -> void:
 			if inside and stage == "lair":
 				objective("Approach Metocin Mattias.", DAIS + Vector3(0, 0, 4))
 
+# (Asar 11/24) inside the hall the camera trails ~15 m back, so near the side and back walls it ended up outside the
+# round wall looking at the dark outside of it, and you couldn't see yourself. Pull it in so it stays inside the hall.
+const HALL_ZOOM := 14.0
+func _hall_camera(delta: float) -> void:
+	if not inside or busy or focus_override != null or cam == null or leader == null:
+		return
+	var lp := Vector2(leader.global_position.x - INT.x, leader.global_position.z - INT.z)
+	var back := Vector2(cam.global_position.x - leader.global_position.x, cam.global_position.z - leader.global_position.z)
+	if back.length() < 0.5:
+		return
+	var per_zoom := back.length() / maxf(zoom, 0.1)   # horizontal metres of camera distance per unit of zoom
+	var d := back.normalized()
+	var r := HALL_R - 1.5
+	var bd := lp.dot(d)                                # ray lp + t*d meets the circle |x| = r
+	var t_hit := -bd + sqrt(maxf(0.0, bd * bd - (lp.length_squared() - r * r)))
+	var want := clampf(t_hit / per_zoom, 6.0, HALL_ZOOM)
+	zoom = move_toward(zoom, want, delta * 8.0)
+
+# (Asar 11/24) the star follows you in and out of the hall: inside it points at Mattias, outside at the door
+var _peeped := false
+func _lair_objective() -> void:
+	if Game.flag("chapter1Done"):
+		return
+	if inside:
+		if _peeped and not hymn_heard():
+			objective("Listen to the hymn, then approach Metocin Mattias.", DAIS + Vector3(0, 0, 4))
+		else:
+			objective("Approach Metocin Mattias.", DAIS + Vector3(0, 0, 4))
+	else:
+		objective("Enter the Wizard's Lair.", DOOR_OUT)
+
 func _peep_the_song() -> void:
+	_peeped = true
 	busy = true
 	freeze_all(true)
 	await run_dialogue(SS.PEEP_THE_SONG)
