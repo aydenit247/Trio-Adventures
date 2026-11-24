@@ -46,14 +46,15 @@ var choice_box: VBoxContainer
 var hint: Label
 var _typing: Tween
 var foot: HBoxContainer          # bottom row: speed-mode button/confirm on the left, key hint on the right
-var _speed_btn: Button
-var _speed_ask: HBoxContainer
+var _speed_box: HBoxContainer     # "Speed" + slider (0.5x–3x) + "1.5x", bottom-left of the box
+var _speed_slider: HSlider
+var _speed_val: Label
 var _ready_at := 0               # msec: E can't advance before this (the buffer)
 var _back_ok := false            # the step before this line is a plain line, so Backspace can replay it
 var _back_req := false
 var _choices: Array = []
 var name_line: Control
-var _speed_q: Label
+var _speed_q: Label   # "Speed" caption
 var _who := ""                   # current speaker (for restyling the name color)
 var _sel := 0
 var _voices: PackedStringArray = []
@@ -122,17 +123,28 @@ func _build() -> void:
 	foot = HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 10)
 	col.add_child(foot)
-	_speed_btn = _foot_button("", _on_speed_btn)
-	foot.add_child(_speed_btn)
-	_speed_ask = HBoxContainer.new()
-	_speed_ask.add_theme_constant_override("separation", 8)
-	_speed_ask.visible = false
-	foot.add_child(_speed_ask)
+	# Speed slider (Ebain 11/24): one click/drag, no Yes/No. Changes voices + text typing, 0.5x to 3x.
+	_speed_box = HBoxContainer.new()
+	_speed_box.add_theme_constant_override("separation", 8)
+	foot.add_child(_speed_box)
 	_speed_q = Label.new()
-	_speed_q.text = "Speed mode: spam E to skip, voices talk 1.5x faster. Turn on?"
-	_speed_ask.add_child(_speed_q)
-	_speed_ask.add_child(_foot_button("Yes", func(): _set_speed(true)))
-	_speed_ask.add_child(_foot_button("No", func(): _speed_ask.visible = false; _speed_btn.visible = true))
+	_speed_q.text = "Speed"
+	_speed_box.add_child(_speed_q)
+	_speed_slider = HSlider.new()
+	_speed_slider.min_value = Game.DLG_SPEED_MIN
+	_speed_slider.max_value = Game.DLG_SPEED_MAX
+	_speed_slider.step = 0.25
+	_speed_slider.custom_minimum_size = Vector2(150, 18)
+	_speed_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_speed_slider.focus_mode = Control.FOCUS_NONE   # E / Space / arrows never move it
+	_speed_slider.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_speed_slider.value = Game.dlg_speed
+	_speed_slider.value_changed.connect(_set_speed)
+	_speed_slider.drag_ended.connect(func(_c): Game.save_settings())
+	_speed_box.add_child(_speed_slider)
+	_speed_val = Label.new()
+	_speed_val.custom_minimum_size.x = 44
+	_speed_box.add_child(_speed_val)
 	hint = Label.new()
 	hint.text = "E / Space  >"
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -165,16 +177,39 @@ func _restyle() -> void:
 	var ol := UITheme.c("outline")
 	text_lbl.add_theme_color_override("font_outline_color", ol)
 	text_lbl.add_theme_constant_override("outline_size", 0 if ol.a < 0.05 else 3)
-	UITheme.style_lbl(_speed_q, 15, "accent")
+	UITheme.style_lbl(_speed_q, 15, "dim")
+	UITheme.style_lbl(_speed_val, 15, "accent")
+	_style_slider()
 	UITheme.style_lbl(hint, 15, "dim")
-	for b in [_speed_btn] + _speed_ask.get_children().filter(func(c): return c is Button):
-		b.add_theme_font_size_override("font_size", UITheme.fs(15))
-		b.add_theme_color_override("font_color", UITheme.c("dim"))
-		b.add_theme_color_override("font_hover_color", UITheme.c("accent"))
 	if _choices.is_empty():
 		panel.offset_top = -_box_h()
 	else:
 		_render_choices()
+
+# The speed slider: a thin rounded track, filled in the accent color up to a round knob.
+func _style_slider() -> void:
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(UITheme.c("edge"), 0.55)
+	track.set_corner_radius_all(3)
+	track.content_margin_top = 3; track.content_margin_bottom = 3
+	var fill := track.duplicate() as StyleBoxFlat
+	fill.bg_color = UITheme.c("accent")
+	_speed_slider.add_theme_stylebox_override("slider", track)
+	_speed_slider.add_theme_stylebox_override("grabber_area", fill)
+	_speed_slider.add_theme_stylebox_override("grabber_area_highlight", fill)
+	var knob := _knob(UITheme.c("accent"), 14)
+	_speed_slider.add_theme_icon_override("grabber", knob)
+	_speed_slider.add_theme_icon_override("grabber_highlight", _knob(UITheme.c("text"), 16))
+
+static func _knob(col: Color, d: int) -> ImageTexture:
+	var img := Image.create(d, d, false, Image.FORMAT_RGBA8)
+	var r := d * 0.5
+	for y in d:
+		for x in d:
+			var dist := Vector2(x + 0.5 - r, y + 0.5 - r).length()
+			var a := clampf(r - dist, 0.0, 1.0)
+			img.set_pixel(x, y, Color(col, a))
+	return ImageTexture.create_from_image(img)
 
 # Box height: 214 px at 100% text size, taller with bigger text so 3 lines still fit.
 func _box_h() -> float:
@@ -198,23 +233,17 @@ func _foot_button(txt: String, cb: Callable) -> Button:
 	b.pressed.connect(cb)
 	return b
 
-# Turning speed mode ON asks first (Yes / No); turning it OFF is one click.
-func _on_speed_btn() -> void:
-	if Game.dlg_speed:
-		_set_speed(false)
-	else:
-		_speed_btn.visible = false
-		_speed_ask.visible = true
-
-func _set_speed(on: bool) -> void:
-	Game.dlg_speed = on
-	Game.save_settings()
-	_speed_ask.visible = false
-	_speed_btn.visible = true
+func _set_speed(v: float) -> void:
+	Game.dlg_speed = clampf(v, Game.DLG_SPEED_MIN, Game.DLG_SPEED_MAX)
 	_refresh_speed_btn()
+	_apply_voice_speed()
+	if _typing and _typing.is_running():   # the line being typed right now speeds up too
+		_typing.set_speed_scale(Game.dlg_speed)
 
 func _refresh_speed_btn() -> void:
-	_speed_btn.text = "» Speed mode: %s" % ("ON" if Game.dlg_speed else "OFF")
+	if not is_equal_approx(_speed_slider.value, Game.dlg_speed):
+		_speed_slider.set_value_no_signal(Game.dlg_speed)
+	_speed_val.text = "%sx" % str(snappedf(Game.dlg_speed, 0.01))
 
 # Footer hint: Backspace shows only when going back is possible for this line.
 func _hint_text() -> String:
@@ -228,15 +257,13 @@ func _hint_text() -> String:
 
 # The buffer: E can't advance until the line has been fully on screen for a moment (none in speed mode).
 func _arm_buffer() -> void:
-	var sec: float = 0.0 if Game.dlg_speed else Game.DLG_BUFFER_SEC[Game.dlg_buffer]
+	var sec: float = Game.DLG_BUFFER_SEC[Game.dlg_buffer] / Game.dlg_speed   # faster dialogue = shorter buffer
 	_ready_at = Time.get_ticks_msec() + int(sec * 1000.0)
 
 
 func run(steps: Array, ctx: Node) -> void:
 	left = false
 	_refresh_speed_btn()
-	_speed_ask.visible = false
-	_speed_btn.visible = true
 	active = true
 	panel.visible = true
 	panel.modulate.a = 0.0
@@ -324,6 +351,7 @@ func say(s: Dictionary) -> void:
 		text_lbl.visible_ratio = 0.0
 		_typing = create_tween()
 		_typing.tween_property(text_lbl, "visible_ratio", 1.0, max(0.2, line.length() * 0.022 * speed))
+		_typing.set_speed_scale(Game.dlg_speed)   # dialogue speed slider
 		_typing.finished.connect(_arm_buffer)   # buffer starts when the line is fully shown
 	_speak(who, line, thought)
 	await _next
@@ -461,10 +489,9 @@ func _speak(who: String, line: String, thought: bool) -> void:
 	var rec := VoiceLines.stream_for(line)   # thoughts too: the studio bakes their echo in
 	if rec:
 		_vo.volume_db = linear_to_db(Game.voice_vol) + VOICE_GAIN_DB.get(who, 0.0)
-		# Speed mode (Ebain 11/24: "makes the voices faster, not the text"): play 1.5x through a bus that shifts the
-		# pitch back down, so the line is quicker but doesn't sound like a chipmunk.
-		_vo.pitch_scale = SPEED_VOICE if Game.dlg_speed else 1.0
-		_vo.bus = _fast_bus() if Game.dlg_speed else &"Master"
+		# Dialogue speed (slider, 0.5x–3x): play faster/slower through a bus that shifts the pitch back, so it
+		# doesn't sound like a chipmunk (or a slowed-down demon).
+		_apply_voice_speed()
 		_pending_rec = rec
 		_pump()
 		return
@@ -478,19 +505,27 @@ func _speak(who: String, line: String, thought: bool) -> void:
 	var v := _voices[CHARS.keys().find(who) % _voices.size()]
 	var vol := int((45 if thought else 80) * Game.voice_vol)
 	for part in sentences(clean):
-		_tts_queue.append({ "text": part, "voice": v, "vol": vol, "pitch": c["pitch"], "rate": minf(10.0, c["rate"] * (SPEED_VOICE if Game.dlg_speed else 1.0)) })
+		_tts_queue.append({ "text": part, "voice": v, "vol": vol, "pitch": c["pitch"], "rate": clampf(c["rate"] * Game.dlg_speed, 0.1, 10.0) })
 	_pump()
 
-const SPEED_VOICE := 1.5
-static func _fast_bus() -> StringName:
-	if AudioServer.get_bus_index("VoiceFast") == -1:
+func _apply_voice_speed() -> void:
+	if _vo == null:
+		return
+	var x: float = Game.dlg_speed
+	_vo.pitch_scale = x
+	_vo.bus = &"Master" if is_equal_approx(x, 1.0) else _fast_bus(x)
+
+static func _fast_bus(x: float) -> StringName:
+	var i := AudioServer.get_bus_index("VoiceFast")
+	if i == -1:
 		AudioServer.add_bus()
-		var i := AudioServer.bus_count - 1
+		i = AudioServer.bus_count - 1
 		AudioServer.set_bus_name(i, "VoiceFast")
 		AudioServer.set_bus_send(i, &"Master")
-		var fx := AudioEffectPitchShift.new()
-		fx.pitch_scale = 1.0 / SPEED_VOICE
-		AudioServer.add_bus_effect(i, fx)
+		AudioServer.add_bus_effect(i, AudioEffectPitchShift.new())
+	var fx := AudioServer.get_bus_effect(i, 0) as AudioEffectPitchShift
+	if fx and not is_equal_approx(fx.pitch_scale, 1.0 / x):
+		fx.pitch_scale = 1.0 / x
 	return &"VoiceFast"
 
 func _process(_dt: float) -> void:

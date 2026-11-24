@@ -386,7 +386,7 @@ static func open_settings(parent: Node) -> MenuUI:
 	var rows := [
 		{ "text": "Audio", "pick": func(): await sub.call(_settings_audio), "note": "Volume for music, sound effects and voices." },
 		{ "text": "Display & UI", "pick": func(): await sub.call(_settings_display), "note": "Menu theme, UI size, text size, window and graphics." },
-		{ "text": "Dialogue", "pick": func(): await sub.call(_settings_dialogue), "note": "Text speed, the E buffer, going back a line, speed mode." },
+		{ "text": "Dialogue", "pick": func(): await sub.call(_settings_dialogue), "note": "Text speed, the E buffer, going back a line, dialogue speed." },
 		{ "text": "Gameplay", "pick": func(): await sub.call(_settings_gameplay), "note": "Camera, combat difficulty, timed hits." },
 		{ "text": "Controls", "pick": func(): await sub.call(_settings_controls), "note": "Change the keyboard keys. The controller layout stays the same." },
 		{ "text": "Back", "pick": func(): box["m"].close() },
@@ -464,9 +464,9 @@ static func _settings_dialogue(parent: Node) -> MenuUI:
 		{ "text": "Go back (Backspace)", "value": func(): return "ON" if Game.dlg_back else "OFF",
 		  "change": func(_d): Game.dlg_back = not Game.dlg_back; _changed(),
 		  "note": "Backspace replays the previous line. It can't go back past a choice or a scene event." },
-		{ "text": "Speed mode", "value": func(): return "ON" if Game.dlg_speed else "OFF",
-		  "change": func(_d): Game.dlg_speed = not Game.dlg_speed; _changed(),
-		  "note": "Spam E to skip, and voices talk 1.5x faster (same pitch). Also a button on the dialogue box." },
+		{ "text": "Dialogue speed", "value": func(): return "%sx" % str(snappedf(Game.dlg_speed, 0.01)),
+		  "change": func(d): Game.dlg_speed = clampf(Game.dlg_speed + d * 0.25, Game.DLG_SPEED_MIN, Game.DLG_SPEED_MAX); _changed(),
+		  "note": "Voices and text, 0.5x to 3x (voices keep their pitch). Also a slider on the dialogue box." },
 	])
 
 static func _settings_gameplay(parent: Node) -> MenuUI:

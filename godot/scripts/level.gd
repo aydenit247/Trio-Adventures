@@ -1607,6 +1607,8 @@ func open_pause_menu() -> void:
 		{ "text": "Load Game", "pick": func(): await _pause_sub(MenuUI.open_slots(hud, "load", self)),
 		  "enabled": func(): return Game.latest_slot() != "" },
 		{ "text": "Settings", "pick": func(): await _pause_sub(MenuUI.open_settings(hud)) },
+		{ "text": "Library", "pick": func(): await _pause_sub(LibraryUI.open(hud)),
+		  "note": "Soundtrack, Voice Lines and the Scrapbook (same as on the title screen)." },
 		{ "text": "Quit to Title", "pick": func():
 			if await MenuUI.confirm(hud, "Back to the title screen? Anything since your last save is lost.", "Quit to Title", "Stay"):
 				Game.title_mode = true
@@ -1623,7 +1625,7 @@ func open_pause_menu() -> void:
 		_close_menu()
 
 # open a sub-menu over the pause menu and come back to it afterwards
-func _pause_sub(m: MenuUI) -> void:
+func _pause_sub(m: Node) -> void:   # a MenuUI, or anything with a `closed` signal (LibraryUI)
 	if pause_menu:
 		pause_menu.visible = false
 	await m.closed

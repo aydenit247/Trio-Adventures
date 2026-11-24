@@ -442,7 +442,9 @@ const DLG_BUFFER := ["Off", "Short", "Normal", "Long"]   # wait after a line is 
 const DLG_BUFFER_SEC := [0.0, 0.2, 0.4, 0.8]
 var dlg_buffer := 2               # index into DLG_BUFFER
 var dlg_back := true              # Backspace goes back one line
-var dlg_speed := false            # speed mode: no buffer (spam E) + voices 1.5x faster (dialogue.gd SPEED_VOICE). Turned on with the button on the dialogue box
+var dlg_speed := 1.0              # dialogue speed 0.5x–3x (Ebain 11/24): voices AND text typing, set with the slider on the dialogue box. Buffer scales with it
+const DLG_SPEED_MIN := 0.5
+const DLG_SPEED_MAX := 3.0
 # UI overhaul (Ebain 11/24): menu theme + sizes (ui_theme.gd), music/SFX buses (made in _make_buses), key rebinding (keybinds.gd)
 signal ui_changed                 # theme / sizes changed: open menus restyle
 var music_vol := 0.8              # 0..1, the "Music" bus (title, area songs, Library)
@@ -495,7 +497,8 @@ func load_settings() -> void:
 	timed_auto = cf.get_value("game", "timed_auto", timed_auto)
 	dlg_buffer = clampi(int(cf.get_value("game", "dlg_buffer", dlg_buffer)), 0, 3)
 	dlg_back = cf.get_value("game", "dlg_back", dlg_back)
-	dlg_speed = cf.get_value("game", "dlg_speed", dlg_speed)
+	var ds = cf.get_value("game", "dlg_speed", dlg_speed)   # old saves: speed mode was ON/OFF
+	dlg_speed = (1.5 if ds else 1.0) if ds is bool else clampf(float(ds), DLG_SPEED_MIN, DLG_SPEED_MAX)
 	music_vol = cf.get_value("audio", "music", music_vol)
 	sfx_vol = cf.get_value("audio", "sfx", sfx_vol)
 	ui_theme = clampi(int(cf.get_value("ui", "theme", ui_theme)), 0, UITheme.NAMES.size() - 1)

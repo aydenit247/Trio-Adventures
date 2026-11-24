@@ -204,6 +204,9 @@ const SHORTCUT := [
 const CHARIS_HI := [
 	{ "who": "charis", "line": "Oh, y'all actually found my house. Come in. Don't touch nothing." }, # DRAFT (Ebain writes Charis's dialogue)
 ]
+const CHARIS_PC := [   # her gaming setup (Ebain 11/24). All DRAFT until Ebain writes them
+	{ "who": "charis", "line": "Don't touch my setup. I'm mid-match." }, # DRAFT
+]
 const CHARIS_AGAIN := [
 	{ "who": "charis", "line": "Still here. Still don't touch nothing." }, # DRAFT
 ]

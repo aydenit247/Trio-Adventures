@@ -16,6 +16,7 @@ const RUINS_Z := 6.2                               # the side path west to the O
 const RUINS_EXIT_X := -15.5
 const HOUSE_DOOR := Vector3(9.2, 0, -14.0)         # Charis's house = the house right of the Mart (its front door)
 const HOUSE := Vector3(340, 0, 0)                  # its inside, built off to the side like the shop
+const PC_SPOT := HOUSE + Vector3(-1.8, 0, -2.4)     # in front of Charis's gaming setup (back wall)
 
 # "outside" → "arrived" (go inside) → "inside" → "after" (walk east) → "end"
 var stage := "outside"
@@ -533,7 +534,7 @@ func _level_process(_delta: float) -> void:
 	if (stage == "outside" or stage == "after") and not inside and not in_house and leader.global_position.x < RUINS_EXIT_X:
 		stage = "end"
 		_to_ruins()
-	elif stage == "outside" and leader.global_position.z < 1.5:
+	elif stage == "outside" and not in_house and leader.global_position.z < 1.5:
 		stage = "arrived"
 		_arrive()
 	elif stage == "after" and leader.global_position.distance_to(EXIT_POS) < 3.0:
@@ -570,20 +571,21 @@ func map_place_door() -> Vector3:
 	return HOUSE_DOOR if in_house else DOOR_OUT
 
 func _level_interactables() -> Array:
+	if in_house:   # Charis's house: open before the Mart scene and after it (Ebain 11/24)
+		return [
+			{ "id": "house_exit", "label": "outside", "verb": "Go", "pos": HOUSE + Vector3(0, 0, 3.6), "h": 2.2, "r": 1.8, "steps": [{ "do": "house_out" }] },
+			{ "id": "charis", "label": "Charis", "verb": "Talk to", "node": charis, "h": 2.1, "r": 2.2, "steps": [{ "do": "charis_talk" }] },
+			{ "id": "pc", "label": "Charis's gaming setup", "verb": "Look at", "pos": PC_SPOT, "h": 1.5, "r": 1.6, "steps": RS.CHARIS_PC },
+		]
+	var house_door := { "id": "house_door", "label": "Charis's house", "verb": "Knock on", "pos": HOUSE_DOOR + Vector3(0, 0, 0.9), "h": 2.4, "r": 1.8, "steps": [{ "do": "house_in" }] }
 	if stage == "after":
-		if in_house:
-			return [
-				{ "id": "house_exit", "label": "outside", "verb": "Go", "pos": HOUSE + Vector3(0, 0, 3.6), "h": 2.2, "r": 1.8, "steps": [{ "do": "house_out" }] },
-				{ "id": "charis", "label": "Charis", "verb": "Talk to", "node": charis, "h": 2.1, "r": 2.2, "steps": [{ "do": "charis_talk" }] },
-			]
 		if inside:
 			return [{ "id": "shop_exit", "label": "outside", "verb": "Go", "pos": DOOR_IN, "h": 2.2, "r": 1.8, "steps": [{ "do": "shop_out" }] }]
-		return [{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 2.6, "steps": [{ "do": "shop_in" }] },
-			{ "id": "house_door", "label": "Charis's house", "verb": "Knock on", "pos": HOUSE_DOOR + Vector3(0, 0, 0.9), "h": 2.4, "r": 1.8, "steps": [{ "do": "house_in" }] }]
-	if stage == "arrived":
+		return [{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 2.6, "steps": [{ "do": "shop_in" }] }, house_door]
+	if stage == "arrived":   # Dulbers comes out when you try the door
 		return [
-			{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 3.0, "steps": [{ "do": "enter_shop" }] + MS.SHOP },
-			{ "id": "dulbers", "label": "Dulbers Frint", "verb": "Talk to", "node": dulbers, "h": 1.7, "r": 2.0, "steps": MS.DULBERS_WAITING },
+			{ "id": "door", "label": "Metocy Mart", "verb": "Go inside", "pos": DOOR_OUT, "h": 2.4, "r": 3.0, "steps": MS.DULBERS_OUT + [{ "do": "enter_shop" }] + MS.SHOP },
+			house_door,
 		]
 	return []
 
@@ -850,20 +852,9 @@ func _kicked_out() -> void:
 	await wait(0.6)
 
 func _show_pass_sign() -> void:
-	pass_sign = Node3D.new()
-	pass_sign.position = Vector3(6.5, 0, -2.6)
-	add_child(pass_sign)
-	card("sign", 2.6, pass_sign.position)
-	var s := Label3D.new()
-	s.text = "GIANT'S PASS →"
-	s.font_size = 44
-	s.pixel_size = 0.005
-	s.modulate = Color(0.15, 0.08, 0.03)
-	s.outline_size = 0
-	s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-	s.position = Vector3(0, 0.75, 0.15)
-	pass_sign.add_child(s)
-	_poof(pass_sign.position)
+	# same wooden post sign as the rest (Ebain 11/24), not the old card + floating text
+	pass_sign = wood_sign("sign_mart_pass", "GIANT'S PASS  →", Vector3(6.5, 1.25, -2.6), 0.0, 1.7, 0.5, true)
+	_poof(Vector3(6.5, 0, -2.6))
 	focus_override = Vector3(3.5, 0, -4.0)
 
 func _xylo_lore() -> void:
@@ -1043,7 +1034,7 @@ func _charis_house() -> void:
 	# a door + sign on the front of the house right of the Mart (mart.gd _house at 9.5, -17)
 	var rot := -0.1
 	Models.block(self, HOUSE_DOOR + Vector3(0, 1.0, 0), Vector3(1.1, 2.0, 0.1), Models.mat("dark_wooden_planks", 0.8, Color(0.5, 0.38, 0.3)), rot)
-	wood_sign("sign_charis", "CHARIS", HOUSE_DOOR + Vector3(0, 2.4, 0.12), rot, 1.1, 0.36)
+	# (no sign over her door: Ebain 11/24)
 	var porch := OmniLight3D.new()
 	porch.light_color = Color(1.0, 0.72, 0.42)
 	porch.light_energy = 1.2
@@ -1102,6 +1093,7 @@ func _charis_house() -> void:
 		l.position = lp
 		add_child(l)
 	add_glow(HOUSE + Vector3(0, 1, -1), Color(1.0, 0.72, 0.45), 9.0, func(): return 0.75, true)
+	_gaming_setup(HOUSE + Vector3(-1.8, 0, -3.75))
 	charis = spawn_npc("charis", "Charis", "charis", 1.75, HOUSE + Vector3(1.8, 0, -1.2))
 	var tag := Label3D.new()
 	tag.text = "Charis"   # her art is in (Ebain 11/24)
@@ -1112,6 +1104,72 @@ func _charis_house() -> void:
 	tag.modulate = Color("#ffcf9a")
 	tag.position = Vector3(0, 2.0, 0)
 	charis.add_child(tag)
+
+# Charis's gaming setup (Ebain 11/24): desk, two glowing monitors, RGB tower + keyboard, gaming chair. Built from
+# boxes so it costs nothing; the screens and RGB are emissive so they glow in the dark room.
+func _gaming_setup(c: Vector3) -> void:
+	var wood := Models.mat("dark_wood", 1.0, Color(0.32, 0.26, 0.24))
+	var black := Util.mat(Color(0.06, 0.06, 0.07))
+	Models.block(self, c + Vector3(0, 0.76, 0), Vector3(2.2, 0.06, 0.8), wood)                  # desk top
+	for x in [-1.0, 1.0]:
+		Models.block(self, c + Vector3(x, 0.37, 0), Vector3(0.06, 0.74, 0.74), black)          # legs
+	Util.static_box(self, c + Vector3(0, 0.4, 0), Vector3(2.2, 0.8, 0.8))
+	var screens := [[-0.5, 0.12, Color(0.35, 0.6, 1.0)], [0.5, -0.12, Color(0.75, 0.4, 1.0)]]
+	for sc in screens:
+		var mon := Node3D.new()
+		add_child(mon)
+		mon.global_position = c + Vector3(sc[0], 0.79, -0.18)
+		mon.rotation.y = sc[1]
+		var frame := MeshInstance3D.new()
+		var fm := BoxMesh.new(); fm.size = Vector3(0.92, 0.54, 0.04)
+		frame.mesh = fm; frame.material_override = black; frame.position = Vector3(0, 0.42, 0)
+		mon.add_child(frame)
+		var glass := MeshInstance3D.new()
+		var gm := QuadMesh.new(); gm.size = Vector2(0.86, 0.48)
+		glass.mesh = gm
+		var em := StandardMaterial3D.new()
+		em.albedo_color = sc[2]
+		em.emission_enabled = true
+		em.emission = sc[2]
+		em.emission_energy_multiplier = 1.6
+		glass.material_override = em
+		glass.position = Vector3(0, 0.42, 0.021)
+		mon.add_child(glass)
+		var stand := MeshInstance3D.new()
+		var sm := BoxMesh.new(); sm.size = Vector3(0.06, 0.16, 0.06)
+		stand.mesh = sm; stand.material_override = black; stand.position = Vector3(0, 0.08, 0)
+		mon.add_child(stand)
+	# keyboard (RGB strip) + mouse
+	Models.block(self, c + Vector3(-0.1, 0.80, 0.18), Vector3(0.7, 0.03, 0.22), black)
+	var rgb := StandardMaterial3D.new()
+	rgb.albedo_color = Color(1.0, 0.3, 0.8)
+	rgb.emission_enabled = true
+	rgb.emission = Color(1.0, 0.3, 0.8)
+	rgb.emission_energy_multiplier = 2.0
+	Models.block(self, c + Vector3(-0.1, 0.816, 0.18), Vector3(0.66, 0.005, 0.18), rgb)
+	Models.block(self, c + Vector3(0.45, 0.80, 0.2), Vector3(0.08, 0.03, 0.12), black)
+	# tower with a glowing side panel, next to the desk
+	Models.block(self, c + Vector3(1.4, 0.45, -0.05), Vector3(0.28, 0.9, 0.6), black)
+	var glow := rgb.duplicate() as StandardMaterial3D
+	glow.albedo_color = Color(0.3, 0.9, 1.0)
+	glow.emission = Color(0.3, 0.9, 1.0)
+	Models.block(self, c + Vector3(1.255, 0.45, -0.05), Vector3(0.01, 0.75, 0.5), glow)
+	Util.static_box(self, c + Vector3(1.4, 0.45, -0.05), Vector3(0.3, 0.9, 0.6))
+	# gaming chair (pink, Charis's colors) pulled out a bit
+	var seat := Util.mat(Color(0.75, 0.3, 0.55))
+	var ch := c + Vector3(-0.2, 0, 0.95)
+	Models.block(self, ch + Vector3(0, 0.25, 0), Vector3(0.1, 0.5, 0.1), black)
+	Models.block(self, ch + Vector3(0, 0.03, 0), Vector3(0.6, 0.05, 0.6), black)
+	Models.block(self, ch + Vector3(0, 0.52, 0), Vector3(0.6, 0.12, 0.58), seat)
+	Models.block(self, ch + Vector3(0, 0.98, 0.27), Vector3(0.56, 0.86, 0.1), seat)
+	Models.block(self, ch + Vector3(0, 1.3, 0.25), Vector3(0.3, 0.14, 0.08), black)
+	# the screens light the wall
+	var l := OmniLight3D.new()
+	l.light_color = Color(0.55, 0.5, 1.0)
+	l.light_energy = 0.9
+	l.omni_range = 3.5
+	l.position = c + Vector3(0, 1.3, 0.5)
+	add_child(l)
 
 func _house_in() -> void:
 	busy = true
@@ -1158,17 +1216,34 @@ func _shot_tour() -> void:
 	await wait(0.6)
 	place_party(Vector3(0, 0, 1.0), Vector3(0, 0, -1))
 	await wait(1.4)
-	await advance(3)
-	await wait(2.0)
-	await shot("m_02_dulbers")
-	await advance(6)
-	await wait(2.0)
+	await advance(2)
+	await wait(1.5)
+	if dulbers.visible:
+		print("MART TOUR BUG dulbers out before the door")
+	# Charis's house before the Mart scene (Ebain 11/24)
+	place_party(HOUSE_DOOR + Vector3(-0.6, 0, 1.8), Vector3(0, 0, -1))
+	await wait(0.8)
+	var hd0: Array = current_interactables().filter(func(i): return i["id"] == "house_door")
+	print("MART TOUR house door before mart: ", not hd0.is_empty())
+	if not hd0.is_empty():
+		start(hd0[0])
+		await wait(1.5)
+		place_party(PC_SPOT, Vector3(0, 0, -1))
+		await wait(0.8)
+		await shot("m_02a_charis_pc")
+		start(current_interactables().filter(func(i): return i["id"] == "house_exit")[0])
+		await wait(1.5)
+		print("MART TOUR before-mart house out: stage=", stage, " in_house=", in_house)
 	place_party(DOOR_OUT + Vector3(0, 0, 1.5), Vector3(0, 0, -1))
 	await wait(1.0)
 	start(current_interactables().filter(func(i): return i["id"] == "door")[0])
 	await wait(2.5)
+	await shot("m_02_dulbers")
+	for k in 25:   # Dulbers' lines, then the shop, up to the choice
+		if not dialogue._choices.is_empty():
+			break
+		await advance(1, 0.6)
 	await shot("m_03_inside")
-	await advance(5, 0.6)
 	await wait(1.0)
 	await shot("m_04_choice")
 	var opts: Array = dialogue._choices

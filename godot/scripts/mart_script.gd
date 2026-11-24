@@ -17,6 +17,9 @@ const ARRIVE := [
 	{ "who": "xylo", "mood": "vision", "line": "There. I can feel it. The metocy is near." },
 	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bro, it's a store. You feel a store?" }] },
 	{ "if": "skornKing", "steps": [{ "who": "lykor", "line": "It's weird without Skorn. …Peaceful, but weird." }] },
+]
+# Dulbers only pops out once you go for the door (Ebain 11/24), not as soon as you walk up the street.
+const DULBERS_OUT := [
 	{ "do": "dulbers_appears" },
 	{ "who": "dulbers", "mood": "grin", "line": "Hey guys, it's your boy Dulbers Frint!" },
 	{ "who": "dulbers", "mood": "grin", "line": "Y'all could pull up before the Diddy Chud Giant smells you?" }, # Ebain

@@ -82,6 +82,8 @@ func _wanted() -> String:
 	for c in lv.get_children():
 		if c is BattleView:
 			return "silent"
+	if not get_tree().get_nodes_in_group("library_open").is_empty():   # the Library from the pause menu plays its own songs
+		return "silent"
 	if _since_dialogue < duck_release_s:
 		return "ducked"
 	return "full"

@@ -62,6 +62,7 @@ static func mark_heard(id_or_path: String) -> bool:
 
 static func open(parent: Node, title_music: AudioStreamPlayer = null) -> LibraryUI:
 	var lib := LibraryUI.new()
+	lib.add_to_group("library_open")   # AreaMusic goes quiet while it's open (pause menu → Library)
 	parent.add_child(lib)
 	lib._build(parent, title_music)
 	return lib

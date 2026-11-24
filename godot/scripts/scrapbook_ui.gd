@@ -142,7 +142,7 @@ func _build() -> void:
 			list.add_child(hd)
 		var got: bool = Game.progress.has(e["id"])
 		var row := PanelContainer.new()
-		row.mouse_filter = Control.MOUSE_FILTER_STOP
+		row.mouse_filter = Control.MOUSE_FILTER_PASS   # PASS, not STOP: the mouse wheel has to reach the ScrollContainer
 		var l := UITheme.lbl(e["title"] if got else "? ? ?", 17, "text" if got else "faint", UITheme.row_font(), P)
 		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(l)
