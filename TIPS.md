@@ -157,6 +157,16 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] New gear needs a `"slot"` in CombatD.GEAR (helmet/armor/shoes/shield/weapon/trinket). New enemies need `"gold"`.
 - [ebain] Menus: use `MenuUI` (scripts/menu_ui.gd) for any new menu. It handles keyboard, controller and mouse, and has
   `MenuUI.confirm()` for yes/no boxes. Don't hand-roll another input loop.
+- [ebain] **UI look = UITheme** (ui_theme.gd). New UI: use `UITheme.panel()`, `UITheme.c("accent")`, `UITheme.lbl()`,
+  `UITheme.play("move")` instead of hardcoded colors/StyleBoxFlat, so it follows Settings → Menu theme. Over the 3D world
+  (logo, HUD text) keep fixed light colors + outline: Parchment's text color is dark brown.
+- [ebain] **Audio buses are made at runtime** (`Game._make_buses`). New music player? set `bus = &"Music"` BEFORE
+  add_child, or `_route_audio` moves it to SFX. Voice-type players: name the var `_vo` on its parent to stay on Master.
+- [ebain] Fonts: Cinzel has no ◆ ▶ ✓ 🏆 glyphs. Draw them (`UITheme.Icon`, `Divider`) instead of putting them in text.
+- [ebain] UI logic test: `godot --headless --path godot res://tools/test_ui.tscn` → "UI TEST: ALL OK" (keybinds,
+  buses, Library unlocks, every settings page in every theme).
+- [ebain] After rebasing onto someone's new `class_name` (e.g. ProgressData), tours fail with thousands of errors until
+  you run `godot --headless --path godot --import` once.
 - [ebain] Saves: an area that has free roam should implement `can_resume()` / `can_resume_saved()` / `_resume(r)`
   (see camp.gd, village.gd). Without them a save restarts the area from its beginning, which is always safe.
 - [ebain] Any new story flag that matters after loading must be in `Game.flags`, since that's what saves keep. Scene-only

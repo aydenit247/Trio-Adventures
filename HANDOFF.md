@@ -198,11 +198,14 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | File | What it is |
 |---|---|
 | `project.godot` | autoload `Game`, main scene **`title.tscn`** (title screen), Forward+, 1280×720, icon + boot splash (`icon.png`, `icon.ico`, `splash.png`) |
-| `scripts/title.gd` + `title.tscn` | title screen: the camp runs in "title mode" behind the logo (fire lit, slow camera orbit). Continue / New Game / Load / Settings / Quit. Music: Ebain's **"Prophecy of Metocy"** (`assets/music/prophecy_of_metocy.ogg`, Gregorian chant, loops, fades out when you start) |
+| `scripts/title.gd` + `title.tscn` | title screen: the camp runs in "title mode" behind the logo (fire lit, slow camera orbit). Continue / New Game / Load / **Library** / Achievements / Settings / Quit. Gold Cinzel logo + ornament (always gold, whatever the theme). Music: Ebain's **"Prophecy of Metocy"** (`assets/music/prophecy_of_metocy.ogg`, Gregorian chant, loops, fades out when you start) |
 | `scripts/goblin_band.gd` | **GoblinBand**: the village goblin band (follows you playing the village song, sets the song's `gain_db`, talk options, waits at building doors). See section 4 "The explorable village" |
 | `scripts/area_music.gd` | **AreaMusic**: an area's free-roam music. Add it as a child node in the area's `.tscn` and set `track` (+ `stages`, volumes). It watches the parent Level, so the area script doesn't change: plays while `stage` is in `stages`, ducks under dialogue, goes quiet in building interiors (`vb.room`) and fights (a BattleView child), fades out on `Game.changing`. Keeps playing silently while out, so the song continues instead of restarting. `gain_db` lets the area turn it down (the village mutes it when the goblin band is gone). Village: Ebain's **"The Mogging Elf"** (`assets/music/the_mogging_elf.ogg`) in free roam |
 | `scripts/achievements.gd` | **Achievements**: popup top-right + title-screen list, saved forever in `user://achievements.cfg`. Add one = one line in `LIST` with `when`: `progress:<id>` (any progress_data id), `flag:<name>` (any story flag), or `manual` (call `Game.achieve("id")`). `hidden` = shows ??? until unlocked. Lives on Game (`Game.ach`) so it survives scene changes. The 5 current ones are DRAFT examples; Ebain picks the real list |
-| `scripts/menu_ui.gd` | **MenuUI**: every menu (title, pause, settings, save/load, yes/no). Keyboard, controller and mouse. `MenuUI.open(parent, title, rows, opts)`, `MenuUI.confirm()`, `open_settings()`, `open_slots()` |
+| `scripts/menu_ui.gd` | **MenuUI**: every menu (title, pause, settings, save/load, yes/no). Keyboard, controller and mouse. `MenuUI.open(parent, title, rows, opts)`, `MenuUI.confirm()`, `open_settings()` (section list → `_settings_audio/display/dialogue/gameplay/controls` pages), `open_slots()`. Rows: `text`, `value` (shown right, with ‹ › if the row has `change`; `"arrows": false` hides them), `icon` (play/pause/lock/note), `side` (a small button, L / Y). Looks from UITheme, restyles on `Game.ui_changed` |
+| `scripts/ui_theme.gd` | **UITheme**: the menu look. 3 themes (`NAMES`, colors in `T`): Gold & Night, Parchment, Wizard Arcane. `c(key)`, `panel()` (OrnateBox: chamfered, double frame, corner diamonds, top gem), `row(on)`, `lbl()`, `fs(px)` (× text size), `head_font()`/`row_font()` (Cinzel), `button()`, `bounce()/squash()/pop_in()`, `play("move/pick/back/open/page")` (synth sounds), drawn `Icon` + `Divider` |
+| `scripts/library_ui.gd` + `lyrics.gd` | **LibraryUI** (Title → Library): `SONGS`, play/pause/seek, lyrics page (always parchment). Songs unlock when heard (`mark_heard()`, called by AreaMusic once audible; title song always unlocked), saved in `user://library.cfg` across playthroughs. **Lyrics** go in `lyrics.gd` `TEXT[id]` (Ebain's, verbatim). New song = add to SONGS + Lyrics.TEXT |
+| `scripts/keybinds.gd` | **Keybinds** (Settings → Controls): rebind each action's main keyboard key (swaps on clash, Space/Enter always work for interact). Saved in settings.cfg `[keys]`, applied by Game before any level's `_setup_input()`. `ACTIONS` defaults must match level.gd |
 | `scripts/game.gd` | **Game** autoload: story `flags`, per-character `bags`, XP/level, gear, HP between fights (`hurt`, `hp()`, `heal()`), `quests`; `goto(scene)` (shows a loading card with a joke tip); **settings** (saved in `user://settings.cfg`; F11/Alt+Enter fullscreen); **saves** (`user://saves/<auto/1/2/3>.sav`: `save_game`, `load_game`, `latest_slot`, `new_game`) |
 | `scripts/level.gd` | **Level** base class every area extends: environment (night/day/lava), ground shader, `card()`, `backdrop()`, party + NPCs (`spawn_npc`, `add_to_party`, `walk_to`, `hop`, `knock`), camera (`cam_locked`, `zoom`, `cam_height`, `cam_look_h`, `focus_override`), interactions, `run_dialogue()`, HUD (`objective`, `show_toast`, `char_label`), `fight()`, roaming enemies (`spawn_roamers`), the defeat penalty, Esc pause menu, Tab inventory (`open_party_menu()` → InventoryUI), `item_icon(id)`, test helpers. Hooks: `_configure`, `_build_level`, `_after_build`, `_begin`, `_level_interactables`, `_on_action`, `_level_process`, `_shot_tour` |
 | `scripts/unit.gd` | **Unit**: a character (CharacterBody3D + billboard Sprite3D), views, `set_pose`, `restore_views` |
@@ -240,8 +243,13 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   `can_resume()` / `can_resume_saved()` / `_resume(r)`; see camp.gd and village.gd). Anywhere else, a save keeps the
   state from when you **entered** the area, so loading replays that area from its start instead of landing mid-cutscene.
   Only `Game` state is saved, so story facts that matter later must be `Game.flags`.
-- **Settings** (title + Esc menu): volume, voice volume, voices, text speed (Slow/Normal/Fast/Instant), window, VSync,
-  graphics (Low/Medium/High, see `Level.apply_graphics()`), camera turn speed, combat difficulty, timed hits.
+- **Settings** (title + Esc menu), split into pages: **Audio** (master, music, sound effects, voice volume, voices,
+  area music loop/once) · **Display & UI** (menu theme, UI size = root `content_scale_factor` 80–130%, text size 85–130%,
+  menu animations Bouncy/Calm, window, VSync, graphics) · **Dialogue** (text speed, buffer, go back, speed mode) ·
+  **Gameplay** (camera speed, difficulty, timed hits) · **Controls** (keyboard rebinding, reset).
+- **Audio buses** (made in `Game._make_buses()`, no bus layout file): `Music` and `SFX` → Master. Any new player left on
+  Master is moved to SFX automatically (`Game._route_audio`), except dialogue's `_vo`. Music players must set
+  `bus = &"Music"` before `add_child` (title.gd, area_music.gd, library_ui.gd do).
 - **Controller:** left stick/d-pad move, right stick or LB/RB camera, A talk/confirm, B run (hold) / back in menus,
   Y switch leader, Back = party, Start = menu. Number keys 1–9 pick dialogue choices.
 - **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Speed mode** (button at the bottom-left of the dialogue box, asks Yes/No; off with one click or in Settings) removes the buffer and types 2x faster. Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.
@@ -308,7 +316,8 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
   village.tscn). Ebain makes tracks in Google Flow Music. Loop points go in the track's `.import` (`loop=true`,
   `loop_offset` = where the loop restarts, so an intro plays once). Still wanted: camp, Mart (+ warped trip version),
   battle, boss, mountain/pass, victory jingle, "YOU GOT COOKED" sting. A new area track = add an AreaMusic node to
-  that area's .tscn.
+  that area's .tscn, and add it to `LibraryUI.SONGS` + `Lyrics.TEXT` so it shows in the Library.
+- **Lyrics:** Ebain will send lyrics for all 3 songs. Paste them into `scripts/lyrics.gd` as-is.
 - **Credits:** asked Ebain whether to keep "Code, Cutouts & Sounds: Claude". No answer yet.
 - **Chapter 2+:** Dulbers returns as a villain.
 
