@@ -9,7 +9,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
-- [asar] Troll says "Aight bet" after "It's good" — files: godot/scripts/trail_script.gd — branch: asar/troll-aight-bet — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -59,6 +58,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [asar] Bridge Troll now says "Aight bet" (# Asar) after "It's good", before the love & light scene (trail_script.gd TROLL_MEET). No recording yet: robot voice until Asar's take.
 - 2026-11-24 [asar] **Dialogue map: ▶ play buttons** on every line with a recording (Asar asked). The recordings are copied beside the page as `v/<hash>.<ext>` (a new take gets a new name), mapped in dialogue.json `audio`. A shortcut `Dialogue Map.url` in Asar's game folder opens the live page. Republish = index.html + dialogue.json + only the v/ files list_files doesn't have yet.
 - 2026-11-24 [asar] **Dialogue map is live:** https://claude.ai/artifact/TVQYniLFUFbsRBkhpb62aV — every line, choice and
   outcome as a branching script, mp3 / no mp3 on each line, Ebain/Asar/draft tags, and an approve tick per line (shared

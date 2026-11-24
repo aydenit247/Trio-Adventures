@@ -12,6 +12,7 @@ const TROLL_MEET := [
 	{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "Y'all had said i could get some bussy?" }, # Asar
 	{ "choice": [
 		{ "text": "It's good", "outcome": "troll_good", "steps": [ # Asar
+			{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "Aight bet" }, # Asar
 			{ "do": "troll_good" },
 			{ "do": "xylo_back" },
 		] },
