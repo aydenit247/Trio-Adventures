@@ -11,9 +11,9 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
+- [ebain] Secret Deloye Lore library (DELOYE_PLAN.md): 5 Lost Pages, flush handle on the outhouse, library + Deloye (Ebain's art), Deloye Lore Neuralink — files: godot/deloye_library.tscn (new), scripts/deloye_library.gd (new), deloye_script.gd (new), lost_pages.gd (new), level.gd, village.gd, dialogue.gd, combat/combat_data.gd, combat/battle.gd, achievements.gd, scrapbook_ui.gd, inventory_ui.gd, script_scan.gd, dev_mode.gd, tools/sim_combat.gd, assets/characters/deloye* + portraits/deloye.png + props/lost_page.png (new), DELOYE_PLAN.md — branch: ebain/deloye-library — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
-- **Secret Deloye Lore library: see DELOYE_PLAN.md** (Ebain answered everything: 5 Lost Pages → flush the village outhouse → giant library, floating book, Deloye himself). Needs: Deloye's look (Ebain decides later), the song. Outhouse is in village_buildings.gd (check Asar's claim)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
 - Character art as it arrives (Gemini) — swap into godot/assets/characters/ with tools/key_chars.py
@@ -52,6 +52,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
+- [ebain] godot/deloye_library.tscn, scripts/deloye_library.gd, deloye_script.gd, lost_pages.gd, level.gd, village.gd, dialogue.gd, combat/combat_data.gd, combat/battle.gd, achievements.gd, scrapbook_ui.gd, inventory_ui.gd, script_scan.gd, dev_mode.gd, tools/sim_combat.gd, assets/characters/deloye*, portraits/deloye.png, props/lost_page.png, DELOYE_PLAN.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
