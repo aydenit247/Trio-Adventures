@@ -169,6 +169,9 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   Also keep panels from changing height while you move (MenuUI reserves the tallest note; battle menus the tallest desc).
 - [ebain] Portraits are opaque squares with a dark backdrop. A green-screen portrait (chief.png had one) needs keying by
   distance to the backdrop color + flood from the border, NOT by greenness: goblin skin is green too.
+- [ebain] Library Voice Lines + Scrapbook read the scripts at runtime (ScriptScan), so nothing to update by hand when
+  lines/recordings/outcomes change. A NEW dialogue script file must be added to `ScriptScan.SCRIPTS`. Some script
+  dicts have int keys: compare `str(k)`, not `k != "line"`.
 - [ebain] UI logic test: `godot --headless --path godot res://tools/test_ui.tscn` → "UI TEST: ALL OK" (keybinds,
   buses, Library unlocks, every settings page in every theme).
 - [ebain] After rebasing onto someone's new `class_name` (e.g. ProgressData), tours fail with thousands of errors until

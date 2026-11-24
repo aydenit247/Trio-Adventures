@@ -182,6 +182,9 @@ func _shot_tour() -> void:
 	var lib := LibraryUI.open(ui, music)
 	await get_tree().create_timer(0.5).timeout
 	await lv.shot("t_04_library")
+	lib._page(lib._soundtrack())
+	await get_tree().create_timer(0.5).timeout
+	await lv.shot("t_04b_soundtrack")
 	lib._lyrics(0)
 	await get_tree().create_timer(0.6).timeout
 	await lv.shot("t_05_lyrics")
@@ -193,4 +196,8 @@ func _shot_tour() -> void:
 		await lv.shot("t_06_theme_%d" % th)
 		dp.close()
 	Game.ui_theme = 0
+	for pg in [VoiceLinesUI.open(ui), ScrapbookUI.open(ui)]:
+		await get_tree().create_timer(0.6).timeout
+		await lv.shot("t_07_" + pg.get_script().get_global_name().to_lower())
+		pg.queue_free()
 	get_tree().quit()

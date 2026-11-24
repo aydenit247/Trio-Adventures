@@ -70,6 +70,9 @@ func _ready() -> void:
 	st.close()
 	var lib := LibraryUI.open(ui, null)
 	await get_tree().process_frame
+	lib._page(lib._soundtrack())
+	await get_tree().process_frame
+	ok(not lib.hub.visible and is_instance_valid(lib.menu), "soundtrack page opens over the hub")
 	lib._toggle(0)
 	await get_tree().create_timer(0.3).timeout
 	ok(lib._playing(0), "library plays a song")
@@ -80,6 +83,45 @@ func _ready() -> void:
 	ok(is_instance_valid(lib.page), "lyrics page opens")
 	lib.page.queue_free()
 	lib.menu.close()
+	await get_tree().process_frame
+	ok(lib.hub.visible and not lib._playing(0), "back to the hub, song stopped")
+	# voice lines
+	var vls := ScriptScan.voice_lines()
+	ok(vls.size() > 200, "voice lines found: %d" % vls.size())
+	ok(vls.all(func(l): return ResourceLoader.exists(l["path"]) and l["text"] != ""), "every voice line has a file + text")
+	var others := vls.filter(func(l): return l["cat"] == "Others").size()
+	ok(others < 10, "few uncategorized lines (%d)" % others)
+	var vp := VoiceLinesUI.open(ui)
+	await get_tree().process_frame
+	vp.search.text = "metocy"
+	vp._filter()
+	ok(vp.shown.size() > 0 and vp.shown.all(func(l): return "metocy" in (l["text"] + " " + l["name"]).to_lower()), "search filters (%d for metocy)" % vp.shown.size())
+	vp._set_tab(1)
+	ok(vp.shown.all(func(l): return l["cat"] == vp.tabs[1][0]), "character tab filters")
+	vp.search.text = ""
+	vp._filter()
+	vp.sel = 0
+	vp._toggle()
+	ok(vp.playing == 0, "voice line plays")
+	vp._close()
+	# scrapbook
+	var story := ScrapbookUI.story_items().size()
+	var found := 0
+	for it in ScrapbookUI.story_items():
+		if ScriptScan.outcome(it[0]).get("choice", "") != "":
+			found += 1
+	ok(found == story, "every story outcome found in the scripts (%d/%d)" % [found, story])
+	Game.progress["village_speech"] = true
+	var sb := ScrapbookUI.open(ui)
+	await get_tree().process_frame
+	ok(sb.entries.size() == story, "scrapbook has a page per outcome")
+	sb.sel = 0
+	sb._render()
+	await get_tree().process_frame
+	ok(sb.page.get_child_count() > 3, "unlocked page shows the moment")
+	sb.queue_free()
+	Game.progress.erase("village_speech")
+	lib.hub.close()
 	await get_tree().process_frame
 	ok(not is_instance_valid(lib), "library closes")
 	print("UI TEST: %s" % ("ALL OK" if fails == 0 else "%d FAILED" % fails))

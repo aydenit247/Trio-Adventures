@@ -1,4 +1,7 @@
-# LibraryUI: Title → Library (Ebain 11/24). The Soundtrack: every song with play/pause, a now-playing bar you can
+# LibraryUI: Title → Library (Ebain 11/24). A hub with three pages:
+#   Soundtrack (here), Voice Lines (voice_lines_ui.gd: every recorded line, per character, searchable),
+#   Scrapbook (scrapbook_ui.gd: a page per story outcome).
+# The Soundtrack: every song with play/pause, a now-playing bar you can
 # click to seek, and a Lyrics page (lyrics.gd). A song shows as "? ? ?" until you've heard it in the game
 # (AreaMusic calls LibraryUI.mark_heard() once its song is audible; the title song is unlocked from the start).
 # Heard songs are saved in user://library.cfg, across every playthrough (New Game never clears them).
@@ -64,7 +67,8 @@ static func open(parent: Node, title_music: AudioStreamPlayer = null) -> Library
 	return lib
 
 # ---------------------------------------------------------------- the screen
-var menu: MenuUI
+var hub: MenuUI                # the Library's first page: Soundtrack / Voice Lines / Scrapbook
+var menu: MenuUI               # the Soundtrack page
 var player: AudioStreamPlayer
 var cur := -1
 var title_music: AudioStreamPlayer
@@ -86,6 +90,31 @@ func _build(parent: Node, tm: AudioStreamPlayer) -> void:
 	player.finished.connect(func():
 		if is_instance_valid(menu):
 			menu.refresh())
+	var n_lines := ScriptScan.voice_lines().size()
+	hub = MenuUI.open(parent, "LIBRARY", [
+		{ "text": "Soundtrack", "value": "%d / %d found" % [heard_count(), SONGS.size()], "pick": func(): await _page(_soundtrack()),
+		  "note": "Play every song you've heard, and read the lyrics." },
+		{ "text": "Voice Lines", "value": "%d lines" % n_lines, "pick": func():
+			_duck_title(true)
+			await _page(VoiceLinesUI.open(parent))
+			_duck_title(false),
+		  "note": "Every recorded line in the game. Pick a character or search for any line." },
+		{ "text": "Scrapbook", "value": "%d / %d" % [ScrapbookUI.found_count(), ScrapbookUI.story_items().size()], "pick": func(): await _page(ScrapbookUI.open(parent)),
+		  "note": "A page for every story choice you've found, and hints for the ones you haven't." },
+		{ "text": "Back", "pick": func(): hub.close() },
+	], { "w": 560, "font": 24 })
+	hub.closed.connect(_on_closed)
+
+# Open a page over the hub; the hub comes back when it closes.
+func _page(p: Node) -> void:
+	hub.visible = false
+	await p.closed
+	if is_instance_valid(hub):
+		hub.visible = true
+		hub.refresh()
+
+func _soundtrack() -> MenuUI:
+	var parent := _ui
 	var rows := []
 	for i in SONGS.size():
 		var s: Dictionary = SONGS[i]
@@ -103,7 +132,10 @@ func _build(parent: Node, tm: AudioStreamPlayer) -> void:
 	rows.append({ "text": "Back", "pick": func(): menu.close() })
 	menu = MenuUI.open(parent, "LIBRARY  ·  SOUNDTRACK", rows, { "w": 820, "font": 22, "footer": _now_playing(),
 		"hint": "E play / pause · A/D skip 10 s · L or Y lyrics · Esc back · mouse works too" })
-	menu.closed.connect(_on_closed)
+	menu.closed.connect(func():
+		player.stop()
+		_duck_title(false))
+	return menu
 
 func _now_playing() -> Control:
 	var v := VBoxContainer.new()
