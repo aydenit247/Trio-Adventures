@@ -35,6 +35,20 @@ New gear sold at Haggle's Stall shows a "?" crate until it has a picture. Same s
 | `goblin_tooth.png` | Lucky Goblin Tooth (on a string) |
 | `rock.png` | A Rock (Pre-Owned) |
 
+## Rat colony art (RUINS_PLAN.md, 2026-11-24)
+Gemini, realistic, green screen like the goblins; `tools/key_chars.py` cuts them into `godot/assets/characters/`.
+**Side views face right.** Make the front first, then attach it when asking for side/back ("same rat") so they match.
+Portraits: square, opaque, dark candle-lit backdrop like `portraits/goblin.png`. Prompts: in Ebain's chat (11/24),
+short version below. Rats are upright, knee-to-waist high next to the trio, wearing scavenged junk.
+
+| File | What |
+|---|---|
+| `rat_front.png`, `rat_side.png`, `rat_back.png` | regular colony rat (bottle-cap armor, thimble helmet, toothpick spear) |
+| `rat_fat_front.png`, `rat_tiny_front.png` | variants for fights/crowds |
+| `rat_king_front.png`, `rat_king_side.png`, `rat_king_back.png` + `portraits/rat_king.png` | old fat Rat King: bottle-cap crown, sock cape, corncob scepter |
+| `rat_trader_front.png` + `portraits/rat_trader.png` | the shady rat trader with a huge junk backpack |
+| `portraits/rat.png` | a regular rat's portrait (for its lines) |
+
 ## Summit finale art (Ebain's summit plan, 2026-11-24)
 The finale works with the current art; these would make it look right. Gemini, realistic, green screen, **side views
 face right** (`tools/key_chars.py` cuts them into `godot/assets/characters/`).
