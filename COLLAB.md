@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Bigger Deloye Lore library: a walkable multi-room library with Deloye's rotunda as the final room — files: godot/scripts/deloye_library.gd, godot/scripts/deloye_script.gd, godot/deloye_library.tscn, DELOYE_PLAN.md — branch: ebain/big-library — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -56,6 +57,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
+- [ebain] godot/scripts/deloye_library.gd, godot/scripts/deloye_script.gd, godot/deloye_library.tscn, DELOYE_PLAN.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
