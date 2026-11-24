@@ -9,6 +9,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
+- [asar] Persona playtest fixes: Mattias hall doorway fall, hall wall hiding the player, objective star inside/outside (hall + Mart shop), dev menu moves to Alt+F1 — files: godot/scripts/summit.gd, mart.gd, level.gd (dev_menu key only) — branch: asar/playtest-fixes — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -52,6 +53,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
+- [asar] godot/scripts/summit.gd, mart.gd, level.gd (dev_menu key only)
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
