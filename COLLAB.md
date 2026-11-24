@@ -10,7 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Ruins → cave → rat colony + rat trader + rat pet + Charis's house (RUINS_PLAN.md) — files: new ruins.gd/ruins_script.gd/ruins.tscn, mart.gd, mart_script.gd, map_ui.gd, progress_data.gd, scrapbook_ui.gd, shop_ui.gd, dev_mode.gd, level.gd (pet follower), dialogue.gd (CHARS), combat/* (rat fights), assets — branch: ebain/ruins — started 2026-11-24
+- [ebain] Ruins → cave → rat colony + rat trader + rat pet + Charis's house (RUINS_PLAN.md) — files: new ruins.gd/cave.gd/ruins_script.gd/ruins.tscn/cave.tscn, mart.gd, mart_script.gd, map_ui.gd, progress_data.gd, scrapbook_ui.gd, shop_ui.gd, dev_mode.gd, script_scan.gd, level.gd (pet follower), dialogue.gd (CHARS), combat/* (rat fights), assets — branch: ebain/ruins — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Secret Deloye Lore area (Ebain: a hidden easter egg, not on the main route). Ask Ebain first: how you find it, what's inside, its own song?
@@ -47,7 +47,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/ruins*.gd, ruins.tscn, mart.gd, mart_script.gd, map_ui.gd, progress_data.gd, scrapbook_ui.gd, shop_ui.gd, dev_mode.gd, level.gd, dialogue.gd, combat/*
+- [ebain] godot/scripts/ruins*.gd, cave.gd, ruins.tscn, cave.tscn, script_scan.gd, mart.gd, mart_script.gd, map_ui.gd, progress_data.gd, scrapbook_ui.gd, shop_ui.gd, dev_mode.gd, level.gd, dialogue.gd, combat/*
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
