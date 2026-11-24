@@ -364,8 +364,10 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
 - **Lyrics:** Ebain will send lyrics for all 3 songs. Paste them into `scripts/lyrics.gd` as-is.
 - **Every song is Ebain's** (Prophecy of Metocy, The Mogging Elf, The Hymn of Metocin Mattias), made in Google Flow Music.
   Older notes that call the hymn "Asar's track" are wrong: Asar wired it into the summit, Ebain made it.
-- **Secret Deloye Lore area (idea, not built):** Ebain wants it as a hidden easter-egg area, not on the normal route.
-  Before building, ask him: how you find it, what's inside, whether it gets its own song.
+- **Secret Deloye Lore library (planned, DELOYE_PLAN.md):** a hidden easter egg. Find 5 Lost Deloye Lore Pages (one
+  per area: Camp, Trail, Village, Mart, Pass), then **Flush** the village outhouse to drop into a giant library with a
+  book floating in the center. **Deloye himself** is there (his look: Ebain decides later) and gives Xylo a gift.
+  Rewards: hidden achievement, secret Scrapbook page, Ebain's Deloye Lore song. No fight or test: pure easter egg.
 - **Credits:** asked Ebain whether to keep "Code, Cutouts & Sounds: Claude". No answer yet.
 - **Chapter 2+:** Dulbers returns as a villain.
 

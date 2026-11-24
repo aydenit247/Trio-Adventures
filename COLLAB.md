@@ -15,7 +15,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - [asar] Explorer bot: plays the game randomly (wanders, talks, picks random choices, auto-fights), screenshots, reports errors/softlocks; GitHub Action on push to main + Run button — files: godot/tools/explorer_bot.gd (new), .github/workflows/explorer-bot.yml (new) — branch: asar/explorer-bot — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
-- Secret Deloye Lore area (Ebain: a hidden easter egg, not on the main route). Ask Ebain first: how you find it, what's inside, its own song?
+- **Secret Deloye Lore library: see DELOYE_PLAN.md** (Ebain answered everything: 5 Lost Pages → flush the village outhouse → giant library, floating book, Deloye himself). Needs: Deloye's look (Ebain decides later), the song. Outhouse is in village_buildings.gd (check Asar's claim)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
 - Character art as it arrives (Gemini) — swap into godot/assets/characters/ with tools/key_chars.py
