@@ -331,12 +331,14 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   Only `Game` state is saved, so story facts that matter later must be `Game.flags`.
 - **UI looks everywhere** (UI overhaul part 2): the dialogue box, choices, HUD plates (objective, toasts, leader
   portrait), minimap frame and combat menus/cards/results all use UITheme and restyle on `Game.ui_changed`. Fights
-  always use a dark theme (`battle_view._th()`: Parchment → Gold & Night). Text size also grows the dialogue box.
+  follow the menu theme too, Parchment included (Ebain 11/24): text inside fight panels goes through
+  `battle_view._pl()`/`_ink()` (dark ink, no outline on Parchment). Text size also grows the dialogue box.
   Mouse hover only moves a highlight on real mouse movement (`UITheme.hover_moved` / `key_nav`), see TIPS.
 - **Settings** (title + Esc menu), split into pages: **Audio** (master, music, sound effects, voice volume, voices,
   area music loop/once) · **Display & UI** (menu theme, UI size = root `content_scale_factor` 80–130%, text size 85–130%,
   menu animations Bouncy/Calm, window, VSync, graphics) · **Dialogue** (text speed, buffer, go back, dialogue speed) ·
-  **Gameplay** (camera speed, difficulty, timed hits) · **Controls** (keyboard rebinding, reset).
+  **Gameplay** (camera speed, difficulty, timed hits, battle speed Normal/Fast/Very fast = `Game.BATTLE_SPEED`
+  multiplier on `BattleView.speed`; timed-hit rings unchanged) · **Controls** (keyboard rebinding, reset).
 - **Audio buses** (made in `Game._make_buses()`, no bus layout file): `Music` and `SFX` → Master. Any new player left on
   Master is moved to SFX automatically (`Game._route_audio`), except dialogue's `_vo`. Music players must set
   `bus = &"Music"` before `add_child` (title.gd, area_music.gd, library_ui.gd do).

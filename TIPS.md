@@ -233,6 +233,11 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   (logo, HUD text) keep fixed light colors + outline: Parchment's text color is dark brown.
 - [ebain] **Audio buses are made at runtime** (`Game._make_buses`). New music player? set `bus = &"Music"` BEFORE
   add_child, or `_route_audio` moves it to SFX. Voice-type players: name the var `_vo` on its parent to stay on Master.
+- [ebain] **Fight panels follow the menu theme (Parchment too).** In battle_view.gd, a label INSIDE a panel (party
+  cards, menu, tips, results) = `_pl(text, size, color, outline)`; a color you set later = `_ink(color)`. Over the 3D
+  world (log, banner, floating numbers, enemy list on the right) keep `lv._label` with light colors + outline.
+- [ebain] **Battle pacing = `BattleView.speed`** (boss 1.0, others 0.7, × Settings → Battle speed). New fight waits and
+  tweens: multiply by `speed`. Never scale `_timed()` (the ring), or Very fast makes timed hits harder.
 - [ebain] Fonts: Cinzel has no ◆ ▶ ✓ 🏆 glyphs. Draw them (`UITheme.Icon`, `Divider`) instead of putting them in text.
 - [ebain] **Hover = real mouse movement only.** For any hoverable row/button, select it in `gui_input` with
   `if UITheme.hover_moved(ev)`, never `mouse_entered` (that fires when the layout moves under a still cursor, which made

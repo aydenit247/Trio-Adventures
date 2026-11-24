@@ -387,7 +387,7 @@ static func open_settings(parent: Node) -> MenuUI:
 		{ "text": "Audio", "pick": func(): await sub.call(_settings_audio), "note": "Volume for music, sound effects and voices." },
 		{ "text": "Display & UI", "pick": func(): await sub.call(_settings_display), "note": "Menu theme, UI size, text size, window and graphics." },
 		{ "text": "Dialogue", "pick": func(): await sub.call(_settings_dialogue), "note": "Text speed, the E buffer, going back a line, dialogue speed." },
-		{ "text": "Gameplay", "pick": func(): await sub.call(_settings_gameplay), "note": "Camera, combat difficulty, timed hits." },
+		{ "text": "Gameplay", "pick": func(): await sub.call(_settings_gameplay), "note": "Camera, combat difficulty, timed hits, battle speed." },
 		{ "text": "Controls", "pick": func(): await sub.call(_settings_controls), "note": "Change the keyboard keys. The controller layout stays the same." },
 		{ "text": "Back", "pick": func(): box["m"].close() },
 	]
@@ -479,6 +479,9 @@ static func _settings_gameplay(parent: Node) -> MenuUI:
 		{ "text": "Timed hits", "value": func(): return "AUTO" if Game.timed_auto else "MANUAL",
 		  "change": func(_d): Game.timed_auto = not Game.timed_auto; _changed(),
 		  "note": "MANUAL: press E when the ring lines up. AUTO: hits and blocks land on their own." },
+		{ "text": "Battle speed", "value": func(): return Game.BATTLE_SPEED[Game.battle_speed][0],
+		  "change": func(d): Game.battle_speed = clampi(Game.battle_speed + d, 0, Game.BATTLE_SPEED.size() - 1); _changed(),
+		  "note": "How fast attacks, pauses and fight text play out. Timed-hit rings stay the same speed." },
 	])
 
 static func _settings_controls(parent: Node) -> MenuUI:
