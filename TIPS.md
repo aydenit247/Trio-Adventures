@@ -307,6 +307,12 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] A twirling billboard: swap front/side/back textures by quarter turn (mirror the side with `flip_h`) and squash
   `scale.x` near each quarter (deloye_library.gd `_level_process`). Reads as spinning in place.
 
+- [ebain] **Big indoor areas with the fixed north camera (library):** the camera sits ~11 m south and ~4.6 m up, so any
+  east-west wall with walkable floor north of it must be low (≤1.3 m, full-height collision), and a room's south edge
+  should be a ~0.45 m lip, or it fills the bottom of the screen. Only north/outer walls can be tall.
+- [ebain] Check a big layout is walkable with a scripted `walk_to` along waypoints (deloye_library.gd `ROUTE`): it caught
+  freestanding stacks sitting in front of a wing doorway and a lectern in the way.
+
 ## Summit finale (ebain, 11/24)
 - [ebain] **`way_<scene>` flags are Strings** (`Game.flags["way_pass"] == "lore"`). Read them with `Game.flags.get("way_pass", "")`,
   never `Game.flag()` (it's typed `-> bool` and errors on a String). Set by `ProgressData.pick_outcome()` for any choice with `"outcome"`.

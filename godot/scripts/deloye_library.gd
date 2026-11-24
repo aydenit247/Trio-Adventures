@@ -1,9 +1,17 @@
 # Area: the secret Deloye Lore library (DELOYE_PLAN.md). Pure easter egg: no fight, no test.
 # You get here by finding all 5 Lost Deloye Lore Pages (lost_pages.gd) and flushing the village outhouse (village.gd).
-# A huge round hall: book walls climbing into the dark, a spiral stair, ladders, chandeliers, dust in light beams,
-# books orbiting the middle. In the center Deloye himself (Ebain's art) floats and twirls on a rune dais, the giant
-# Deloye Lore manuscript turning above his head with its pages flipping. Talk to him: he gives Xylo the
-# Deloye Lore Neuralink (flag deloyeGift, once per run). The EXIT door goes back to the village, next to the outhouse.
+# A big library you walk through (Ebain 11/24: "much bigger place you have to walk around in", Deloye = the end):
+#   Atrium (south, you land here) → the Grand Stacks (long hall north) → wings: Hall of Wind (west) → Restricted
+#   Section (south of it), Rock Room (east) → Reading Corner (south of it). The Reading Room at the north end (the round
+#   rotunda) is behind a rune curtain until you put the 3 overdue volumes (wind / blank / rock, flags libBook_<key>)
+#   in the book return by its door (libGateOpen). Camera is fixed facing north, so every east-west wall that has
+#   walkable floor north of it is a LOW bookcase (full-height collision); only north/outer walls are tall.
+# The rotunda: book walls climbing into the dark, a spiral stair, ladders, chandeliers, dust in light beams, books
+# orbiting the middle. In the center Deloye himself (Ebain's art) floats and twirls on a rune dais, the giant
+# Deloye Lore manuscript turning above his head with its pages flipping. Walking in the first time plays ROTUNDA
+# (libRotunda). Talk to him: he gives Xylo the Deloye Lore Neuralink (flag deloyeGift, once per run). The EXIT door
+# (rotunda, west) or the pipe (Atrium) go back to the village, next to the outhouse.
+# Saves: free roam resumes where you stood (libEntered).
 # Arriving unlocks progress "deloye_found" (secret achievement + the secret Scrapbook page).
 # Music: Ebain's Deloye Lore song when it exists (SONG, an AreaMusic made in code); until then a soft hum.
 extends Level
@@ -12,13 +20,44 @@ const DS = preload("res://scripts/deloye_script.gd")
 const SONG := "res://assets/music/deloye_lore.ogg"
 const R := 11.5                       # radius of the book wall
 const CENTER := Vector3.ZERO
-const START := Vector3(0, 0, 6.5)
+const START := Vector3(0, 0, 54.0)       # the Atrium, where the flush drops you
+const ROT_IN := Vector3(0, 0, 6.5)       # just inside the rotunda
 const DELOYE_H := 1.95                # his height (m), about the trio's
 const DELOYE_Y := 2.0                 # how high his feet float
 const BOOK_Y := 5.6
 const EXIT_A := -1.62                 # angle of the EXIT door (0 = north, negative = west)
 const SHELF_A := 0.95                 # the shelf you can read (east-north-east)
-const TABLE := Vector3(-6.4, 0, 2.6)  # reading table (west)
+const TABLE := Vector3(23.5, 0, 46.0)  # reading table (the Reading Corner)
+const WALL_H := 10.0                  # tall shelves outside the rotunda (multiple of 2 m)
+const LOW_H := 1.3                    # low bookcases (camera side)
+const LIP_H := 0.45                   # the south edge of the rooms: just a wooden lip, so it never covers the view
+const GATE_Z := 11.0                  # the rune curtain across the rotunda's south opening
+const GATE_HW := 3.3                  # its half width
+const RETURN_BOX := Vector3(4.9, 0, 13.6)
+const CHUTE := Vector3(-6.5, 0, 55.5)
+const DIRECTORY := Vector3(0, 0, 47.4)
+const RETURN_DESK := Vector3(6.8, 0, 55.0)
+const CATALOG := Vector3(-6.2, 0, 19.0)
+const STAFF := Vector3(6.2, 0, 41.5)
+const WINDOW := Vector3(-29.5, 0, 31.0)
+const PAGES := Vector3(-13.5, 0, 27.0)
+const ROPE_Z := 40.0
+const ROCK := Vector3(19.5, 0, 29.5)
+const SEAT := Vector3(27.0, 0, 49.0)
+const BOOKS := {   # the 3 overdue volumes: lectern positions (you read from the south side)
+	"wind": Vector3(-24.0, 0, 27.5),
+	"blank": Vector3(-24.0, 0, 46.5),
+	"rock": Vector3(14.0, 0, 27.5),
+}
+# rooms (x0, z0, x1, z1) for floors, the maps and the explorer
+const ROOMS := {
+	"atrium": Rect2(-12, 46, 24, 14),
+	"stacks": Rect2(-8, 8, 16, 38),
+	"wind": Rect2(-30, 24, 22, 16),
+	"restricted": Rect2(-30, 40, 12, 12),
+	"rock": Rect2(8, 24, 22, 16),
+	"corner": Rect2(18, 40, 12, 12),
+}
 const BOOK_SPOT := Vector3(-2.7, 0, 0.9)   # where you stand to look up at the book (front-left of the dais, clear of Deloye's spot)
 const SHELF_W := 2.8                  # one shelf segment of the book wall
 const SHELF_H := 18.0                 # (a multiple of 2 m: the book texture is 2 m tall)
@@ -36,21 +75,28 @@ var floaters: Array = []              # [node, base_y, speed, phase]
 var hum: AudioStreamPlayer
 var swell := 0.0                      # 1 = hum/song at full (by the book)
 var music: Node                       # AreaMusic, only if Ebain's song is in
+var lect := {}                        # key -> [book node, sparkle, light]
+var curtain: MeshInstance3D
+var curtain_mat: ShaderMaterial
+var curtain_body: StaticBody3D
+var curtains: Array = []              # the Hall of Wind's window curtains (sway)
+var wood_m: Material
+var books_m: StandardMaterial3D
 
 func _configure() -> void:
 	night = true
 	light_dir = Vector3(-0.3, 0.8, -0.5)
-	clear_center = Vector2(0, 0)
-	clear_radius = 3.0
+	clear_center = Vector2(999, 999)
+	clear_radius = 0.1
 	path_width = 0.0
-	bounds = Rect2(-10.6, -10.6, 21.2, 20.0)
+	bounds = Rect2(-29.4, -10.6, 58.8, 70.0)
 	subtitle = "??? — The Deloye Lore Library"
 	party_ids = ["lykor", "xylo"] if Game.flag("skornAway") else ["skorn", "lykor", "xylo"]
 	party_start = [START, START + Vector3(-1.2, 0, 1.2), START + Vector3(1.2, 0, 1.2)]
 	leader_id = "xylo"
 	cam_locked = true
 	zoom = 11.0
-	cam_height = 0.38
+	cam_height = 0.42
 	cam_look_h = 2.0
 	checkpoint = START
 	for id in DS.TALK:
@@ -76,33 +122,50 @@ func light_at(p: Vector3) -> Color:
 func _build_level() -> void:
 	var r := RandomNumberGenerator.new()
 	r.seed = 1777
-	var wood := Models.mat("dark_wood", 1.5, Color(0.55, 0.42, 0.36))
+	wood_m = Models.mat("dark_wood", 1.5, Color(0.55, 0.42, 0.36))
+	books_m = StandardMaterial3D.new()   # book spines (drawn texture: 2 m × 2 m, 4 shelves), mapped per shelf face
+	books_m.albedo_texture = load("res://assets/textures/book_spines/albedo.jpg")
+	books_m.albedo_color = Color(0.9, 0.85, 0.82)
+	books_m.roughness = 0.85
+	books_m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	# a dark floor under everything (hides the grass), then a wooden floor per room (smaller meshes = fewer lights each)
+	var under := PlaneMesh.new()
+	under.size = Vector2(160, 160)
+	Util.add_mesh(self, under, Util.mat(Color(0.02, 0.015, 0.015)), Vector3(0, 0.003, 25))
+	var floor_m := Models.mat("old_wooden_floor_01", 3.0, Color(0.5, 0.46, 0.44))
+	for k in ROOMS:
+		var rc: Rect2 = ROOMS[k]
+		var pm := PlaneMesh.new()
+		pm.size = rc.size + Vector2(0.6, 0.6)
+		Util.add_mesh(self, pm, floor_m, Vector3(rc.get_center().x, 0.006, rc.get_center().y))
+	var pm2 := PlaneMesh.new()
+	pm2.size = Vector2(24, 24)
+	Util.add_mesh(self, pm2, floor_m, Vector3(0, 0.005, 0))
+	_build_rotunda(r)
+	_build_rooms(r)
+	_build_book()
+	_build_deloye()
+
+func _build_rotunda(r: RandomNumberGenerator) -> void:
+	var wood := wood_m
 	var marble := Models.mat("marble_tiles", 1.5, Color(0.8, 0.76, 0.72))
-	var books := StandardMaterial3D.new()   # book spines (drawn texture: 2 m × 2 m, 4 shelves), mapped per shelf face
-	books.albedo_texture = load("res://assets/textures/book_spines/albedo.jpg")
-	books.albedo_color = Color(0.9, 0.85, 0.82)
-	books.roughness = 0.85
-	books.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	var books := books_m.duplicate()
 	books.uv1_scale = Vector3(SHELF_W / 2.0, SHELF_H / 2.0, 1.0)
-	# floor over the whole hall (hides the grass) + a round rug under the dais
-	var pm := PlaneMesh.new()
-	pm.size = Vector2(40, 40)
-	Util.add_mesh(self, pm, Models.mat("old_wooden_floor_01", 3.0, Color(0.5, 0.46, 0.44)), Vector3(0, 0.005, 0))
 	var rug := Models.cylinder(self, CENTER + Vector3(0, 0.01, 0), 3.8, 3.8, 0.02, Models.mat("quatrefoil_jacquard_fabric", 1.2, Color(0.42, 0.36, 0.55)), 48)
 	rug.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	# the book wall: tall shelves all the way round except the camera side, climbing up into the dark
+	# the book wall: tall shelves all the way round except the south (camera side), climbing up into the dark
 	var a := -2.3
-	while a <= 2.5:
+	while a <= 2.3:
 		_shelf_segment(a, SHELF_H, books, wood)
 		a += 0.235
-	# the camera side: a low wooden rail (full-height collision) so the hall stays round
-	a = 2.74
-	while a < TAU - 2.74:
-		var p := Vector3(sin(a) * R, 0, -cos(a) * R)
-		Models.block(self, p + Vector3(0, 0.45, 0), Vector3(2.8, 0.12, 0.25), wood, -a)
-		Models.block(self, p + Vector3(0, 0.22, 0), Vector3(0.2, 0.45, 0.2), wood, -a)
-		Util.static_box(self, p + Vector3(0, 1.5, 0), Vector3(2.9, 3.0, 0.6), -a)
-		a += 0.235
+	# the south: low bookcases (full-height collision) with the Reading Room's opening in the middle
+	for span in [[2.33, PI - 0.29], [PI + 0.29, TAU - 2.33]]:
+		var steps := 3
+		for k in steps:
+			var a0: float = lerpf(span[0], span[1], float(k) / steps)
+			var a1: float = lerpf(span[0], span[1], float(k + 1) / steps)
+			_wall(Vector2(sin(a0) * R, -cos(a0) * R), Vector2(sin(a1) * R, -cos(a1) * R), LOW_H, Vector2.ZERO, true)
+	_build_gate()
 	# the dais in the middle: marble steps + a slowly turning rune circle
 	Models.cylinder(self, CENTER + Vector3(0, 0.12, 0), 2.3, 2.3, 0.24, marble, 40)
 	Models.cylinder(self, CENTER + Vector3(0, 0.3, 0), 1.7, 1.7, 0.16, marble, 40)
@@ -118,15 +181,12 @@ func _build_level() -> void:
 		Models.place(self, "Chandelier_01", c, 0.0, 1.6, false, Color(1.0, 0.85, 0.6))
 		_light(c + Vector3(0, -1.0, 0), Color(1.0, 0.72, 0.42), 1.4, 11.0)
 		add_glow(c - Vector3(0, 5.5, 0), Color(1.0, 0.75, 0.45), 6.0, func(): return 0.45)
-	# the reading table (west): books, a magnifying glass, an oil lamp, an armchair
-	Models.place(self, "round_wooden_table_01", TABLE, 0.3, 1.2, true, Color(0.6, 0.48, 0.42))
-	Models.place(self, "book_encyclopedia_set_01", TABLE + Vector3(-0.2, 1.21, 0.1), 0.6, 1.4)
-	Models.place(self, "magnifying_glass_01", TABLE + Vector3(0.35, 1.21, 0.3), 1.1, 1.6)
-	Models.place(self, "vintage_oil_lamp", TABLE + Vector3(0.1, 1.21, -0.4), 0.0, 1.3)
-	Models.place(self, "ArmChair_01", TABLE + Vector3(-1.4, 0, -0.9), 0.9, 1.4, true, Color(0.5, 0.25, 0.3))
-	_light(TABLE + Vector3(0.1, 1.8, -0.2), Color(1.0, 0.7, 0.4), 1.0, 5.0)
-	add_glow(TABLE + Vector3(0, 1.5, 0), Color(1.0, 0.72, 0.42), 4.0, func(): return 0.6)
-	# east: a little desk with candles + stacks of books on the floor
+	# west: an armchair by a lamp; east: a little desk with candles + stacks of books on the floor
+	var lamp := Vector3(-6.6, 0, 2.6)
+	Models.place(self, "ArmChair_01", lamp + Vector3(-1.0, 0, -0.9), 0.9, 1.4, true, Color(0.5, 0.25, 0.3))
+	Models.place(self, "vintage_oil_lamp", lamp + Vector3(0.2, 0, -0.2), 0.0, 1.3)
+	_light(lamp + Vector3(0.1, 1.2, -0.2), Color(1.0, 0.7, 0.4), 0.8, 5.0)
+	add_glow(lamp + Vector3(0, 1.2, 0), Color(1.0, 0.72, 0.42), 4.0, func(): return 0.5)
 	var desk := Vector3(6.6, 0, 3.4)
 	Models.place(self, "round_wooden_table_01", desk, 1.2, 1.0, true, Color(0.6, 0.48, 0.42))
 	for k in 3:
@@ -159,8 +219,6 @@ func _build_level() -> void:
 	wood_sign("sign_library_exit", "EXIT", dp + Vector3(0, 3.6, 0) + Vector3(-sin(EXIT_A), 0, cos(EXIT_A)) * 0.3, -EXIT_A, 1.0, 0.45)
 	_light(dp + Vector3(-sin(EXIT_A), 0, cos(EXIT_A)) * 1.2 + Vector3(0, 2.6, 0), Color(1.0, 0.7, 0.45), 0.8, 5.0)
 	add_glow(dp + Vector3(0, 1.6, 0), Color(1.0, 0.72, 0.45), 3.5, func(): return 0.5)
-	_build_book()
-	_build_deloye()
 
 # one tall shelf: book faces, shelf boards every 1.9 m, posts on the sides
 func _shelf_segment(a: float, h: float, books: StandardMaterial3D, wood: Material) -> void:
@@ -175,6 +233,300 @@ func _shelf_segment(a: float, h: float, books: StandardMaterial3D, wood: Materia
 	var side := Vector3(cos(a), 0, sin(a))   # along the shelf
 	Models.block(self, p - dir * 0.45 + side * (w / 2.0) + Vector3(0, h / 2.0, 0), Vector3(0.16, h, 0.2), wood, -a)
 	Util.static_box(self, p + Vector3(0, 1.5, 0), Vector3(w + 0.1, 3.0, 1.0), -a)
+
+# A straight bookcase wall from p0 to p1 (x/z). `face` = which side gets books (a direction), `both` = both sides.
+# Collision is always full height, so low ones still stop you.
+func _wall(p0: Vector2, p1: Vector2, h: float, face := Vector2.ZERO, both := false) -> void:
+	var d := p1 - p0
+	var L := d.length()
+	var dir := Vector3(d.x, 0, d.y) / L
+	var mid := Vector3((p0.x + p1.x) / 2.0, 0, (p0.y + p1.y) / 2.0)
+	var rot := atan2(-dir.z, dir.x)
+	var n0 := Vector3(sin(rot), 0, cos(rot))   # the block's local +z
+	Models.block(self, mid + Vector3(0, h / 2.0, 0), Vector3(L + 0.1, h, 0.8), wood_m, rot)
+	Util.static_box(self, mid + Vector3(0, 1.5, 0), Vector3(L + 0.1, 3.0, 0.9), rot)
+	if h < 3.0:   # a board on top of the low ones
+		Models.block(self, mid + Vector3(0, h + 0.04, 0), Vector3(L + 0.2, 0.08, 0.95), wood_m, rot)
+	if h < 0.6:   # a lip: plain wood, no books
+		return
+	var m: StandardMaterial3D = books_m.duplicate()
+	m.uv1_scale = Vector3(L / 2.0, h / 2.0, 1.0)
+	var sides: Array = [1.0, -1.0] if both else [signf(n0.dot(Vector3(face.x, 0, face.y))) if face != Vector2.ZERO else 1.0]
+	for sd in sides:
+		var qm := QuadMesh.new()
+		qm.size = Vector2(L, h)
+		var q := Util.add_mesh(self, qm, m, mid + n0 * (0.41 * sd) + Vector3(0, h / 2.0, 0), Vector3(0, rot + (0.0 if sd > 0 else PI), 0))
+		q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+# The Reading Room's door: two pillars, a sign, and a shimmering rune curtain (blocks you until the books are back)
+const CURTAIN_SHADER := """
+shader_type spatial;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never;
+uniform float fade = 1.0;
+void fragment() {
+	vec2 p = UV;
+	float bands = 0.5 + 0.5 * sin(p.y * 40.0 - TIME * 2.0 + sin(p.x * 9.0 + TIME) * 2.0);
+	float runes = step(0.9, fract(sin(floor(p.x * 46.0) * 12.9898 + floor(p.y * 34.0 - TIME * 0.6) * 78.233) * 43758.5453));
+	float edge = smoothstep(0.0, 0.08, p.x) * smoothstep(0.0, 0.08, 1.0 - p.x) * smoothstep(0.0, 0.15, 1.0 - p.y);
+	vec3 c = vec3(1.0, 0.72, 0.38) * (0.18 + bands * 0.3 + runes * 0.5);
+	ALBEDO = c * edge * fade;
+	ALPHA = clamp((0.3 + runes * 0.3) * edge * fade, 0.0, 1.0);
+}
+"""
+func _build_gate() -> void:
+	var stone := Models.mat("marble_tiles", 1.0, Color(0.75, 0.7, 0.66))
+	for sx in [-1.0, 1.0]:
+		var pp := Vector3(sx * (GATE_HW + 0.45), 0, GATE_Z)
+		Models.cylinder(self, pp + Vector3(0, 2.6, 0), 0.38, 0.32, 5.2, stone, 16)
+		Models.block(self, pp + Vector3(0, 5.3, 0), Vector3(0.95, 0.25, 0.95), stone)
+		Util.static_cyl(self, pp, 0.45, 3.0)
+		_candle(pp + Vector3(0, 5.45, 0), 1.6)
+	wood_sign("sign_reading_room", "READING ROOM", Vector3(0, 5.0, GATE_Z + 0.1), 0.0, 3.4, 0.6)
+	var qm := QuadMesh.new()
+	qm.size = Vector2(GATE_HW * 2.0, 4.6)
+	curtain_mat = ShaderMaterial.new()
+	curtain_mat.shader = Shader.new()
+	curtain_mat.shader.code = CURTAIN_SHADER
+	curtain = Util.add_mesh(self, qm, curtain_mat, Vector3(0, 2.3, GATE_Z))
+	curtain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	curtain_body = StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = Vector3(GATE_HW * 2.0 + 0.4, 3.0, 0.6)
+	cs.shape = bs
+	curtain_body.add_child(cs)
+	curtain_body.position = Vector3(0, 1.5, GATE_Z)
+	add_child(curtain_body)
+	add_glow(Vector3(0, 1.4, GATE_Z + 0.5), Color(1.0, 0.75, 0.4), 4.0, func(): return 0.0 if Game.flag("libGateOpen") else 0.7)
+	_light(Vector3(0, 2.0, GATE_Z + 0.8), Color(1.0, 0.72, 0.4), 1.0, 6.0)
+	# the book return, by the door (east)
+	var box := RETURN_BOX
+	Models.block(self, box + Vector3(0, 0.55, 0), Vector3(1.1, 1.1, 0.7), wood_m)
+	Models.block(self, box + Vector3(0, 1.0, 0.36), Vector3(0.6, 0.06, 0.02), Util.mat(Color(0.05, 0.04, 0.03)))
+	Util.static_box(self, box + Vector3(0, 0.6, 0), Vector3(1.1, 1.2, 0.7))
+	wood_sign("sign_book_return", "BOOK RETURN", box + Vector3(0, 1.45, 0.2), 0.0, 1.3, 0.3)
+
+func _open_gate_now() -> void:   # no animation (loaded save / tours)
+	if curtain:
+		curtain.visible = false
+	if curtain_body:
+		curtain_body.queue_free()
+		curtain_body = null
+
+# Everything outside the rotunda
+func _build_rooms(r: RandomNumberGenerator) -> void:
+	var H := WALL_H
+	# ---- tall walls (north + outer sides only)
+	_wall(Vector2(-8, 8.2), Vector2(-8, 24), H, Vector2(1, 0))
+	_wall(Vector2(-8, 24), Vector2(-8, 30), H, Vector2.ZERO, true)
+	_wall(Vector2(-8, 38), Vector2(-8, 46), H, Vector2.ZERO, true)
+	_wall(Vector2(8, 8.2), Vector2(8, 24), H, Vector2(-1, 0))
+	_wall(Vector2(8, 24), Vector2(8, 30), H, Vector2.ZERO, true)
+	_wall(Vector2(8, 38), Vector2(8, 46), H, Vector2.ZERO, true)
+	_wall(Vector2(-30, 24), Vector2(-8, 24), H, Vector2(0, 1))
+	_wall(Vector2(8, 24), Vector2(30, 24), H, Vector2(0, 1))
+	_wall(Vector2(-30, 24), Vector2(-30, 28.6), H, Vector2(1, 0))
+	_wall(Vector2(-30, 33.4), Vector2(-30, 52), H, Vector2(1, 0))
+	_wall(Vector2(30, 24), Vector2(30, 52), H, Vector2(-1, 0))
+	_wall(Vector2(-18, 40), Vector2(-18, 52), H, Vector2(-1, 0))
+	_wall(Vector2(18, 40), Vector2(18, 52), H, Vector2(1, 0))
+	_wall(Vector2(-12, 46), Vector2(-12, 60), H, Vector2(1, 0))
+	_wall(Vector2(12, 46), Vector2(12, 60), H, Vector2(-1, 0))
+	# ---- low bookcases (anything with floor north of it)
+	_wall(Vector2(-30, 40), Vector2(-27, 40), LOW_H, Vector2.ZERO, true)
+	_wall(Vector2(-21, 40), Vector2(-8, 40), LOW_H, Vector2.ZERO, true)
+	_wall(Vector2(8, 40), Vector2(21, 40), LOW_H, Vector2.ZERO, true)
+	_wall(Vector2(27, 40), Vector2(30, 40), LOW_H, Vector2.ZERO, true)
+	_wall(Vector2(-30, 52), Vector2(-18, 52), LIP_H)
+	_wall(Vector2(18, 52), Vector2(30, 52), LIP_H)
+	_wall(Vector2(-12, 46), Vector2(-5, 46), LOW_H, Vector2.ZERO, true)
+	_wall(Vector2(5, 46), Vector2(12, 46), LOW_H, Vector2.ZERO, true)
+	_wall(Vector2(-12, 60), Vector2(12, 60), LIP_H)
+	# freestanding stacks in the Grand Stacks (north-south, so you look down the aisles)
+	for zz in [[15.0, 22.5], [39.5, 44.0]]:   # kept clear of the wing doorways (z 30–38)
+		for sx in [-1.0, 1.0]:
+			_wall(Vector2(sx * 5.2, zz[0]), Vector2(sx * 5.2, zz[1]), 3.2, Vector2.ZERO, true)
+	# a long rug down the middle of the hall
+	var runner := Models.mat("quatrefoil_jacquard_fabric", 1.0, Color(0.42, 0.36, 0.55))
+	var rb := Models.block(self, Vector3(0, 0.012, 30.0), Vector3(3.2, 0.02, 34.0), runner)
+	rb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# ---- chandeliers + candles everywhere
+	for c in [Vector3(0, 8.5, 22.0), Vector3(0, 8.5, 36.0), Vector3(0, 7.5, 53.0), Vector3(-19.0, 7.5, 32.0), Vector3(19.0, 7.5, 32.0)]:
+		Models.place(self, "Chandelier_01", c, 0.0, 1.4, false, Color(1.0, 0.85, 0.6))
+		_light(c + Vector3(0, -1.5, 0), Color(1.0, 0.72, 0.42), 1.3, 13.0)
+		add_glow(c - Vector3(0, 5.5, 0), Color(1.0, 0.75, 0.45), 7.0, func(): return 0.5)
+	for c in [Vector3(-24.0, 5.5, 46.0), Vector3(24.0, 5.5, 46.0)]:
+		Models.place(self, "lantern_chandelier_01", c, 0.0, 1.2, false, Color(1.0, 0.85, 0.6))
+		_light(c + Vector3(0, -1.2, 0), Color(1.0, 0.7, 0.42), 1.1, 10.0)
+		add_glow(c - Vector3(0, 4.0, 0), Color(1.0, 0.75, 0.45), 6.0, func(): return 0.5)
+	for k in 22:   # floating candles over the Grand Stacks and the Atrium
+		var p := Vector3(r.randf_range(-6.5, 6.5), r.randf_range(4.5, 8.0), r.randf_range(12.0, 58.0))
+		floaters.append([_candle(p, 1.3), p.y, 0.5 + r.randf() * 0.6, r.randf() * TAU])
+	_motes(Vector3(0, 3.5, 30.0), Vector3(7, 3, 16), Color(1.0, 0.88, 0.6), 120)
+	for bp in [Vector3(-2.0, 0, 26.0), Vector3(2.5, 0, 38.0), Vector3(-1.0, 0, 52.0)]:
+		_beam(bp)
+	# ---- the Atrium: the pipe you fell out of, the return desk, the directory
+	var pipe_m := Models.mat("rusty_metal_02", 1.0, Color(0.55, 0.5, 0.45))
+	Models.cylinder(self, CHUTE + Vector3(0, 8.0, 0), 0.9, 0.9, 9.0, pipe_m, 20)
+	Models.cylinder(self, CHUTE + Vector3(0, 3.4, 0), 1.1, 1.0, 0.3, pipe_m, 20)
+	var drip := CPUParticles3D.new()   # it drips. Of course it drips.
+	drip.amount = 6
+	drip.lifetime = 1.0
+	drip.mesh = Fx.quad(0.05, true)
+	drip.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	drip.emission_sphere_radius = 0.5
+	drip.gravity = Vector3(0, -9.0, 0)
+	drip.color_ramp = Fx.ramp([[0.0, Color(0.5, 0.7, 0.4, 0.8)], [1.0, Color(0.5, 0.7, 0.4, 0.0)]])
+	drip.position = CHUTE + Vector3(0, 3.2, 0)
+	add_child(drip)
+	Models.block(self, RETURN_DESK + Vector3(0, 0.55, 0), Vector3(2.6, 1.1, 0.9), wood_m, 0.0, true)
+	for k in 4:
+		_book_stack(RETURN_DESK + Vector3(-0.9 + k * 0.6, 1.1, 0), r)
+	for k in 5:
+		_book_stack(RETURN_DESK + Vector3(r.randf_range(-1.6, 1.6), 0, r.randf_range(0.8, 1.6)), r)
+	wood_sign("sign_returns", "RETURNS", RETURN_DESK + Vector3(0, 2.0, -0.2), 0.0, 1.6, 0.4)
+	wood_sign("sign_directory", "DIRECTORY", DIRECTORY + Vector3(0, 1.4, 0), 0.0, 1.8, 1.1, true)
+	_candle(RETURN_DESK + Vector3(1.1, 1.1, 0.2), 1.2)
+	add_glow(RETURN_DESK + Vector3(0, 1.5, 0), Color(1.0, 0.72, 0.42), 4.0, func(): return 0.5)
+	# ---- the Grand Stacks: card catalog + staff picks
+	Models.place(self, "vintage_cabinet_01", CATALOG, PI / 2.0, 1.4, true, Color(0.7, 0.55, 0.45))
+	Models.place(self, "wooden_display_shelves_01", STAFF, -PI / 2.0, 1.2, true, Color(0.7, 0.55, 0.45))
+	wood_sign("sign_staff_picks", "STAFF PICKS", STAFF + Vector3(0, 2.4, 0), -PI / 2.0, 1.6, 0.35)
+	for s in [Vector3(-3.0, 0, 44.5), Vector3(3.5, 0, 13.0), Vector3(-6.6, 0, 27.0), Vector3(6.6, 0, 25.5)]:
+		_book_stack(s, r)
+	# ---- the Hall of Wind (west): an open window, curtains, pages blowing around
+	_window()
+	for k in 6:
+		_book_stack(PAGES + Vector3(r.randf_range(-1.5, 1.5), 0, r.randf_range(-1.0, 1.0)), r)
+	var pages := CPUParticles3D.new()
+	pages.amount = 40
+	pages.lifetime = 5.0
+	pages.mesh = Fx.quad(0.22, false)
+	pages.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	pages.emission_box_extents = Vector3(1.0, 2.0, 5.0)
+	pages.direction = Vector3(1, 0.1, 0)
+	pages.spread = 20.0
+	pages.gravity = Vector3(0, -0.15, 0)
+	pages.initial_velocity_min = 2.0
+	pages.initial_velocity_max = 4.0
+	pages.angular_velocity_min = -200.0
+	pages.angular_velocity_max = 200.0
+	pages.color_ramp = Fx.ramp([[0.0, Color(0.95, 0.9, 0.78, 0)], [0.1, Color(0.95, 0.9, 0.78, 0.9)], [0.85, Color(0.95, 0.9, 0.78, 0.9)], [1.0, Color(0.95, 0.9, 0.78, 0)]])
+	pages.position = WINDOW + Vector3(1.5, 2.2, 0)
+	add_child(pages)
+	# ---- the Restricted Section: a velvet rope across its doorway (you step over it: no collision)
+	var brass := Util.mat(Color(0.8, 0.62, 0.3))
+	for x in [-26.6, -21.4]:
+		Models.cylinder(self, Vector3(x, 0.5, ROPE_Z + 0.6), 0.05, 0.05, 1.0, brass, 8)
+		Models.cylinder(self, Vector3(x, 1.02, ROPE_Z + 0.6), 0.09, 0.09, 0.08, brass, 10)
+	var rope := Models.block(self, Vector3(-24.0, 0.85, ROPE_Z + 0.6), Vector3(5.2, 0.06, 0.06), Util.mat(Color(0.6, 0.06, 0.1)))
+	rope.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	wood_sign("sign_restricted", "RESTRICTED", Vector3(-24.0, 1.55, ROPE_Z + 0.65), 0.0, 1.5, 0.35)
+	Models.place(self, "GothicCabinet_01", Vector3(-28.4, 0, 49.5), PI / 2.0, 1.2, true, Color(0.5, 0.4, 0.4))
+	Models.place(self, "marble_bust_01", Vector3(-19.4, 0, 50.5), -PI / 2.0, 1.0, true)
+	# ---- the Rock Room (east): THE rock on a pedestal
+	var marble := Models.mat("marble_tiles", 1.0, Color(0.8, 0.76, 0.72))
+	Models.cylinder(self, ROCK + Vector3(0, 0.45, 0), 1.0, 0.9, 0.9, marble, 24)
+	Util.static_cyl(self, ROCK, 1.0, 2.0)
+	var rk := Models.place(self, "rock_07", ROCK + Vector3(0, 0.9, 0), 0.6, 1.0)
+	var rbb := Models.aabb(rk)
+	if rbb.size.x > 0.01:
+		rk.scale *= 1.3 / maxf(rbb.size.x, rbb.size.z)
+	wood_sign("sign_the_rock", "THE ROCK", ROCK + Vector3(0, 0.6, 1.02), 0.0, 1.2, 0.3)
+	_light(ROCK + Vector3(0, 3.5, 0.5), Color(1.0, 0.85, 0.6), 1.6, 6.0)
+	add_glow(ROCK + Vector3(0, 1.5, 0), Color(1.0, 0.85, 0.6), 4.0, func(): return 0.6)
+	for k in 4:
+		Models.cylinder(self, ROCK + Vector3(sin(k * PI / 2.0 + 0.78) * 2.0, 0.45, cos(k * PI / 2.0 + 0.78) * 2.0), 0.04, 0.04, 0.9, brass, 8)
+	# ---- the Reading Corner: the table (magnifying glass, lamp), the SAVED SEAT
+	Models.place(self, "round_wooden_table_01", TABLE, 0.3, 1.2, true, Color(0.6, 0.48, 0.42))
+	Models.place(self, "book_encyclopedia_set_01", TABLE + Vector3(-0.2, 1.21, 0.1), 0.6, 1.4)
+	Models.place(self, "magnifying_glass_01", TABLE + Vector3(0.35, 1.21, 0.3), 1.1, 1.6)
+	Models.place(self, "vintage_oil_lamp", TABLE + Vector3(0.1, 1.21, -0.4), 0.0, 1.3)
+	_light(TABLE + Vector3(0.1, 1.8, -0.2), Color(1.0, 0.7, 0.4), 1.0, 5.0)
+	add_glow(TABLE + Vector3(0, 1.5, 0), Color(1.0, 0.72, 0.42), 4.0, func(): return 0.6)
+	Models.place(self, "ArmChair_01", SEAT, -2.4, 1.4, true, Color(0.5, 0.25, 0.3))
+	wood_sign("sign_saved_seat", "SAVED SEAT", SEAT + Vector3(0, 1.3, 0.3), -0.4, 1.0, 0.25)
+	Models.place(self, "vintage_grandfather_clock_01", Vector3(29.0, 0, 42.0), -PI / 2.0, 1.2, true)
+	Models.place(self, "wooden_bookshelf_worn", Vector3(19.0, 0, 43.5), PI / 2.0, 1.3, true, Color(0.7, 0.55, 0.45))
+	Models.place(self, "gothic_coffee_table", Vector3(26.5, 0, 46.5), 0.4, 1.0, true)
+	for sp in [Vector3(20.5, 0, 49.5), Vector3(28.2, 0, 44.5), Vector3(21.0, 0, 41.5)]:
+		_book_stack(sp, r)
+	# ---- the 3 overdue volumes, each on a glowing lectern
+	for k in BOOKS:
+		_lectern(k, BOOKS[k], r)
+
+func _window() -> void:
+	var frame := wood_m
+	var w := WINDOW + Vector3(0.45, 0, 0)
+	var glass := StandardMaterial3D.new()   # night outside, somehow
+	glass.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glass.albedo_color = Color(0.16, 0.24, 0.42)
+	var qm := QuadMesh.new()
+	qm.size = Vector2(4.6, 5.0)
+	Util.add_mesh(self, qm, glass, w + Vector3(-0.05, 3.2, 0), Vector3(0, PI / 2.0, 0))
+	for dz in [-2.4, 2.4]:
+		Models.block(self, w + Vector3(0, 3.2, dz), Vector3(0.3, 5.4, 0.25), frame)
+	for dy in [0.65, 5.8]:
+		Models.block(self, w + Vector3(0, dy, 0), Vector3(0.3, 0.25, 5.0), frame)
+	Models.block(self, w + Vector3(0, 3.2, 0), Vector3(0.2, 5.0, 0.12), frame)
+	var cloth: StandardMaterial3D = Models.mat("velour_velvet", 1.0, Color(0.5, 0.12, 0.16)).duplicate()
+	cloth.cull_mode = BaseMaterial3D.CULL_DISABLED
+	for dz in [-2.0, 2.0]:   # curtains swing from a pivot at the top
+		var pivot := Node3D.new()
+		add_child(pivot)
+		pivot.position = w + Vector3(0.35, 5.9, dz)
+		var cm := QuadMesh.new()
+		cm.size = Vector2(1.4, 5.2)
+		Util.add_mesh(pivot, cm, cloth, Vector3(0, -2.6, 0), Vector3(0, PI / 2.0, 0))
+		curtains.append([pivot, dz])
+	_light(w + Vector3(2.0, 3.5, 0), Color(0.55, 0.7, 1.0), 1.4, 9.0)
+	add_glow(w + Vector3(1.5, 2.0, 0), Color(0.6, 0.75, 1.0), 6.0, func(): return 0.6)
+
+# A lectern with one of the overdue volumes on it (glowing + sparkles until you take it)
+func _lectern(key: String, p: Vector3, r: RandomNumberGenerator) -> void:
+	Models.block(self, p + Vector3(0, 0.04, 0), Vector3(0.7, 0.08, 0.55), wood_m)
+	Models.block(self, p + Vector3(0, 0.55, 0), Vector3(0.18, 1.0, 0.18), wood_m)
+	var top := Models.block(self, p + Vector3(0, 1.1, 0), Vector3(0.8, 0.06, 0.6), wood_m)
+	top.rotation.x = -0.35
+	Util.static_box(self, p + Vector3(0, 0.6, 0), Vector3(0.7, 1.2, 0.55))
+	var b := _small_book(r)
+	b.position = p + Vector3(0, 1.2, 0.02)
+	b.rotation = Vector3(-0.35, 0, 0)
+	b.scale = Vector3.ONE * 1.3
+	var sp := _sparkle(p + Vector3(0, 1.4, 0))
+	var l := _light(p + Vector3(0, 1.8, 0.4), Color(1.0, 0.85, 0.5), 1.0, 4.0)
+	lect[key] = [b, sp, l]
+	add_glow(p + Vector3(0, 1.3, 0), Color(1.0, 0.85, 0.5), 3.0, func(): return 0.0 if Game.flag("libBook_" + key) else 0.7)
+
+func _sparkle(p: Vector3) -> CPUParticles3D:
+	var sp := CPUParticles3D.new()
+	sp.amount = 8
+	sp.lifetime = 1.2
+	sp.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	sp.emission_sphere_radius = 0.35
+	sp.gravity = Vector3(0, 0.3, 0)
+	sp.initial_velocity_min = 0.05
+	sp.initial_velocity_max = 0.2
+	sp.mesh = Fx.quad(0.07, true)
+	sp.color_ramp = Fx.ramp([[0.0, Color(1, 0.9, 0.4, 0)], [0.3, Color(1, 0.9, 0.4, 1)], [1.0, Color(1, 0.9, 0.4, 0)]])
+	add_child(sp)
+	sp.global_position = p
+	return sp
+
+func _apply_book_state() -> void:
+	for k in lect:
+		var gone := Game.flag("libBook_" + k)
+		for n in lect[k]:
+			n.visible = not gone
+	if Game.flag("libGateOpen"):
+		_open_gate_now()
+
+func books_found() -> int:
+	var n := 0
+	for k in BOOKS:
+		if Game.flag("libBook_" + k):
+			n += 1
+	return n
 
 func _spiral(base: Vector3, wood: Material) -> void:
 	Models.cylinder(self, base + Vector3(0, 6.5, 0), 0.16, 0.16, 13.0, wood, 10)
@@ -469,6 +821,14 @@ func _level_process(delta: float) -> void:
 		n.rotation = Vector3(o[5], -o[4] + PI / 2.0, 0.2)
 	for f in floaters:
 		f[0].position.y = f[1] + sin(t * f[2] + f[3]) * 0.18
+	for c in curtains:   # the Hall of Wind's curtains blow inward
+		c[0].rotation.z = -0.35 - sin(t * 1.7 + c[1]) * 0.18
+	for k in lect:   # the overdue volumes bob a little
+		var bn: Node3D = lect[k][0]
+		bn.position.y = BOOKS[k].y + 1.2 + sin(t * 2.0 + BOOKS[k].x) * 0.03
+	# walking into the Reading Room the first time
+	if stage == "walk" and not busy and Game.flag("libGateOpen") and not Game.flag("libRotunda") and leader.global_position.z < GATE_Z - 1.5:
+		_rotunda_moment()
 	# the hum swells near the middle (and all the way at the book)
 	var d := Vector2(leader.global_position.x, leader.global_position.z).length()
 	var want := clampf(1.0 - (d - 2.5) / 7.0, 0.0, 1.0) * 0.6
@@ -484,9 +844,11 @@ func _begin() -> void:
 	freeze_all(true)
 	follow_enabled = false
 	Game.unlock("deloye_found")   # secret achievement + the Scrapbook page
+	Game.set_flag("libEntered")
+	_apply_book_state()
 	fade.color = Color(1, 1, 1, 1)   # white, from the flush
-	for i in party.size():   # everyone drops in from above
-		party[i].global_position = START + Vector3(-0.8 + i * 0.8, 6.0 + i * 1.2, -0.3 + (i % 2) * 0.6)
+	for i in party.size():   # everyone drops out of the pipe
+		party[i].global_position = CHUTE + Vector3(-0.4 + i * 0.4, 6.0 + i * 1.2, 0)
 	var tw := create_tween()
 	tw.tween_property(fade, "color:a", 0.0, 0.9)
 	for i in party.size():
@@ -512,26 +874,70 @@ func _begin() -> void:
 func _walk() -> void:
 	stage = "walk"
 	busy = false
+	_walk_objective()
+
+func _walk_objective() -> void:
 	if Game.flag("deloyeMet"):
 		objective("Look around, or take the EXIT.")
-	else:
+	elif Game.flag("libGateOpen"):
 		objective("Talk to the guy spinning in the middle.", CENTER)
+	elif books_found() >= BOOKS.size():
+		objective("Return the overdue books at the Reading Room door.", RETURN_BOX)
+	else:
+		objective("Find the overdue Deloye Lore volumes (%d/%d)." % [books_found(), BOOKS.size()])   # no star: explore
+
+func _rotunda_moment() -> void:
+	busy = true
+	Game.set_flag("libRotunda")
+	freeze_all(true)
+	var tw := create_tween()
+	tw.tween_method(func(v: float): focus_override = leader.global_position.lerp(CENTER + Vector3(0, 0, 3.0), v), 0.0, 1.0, 1.4).set_trans(Tween.TRANS_SINE)
+	await tw.finished
+	await run_dialogue(_steps(DS.ROTUNDA))
+	focus_override = null
+	_walk()
 
 func _level_interactables() -> Array:
 	var list: Array = []
 	if stage != "walk":
 		return list
-	var deloye_steps: Array = DS.AGAIN[randi() % DS.AGAIN.size()] if Game.flag("deloyeMet") else DS.MEET
-	list.append({ "id": "deloye", "label": "Deloye", "verb": "Talk to", "pos": CENTER + Vector3(0, 0, 2.5), "h": 3.6, "r": 2.2, "steps": _steps(deloye_steps) })
-	list.append({ "id": "book", "label": "the floating book", "verb": "Look up at", "pos": BOOK_SPOT, "h": 2.4, "r": 1.4, "steps": DS.BOOK })
-	list.append({ "id": "table", "label": "the reading table", "verb": "Look at", "pos": TABLE + Vector3(1.2, 0, 0.6), "h": 1.6, "r": 1.6, "steps": DS.TABLE })
-	var sp := Vector3(sin(SHELF_A), 0, -cos(SHELF_A)) * (R - 1.4)
-	list.append({ "id": "shelf", "label": "the shelves", "verb": "Read", "pos": sp, "h": 2.0, "r": 1.6, "steps": _steps(DS.SHELF) if "skorn" in party_ids else [{ "who": "xylo", "line": "Volume 4,019: The Wind. A classic." }] }) # DRAFT
-	var dp := Vector3(sin(EXIT_A), 0, -cos(EXIT_A)) * (R - 2.0)
-	list.append({ "id": "exit", "label": "the EXIT", "verb": "Go through", "pos": dp, "h": 3.4, "r": 1.8, "steps": _steps(DS.EXIT_DOOR), "major": true })
+	var skorn_here := "skorn" in party_ids
+	# the rotunda
+	if Game.flag("libGateOpen"):
+		var deloye_steps: Array = DS.AGAIN[randi() % DS.AGAIN.size()] if Game.flag("deloyeMet") else DS.MEET
+		list.append({ "id": "deloye", "label": "Deloye", "verb": "Talk to", "pos": CENTER + Vector3(0, 0, 2.5), "h": 3.6, "r": 2.2, "steps": _steps(deloye_steps) })
+		list.append({ "id": "book", "label": "the floating book", "verb": "Look up at", "pos": BOOK_SPOT, "h": 2.4, "r": 1.4, "steps": DS.BOOK })
+		var sp := Vector3(sin(SHELF_A), 0, -cos(SHELF_A)) * (R - 1.4)
+		list.append({ "id": "shelf", "label": "the shelves", "verb": "Read", "pos": sp, "h": 2.0, "r": 1.6, "steps": _steps(DS.SHELF) if skorn_here else [{ "who": "xylo", "line": "Volume 4,019: The Wind. A classic." }] }) # DRAFT
+		var dp := Vector3(sin(EXIT_A), 0, -cos(EXIT_A)) * (R - 2.0)
+		list.append({ "id": "exit", "label": "the EXIT", "verb": "Go through", "pos": dp, "h": 3.4, "r": 1.8, "steps": _steps(DS.EXIT_DOOR), "major": true })
+	else:
+		list.append({ "id": "gate", "label": "the Reading Room door", "verb": "Read", "pos": Vector3(-1.6, 0, GATE_Z + 1.4), "h": 2.6, "r": 1.6, "steps": _steps(DS.GATE_SIGN) })
+		var ret: Array = DS.GATE_OPEN if books_found() >= BOOKS.size() else DS.RETURN_SHORT
+		list.append({ "id": "return", "label": "the book return", "verb": "Return books at" if books_found() >= BOOKS.size() else "Look at", "pos": RETURN_BOX + Vector3(0, 0, 1.0), "h": 1.6, "r": 1.5, "steps": _steps(ret), "major": books_found() >= BOOKS.size() })
+	# the overdue volumes
+	for k in BOOKS:
+		if not Game.flag("libBook_" + k):
+			var st: Array = { "wind": DS.BOOK_WIND, "blank": DS.BOOK_BLANK, "rock": DS.BOOK_ROCK }[k]
+			list.append({ "id": "book_" + k, "label": "an overdue volume", "verb": "Take", "pos": BOOKS[k] + Vector3(0, 0, 1.0), "h": 1.7, "r": 1.4, "steps": _steps(st) })
+	# things to look at
+	list.append({ "id": "pipe", "label": "the pipe", "verb": "Look at", "pos": CHUTE + Vector3(0.6, 0, 1.4), "h": 2.4, "r": 1.6, "steps": _steps(DS.CHUTE) })
+	list.append({ "id": "directory", "label": "the directory", "verb": "Read", "pos": DIRECTORY + Vector3(0, 0, 1.0), "h": 2.0, "r": 1.5, "steps": _steps(DS.DIRECTORY) })
+	list.append({ "id": "desk", "label": "the return desk", "verb": "Look at", "pos": RETURN_DESK + Vector3(0, 0, 1.8), "h": 1.8, "r": 1.6, "steps": _steps(DS.RETURN_DESK) if skorn_here else [{ "who": "lykor", "line": "\"Please do not return Deloye Lore.\" Got it." }] }) # DRAFT
+	list.append({ "id": "catalog", "label": "the card catalog", "verb": "Look at", "pos": CATALOG + Vector3(1.4, 0, 0.6), "h": 1.8, "r": 1.5, "steps": _steps(DS.CATALOG) })
+	list.append({ "id": "staff", "label": "the staff picks", "verb": "Look at", "pos": STAFF + Vector3(-1.4, 0, 0.6), "h": 1.8, "r": 1.5, "steps": _steps(DS.STAFF_PICKS) })
+	list.append({ "id": "window", "label": "the open window", "verb": "Look at", "pos": WINDOW + Vector3(2.2, 0, 0), "h": 2.6, "r": 1.8, "steps": _steps(DS.WINDOW) })
+	list.append({ "id": "pages", "label": "the loose pages", "verb": "Look at", "pos": PAGES + Vector3(0, 0, 1.6), "h": 1.4, "r": 1.6, "steps": _steps(DS.PAGES) })
+	list.append({ "id": "rope", "label": "the velvet rope", "verb": "Read", "pos": Vector3(-24.0, 0, ROPE_Z + 1.6), "h": 1.6, "r": 1.4, "steps": _steps(DS.ROPE) })
+	list.append({ "id": "rock", "label": "THE ROCK", "verb": "Look at", "pos": ROCK + Vector3(0, 0, 2.0), "h": 2.0, "r": 1.6, "steps": _steps(DS.ROCK) if skorn_here else [{ "who": "xylo", "mood": "smug", "line": "THE rock. From Chapter 10,000." }] }) # DRAFT
+	list.append({ "id": "table", "label": "the reading table", "verb": "Look at", "pos": TABLE + Vector3(0, 0, 1.6), "h": 1.6, "r": 1.6, "steps": DS.TABLE })
+	list.append({ "id": "seat", "label": "the SAVED SEAT", "verb": "Look at", "pos": SEAT + Vector3(-1.2, 0, 0.8), "h": 1.6, "r": 1.5, "steps": _steps(DS.SAVED_SEAT) })
 	return list
 
 func _on_action(n: String) -> void:
+	if n.begins_with("take:"):
+		await _take_book(n.get_slice(":", 1))
+		return
 	match n:
 		"earbud_out":
 			spin_speed = 0.0
@@ -549,12 +955,47 @@ func _on_action(n: String) -> void:
 			_book_swelling = true
 			get_tree().create_timer(8.0).timeout.connect(func(): _book_swelling = false)
 			await wait(0.4)
-		"leave":
+		"return_books":
+			play_sound("sfx_door", -8.0, 1.4)
+			for k in 3:
+				play_sound("sfx_punch", -16.0, 1.6 + k * 0.15)   # thunk thunk thunk into the slot
+				await wait(0.25)
+		"gate_open":
+			await _gate_open()
+		"leave", "leave_pipe":
 			stage = "end"
 			busy = true
-			play_sound("sfx_door", -4.0)
+			play_sound("sfx_door" if n == "leave" else "flush", -4.0)
 			await fade_out(0.7)
 			Game.travel("res://village.tscn", "library", leader.id)
+
+func _take_book(k: String) -> void:
+	if Game.flag("libBook_" + k):
+		return
+	Game.set_flag("libBook_" + k)
+	if lect.has(k):
+		var b: Node3D = lect[k][0]
+		var p := Fx.poof(Color(1.0, 0.85, 0.5))
+		add_child(p)
+		p.global_position = b.global_position
+		p.emitting = true
+		for nd in lect[k]:
+			nd.visible = false
+	play_sound("sfx_reward", -6.0)
+	show_toast("Overdue volume found (%d/%d)" % [books_found(), BOOKS.size()], 2.2)
+	_walk_objective()
+	await wait(0.4)
+
+func _gate_open() -> void:
+	Game.set_flag("libGateOpen")
+	shake = 0.4
+	play_sound("sfx_magic", -4.0, 0.7)
+	if curtain_mat:
+		var tw := create_tween()
+		tw.tween_method(func(v: float): curtain_mat.set_shader_parameter("fade", v), 1.0, 0.0, 1.4)
+		await tw.finished
+	_open_gate_now()
+	_walk_objective()
 
 func _gift() -> void:
 	if Game.flag("deloyeGift"):   # already got it this run (came back on a loaded save)
@@ -578,50 +1019,116 @@ func _gift() -> void:
 	show_toast("Xylo got: Deloye Lore Neuralink (equip it in Tab)", 3.0)
 	await wait(0.8)
 
-# ---------------------------------------------------------------- saves: a save in here restarts the visit (lands again)
+# ---------------------------------------------------------------- saves: free roam resumes where you stood
+func can_resume() -> bool:
+	return stage == "walk" and not busy
+
+func can_resume_saved() -> bool:
+	return Game.flag("libEntered")
+
+func _resume(r: Dictionary) -> void:
+	_apply_book_state()
+	stage = "walk"
+	await super._resume(r)
+	_walk()
+
 func arrival(_from: String) -> Array:
 	return [START, Vector3(0, 0, -1)]
 
+func map_buildings() -> Array:
+	return [
+		{ "pos": Vector3(0, 0, 53), "name": "Atrium" },
+		{ "pos": Vector3(0, 0, 28), "name": "Grand Stacks" },
+		{ "pos": Vector3(-19, 0, 32), "name": "Hall of Wind" },
+		{ "pos": Vector3(-24, 0, 46), "name": "Restricted" },
+		{ "pos": Vector3(19, 0, 32), "name": "Rock Room" },
+		{ "pos": Vector3(24, 0, 46), "name": "Reading Corner" },
+		{ "pos": Vector3(0, 0, -2), "name": "Reading Room" },
+	]
+
 # ---------------------------------------------------------------- automated test
-# Arrive, talk to Deloye (gift), look at the book, leave through the EXIT → the village (its tour doesn't run on travel).
+# Lands in the Atrium, walks the whole route (checks every doorway is walkable), takes the 3 overdue volumes, returns
+# them, walks into the Reading Room (ROTUNDA), talks to Deloye (gift), looks at the book; DELOYE_EXIT=1 then leaves
+# through the EXIT → the village (its tour doesn't run on travel).
+const ROUTE := [   # waypoints through every room, in the order a player would go
+	["atrium", Vector3(0, 0, 50)], ["stacks", Vector3(0, 0, 34)], ["wind", Vector3(-12, 0, 34)], ["wind", Vector3(-22, 0, 33)],
+	["restricted", Vector3(-24, 0, 38)], ["restricted", Vector3(-21.5, 0, 48)], ["wind", Vector3(-23, 0, 36)],
+	["stacks", Vector3(-4, 0, 34)], ["rock", Vector3(12, 0, 34)], ["rock", Vector3(22, 0, 33)], ["corner", Vector3(24, 0, 38)],
+	["corner", Vector3(21, 0, 48)], ["rock", Vector3(23, 0, 36)], ["stacks", Vector3(4, 0, 34)], ["stacks", Vector3(0, 0, 14)],
+]
 func _shot_tour() -> void:
 	await _begin_quick()
-	await shot("dl_01_arrive")
+	await shot("dl_01_atrium")
+	var ok := true
+	for i in ROUTE.size():   # walk it for real (collision on), like a player holding the stick
+		var wp: Vector3 = ROUTE[i][1]
+		await walk_to(leader, wp, 1.6, 9.0)
+		var d := Vector2(leader.global_position.x - wp.x, leader.global_position.z - wp.z).length()
+		if d > 1.2:
+			ok = false
+			print("LIB ROUTE stuck before ", ROUTE[i][0], " ", wp, " at ", leader.global_position)
+			place_party(wp, Vector3(0, 0, -1))
+		if i in [1, 3, 5, 9, 11]:
+			await shot("dl_route_%02d_%s" % [i, ROUTE[i][0]])
+	print("LIB ROUTE ", "ALL OK" if ok else "BLOCKED")
+	# the gate is shut: the curtain must stop you
+	place_party(Vector3(0, 0, GATE_Z + 2.0), Vector3(0, 0, -1))
+	await walk_to(leader, Vector3(0, 0, 4.0), 1.6, 3.0)
+	print("LIB GATE closed holds=", leader.global_position.z > GATE_Z)
+	await shot("dl_02_gate")
+	for k in BOOKS:
+		await _tour_use("book_" + k)
+	await _tour_use("return")
+	print("LIB BOOKS found=", books_found(), " gate=", Game.flag("libGateOpen"), " curtain=", curtain_body == null)
+	place_party(Vector3(0, 0, GATE_Z + 2.0), Vector3(0, 0, -1))
+	await walk_to(leader, ROT_IN + Vector3(0, 0, -0.5), 1.6, 6.0)
+	await wait(1.8)
+	await shot("dl_03_rotunda")
+	for k in 12:
+		if not dialogue.active:
+			break
+		await advance(1, 0.25)
+	await wait(0.6)
+	print("LIB ROTUNDA seen=", Game.flag("libRotunda"), " stage=", stage, " busy=", busy)
 	place_party(CENTER + Vector3(0, 0, 3.6), Vector3(0, 0, -1))
 	await wait(0.8)
-	await shot("dl_02_deloye")
-	var it: Array = current_interactables().filter(func(i): return i["id"] == "deloye")
-	start(it[0])
-	await wait(0.4)
-	for k in 30:
-		if not dialogue.active:
-			break
-		await advance(1, 0.25)
-	await wait(0.6)
+	await shot("dl_04_deloye")
+	await _tour_use("deloye")
 	print("DELOYE TOUR met=", Game.flag("deloyeMet"), " gift=", Game.flag("deloyeGift"), " owner=", Game.gear_owner.get("neuralink", ""),
 		" found=", Game.progress.has("deloye_found"), " ach=", Game.ach.got.has("lore_accurate"))
-	place_party(BOOK_SPOT + Vector3(-0.4, 0, 0.6), Vector3(1, 0, -1))
-	await wait(0.6)
-	start(current_interactables().filter(func(i): return i["id"] == "book")[0])
-	for k in 10:
-		if not dialogue.active:
-			break
-		await advance(1, 0.25)
-	await shot("dl_03_book")
+	await _tour_use("book")
+	await shot("dl_05_book")
 	if OS.get_environment("DELOYE_EXIT") != "":
-		var dp := Vector3(sin(EXIT_A), 0, -cos(EXIT_A)) * (R - 2.6)
-		place_party(dp, Vector3(-1, 0, 0))
-		await wait(0.6)
-		start(current_interactables().filter(func(i): return i["id"] == "exit")[0])
-		for k in 6:
-			await advance(1, 0.3)
+		await _tour_use("exit")
 		print("DELOYE TOUR exit stage=", stage)
 		await wait(3.0)
 	get_tree().quit()
 
+func _tour_use(id: String) -> void:
+	var it: Array = current_interactables().filter(func(i): return i["id"] == id)
+	if it.is_empty():
+		for i in _level_interactables():
+			if i["id"] == id:
+				place_party(_it_pos(i) + Vector3(0, 0, 0.4), Vector3(0, 0, -1))
+				await wait(0.4)
+				it = current_interactables().filter(func(j): return j["id"] == id)
+				break
+	if it.is_empty():
+		print("LIB TOUR can't reach ", id)
+		return
+	start(it[0])
+	await wait(0.4)
+	for k in 40:
+		if not dialogue.active:
+			break
+		await advance(1, 0.25)
+	await wait(0.5)
+
 func _begin_quick() -> void:
 	fade.color.a = 0.0
 	Game.unlock("deloye_found")
+	Game.set_flag("libEntered")
+	_apply_book_state()
 	busy = false
 	await wait(1.2)
 	stage = "walk"
