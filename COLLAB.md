@@ -9,6 +9,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
+- [asar] "voice": "none" per line so the troll's "Aight bet" doesn't play the giant's recording — files: godot/scripts/dialogue.gd (say/_speak only), script_scan.gd, trail_script.gd, godot/tools/dialogue_map_dump.gd — branch: asar/voice-none — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
