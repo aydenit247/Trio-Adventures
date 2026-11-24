@@ -28,7 +28,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 - **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?"
 - **King Nibbsworth III** (Rat King), **Scrounge** (rat trader), **Lil Nibbs** (pet rat): the Rat Cave. All three names
   are Claude DRAFTs (Ebain said "you draft names"), so he may rename them.
-- **Charis:** lives in the house right of the Metocy Mart. Placeholder art and one DRAFT greeting until Ebain writes her.
+- **Charis:** lives in the house right of the Metocy Mart. Ebain's art is in (11/24); one DRAFT greeting until he writes her lines.
 - **Items:** Beezy (heals 30), Chipotle Bowl (heals 60), Midtocy (the fake metocy), the d6 ("on some dice shi").
 
 ### Chapter 1 flow (each main event has a 5-way choice)
