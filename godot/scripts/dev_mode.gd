@@ -74,6 +74,8 @@ static func walk(lv: Node, steps: Array) -> void:
 			else:
 				d.panel.visible = true
 				i = await d.ask(opts)
+			if opts[i].has("outcome"):
+				ProgressData.pick_outcome(opts[i]["outcome"])
 			await walk(lv, opts[i]["steps"])
 		elif s.has("if"):
 			if Game.flag(s["if"]):

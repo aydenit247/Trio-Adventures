@@ -220,8 +220,8 @@ func _run_steps(steps: Array, ctx: Node) -> void:
 			var pick: int = await ask(opts)
 			if pick < 0:
 				return
-			if opts[pick].has("outcome"):   # counts toward "Outcomes x/17" on the title screen (progress_data.gd)
-				Game.unlock(opts[pick]["outcome"])
+			if opts[pick].has("outcome"):   # counts toward "Outcomes x/N" on the title screen (progress_data.gd)
+				ProgressData.pick_outcome(opts[pick]["outcome"])   # + per-run flag way_<scene> (summit lines use it)
 			await _run_steps(opts[pick]["steps"], ctx)
 		elif s.has("if"):
 			if Game.flag(s["if"]):

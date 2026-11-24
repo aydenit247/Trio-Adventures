@@ -50,6 +50,31 @@ const PARTY := {
 			"ult": { "name": "GOBLIN UNION STRIKE", "desc": "The whole village dogpiles. 8 bonks of 7 + Down Bad on everyone.", "kind": "union", "hits": 8, "power": 7 },
 		},
 	},
+	# Summit ambush (Ebain 11/24): call for Mattias and he fights Dulbers as a 4th fighter (same slot as the Chief).
+	# Move names and descriptions are DRAFT.
+	"mattias": {
+		"name": "Metocin Mattias", "hp": 120, "spd": 13, "hp_label": "Drip", "meter_label": "Metocy Reserve",
+		"tex": "mattias", "h": 2.2, "ally": true,
+		"moves": {
+			"main": { "name": "Metocy Bolt", "desc": "A little blue bolt. 18 damage.", "kind": "hit", "power": 18, "fx": "blast", "timed": true },
+			"special": { "name": "Wizard Drip", "desc": "Too much drip to look at. 26 damage + Mogged. Cooldown 3.", "kind": "hit", "power": 26, "cd": 3, "fx": "lore", "mogged": 2, "timed": true },
+			"bonus": { "name": "Pill From The Sleeve", "desc": "Hands a teammate something blue. Heals 30 (revives at 30). Cooldown 3.", "kind": "healone", "heal": 30, "cd": 3, "say": "%s hands %s a little blue pill." },
+			"ult": { "name": "THE CRIB IS CLOSED", "desc": "A wall of blue light. 50 damage to every enemy and strips their buffs.", "kind": "beam", "power": 50 },
+		},
+	},
+}
+
+# Metocin Mattias as a boss (the sucker punch at his castle). Ebain: "near-impossible", and losing is its own ending.
+# Every number for the fight is here so new items/levels can be balanced against it later (tools/sim_combat.gd runs it).
+const MATTIAS_BOSS := {
+	"hp": 1700, "spd": 19, "gold": 300, "xp": 200,
+	"bolt": 38,          # Metocy Bolt: one target
+	"rain": 22,          # Pill Rain: everyone, bricks specials
+	"shield": 70,        # Out-Mogs Lykor: an aura shield (needs Lykor standing)
+	"heal": 160,         # Takes A Metocy: once, under heal_below
+	"heal_below": 0.4,
+	"lock_turns": 3,     # Locks In: immune to charm/stun/lore-pill
+	"phase2_mult": 1.3,  # under half HP he stops holding back: every hit ×1.3
 }
 
 # Team-ups. Each person in the combo spends `cost` meter. Partners' next turn gets pushed back a bit.
@@ -125,12 +150,14 @@ const TRIP_MISFIRES := {
 	"lykor": ["Lykor gets distracted by his own hair. It's so shiny today.", "Lykor swings at a butterfly that isn't there.", "Lykor apologizes to the floor for stepping on it."],
 	"xylo": ["Xylo stares into the void. The void says \"what.\"", "Xylo prophesies about turnip prices. Nobody asked.", "Xylo breathes on a cloud that looked suspicious."],
 	"chief": ["The Chief tries to crown a rock.", "The Chief forgets which side he's on. Waves at everyone."],
+	"mattias": ["Mattias stares at his own hand for a while. \"Bet.\""],
 }
 const BUZZED_MISFIRES := {
 	"skorn": ["Skorn hiccups mid-slap and slaps the air.", "Skorn: \"I love y'all bro.\" Forgets to attack."],
 	"lykor": ["Lykor hiccups and checks his reflection in the beezy can.", "Lykor tells the enemy they have nice eyes. Misses."],
 	"xylo": ["Xylo starts reading the beezy label as lore.", "Xylo hiccups a tiny smoke ring. Adorable. Useless."],
 	"chief": ["The Chief is a professional. The beezy does nothing to him.", "The Chief burps the national anthem."],
+	"mattias": ["Mattias sips the beezy. Mattias does not like the beezy."],
 }
 
 # Fights. `story` fights can't be fled and you can't lose them for good (you retry after the penalty).
@@ -156,6 +183,17 @@ const FIGHTS := {
 		"title": "BOSS: Diddy Chud Giant", "party": ["skorn", "lykor", "xylo"], "xp": 100, "story": true, "boss": true,
 		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "gold": 150, "hp": 520, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
 		"talk": ["feed_giant", "lullaby"],
+	},
+	# ---- the Summit Path (Ebain's summit plan 11/24)
+	"dulbers_ambush": {   # regular-size Dulbers (not the demon) catches up on the climb; Mattias can join as a 4th fighter
+		"title": "Dulbers Frint (Regular Size) Wants Smoke", "party": ["skorn", "lykor", "xylo"], "xp": 70, "story": true, "boss": true,
+		"enemies": [{ "name": "Dulbers Frint", "tag": "(Regular Size) (Still Mad)", "gold": 60, "hp": 480, "spd": 16, "tex": "dulbers", "portrait": "dulbers", "h": 1.3, "ai": "dulbers", "boss": true }],
+		"talk": ["refund", "compliment_store"],
+	},
+	"mattias": {   # the sucker punch. Numbers: MATTIAS_BOSS
+		"title": "FINAL BOSS(?): Metocin Mattias", "party": ["skorn", "lykor", "xylo"], "xp": MATTIAS_BOSS["xp"], "story": true, "boss": true,
+		"enemies": [{ "name": "Metocin Mattias", "tag": "(Got Sucker Punched) (Unbothered)", "gold": MATTIAS_BOSS["gold"], "hp": MATTIAS_BOSS["hp"], "spd": MATTIAS_BOSS["spd"], "tex": "mattias", "portrait": "mattias", "h": 2.2, "ai": "mattias", "boss": true }],
+		"talk": ["apologize_mattias"],
 	},
 	# ---- village side fights
 	"bouncer": {
@@ -202,6 +240,8 @@ const TALK := {
 		"try": "Lykor: \"Honestly? Great lighting in here.\"", "win": "Dulbers is flattered. He just stands there blushing. (Charmed)", "lose": "\"Flattery won't get you a discount.\"" },
 	"feed_giant": { "text": "Offer him a Chipotle Bowl", "who": "", "need": "bowl", "chance": 1.0, "kind": "itis",
 		"try": "%s slides a Chipotle Bowl across the ground.", "win": "He eats the whole thing in one bite (+40). Then the itis hits. He's getting SLEEPY.", "lose": "" },
+	"apologize_mattias": { "text": "\"My fault, folk.\"", "who": "", "chance": 0.0, "kind": "backfire",
+		"try": "%s: \"My fault, folk. We was geeking.\"", "win": "", "lose": "Mattias: \"Bet.\" He does not accept. He's HYPED now." },   # DRAFT
 	"lullaby": { "text": "Sing him a lullaby", "who": "xylo", "chance": 0.45, "kind": "cc", "status": "lorepill",
 		"try": "Xylo sings the Deloye Lore theme song. There are no words, because there is no lore.", "win": "His eyes get heavy… (Lore-pilled)", "lose": "\"That song is ASS.\" He's wide awake." },
 }
@@ -249,6 +289,16 @@ const BANTER := {
 		"ko": ["Tell the village… open bar…"],
 		"allyKo": ["Not on my watch!"],
 		"hurt": ["Hey! I'm royalty!"],
+	},
+	"mattias": {   # DRAFT (ally lines + boss lines share this, by id/ai)
+		"perfect": ["Bet.", "That's OD."],
+		"ult": ["Get lost, folk."],
+		"lowhp": ["I'm good folk. Lowkey not good."],
+		"ko": ["…Bet."],
+		"allyKo": ["Get up folk."],
+		"hurt": ["Watch the robe, folk."],
+		"taunt": ["You had called?", "Bet.", "That's OD, folk."],
+		"phase": ["Aight. Now I'm locked in."],
 	},
 	"goblin": {
 		"taunt": ["I NEED THIS JOB!", "Spoon time!", "Bonk o'clock!"],

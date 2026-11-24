@@ -34,3 +34,20 @@ New gear sold at Haggle's Stall shows a "?" crate until it has a picture. Same s
 | `jordan9s.png` | Jordan 9's (sneakers) |
 | `goblin_tooth.png` | Lucky Goblin Tooth (on a string) |
 | `rock.png` | A Rock (Pre-Owned) |
+
+## Summit finale art (Ebain's summit plan, 2026-11-24)
+The finale works with the current art; these would make it look right. Gemini, realistic, green screen, **side views
+face right** (`tools/key_chars.py` cuts them into `godot/assets/characters/`).
+
+| File | What | Used for (stand-in today) |
+|---|---|---|
+| `dulbers_run_side.png` | regular-size Dulbers running, side view | the ambush sprint (`dulbers.png`) |
+| `dulbers_cry.png` | Dulbers kneeling / crying | "Good boy." exit and crying off after a fight (`dulbers.png` tilted) |
+| `mattias_cast.png`, `mattias_side.png` | Mattias casting (battle pose) and walking side view | fights (`mattias.png`) |
+| `assets/items/metocy.png` (new) | the metocy close-up: glowing blue oval, transparent | the hovering pill + inventory (current `metocy.png`) |
+| `skorn/lykor/xylo_tweaking.png` (new takes) | eyes wide, floating | tripping on the metocy (the Mart's tweaking art) |
+| `goblin_dance_1..3.png` | goblins dancing, 2–3 poses | the goblin party ending (standing goblins bouncing) |
+| reference only | castle exterior at night | if the tower gets rebuilt |
+| `assets/backdrops/end_of_chapter_1.png` | END OF CHAPTER 1 title card | end cards are plain text today |
+
+Also wanted: a **boss track** for the Mattias fight (there's no battle/boss music yet).

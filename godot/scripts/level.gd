@@ -1220,7 +1220,7 @@ func _views_tour() -> void:
 # ================================================================ COMBAT
 # Start a turn-based fight right where everyone is standing. Awaitable.
 #   opts: enemies = [Unit] already in the world (else they're spawned) · center = Vector3 · mods = {}
-#         party = [ids] to override who fights
+#         party = [ids] to override who fights · lose_ends = true: a loss returns "lose" (no penalty, no retry)
 # Story fights can't be lost for good: you get the funny penalty and try again.
 # Returns "win" / "talked" / "fled" / "lose" (lose only for roaming fights).
 const CombatD = preload("res://scripts/combat/combat_data.gd")
@@ -1252,7 +1252,7 @@ func fight(key: String, opts := {}) -> String:
 			Game.forehead = ""
 			_show_forehead()
 			show_toast("The forehead writing finally washed off.", 2.0)
-		if res != "lose":
+		if res != "lose" or opts.get("lose_ends", false):   # lose_ends: losing is a story ending, not a retry (Mattias)
 			return res
 		await _defeat(story)
 		if not story:

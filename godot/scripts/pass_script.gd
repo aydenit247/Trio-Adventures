@@ -10,9 +10,7 @@ const AFTER_FIGHT := [
 
 const ENDING := [
 	{ "who": "narrator", "line": "Past the giant, the path climbs higher. Somewhere up ahead… the metocy." },
-	{ "do": "mattias_voice" },
-	{ "who": "mattias", "line": "*echoing* Impressive, my beloved trio. Come closer…" },
-	{ "who": "skorn", "mood": "smug", "line": "Man, I'm finna slap this old head too." },
+	# Mattias's "*echoing* Impressive…" moved to halfway up the Summit Path (Ebain's summit plan, summit_script HALFWAY)
 	{ "do": "leave" },
 ]
 

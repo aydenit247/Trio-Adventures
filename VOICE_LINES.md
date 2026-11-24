@@ -51,3 +51,24 @@ These have no generated file yet, so they fall back to TTS. Generate + approve t
 - village: "Send your biggest guy." · "BOOOO. GET A JOB." · "BOOOO. Ain't nobody dumb enough to pay twenty spoons for a
   receipt." · "Say less. We'll get your spoon, lil bro." · "Bro it's just a mirror ball." · "Found a Chipotle Bowl in
   there. It was sealed. Don't worry about it." · "Smart." · "Don't worry about me. I'm a king now. I got spoons."
+
+## Summit finale lines still on the robot voice (added 2026-11-24, Ebain's summit plan)
+New lines in `summit_script.gd`. Ebain approved putting Lykor/Xylo lines in (his spec), so they play on the robot until
+Asar records them. Lines marked *dynamic* change per run: the studio sees the fallback text only.
+- **Lykor:** "Deadahh." · "Bet. Here we go, folk" · "You fight like you mog." (only if Mattias fought Dulbers with you)
+- **Xylo:** "Damn that was OD to get here, …" (*dynamic*: 7 endings, see `DYN_XYLO_ARRIVE`)
+- **Skorn:** "Woah.. I think we made it boys" · "Aight, aight. My fault, Dulbers. We fw Dulbmeethus. On everything." ·
+  "Ayo, peace offering. Here go some midtocy. On the house." · "MATTIAS! We need you, folk!" · "Mattias you was fuckin
+  wit one this whole time?"
+- **Dulbers:** ambush line (*dynamic*: "Y'all walked out my store. In front of customers." / "Lore-reading ahh dragon
+  exposed my whole business.") · "And I KNOW y'all still got my midtocy." · "Where the goblins at? Y'all scared without
+  the goblins?" · "Good boy." · "…Free midtocy? Y'all finally learning." · "*sniffling* Y'all gon' hear from Dulbmeethus
+  about this…"
+- **Mattias:** "Welcome to da crib folk, …" (*dynamic* middle, see `DYN_MATTIAS_WELCOME`) · "Thank you folk." · "Here yall
+  go folk, have at it." · "Bet." · "Oh okay." · "Get lost midget fucker!" · "I should have never underestimated the trio." ·
+  "Y'all must be geeking off that midtocy to think you could defeat me." · "Now peep this, folk. What if we gave every
+  goblin some metocy?" (plus "Peep the song first folk, shit is gas", still unrecorded)
+- Already recorded and reused: Mattias "*echoing* Impressive, my beloved trio. Come closer…" (moved from the Pass) and the
+  narrator's "Dulbers Frint was never seen again."
+- **Not used anymore:** Skorn's "Man, I'm finna slap this old head too." (it answered Mattias's echo at the end of the
+  Pass; the echo moved to the summit). The recording is still in `assets/voices/skorn/`.

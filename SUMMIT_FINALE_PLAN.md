@@ -1,5 +1,11 @@
 # Summit finale plan (Ebain's spec, 11/24)
 
+**Status: BUILT 11/24 (ebain).** Everything in sections 1–3 is in the game; section 4 is in ASSETS_NEEDED.md; from
+section 5 only the Chipotle Bowl pitch is in (as the castle's 5th choice). How it works now: HANDOFF.md section 1, item 5.
+Choices made while building: the hymn still makes you wait before Mattias talks (Asar's "Peep the song first"); the
+ambush ducks the song instead of a hard music cut (section 1 wins over section 3); the goblin party is a little set
+built inside the summit scene (the real village is Asar's file); no boss music exists yet.
+
 Answers from Ebain (11/24): **beating Dulbers in the Mart boss fight counts as killing him** (same as the goblin chase), so he only ambushes if the trio never fought him; Ebain and Asar build this together.
 
 Planning doc for the end of Chapter 1: Summit arrival → Dulbers ambush → Mattias's castle → ending. Ebain's quoted

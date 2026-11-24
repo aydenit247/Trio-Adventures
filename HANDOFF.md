@@ -49,13 +49,30 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    · B **Snore Sneak** minigame · C **Lore Session** minigame (pick the true Deloye Lore continuation) · D slap him ·
    E it's the Chief's cousin (if allies). Fights are real boss fights. The only way on is the gorge right behind where he
    sleeps (Asar 11/22), so you can't get past until he's dealt with.
-5. **The Summit Path + the Wizard's Lair (night, Asar 11/22): the final event of Chapter 1.** Asar's "The Hymn of
-   Metocin Mattias" starts when you arrive and plays once; walking up to Mattias before it ends gets "Peep the song first
-   folk, shit is gas" (Asar) and a step back. A long climb up the
-   mountain (3 empty clearings saved for future events: `EVENT_SPOTS` overlook / shrine / cart), a plaza with a huge
-   glowing tower, then the lair's grand hall with Metocin Mattias on a dais. Walking up to him plays
-   `summit_script.gd MATTIAS_FINALE` (Asar and Ebain are writing it; empty = a "coming soon" toast), then END OF CHAPTER 1
-   → title. Flags `summitStarted`, `lairSeen`, `lairEntered`, `chapter1Done`.
+5. **The Summit Path + the Wizard's Lair (night, Asar 11/22; finale built from Ebain's `SUMMIT_FINALE_PLAN.md` 11/24):
+   the final event of Chapter 1.** Arriving: a slow camera dolly while Skorn/Xylo/Lykor catch their breath (Xylo's line
+   changes with how this run got past the giant/troll), then a toast "Don't walk yet if you want to hear the song." and
+   Asar's "The Hymn of Metocin Mattias" starts (plays once). A long climb (3 clearings saved for future events:
+   `EVENT_SPOTS` overlook / shrine / cart). **Halfway** (z < 8, by the shrine): Mattias's echo "Impressive, my beloved
+   trio…" (moved here from the Pass) + Lykor "Bet. Here we go, folk". **Dulbers' ambush** right after, only if he's alive
+   on this run (`dulbersEscaped` and not `dulbersDead` = the Mart refuse / Xylo paths): regular-size Dulbers sprints up
+   from behind (the song ducks to the background) → apologize + swear loyalty to Dulbmeethus ("Good boy.") · fight him ·
+   offer him fentocy (he dies) · call for Mattias ("Get lost midget fucker!", Mattias fights as a 4th fighter). Then the
+   plaza, the tower, the hall. Walking up to Mattias before the hymn ends: "Peep the song first folk" (Asar) and a step
+   back. **The castle:** the music drops out, torches flare, "Welcome to da crib folk… I had heard that y'all ___. That's
+   OD." (the blank = the biggest thing from this run), the metocy hovers → 5 choices: "Bet. Here we go folk." · "you had
+   said u was fuckin wit one too?" (all four take it) · "Bad." ("Oh okay." → hard cut to black, END OF CHAPTER 1, silence)
+   · sucker punch → near-impossible Mattias boss (**losing is its own ending**: "Y'all must be geeking off that midtocy…") ·
+   ask for it in a Chipotle Bowl. After taking it: give every goblin metocy? Yes → the goblin party (dancing goblins,
+   band, "The Mogging Elf", confetti, orbiting camera) → end card. No → end card. Flags `summitStarted` (set after the
+   arrival lines), `summitHalfway`, `lairSeen`, `lairEntered`, `foughtWithMattias`, `tookMetocy`, `mattiasBeaten`,
+   `chapter1Done`, `endingBad/Cooked/Normal/Party`, and the per-run strings `way_ambush`, `way_castle`, `way_goblins`.
+
+**Story decisions (Ebain):**
+- Beating Dulbers in the Mart boss fight counts as **killing him** (same as the goblin chase): `dulbersDead`. He only
+  comes back (the summit ambush) on runs where he got away.
+- **Fentocy** is a different pill from midtocy. Offering it to Dulbers kills him (he thinks it's midtocy).
+- Losing the sucker-punch fight against Mattias is its own Chapter 1 ending, not a retry.
 
 **Big direction (Ebain):** these four are the MAIN EVENTS. Between them he wants lots of optional, open-world-ish
 stuff: places to walk into, joke NPCs, side quests, roaming enemies, gear to find. More chapters later; Dulbers is
@@ -92,6 +109,11 @@ too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "
 - Catchphrases: "Aight. Bet." (the giant waking up) · "Y'all could hear me doe?" (Dulbmeethus) · "hey guys its your boy
   dulbers frint" · "You had called?" (Mattias).
 - **"Dat bih fire mud"** and **"Y'all could get lost?"**: what you tell the goblin band to keep them playing or send them away (Ebain, notes.md).
+- **Fentocy:** a deadly pill (not midtocy). Dulbers takes it thinking it's midtocy and dies.
+- **OD:** over the top, crazy ("Damn that was OD to get here", "That's OD"). **Deadahh:** dead-ass, for real.
+- **Da crib:** home (Mattias's castle: "Welcome to da crib folk"). **Geeking:** high, tripping ("geeking off that midtocy").
+- **"Good boy."**: Dulbers, when the trio swears loyalty to Dulbmeethus. **"Bad."**: the troll answer, also Mattias's
+  castle ("Oh okay.").
 - **John's orb:** a lore term from the title music. Meaning not given yet. Ask Ebain before using it.
 
 ---
@@ -198,8 +220,8 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
 | `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
 | `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`): modelled shop exterior (`_shop_exterior`, street houses) + stocked interior at x = 300 (`_shop_interior`); the trip recolors `room_lights`/`glow_jars` |
-| `scripts/progress_data.gd` | What counts toward "Outcomes x/17 · N% complete" (title screen, end card). `Game.unlock(id)` / `outcomes_found()` / `completion_pct()`; saved in `user://progress.cfg` across playthroughs |
-| `scripts/summit.gd` + `summit_script.gd` | Scene 5 (`summit.tscn`): the climb (z +62 → plaza at -52), tower (`_lair_exterior`), the hall built off to the side at `INT` (x 400, `_hall`: round wall open toward the camera, pillars, dais + throne, statues, chandeliers, alchemy + study corners, floating candles/books/orb via `floaters`). Uses Ebain's wizard-lair Poly Haven pack |
+| `scripts/progress_data.gd` | **ProgressData**: what counts toward "Outcomes x/26 · N% complete" (title screen, end card). `Game.unlock(id)` / `outcomes_found()` / `completion_pct()`; saved in `user://progress.cfg` across playthroughs. `ProgressData.pick_outcome(id)` (called by dialogue.gd + dev mode when a choice with `"outcome"` is picked) also sets the **per-run** string flag `way_<scene>` (`village_skorn_king` → `way_village = "skorn_king"`), since outcomes themselves are saved across playthroughs |
+| `scripts/summit.gd` + `summit_script.gd` | Scene 5 (`summit.tscn`): the climb (z +62 → plaza at -52), tower (`_lair_exterior`), the hall built off to the side at `INT` (x 400, `_hall`: round wall open toward the camera, pillars, dais + throne, statues, chandeliers, alchemy + study corners, floating candles/books/orb via `floaters`). Uses Ebain's wizard-lair Poly Haven pack. **Finale:** `_begin` (arrival) → `_halfway` → `_ambush` → `_finale` → `_hard_end` / `_goblin_party` (set at `PARTY_POS`, x -400) / `end_card`. Script steps with a `"dyn"` key get their line from `_dyn_line()` (tables `DYN_*` in summit_script: first matching flag wins). Trip look = `_take_metocy` + `TRIP_SHADER`. Test: `SUMMIT_TOUR=finale SUMMIT_FLAGS=… SUMMIT_PICKS=… [AUTOWIN=1]` (see the comment above `_finale_tour`) |
 | `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`): rock-face canyon + animated lava (`_canyon`, `_lava`), giant lying across the path (`giant_lying`, Asar's `giant_sleep.png`; `_giant_wakes` crossfades sleep → sit → standing, no black cut); Snore Sneak + Lore Session minigames |
 | `scripts/dev_mode.gd` | **DevMode**: the F1 developer menu, dialogue modes, line viewer (see "Dev mode") |
 | `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter |
@@ -231,7 +253,10 @@ FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T o
 levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (flat cut per hit), permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
 roaming fights wake you at the area's `checkpoint`). Fights so far: `goblins`, `dulbers`, `giant`, `bouncer`,
-`goblin_patrol` (roaming, village east road).
+`goblin_patrol` (roaming, village east road), `troll`, `dulbers_ambush` (summit, regular-size Dulbers; Mattias can join
+as a 4th fighter, `CombatD.PARTY["mattias"]`), `mattias` (the sucker-punch boss; every number in `CombatD.MATTIAS_BOSS`,
+balance with `SIM_ONLY=mattias godot --headless --path godot --script res://tools/sim_combat.gd`). `fight(key, { lose_ends
+= true })` makes a loss return "lose" instead of the penalty + retry.
 
 ### Polish (Asar 11/22)
 Village names are wooden signs (`Level.wood_sign`, art goes in `assets/signs/`, list in ASSETS_NEEDED.md). Esc ends optional

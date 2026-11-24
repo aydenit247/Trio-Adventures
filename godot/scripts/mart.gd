@@ -771,6 +771,7 @@ func _fight_dulbers() -> void:
 			all_trip = false
 	var mods := { "tripping": "party" if all_trip else "skorn" }
 	await fight("dulbers", { "enemies": [dulbers], "mods": mods })
+	Game.set_flag("dulbersDead")   # Ebain 11/24: beating him here counts as killing him (no summit ambush on this run)
 	dulbers.set_pose(load("res://assets/characters/dulbers_demon.png"), 2.7)
 
 func _kicked_out() -> void:

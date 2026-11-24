@@ -476,7 +476,7 @@ func _show_status_tip(over: Control, chip: Array) -> void:
 	status_tip.global_position = at.clamp(Vector2(8, 8), vp - status_tip.size - Vector2(8, 8))
 
 func _portrait_tex(u: Dictionary) -> Texture2D:
-	var n: String = u["id"] if u["side"] == "party" else PORTRAIT.get(u["ai"], "goblin")
+	var n: String = u["id"] if u["side"] == "party" else u["E"].get("portrait", PORTRAIT.get(u["ai"], "goblin"))
 	if u["side"] == "enemy" and u.get("disguise", "") != "":
 		n = u["disguise"]
 	return load("res://assets/portraits/%s.png" % n)
@@ -692,7 +692,14 @@ func _auto_action(u: Dictionary) -> Dictionary:
 	var combos := b.combos_for(u)
 	if not combos.is_empty(): return { "type": "combo", "combo": combos.back(), "target": t }
 	if u["cds"]["special"] == 0 and u["moves"]["special"]["kind"] != "healone": return { "type": "move", "slot": "special", "target": t }
-	if u["cds"]["bonus"] == 0: return { "type": "move", "slot": "bonus", "target": t }
+	if u["cds"]["bonus"] == 0:
+		if u["moves"]["bonus"]["kind"] == "healone":   # Mattias (ally): heals go on the most hurt teammate
+			var low := b.alive(b.party)
+			low.sort_custom(func(a, c): return float(a["hp"]) / a["max_hp"] < float(c["hp"]) / c["max_hp"])
+			if low[0]["hp"] < low[0]["max_hp"] * 0.7:
+				return { "type": "move", "slot": "bonus", "target": low[0] }
+		else:
+			return { "type": "move", "slot": "bonus", "target": t }
 	return { "type": "move", "slot": "main", "target": t }
 
 # Step toward the target and strike a pose

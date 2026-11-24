@@ -191,3 +191,20 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] **Outcomes / completion %** (title screen + end card): `progress_data.gd` lists what counts (17 story outcomes +
   side quests + Chapter 1 + trail loot = 100 points). Saved in `user://progress.cfg`, never reset by New Game. New story
   choice? Add `"outcome": "<id>"` to the choice option and an entry in `progress_data.gd` (rebalance the points to 100).
+
+## Summit finale (ebain, 11/24)
+- [ebain] **`way_<scene>` flags are Strings** (`Game.flags["way_pass"] == "lore"`). Read them with `Game.flags.get("way_pass", "")`,
+  never `Game.flag()` (it's typed `-> bool` and errors on a String). Set by `ProgressData.pick_outcome()` for any choice with `"outcome"`.
+- [ebain] **`fight_party()` takes the first *visible* unit with each id** from `party + npcs`. Two Mattias units (hall + summit
+  path) → hide the one that shouldn't fight first (`summit.gd ambush_fight_mattias`).
+- [ebain] **A dialogue whose first step is a `do` shows the previous conversation's text** while the action runs. Call
+  `dialogue.hide_box()` at the start of that action and `show_box()` at the end (same frame as the next line, so no flash).
+- [ebain] Slow-mo / hit-stop: `Engine.time_scale` + `await get_tree().create_timer(s, true, false, true).timeout` (4th arg =
+  ignore time scale). Reset it in `_exit_tree()` too.
+- [ebain] Screen-space effects: a `ColorRect` on `hud` with a canvas_item shader reading `hint_screen_texture`, moved to index 0
+  so the UI isn't affected. Don't `mix()` a hue-rotated copy with the original: complementary colors cancel to grey.
+- [ebain] **Auto battle (`BattleView._auto_action`) and the sim pick a target for every move**: a heal in the `bonus` slot
+  needs its own case or it heals the enemy. Same in `tools/sim_combat.gd _choose` (fixed for Mattias's heal).
+- [ebain] `tools/sim_combat.gd` was broken (read `b.inv`, now per-fighter `b.item_count()`); fixed. `SIM_ONLY=a,b` runs just those fights.
+- [ebain] Story fights can't be lost, so **never use `AUTO_LOSE=1` on a tour that passes a story fight** without `lose_ends`:
+  it retries forever.

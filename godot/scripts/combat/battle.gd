@@ -466,7 +466,12 @@ func do_move(m: Dictionary, move: Dictionary, t: Dictionary, h: Dictionary, o: D
 					p["st"].erase(k)
 				ev.append({ "t": "heal", "u": p, "amt": amt, "hp": p["hp"], "quick": true })
 		"healone":
-			ev += _heal_member(m, t, move["heal"], "%s tosses %s a Beezy." % [m["name"], t["name"]])
+			ev += _heal_member(m, t, move["heal"], move.get("say", "%s tosses %s a Beezy.") % [m["name"], t["name"]])
+		"beam":   # Mattias (ally) ult: hits every enemy, strips buffs
+			for e in alive(enemies):
+				ev += damage_enemy(m, e, move["power"], h.merged({ "text": "%s: %s hits %s!" % [m["name"], move["name"], e["name"]], "sound": "blast", "shake": true }))
+				if e["hp"] > 0:
+					ev += strip_buffs(e)
 		"rally", "union":
 			ev.append({ "t": "rally", "u": m, "count": move["hits"] })
 			for i in move["hits"]:
@@ -709,9 +714,11 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			return { "kind": "phase", "text": "Diddy Chud Giant gets up. \"Aight. Bet.\" (He's faster now. And hungry.)", "bark": "phase" }
 		if e["ai"] == "dulbers":
 			e["disguise"] = pick(ps)["id"]
-			if e["disguise"] == "chief": e["disguise"] = "skorn"
+			if e["disguise"] in ["chief", "mattias"]: e["disguise"] = "skorn"
 			e["disguise_turns"] = 2
 			return { "kind": "phase", "text": "Dulbers SHAPESHIFTS… into %s?! (Bootleg version)" % D.PARTY[e["disguise"]]["name"], "bark": "phase", "disguise": e["disguise"] }
+		if e["ai"] == "mattias":
+			return { "kind": "phase", "text": "Metocin Mattias stops holding back. (Every hit lands harder now.)", "bark": "phase" }
 
 	if mods.get("enemy_tripping", false) and rnd() < 0.3:
 		if rnd() < 0.5:
@@ -731,7 +738,7 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			if e["disguise_turns"] < 0:
 				var opts := []
 				for p in ps:
-					if p["id"] != e["disguise"] and p["id"] != "chief":
+					if p["id"] != e["disguise"] and not p["id"] in ["chief", "mattias"]:
 						opts.append(p["id"])
 				if not opts.is_empty():
 					e["disguise"] = pick(opts)
@@ -779,6 +786,21 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			var t := target(e, "strong")
 			return { "kind": "hit", "name": "Stomp", "power": 28, "targets": [t], "text": "Diddy Chud stomps on %s!" % t["name"], "sound": "stomp" }
 		return all.merged({ "kind": "hit", "name": "Ground Pound", "power": 17, "text": "Diddy Chud pounds the ground!", "sound": "stomp" })
+	if e["ai"] == "mattias":   # the sucker-punch boss (Ebain 11/24). All numbers: D.MATTIAS_BOSS
+		var M: Dictionary = D.MATTIAS_BOSS
+		var mul: float = M["phase2_mult"] if e["phase"] == 2 else 1.0
+		if e["hp"] < e["max_hp"] * M["heal_below"] and not e.get("healed", false):
+			e["healed"] = true
+			return { "kind": "eat", "amt": M["heal"], "text": "Metocin Mattias takes a metocy. Calmly. (+%d)" % M["heal"] }
+		if not e["st"].has("locked") and e["turn"] % 5 == 1:
+			return { "kind": "buff", "status": "locked", "turns": M["lock_turns"], "text": "Metocin Mattias locks in. (Can't be charmed, stunned or Lore-pilled.)" }
+		var ly := member("lykor")
+		if not ly.is_empty() and ly["hp"] > 0 and not e["st"].has("shield") and e["turn"] % 4 == 3:
+			return { "kind": "shield", "amt": M["shield"], "drain": ly, "text": "Mattias out-mogs Lykor and wears the aura like a cape. AURA SHIELD." }
+		if rnd() < 0.6:
+			var t := target(e)
+			return { "kind": "hit", "name": "Metocy Bolt", "power": int(M["bolt"] * mul), "targets": [t], "text": "Mattias flicks a Metocy Bolt at %s." % t["name"], "sound": "blast" }
+		return all.merged({ "kind": "hit", "name": "Pill Rain", "power": int(M["rain"] * mul), "brick": true, "text": "It rains little blue pills. They hurt. A lot.", "sound": "lore" })
 	return { "kind": "nothing", "text": "%s waits." % e["name"] }
 
 # Apply the intent. block = "perfect" | "good" | "mid" | ""

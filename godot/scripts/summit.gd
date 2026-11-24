@@ -1,8 +1,11 @@
 # Area: the Summit Path and the Wizard's Lair (Asar 11/22). The last stop of Chapter 1.
 # Past the giant's gorge, a long night climb up the mountain (three empty clearings are saved for future events, see
 # EVENT_SPOTS), then a plaza with a huge glowing wizard tower. Walk in: a grand circular hall, and Metocin Mattias on
-# his dais. Walking up to him plays SS.MATTIAS_FINALE (Asar + Ebain are writing it), then END OF CHAPTER 1.
+# his dais. Walking up to him plays SS.MATTIAS_FINALE, then one of the Chapter 1 endings.
 # The hall is built off to the side at INT (like the Mart's shop room); walking through the door fades you there.
+# Finale (Ebain's SUMMIT_FINALE_PLAN.md, 11/24): arrival lines → the hymn → halfway: Mattias's echo → Dulbers' ambush
+# (only if he's still alive on this run) → the castle: the metocy, 5 choices → endings: "Bad." (hard cut), cooked by
+# Mattias (lose the sucker-punch fight), the normal end, or the goblin metocy party (built off to the side at PARTY_POS).
 extends Level
 
 const SS = preload("res://scripts/summit_script.gd")
@@ -15,6 +18,8 @@ const HALL_R := 15.0
 const ORB_Y := 10.5
 const DAIS := INT + Vector3(0, 0, -10)
 const DOOR_IN := INT + Vector3(0, 0, 12.6)
+const HALFWAY_Z := 8.0                          # Mattias's echo + Dulbers' ambush trigger here (by the shrine)
+const PARTY_POS := Vector3(-400, 0, 0)          # the goblin metocy party (ending), built off to the other side
 # Empty clearings along the climb for future events (Asar: "potential for other events"). Each has a little scenery
 # so it reads as a place, and nothing to interact with yet. Use one by adding an interactable / trigger at its spot.
 const EVENT_SPOTS := {
@@ -32,6 +37,19 @@ var floaters: Array = []      # [node, base_y, speed, phase, spin]: bobbing crys
 var spinners: Array = []      # [node, speed]: rune circles, orb rings
 var _outdoor := {}
 var hymn: AreaMusic          # "The Hymn of Metocin Mattias" (Asar): starts when you arrive, plays once through
+var music_gain := 0.0        # hymn.gain_db aims here (the ambush ducks it to background, the castle silences it)
+var wind: AudioStreamPlayer
+var hall_lights: Array = []  # [light, energy]: the castle torches flare one by one
+var dulbers: Unit            # regular-size Dulbers (ambush)
+var mattias_out: Unit        # Mattias outside (called for help in the ambush)
+var pill: Sprite3D           # the metocy, hovering in front of Mattias
+var bowl: Sprite3D
+var ending := "normal"       # bad / cooked / normal / party (set by the finale's choices)
+var tripping: Array = []     # units on metocy (hue cycle + floating)
+var trip_fx: ColorRect       # screen hue shift + wobble
+var letterbox: Array = []
+var dancers: Array = []      # goblin party: [unit, phase]
+var orbit := false
 
 func _configure() -> void:
 	if not Game.title_mode:
@@ -55,7 +73,7 @@ func _configure() -> void:
 	checkpoint = START
 
 func bounds_exempt() -> bool:
-	return leader != null and leader.global_position.x > 200.0   # inside the hall
+	return leader != null and absf(leader.global_position.x) > 200.0   # inside the hall / the goblin party
 
 # ================================================================ the climb
 func _build_level() -> void:
@@ -102,11 +120,19 @@ func _build_level() -> void:
 	# Mattias won't start his finale until it's done ("Peep the song first folk").
 	hymn = AreaMusic.new()
 	hymn.track = load("res://assets/music/the_hymn_of_metocin_mattias.ogg")
-	hymn.stages = PackedStringArray(["walk", "lair", "finale"])
+	hymn.stages = PackedStringArray(["walk", "lair", "finale"])   # not "arrive": the arrival lines come first (Ebain)
 	hymn.volume_db = -5.0
 	hymn.duck_db = -16.0
 	hymn.fade_in_db_per_s = 25.0
 	add_child(hymn)
+	# arrival mood: cold wind on the climb, a few embers drifting up the path
+	wind = AudioStreamPlayer.new()
+	wind.stream = _wind_loop()
+	wind.volume_db = -22.0
+	add_child(wind)
+	if not Game.title_mode:
+		wind.play()
+	_motes(Vector3(0, 2.0, 30), Vector3(10, 2.0, 32), Color(1.0, 0.55, 0.25), 36)
 
 func _after_build() -> void:
 	var env: Environment = world_env.environment
@@ -231,6 +257,14 @@ func _lair_exterior() -> void:
 
 # ================================================================ the hall inside
 func _hall() -> void:
+	var first_child := get_child_count()
+	_hall_build()
+	for i in range(first_child, get_child_count()):   # the hall's own lights (torches) flare one by one at the finale
+		var c := get_child(i)
+		if c is OmniLight3D and c != mattias_light:
+			hall_lights.append([c, c.light_energy])
+
+func _hall_build() -> void:
 	var floor_body := StaticBody3D.new()
 	var cs := CollisionShape3D.new()
 	var bs := BoxShape3D.new()
@@ -595,9 +629,20 @@ func _level_process(delta: float) -> void:
 			s[0].rotation.y += s[1] * delta
 	if mattias_light:
 		mattias_light.light_energy = 1.5 + sin(t * 2.0) * 0.35
+	if hymn:
+		hymn.gain_db = move_toward(hymn.gain_db, music_gain, delta * 30.0)
+	if wind:
+		wind.volume_db = move_toward(wind.volume_db, -60.0 if (inside or stage == "end") else -22.0, delta * 40.0)
+	_trip_process(delta)
+	_party_process(delta)
 	if busy:
 		return
-	if stage == "walk" and not inside and leader.global_position.z < PLAZA.z + 7.0 and not Game.flag("lairSeen"):
+	if stage == "walk" and not inside and leader.global_position.z < HALFWAY_Z and leader.global_position.z > PLAZA.z + 7.0:
+		if not Game.flag("summitHalfway"):
+			_halfway()
+		elif _ambush_due():   # loaded a save between Mattias's echo and the ambush
+			_ambush()
+	elif stage == "walk" and not inside and leader.global_position.z < PLAZA.z + 7.0 and not Game.flag("lairSeen"):
 		Game.set_flag("lairSeen")
 		_reveal_tower()
 	elif stage == "lair" and inside and leader.global_position.z < DAIS.z + 6.5:
@@ -609,10 +654,39 @@ func _level_process(delta: float) -> void:
 
 # ================================================================ story
 func _begin() -> void:
-	Game.set_flag("summitStarted")
+	# A. Arriving: a slow dolly up toward the tower while the trio catches its breath. The hymn waits for the toast.
 	busy = true
+	stage = "arrive"
+	freeze_all(true)
+	for u in party:
+		u.set_view("back")
+	var z0 := zoom
+	var h0 := cam_look_h
+	focus_override = START + Vector3(0, 0, -4)
+	cam_target = START
+	zoom = 8.5
+	cam_look_h = 1.8
 	fade_in(1.4)
-	await wait(1.0)
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(self, "zoom", 15.0, 9.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(self, "cam_look_h", 7.0, 9.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(self, "focus_override", START + Vector3(0, 0, -16), 9.0).set_trans(Tween.TRANS_SINE)
+	await wait(1.6)
+	await run_dialogue(_fill(SS.ARRIVE))
+	busy = true
+	freeze_all(true)
+	tw.kill()
+	tw = create_tween().set_parallel(true)
+	tw.tween_property(self, "zoom", z0, 1.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(self, "cam_look_h", h0, 1.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(self, "focus_override", leader.global_position, 1.4).set_trans(Tween.TRANS_SINE)
+	await wait(1.4)
+	focus_override = null
+	show_toast("Don't walk yet if you want to hear the song.", 4.0)   # Ebain
+	await wait(0.4)
+	stage = "walk"   # → the hymn starts
+	Game.set_flag("summitStarted")   # (after the intro: a save from before it replays the arrival)
+	freeze_all(false)
 	busy = false
 	objective("Climb to the top of the mountain.", PLAZA)
 
@@ -652,6 +726,52 @@ func _on_action(n: String) -> void:
 			await _enter_lair()
 		"leave_lair":
 			await _leave_lair()
+		# ---- B / C: halfway + the ambush
+		"mattias_voice":
+			await _mattias_voice()
+		"dulbers_sprint":
+			await _dulbers_sprint()
+		"dulbers_leaves":
+			char_label(dulbers, "Dulbers Frint (Satisfied)", 2.5, 1.9, Color("#c79bff"))   # DRAFT label
+			await _send_off(dulbers, 1.0)
+		"dulbers_cries_off":
+			if dulbers:
+				knock(dulbers, 8.0)
+				char_label(dulbers, "Dulbers Frint (Crying)", 2.5, 1.9, Color("#c79bff"))   # DRAFT label
+				await _send_off(dulbers, 2.0)
+		"dulbers_fentocy":
+			await _fentocy()
+		"ambush_fight":
+			await fight("dulbers_ambush", { "enemies": [dulbers] })
+		"mattias_arrives":
+			await _mattias_arrives()
+		"ambush_fight_mattias":
+			var hall_vis := mattias.visible
+			mattias.visible = false   # fight_party() takes the first visible "mattias": make sure it's the one out here
+			await fight("dulbers_ambush", { "enemies": [dulbers], "party": ["skorn", "lykor", "xylo", "mattias"] })
+			mattias.visible = hall_vis
+			Game.set_flag("foughtWithMattias")
+		"mattias_leaves":
+			if mattias_out:
+				_poof_at(mattias_out.global_position + Vector3(0, 1.0, 0), Color(0.6, 0.4, 1.0))
+				play_sound("sfx_pop", -4.0, 0.8)
+				mattias_out.visible = false
+				await wait(0.6)
+		# ---- D / E: the castle
+		"castle_hush":
+			await _castle_hush()
+		"show_pill":
+			await _show_pill()
+		"bowl_appears":
+			await _bowl_appears()
+		"take_metocy":
+			await _take_metocy(false)
+		"take_metocy_all":
+			await _take_metocy(true)
+		"sucker_punch":
+			await _sucker_punch()
+		"ending_bad", "ending_cooked", "ending_normal", "ending_party":
+			ending = n.get_slice("_", 1)
 
 func _enter_lair() -> void:
 	play_sound("sfx_door", -2.0, 0.8)   # a big heavy door
@@ -739,25 +859,681 @@ func _peep_the_song() -> void:
 	freeze_all(false)
 	busy = false
 
-# The end of Chapter 1: Mattias's finale (SS.MATTIAS_FINALE, being written), then the end card.
+# ================================================================ the finale (Ebain's SUMMIT_FINALE_PLAN.md, 11/24)
+# D. The castle: Mattias's finale (SS.MATTIAS_FINALE), then the ending its choices picked.
 func _finale() -> void:
 	busy = true
 	objective("")
 	focus_override = (leader.global_position + mattias.global_position) * 0.5 + Vector3(0, 0, 1.0)
 	zoom = 9.0
 	await wait(0.6)
-	if SS.MATTIAS_FINALE.is_empty():
-		show_toast("(Metocin Mattias's dialogue is coming soon.)", 2.6)
-		await wait(2.8)
-	else:
-		await run_dialogue(SS.MATTIAS_FINALE)
+	ending = "normal"
+	await run_dialogue(_fill(SS.MATTIAS_FINALE))
+	busy = true
+	freeze_all(true)
 	Game.set_flag("chapter1Done")
+	Game.set_flag("ending" + ending.capitalize())   # endingBad / endingCooked / endingNormal / endingParty (achievements)
 	stage = "end"
+	match ending:
+		"bad":
+			await _hard_end()
+			return
+		"party":
+			await _goblin_party()
+	end_card(_end_lines(), "res://title.tscn")
+
+func _end_lines() -> Array:
 	var lines := ["END OF CHAPTER 1", "", "Trio Adventures — by Ebain", ""]
-	lines += story_so_far()
+	var so := story_so_far()
+	if Game.flag("dulbersDead"):
+		so.erase("Dulbers Frint got away. (He'll be back.)")
+	match str(Game.flags.get("way_ambush", "")):   # DRAFT recap lines
+		"apologize": so.append("The trio swore loyalty to Dulbmeethus. (Good boys.)")
+		"fight": so.append("Dulbers Frint cried on a mountain.")
+		"fentocy": so.append("Dulbers Frint took the fentocy.")
+		"mattias": so.append("Metocin Mattias pulled up on Dulbers.")
+	if ending == "cooked":
+		so.append("Metocin Mattias cooked the trio.")
+	elif Game.flag("mattiasBeaten"):
+		so.append("The trio beat Metocin Mattias. Somehow.")
+	if Game.flag("tookMetocy"):
+		so.append("All four of them took the metocy." if str(Game.flags.get("way_castle", "")) == "too" else "The trio finally took the metocy.")
+	if ending == "party":
+		so.append("Every goblin got metocy.")
+	lines += so
 	lines += ["", "Outcomes found: %d / %d  ·  %d%% complete" % [Game.outcomes_found(), Game.outcomes_total(), Game.completion_pct()]]
 	lines += ["", "Chapter 2 coming soon. Thanks for playing!", "", "Press E to return to the title screen"]
-	end_card(lines, "res://title.tscn")
+	return lines
+
+# Fills in the lines that change with how this run went ("dyn" steps, see summit_script.gd). Returns a copy.
+func _fill(steps: Array) -> Array:
+	var out := []
+	for st in steps:
+		var c: Dictionary = st.duplicate(true)
+		if c.has("dyn"):
+			c["line"] = _dyn_line(c["dyn"])
+		if c.has("steps"):
+			c["steps"] = _fill(c["steps"])
+		if c.has("choice"):
+			var opts := []
+			for o in c["choice"]:
+				var oc: Dictionary = o.duplicate(true)
+				oc["steps"] = _fill(oc["steps"])
+				opts.append(oc)
+			c["choice"] = opts
+		out.append(c)
+	return out
+
+func _dyn_line(key: String) -> String:
+	match key:
+		"xylo_arrive":
+			return SS.XYLO_ARRIVE_START + _pick(SS.DYN_XYLO_ARRIVE)
+		"dulbers_ambush":
+			if str(Game.flags.get("way_mart", "")) == "" and Game.flag("hasMidtocy"):   # saves from before way_ flags
+				return SS.DYN_DULBERS_AMBUSH[0][2]
+			return _pick(SS.DYN_DULBERS_AMBUSH)
+		"mattias_welcome":
+			var mid := _pick(SS.DYN_MATTIAS_WELCOME)
+			return SS.WELCOME_START + mid + ("" if mid.ends_with("That's OD.") else SS.WELCOME_END)
+	return ""
+
+# First entry whose flag matches: [flag, value, text]; value "" = the flag is just set.
+func _pick(list: Array) -> String:
+	for e in list:
+		if e[0] == "":
+			return e[2]
+		var v = Game.flags.get(e[0], false)
+		if e[1] == "":
+			if (v is bool and v) or (v is String and v != ""):
+				return e[2]
+		elif v is String and v == e[1]:
+			return e[2]
+	return ""
+
+func _member(id: String) -> Unit:
+	for u in party:
+		if u.id == id:
+			return u
+	return leader
+
+# ---------------------------------------------------------------- B. halfway, C. the ambush
+func _ambush_due() -> bool:
+	return Game.flag("dulbersEscaped") and not Game.flag("dulbersDead") and str(Game.flags.get("way_ambush", "")) == ""
+
+func _halfway() -> void:
+	busy = true
+	await run_dialogue(SS.HALFWAY)
+	Game.set_flag("summitHalfway")
+	if _ambush_due():
+		await _ambush()
+
+func _ambush() -> void:
+	busy = true
+	freeze_all(true)
+	music_gain = -16.0   # Ebain: if they walked on during the song, it drops to the background when Dulbers shows up
+	await run_dialogue(_fill(SS.AMBUSH))
+	busy = true
+	target_yaw = 0.0
+	focus_override = null
+	music_gain = 0.0
+	await wait(0.7)
+	busy = false
+	interact_cooldown = 0.3
+
+func _mattias_voice() -> void:
+	dialogue.hide_box()   # first step of its dialogue: don't show the previous line's text meanwhile
+	var at := leader.global_position + Vector3(0, 4.0, -12.0)
+	var flash := _light(at, Color(0.4, 0.6, 1.0), 0.0, 14.0)
+	var tw := create_tween()
+	tw.tween_property(flash, "light_energy", 4.0, 0.5)
+	tw.tween_property(flash, "light_energy", 0.0, 1.5)
+	tw.tween_callback(flash.queue_free)
+	play_sound("sfx_magic", -10.0, 0.6)
+	var n := Node3D.new()
+	add_child(n)
+	n.global_position = at + Vector3(0, 0.5, 0)
+	var l := char_label(n, "(a voice, echoing from further up the path)", 3.5, 0.0, Color("#9cc4ff"))
+	l.pixel_size = 0.016
+	get_tree().create_timer(4.0).timeout.connect(n.queue_free)
+	await wait(0.6)
+	dialogue.show_box()
+
+# Regular-size Dulbers sprints up the trail behind them: footsteps, the camera whips around, dust behind him.
+func _dulbers_sprint() -> void:
+	dialogue.hide_box()
+	var lp := leader.global_position
+	var from := Vector3(clampf(lp.x, -9.0, 9.0), 0, minf(lp.z + 18.0, 60.0))
+	if dulbers == null:
+		dulbers = spawn_npc("dulbers", "Dulbers Frint", "dulbers", 1.3, from)
+	dulbers.global_position = from
+	dulbers.visible = true
+	dulbers.frozen = false
+	for i in 6:   # footsteps, getting closer
+		_blip(Util.noise_burst(55, 0.45, 0.9), -16.0 + i * 2.0, 0.9 + randf() * 0.2)
+		await wait(0.16)
+	target_yaw = PI   # whip around to look back down the path
+	focus_override = lp.lerp(from, 0.3)
+	shake = 0.25
+	for u in party:
+		u.set_view("back")
+	var dust := CPUParticles3D.new()
+	dust.amount = 36
+	dust.lifetime = 0.9
+	dust.mesh = Fx.quad(0.35, false)
+	dust.direction = Vector3.UP
+	dust.spread = 60.0
+	dust.gravity = Vector3(0, 0.4, 0)
+	dust.initial_velocity_min = 0.3
+	dust.initial_velocity_max = 0.9
+	dust.color_ramp = Fx.ramp([[0.0, Color(0.6, 0.55, 0.5, 0.55)], [1.0, Color(0.6, 0.55, 0.5, 0.0)]])
+	dust.position = Vector3(0, 0.2, 0)
+	dulbers.add_child(dust)
+	dulbers.walk_speed = 4.2
+	await walk_to(dulbers, lp + Vector3(0, 0, 3.4), 2.2, 4.0)
+	dust.emitting = false
+	get_tree().create_timer(1.2).timeout.connect(dust.queue_free)
+	dulbers.frozen = true
+	dulbers.set_view("front")
+	shake = 0.15
+	focus_override = lp.lerp(dulbers.global_position, 0.5)
+	char_label(dulbers, "Dulbers Frint (Regular Size) (Followed You)", 3.0, 1.9, Color("#c79bff"))   # DRAFT label
+	await wait(0.5)
+	dialogue.show_box()
+
+# Someone walks back down the trail and is gone.
+func _send_off(u: Unit, speed: float) -> void:
+	if u == null:
+		return
+	dialogue.hide_box()
+	u.frozen = false
+	await walk_to(u, u.global_position + Vector3(0, 0, 14.0), speed, 3.0)
+	u.visible = false
+	u.frozen = true
+	dialogue.show_box()
+
+func _fentocy() -> void:
+	dialogue.hide_box()
+	var sk := _member("skorn")
+	var p := Sprite3D.new()   # looks just like midtocy (that's the point)
+	p.texture = load("res://assets/items/midtocy.png")
+	p.pixel_size = 0.4 / 792.0
+	p.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	p.shaded = false
+	add_child(p)
+	p.global_position = sk.global_position + Vector3(0, 1.4, 0)
+	var to := dulbers.global_position + Vector3(0, 1.0, 0)
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(p, "global_position:x", to.x, 0.6)
+	tw.tween_property(p, "global_position:z", to.z, 0.6)
+	tw.tween_property(p, "global_position:y", to.y + 1.2, 0.3).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_property(p, "global_position:y", to.y, 0.3).set_ease(Tween.EASE_IN)
+	await tw.finished
+	p.queue_free()
+	play_sound("sfx_chug_loop", -8.0, 1.6)   # (gulp)
+	await wait(0.7)
+	var sp := dulbers.sprite
+	var wob := create_tween()
+	for k in 4:
+		wob.tween_property(sp, "rotation:z", 0.25 if k % 2 == 0 else -0.25, 0.22)
+	wob.tween_property(sp, "modulate", Color(0.7, 1.0, 0.7), 0.3)
+	await wob.finished
+	sp.rotation.z = 0.0
+	knock(dulbers, 90.0, 0.4)
+	shake = 0.2
+	await wait(1.4)
+	_poof_at(dulbers.global_position + Vector3(0, 0.5, 0), Color(0.6, 0.4, 0.9))
+	play_sound("sfx_pop", -4.0, 0.7)
+	dulbers.visible = false
+	sp.modulate = Color.WHITE
+	unknock(dulbers)
+	Game.set_flag("dulbersDead")
+	await wait(0.6)
+	dialogue.show_box()
+
+func _mattias_arrives() -> void:
+	dialogue.hide_box()
+	var p := leader.global_position + Vector3(2.4, 0, 1.6)
+	if mattias_out == null:
+		mattias_out = spawn_npc("mattias", "Metocin Mattias", "mattias", 2.2, p)
+		mattias_out.set_meta("tint", Color(1.05, 1.1, 1.3))
+	mattias_out.global_position = p
+	mattias_out.visible = false
+	mattias_out.frozen = true
+	_poof_at(p + Vector3(0, 1.0, 0), Color(0.6, 0.35, 1.0))
+	_poof_at(p + Vector3(0, 1.8, 0), Color(0.75, 0.5, 1.0))
+	_choir_hit()
+	play_sound("sfx_magic", -2.0, 0.7)
+	mattias_out.visible = true
+	shake = 0.3
+	Engine.time_scale = 0.3   # half a second of slow-mo
+	await get_tree().create_timer(0.5, true, false, true).timeout
+	Engine.time_scale = 1.0
+	char_label(mattias_out, "Metocin Mattias (Was Called)", 3.0, 2.6, Color("#9fc0ff"))   # DRAFT label
+	await wait(0.5)
+	dialogue.show_box()
+
+# ---------------------------------------------------------------- D. the castle
+func _castle_hush() -> void:
+	dialogue.hide_box()   # first step of the finale: no stale text from the last conversation
+	music_gain = -60.0   # the music drops to silence on "Welcome to da crib folk"
+	for L in hall_lights:
+		L[0].light_energy = L[1] * 0.08
+	await wait(0.9)
+	for L in hall_lights:   # torches flare back one by one
+		create_tween().tween_property(L[0], "light_energy", L[1], 0.25)
+		_blip(Util.noise_burst(90, 0.2, 0.5), -14.0, 0.8 + randf() * 0.4)
+		await wait(0.14)
+	var tw := create_tween().set_parallel(true)   # slow push in while he talks
+	tw.tween_property(self, "zoom", 6.2, 22.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(self, "cam_look_h", 2.5, 22.0).set_trans(Tween.TRANS_SINE)
+	dialogue.show_box()
+
+func _show_pill() -> void:
+	if pill == null:
+		pill = Sprite3D.new()
+		pill.texture = load("res://assets/items/metocy.png")
+		pill.pixel_size = 0.55 / float(pill.texture.get_width())
+		pill.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		pill.shaded = false
+		add_child(pill)
+		var l := OmniLight3D.new()
+		l.name = "Glow"
+		l.light_color = Color(0.35, 0.6, 1.0)
+		l.light_energy = 0.0
+		l.omni_range = 5.0
+		pill.add_child(l)
+		create_tween().tween_property(l, "light_energy", 3.0, 0.8)
+		var sp := CPUParticles3D.new()
+		sp.amount = 30
+		sp.lifetime = 1.2
+		sp.mesh = Fx.quad(0.08, true)
+		sp.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+		sp.emission_sphere_radius = 0.4
+		sp.gravity = Vector3(0, 0.3, 0)
+		sp.color_ramp = Fx.ramp([[0.0, Color(0.5, 0.75, 1.0, 0)], [0.3, Color(0.5, 0.75, 1.0, 1)], [1.0, Color(0.5, 0.75, 1.0, 0)]])
+		pill.add_child(sp)
+	dialogue.hide_box()
+	var at := DAIS + Vector3(0, 2.5, 3.0)
+	pill.global_position = at
+	pill.visible = true
+	floaters.append([pill, at.y, 2.0, 0.0, 0.0])
+	_poof_at(at, Color(0.5, 0.7, 1.0))
+	play_sound("sfx_magic", -4.0, 1.3)
+	char_label(pill, "Metocy (The Real One)", 3.0, 0.5, Color("#8ad8ff"))   # DRAFT label
+	await wait(0.8)
+	dialogue.show_box()
+
+func _bowl_appears() -> void:
+	dialogue.hide_box()
+	if bowl == null:
+		bowl = Sprite3D.new()
+		bowl.texture = load("res://assets/items/chipotle_bowl.png")
+		bowl.pixel_size = 0.75 / float(bowl.texture.get_width())
+		bowl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		bowl.shaded = false
+		add_child(bowl)
+	bowl.global_position = pill.global_position + Vector3(0, -0.45, 0.05)
+	bowl.visible = true
+	_poof_at(bowl.global_position, Color(0.95, 0.8, 0.5))
+	play_sound("sfx_pop", -3.0, 1.1)
+	char_label(bowl, "Chipotle Bowl (Out Of Nowhere)", 2.5, 0.5)   # DRAFT label
+	await wait(0.9)
+	dialogue.show_box()
+
+# Taking the metocy: the Mart's trip look, a screen hue-shift, a choir sting, everyone floats up a little.
+func _take_metocy(with_mattias: bool) -> void:
+	dialogue.hide_box()
+	if pill:
+		var tw := create_tween().set_parallel(true)
+		tw.tween_property(pill, "global_position", leader.global_position + Vector3(0, 1.6, 0), 0.6)
+		tw.tween_property(pill, "pixel_size", pill.pixel_size * 0.3, 0.6)
+		await tw.finished
+		pill.visible = false
+	if bowl:
+		bowl.visible = false
+	_choir_hit()
+	play_sound("sfx_magic", -3.0, 0.5)
+	shake = 0.35
+	var who: Array = party.duplicate()
+	if with_mattias:
+		who.append(mattias)
+	for u in who:
+		var p := "res://assets/characters/%s_tweaking.png" % u.id
+		if ResourceLoader.exists(p):
+			u.set_pose(load(p), u.base_h)
+		if not tripping.has(u):
+			tripping.append(u)
+		create_tween().tween_property(u.sprite, "position:y", 0.35, 1.6).set_trans(Tween.TRANS_SINE)
+	if trip_fx == null:
+		trip_fx = ColorRect.new()
+		trip_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sm := ShaderMaterial.new()
+		sm.shader = Shader.new()
+		sm.shader.code = TRIP_SHADER
+		trip_fx.material = sm
+		hud.add_child(trip_fx)
+		trip_fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		hud.move_child(trip_fx, 0)
+	create_tween().tween_method(func(v: float): trip_fx.material.set_shader_parameter("amount", v), 0.0, 1.0, 2.0)
+	Game.set_flag("tookMetocy")
+	await wait(1.6)
+	dialogue.show_box()
+
+func _trip_process(_delta: float) -> void:
+	if tripping.is_empty():
+		return
+	for u in tripping:
+		if is_instance_valid(u):
+			u.sprite.modulate = Color.from_hsv(fmod(t * 0.12 + u.global_position.x * 0.05, 1.0), 0.4, 1.0)
+	if cam and not orbit:
+		cam.rotation.z = sin(t * 0.9) * 0.04
+
+const TRIP_SHADER := """
+shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
+uniform float amount = 0.0;
+vec3 hue(vec3 c, float a) {
+	const vec3 k = vec3(0.57735);
+	float ca = cos(a);
+	return c * ca + cross(k, c) * sin(a) + k * dot(k, c) * (1.0 - ca);
+}
+void fragment() {
+	vec2 uv = SCREEN_UV + amount * 0.006 * vec2(sin(SCREEN_UV.y * 14.0 + TIME * 2.1), cos(SCREEN_UV.x * 11.0 + TIME * 1.7));
+	vec3 c = texture(screen_tex, uv).rgb;
+	c = hue(c, amount * 1.6 * sin(TIME * 0.6));   // swing the hues back and forth (mixing a rotated copy in turns it grey)
+	float lum = dot(c, vec3(0.299, 0.587, 0.114));
+	COLOR = vec4(max(mix(vec3(lum), c, 1.0 + 0.6 * amount), 0.0), 1.0);
+}
+"""
+
+# Sucker punch: hit-stop freeze frame, zoom on the impact, letterbox bars, then the near-impossible boss.
+# Losing is its own ending (lose_ends), not a retry.
+func _sucker_punch() -> void:
+	dialogue.hide_box()
+	var sk := _member("skorn")
+	sk.frozen = false
+	await walk_to(sk, DAIS + Vector3(0.4, 0, 3.6), 1.6, 3.0)
+	hop(sk, 0.9)
+	var tw := create_tween()
+	tw.tween_property(sk, "global_position", mattias.global_position + Vector3(-0.5, 0.0, 1.0), 0.3)
+	await tw.finished
+	sk.set_pose(load("res://assets/characters/skorn_slap.png"), sk.base_h * 0.85)
+	play_sound("sfx_punch", 3.0, 0.75)
+	var flash := ColorRect.new()
+	flash.color = Color(1, 1, 1, 0.85)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(flash)
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	focus_override = mattias.global_position + Vector3(0, 0.6, 0)
+	zoom = 4.2
+	cam_target = focus_override
+	Engine.time_scale = 0.03   # hit-stop
+	await get_tree().create_timer(0.45, true, false, true).timeout
+	Engine.time_scale = 1.0
+	create_tween().tween_property(flash, "color:a", 0.0, 0.35)
+	get_tree().create_timer(0.5).timeout.connect(flash.queue_free)
+	shake = 0.6
+	knock(mattias, 10.0, 0.1)
+	_letterbox(true)
+	await wait(0.6)
+	unknock(mattias)
+	char_label(mattias, "Metocin Mattias (Unbothered)", 3.0, 2.6, Color("#9fc0ff"))   # DRAFT label
+	await wait(0.9)
+	sk.restore_views()
+	sk.global_position = DAIS + Vector3(0, 0, 6.5)
+	sk.frozen = true
+	zoom = 9.0
+	focus_override = null
+	var res := await fight("mattias", { "enemies": [mattias], "center": DAIS + Vector3(0, 0, 7.5), "lose_ends": true })
+	Game.set_flag("mattiasBeaten", res == "win")
+	_letterbox(false)
+	focus_override = (leader.global_position + mattias.global_position) * 0.5 + Vector3(0, 0, 1.0)
+	zoom = 8.0
+	await wait(0.6)
+	dialogue.show_box()
+
+func _letterbox(on: bool) -> void:
+	if on and letterbox.is_empty():
+		for top in [true, false]:
+			var r := ColorRect.new()
+			r.color = Color.BLACK
+			r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			hud.add_child(r)
+			r.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE if top else Control.PRESET_BOTTOM_WIDE)
+			if top:
+				r.offset_bottom = 0.0
+				create_tween().tween_property(r, "offset_bottom", 78.0, 0.35)
+			else:
+				r.offset_top = 0.0
+				create_tween().tween_property(r, "offset_top", -78.0, 0.35)
+			letterbox.append(r)
+	elif not on:
+		for r in letterbox:
+			var tw := create_tween()
+			tw.tween_property(r, "modulate:a", 0.0, 0.3)
+			tw.tween_callback(r.queue_free)
+		letterbox.clear()
+
+# ---------------------------------------------------------------- endings
+# "Bad.": hard cut to black, no music, END OF CHAPTER 1 in plain text. The silence is the joke.
+func _hard_end() -> void:
+	music_gain = -60.0
+	if hymn and hymn.player:
+		hymn.player.stop()
+	dialogue.stop_voice()
+	fade.color.a = 1.0
+	_cinematic_hud(false)
+	if trip_fx:
+		trip_fx.visible = false
+	await wait(1.3)
+	var l := _label("END OF CHAPTER 1", Vector2.ZERO, 30, Color.WHITE, 0)
+	hud.add_child(l)
+	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	await wait(1.2)
+	if shots_mode:
+		return
+	while not Input.is_action_just_pressed("interact"):
+		await get_tree().process_frame
+	Game.title_mode = true
+	Game.goto("res://title.tscn")
+
+# Yes to metocy for every goblin: cut to the goblin village dancing (a little set built off to the side), then credits.
+func _goblin_party() -> void:
+	await fade_out(0.6)
+	music_gain = -60.0
+	_set_inside(false)   # outdoor night light again
+	_cinematic_hud(false)
+	_build_party_set()
+	var ring: Array = party.duplicate()
+	ring.append(mattias)
+	for i in ring.size():
+		var a := -0.6 + i * 0.4
+		var u: Unit = ring[i]
+		u.visible = true
+		unknock(u)
+		u.global_position = PARTY_POS + Vector3(sin(a) * 3.0, 0.0, cos(a) * 3.0)
+		u.set_view("front")
+		dancers.append([u, randf() * TAU])
+	var song := AudioStreamPlayer.new()
+	song.stream = load("res://assets/music/the_mogging_elf.ogg")
+	song.volume_db = -6.0
+	add_child(song)
+	song.play()
+	focus_override = PARTY_POS + Vector3(0, 0, 0.5)
+	cam_target = focus_override
+	zoom = 13.0
+	cam_height = 0.38
+	cam_look_h = 1.6
+	orbit = true
+	if cam:
+		cam.rotation.z = 0.0
+	fade_in(0.8)
+	show_toast("Meanwhile, back at the Goblin Village…", 3.0)   # DRAFT
+	await wait(9.0)
+
+func _build_party_set() -> void:
+	var c := PARTY_POS
+	var fl := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = Vector3(70, 1, 70)
+	cs.shape = bs
+	cs.position = c + Vector3(0, -0.5, 0)
+	fl.add_child(cs)
+	add_child(fl)
+	var gm := StandardMaterial3D.new()
+	gm.albedo_texture = load("res://assets/textures/grass.jpg")
+	gm.albedo_color = Color(0.55, 0.6, 0.45)
+	gm.uv1_scale = Vector3(24, 24, 1)
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(70, 70)
+	Util.add_mesh(self, pm, gm, c + Vector3(0, 0.001, 0))
+	Models.patch(self, c, Vector2(12, 12), "burned_ground_01", 2.0, Color(0.6, 0.55, 0.5), 0.0, 0.5)
+	Models.place(self, "stone_fire_pit", c, 0.0, 1.6)
+	var f := Fx.flames(1.0)
+	f.position = c + Vector3(0, 0.3, 0)
+	add_child(f)
+	_light(c + Vector3(0, 1.6, 0), Color(1.0, 0.6, 0.3), 3.2, 16.0)
+	add_glow(c, Color(1.0, 0.6, 0.3), 9.0, func(): return 1.0, true)
+	for k in 16:   # forest all round
+		var a := TAU * k / 16.0
+		card("tree_%d" % (1 + k % 4), 8.0 + (k % 3), c + Vector3(sin(a) * 17.0, 0, cos(a) * 17.0), k % 2 == 0, false, 0.0, "props", Color(0.5, 0.5, 0.6))
+	for k in 4:
+		var a := TAU * k / 4.0 + 0.6
+		card("tent_green" if k % 2 == 0 else "tent_purple", 3.0, c + Vector3(sin(a) * 10.0, 0, cos(a) * 10.0), k % 2 == 1, false, 0.0, "props", Color(0.75, 0.7, 0.75))
+	var gob_tex := ["goblin", "goblin_fight", "goblin", "goblin_chief", "goblin", "goblin_fight", "goblin", "goblin"]
+	for k in 8:   # the goblins, dancing round the fire
+		var a := PI * 0.55 + TAU * k / 11.0
+		var g := spawn_npc("party_goblin_%d" % k, "Goblin", gob_tex[k], 1.45 if gob_tex[k] == "goblin_chief" else 1.2 + (k % 3) * 0.08, c + Vector3(sin(a) * 4.8, 0, cos(a) * 4.8))
+		g.frozen = true
+		dancers.append([g, randf() * TAU])
+	for k in 3:   # the band
+		var b := spawn_npc("party_band_%d" % k, "Goblin Band", ["band_drummer", "band_horn", "band_lute"][k], 1.3, c + Vector3(-6.5 + k * 1.4, 0, -5.5))
+		b.frozen = true
+		dancers.append([b, randf() * TAU])
+	var conf := CPUParticles3D.new()   # confetti
+	conf.amount = 160
+	conf.lifetime = 4.0
+	conf.mesh = Fx.quad(0.12, false)
+	conf.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	conf.emission_box_extents = Vector3(8, 0.5, 8)
+	conf.direction = Vector3.DOWN
+	conf.gravity = Vector3(0, -1.2, 0)
+	conf.initial_velocity_min = 0.2
+	conf.initial_velocity_max = 0.8
+	conf.angular_velocity_min = -180.0
+	conf.angular_velocity_max = 180.0
+	conf.color = Color(1.0, 0.35, 0.35)
+	conf.hue_variation_min = -1.0
+	conf.hue_variation_max = 1.0
+	conf.position = c + Vector3(0, 7.0, 0)
+	add_child(conf)
+
+# Endings are cutscenes: hide the minimap, area title, controls and "Controlling:" box.
+func _cinematic_hud(on: bool) -> void:
+	for n in [minimap, title_box, help_lbl, leader_lbl, leader_por, objective_lbl]:
+		if n:
+			n.visible = on
+
+func _party_process(delta: float) -> void:
+	if orbit:
+		target_yaw += delta * 0.32
+	for d in dancers:
+		var u: Unit = d[0]
+		if is_instance_valid(u):
+			var ph: float = t * 6.0 + d[1]
+			u.sprite.position.y = absf(sin(ph)) * 0.32
+			u.sprite.flip_h = sin(ph * 0.5) > 0.0
+
+# ---------------------------------------------------------------- little sound/fx helpers
+func _poof_at(p: Vector3, col: Color) -> void:
+	var f := Fx.poof(col)
+	add_child(f)
+	f.global_position = p
+	f.emitting = true
+	get_tree().create_timer(2.0).timeout.connect(f.queue_free)
+
+func _blip(stream: AudioStream, db: float, pitch := 1.0) -> void:
+	var a := _sfx(stream, db)
+	a.pitch_scale = pitch
+	a.finished.connect(a.queue_free)
+	a.play()
+
+var _choir: AudioStreamWAV
+# A low "aah" choir hit (synthesized: an A chord with vowel-ish formants).
+func _choir_hit() -> void:
+	if _choir == null:
+		_choir = _make_choir()
+	_blip(_choir, -4.0)
+
+func _make_choir() -> AudioStreamWAV:
+	var rate := 11025
+	var n := int(rate * 1.3)
+	var notes := [110.0, 138.6, 164.8, 220.0]
+	var parts := []   # [freq, weight]
+	for f in notes:
+		for k in range(1, 9):
+			var fk: float = f * k
+			if fk > rate * 0.45:
+				break
+			var w: float = exp(-pow((fk - 700.0) / 320.0, 2.0)) + 0.6 * exp(-pow((fk - 1150.0) / 300.0, 2.0)) + 0.35 / k
+			parts.append([fk, w])
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	var peak := 0.001
+	var buf := PackedFloat32Array()
+	buf.resize(n)
+	for i in n:
+		var tt := float(i) / rate
+		var vib := 1.0 + 0.004 * sin(TAU * 5.0 * tt)
+		var v := 0.0
+		for pr in parts:
+			v += sin(TAU * pr[0] * vib * tt) * pr[1]
+		var env := minf(tt / 0.04, 1.0) * exp(-tt * 2.2)
+		buf[i] = v * env
+		peak = maxf(peak, absf(buf[i]))
+	for i in n:
+		data.encode_s16(i * 2, int(clampf(buf[i] / peak * 0.8, -1.0, 1.0) * 32767.0))
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS
+	w.mix_rate = rate
+	w.data = data
+	return w
+
+# Cold mountain wind: filtered noise with slow gusts, crossfaded so it loops without a click.
+func _wind_loop() -> AudioStreamWAV:
+	var rate := 11025
+	var n := rate * 4
+	var fade_n := rate / 2
+	var raw := PackedFloat32Array()
+	raw.resize(n + fade_n)
+	var y := 0.0
+	var y2 := 0.0
+	for i in raw.size():
+		y += (randf() * 2.0 - 1.0 - y) * 0.06
+		y2 += (y - y2) * 0.2
+		var tt := float(i) / rate
+		raw[i] = y2 * (0.55 + 0.45 * sin(TAU * tt / 4.0 + 1.3)) * 3.0
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	for i in n:
+		var v: float = raw[i]
+		if i < fade_n:   # blend the tail into the head
+			var k := float(i) / fade_n
+			v = raw[i] * k + raw[n + i] * (1.0 - k)
+		data.encode_s16(i * 2, int(clampf(v, -1.0, 1.0) * 32767.0))
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS
+	w.mix_rate = rate
+	w.data = data
+	w.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	w.loop_end = n
+	return w
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0   # never leave the game in slow-mo
 
 # ================================================================ walking between areas + saves
 func can_resume() -> bool:
@@ -802,6 +1578,9 @@ func map_place_door() -> Vector3:
 
 # ================================================================ automated screenshots (SUMMIT_TOUR=1)
 func _shot_tour() -> void:
+	if OS.get_environment("SUMMIT_TOUR") == "finale":
+		await _finale_tour()
+		return
 	fade.color.a = 0.0
 	busy = false
 	Game.set_flag("summitStarted")
@@ -851,5 +1630,83 @@ func _shot_tour() -> void:
 	place_party(DAIS + Vector3(0, 0, 6.0), Vector3(0, 0, -1))
 	await wait(4.5)
 	await shot("s_14_end")
-	print("SUMMIT TOUR stage=", stage, " ch1=", Game.flag("chapter1Done"))
+	print("SUMMIT TOUR stage=", stage, " ch1=", Game.flag("chapter1Done"), "  (the finale itself: SUMMIT_TOUR=finale)")
 	get_tree().quit()
+
+# SUMMIT_TOUR=finale: the whole finale with auto-advanced lines (prints every line + pick).
+#   SUMMIT_FLAGS="dulbersEscaped,hasMidtocy,way_mart=xylo,way_pass=lore"  (this run's story so far)
+#   SUMMIT_PICKS="3,0,0"  choice indexes in order (ambush, castle, after; 0 = first option)   AUTO_LOSE=1: lose the boss
+var _tour_on := false
+var shot_trip := false
+func _finale_tour() -> void:
+	for f in OS.get_environment("SUMMIT_FLAGS").split(",", false):
+		if "=" in f:
+			Game.set_flag(f.get_slice("=", 0), f.get_slice("=", 1))
+		else:
+			Game.set_flag(f)
+	var picks := []
+	for p in OS.get_environment("SUMMIT_PICKS").split(",", false):
+		picks.append(int(p))
+	Game.dev_autowin = OS.get_environment("AUTOWIN") != ""   # AUTOWIN=1: fights count as won (tests the win branches)
+	_tour_on = true
+	_autopilot(picks)
+	await _begin()
+	print("SUMMIT stage after arrival: ", stage, " started=", Game.flag("summitStarted"))
+	await shot("fin_01_arrived")
+	place_party(Vector3(0, 0, HALFWAY_Z - 1.0), Vector3(0, 0, -1))
+	await wait(0.4)
+	var spins := 0
+	while (not Game.flag("summitHalfway") or busy) and spins < 600:
+		if spins == 30:
+			await shot("fin_02_halfway")
+		if dulbers and dulbers.visible and spins % 40 == 0:
+			await shot("fin_03_ambush_%d" % spins)
+		await wait(0.25)
+		spins += 1
+	print("SUMMIT after ambush: way_ambush=", Game.flags.get("way_ambush", ""), " dulbersDead=", Game.flag("dulbersDead"), " withMattias=", Game.flag("foughtWithMattias"))
+	place_party(DOOR_OUT + Vector3(0, 0, 1.0), Vector3(0, 0, -1))
+	await wait(0.5)
+	start(current_interactables().filter(func(i): return i["id"] == "lair_door")[0])
+	await wait(7.0)
+	if hymn.player:
+		hymn.player.stop()
+	hymn.played_once = true
+	place_party(DAIS + Vector3(0, 0, 6.0), Vector3(0, 0, -1))
+	spins = 0
+	while stage != "end" and spins < 1200:
+		if spins in [12, 40, 70]:
+			await shot("fin_04_castle_%d" % spins)
+		if Game.flag("tookMetocy") and not shot_trip:
+			shot_trip = true
+			await wait(1.5)
+			await shot("fin_04_tripping")
+		await wait(0.25)
+		spins += 1
+	await wait(2.0)
+	await shot("fin_05_ending_" + ending)
+	if ending == "party":
+		await wait(4.0)
+		await shot("fin_06_party")
+	print("SUMMIT TOUR ending=", ending, " ch1=", Game.flag("chapter1Done"), " way_castle=", Game.flags.get("way_castle", ""), " beaten=", Game.flag("mattiasBeaten"), " took=", Game.flag("tookMetocy"))
+	for l in _end_lines():
+		print("  CARD ", l)
+	_tour_on = false
+	get_tree().quit()
+
+func _autopilot(picks: Array) -> void:
+	var k := 0
+	var last := ""
+	while _tour_on:
+		await wait(0.3)
+		if not dialogue._choices.is_empty():
+			var i: int = mini(picks[k] if k < picks.size() else 0, dialogue._choices.size() - 1)
+			k += 1
+			print("PICK ", dialogue._choices[i]["text"])
+			await wait(0.2)
+			dialogue._picked.emit(i)
+		elif dialogue.active and dialogue.panel.visible and dialogue.text_lbl.visible:
+			var txt: String = dialogue.text_lbl.text
+			if txt != last:
+				last = txt
+				print("LINE ", dialogue.name_lbl.text if dialogue.get("name_lbl") else "", ": ", txt)
+			dialogue._next.emit()
