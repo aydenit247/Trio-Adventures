@@ -1,6 +1,6 @@
 # Summit finale plan (Ebain's spec, 11/24)
 
-Answers from Ebain (11/24): only the goblin chase kills Dulbers (beating him in the Mart boss fight leaves him alive, so he ambushes here); Ebain and Asar build this together.
+Answers from Ebain (11/24): **beating Dulbers in the Mart boss fight counts as killing him** (same as the goblin chase), so he only ambushes if the trio never fought him; Ebain and Asar build this together.
 
 Planning doc for the end of Chapter 1: Summit arrival → Dulbers ambush → Mattias's castle → ending. Ebain's quoted
 lines are verbatim (`# Ebain`). Everything Claude wrote is **DRAFT**. Scene files are Asar's (`summit.gd`,
@@ -46,7 +46,10 @@ Per-run facts available after that fix:
 - Move Mattias's "Impressive, my beloved trio, come closer" (already recorded) here.
 - Lykor: "Bet. Here we go, folk" `# Ebain`
 
-**C. Dulbers ambush (only if `dulbersDead` is false)**
+**C. Dulbers ambush (only if Dulbers is still alive)**
+- He's dead if the goblins chased him (`dulbersDead`) or the trio beat him in the Mart boss fight (`way_mart` = everyone /
+  skorn_first; that fight can't be lost for good). Build note: have the Mart boss-fight win set `dulbersDead` too, so the
+  check is just one flag. That leaves the ambush for `way_mart` = refuse / xylo.
 - Right after Lykor's line, normal Dulbers (`dulbers.png`, not the demon) sprints up from the Pass behind them and says
   **<line from 2b>**.
 - Choices (Ebain's answers 11/24):
@@ -64,9 +67,9 @@ Per-run facts available after that fix:
 - Mattias: "Here yall go folk, have at it." `# Ebain` (the glowing blue pill)
 - Choices: 1 "Bet. Here we go folk." · 2 "you had said u was fuckin wit one too?" → "Bet." (all 4 take it) · 3 "Bad." →
   "Oh okay." → hard end · 4 sucker punch → near-impossible boss (new `mattias` fight in combat_data.gd, numbers kept
-  in one place so new items/levels can be balanced against it later). **Losing it is its own ending** (Ebain), not a
-  retry. DRAFT idea: the trio wakes up face-down outside the castle, Mattias in the doorway: "Bad." Door shuts. END OF
-  CHAPTER 1. Winning: Mattias, on the floor: "...Bet." and they take the metocy (goes to E).
+  in one place so new items/levels can be balanced against it later). **Losing it is its own ending**, not a retry:
+  Mattias: "Y'all must be geeking off that midtocy to think you could defeat me." `# Ebain` → END OF CHAPTER 1.
+  **Winning:** Mattias: "I should have never underestimated the trio." `# Ebain` → they take the metocy (goes to E).
 
 **E. After the metocy (choices 1 and 2)**
 - Mattias asks about giving every goblin metocy. No → end right there. Yes → cut to the goblin village dancing → end.
@@ -86,8 +89,6 @@ Per-run facts available after that fix:
 
 **2b. Dulbers' ambush line** (by `way_mart`)
 - `refuse`: "Y'all walked out my store. In front of customers."
-- `everyone`: "Y'all beat my ass while tweaking on MY product."
-- `skorn_first`: "Purple one took my product and didn't even pay."
 - `xylo`: "Lore-reading ahh dragon exposed my whole business."
 - add-on if `hasMidtocy`: "And I KNOW y'all still got my midtocy."
 - add-on if `goblinAllies`: "Where the goblins at? Y'all scared without the goblins?"
@@ -97,7 +98,8 @@ Per-run facts available after that fix:
 - `way_ambush=fentocy` also works as the top pick. It's the darkest thing the trio can do.
 - `way_ambush=fight` or `mattias`: "made Dulbers cry on a mountain"
 - `way_ambush=fentocy`: "gave Dulbers fentocy. That's crazy"
-- `dulbersDead`: "had the goblins handle Dulbers"
+- `way_mart=goblins`: "had the goblins handle Dulbers"
+- `way_mart=everyone` or `skorn_first`: "beat Dulbers' ass in his own store, while tripping"
 - `skornKing`: "made Skorn king of the goblins"
 - `chugWon`: "outdrank Chief Bogdrinker"
 - `way_pass=lore`: "read a giant to sleep"
