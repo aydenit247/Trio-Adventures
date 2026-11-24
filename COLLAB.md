@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Throne speech ending: reorder Xylo/Chief/beezy lines, trim "Real ones." off Lykor's line — files: godot/scripts/village_script.gd, godot/scripts/voice_lines.gd, godot/assets/voices/lykor/yall_real_for_this.* — branch: asar/speech-order — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -55,11 +54,11 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/village_script.gd, voice_lines.gd, assets/voices/lykor/yall_real_for_this.*
 - [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [asar] village_script.gd throne **speech ending** reordered (Asar's call): Chief's east directions → Xylo "They… sell it?" → Chief "For all yo metocy needs." → Chief "Here go some beezy…" → gift → Lykor "Y'all real for this." ("Real ones." cut; his recording never had it, so voice_lines.gd key updated) → Skorn "Why HE get the beezy?" → goodbye. The two Xylo/Chief lines moved out of `GOODBYE` into `SELL_IT`; chug-win and dethrone endings use `SELL_IT + GOODBYE`, so they're unchanged.
 - 2026-11-24 [asar] **Hot spot dialogue.gd:** a dialogue step can say `"voice": "none"` so it never borrows a recording
   with the same words (recordings are matched by text alone). `say()` passes it to `_speak(who, line, thought, use_rec)`
   (new optional 4th arg, default true; battle_view's call is unchanged). script_scan.gd skips such lines in the Voice
