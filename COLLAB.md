@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
-- [ebain] Secret Deloye Lore library (DELOYE_PLAN.md): 5 Lost Pages, flush handle on the outhouse, library + Deloye (Ebain's art), Deloye Lore Neuralink — files: godot/deloye_library.tscn (new), scripts/deloye_library.gd (new), deloye_script.gd (new), lost_pages.gd (new), level.gd, village.gd, dialogue.gd, combat/combat_data.gd, combat/battle.gd, achievements.gd, scrapbook_ui.gd, inventory_ui.gd, script_scan.gd, dev_mode.gd, tools/sim_combat.gd, assets/characters/deloye* + portraits/deloye.png + props/lost_page.png (new), DELOYE_PLAN.md — branch: ebain/deloye-library — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-24 [ebain] **Secret Deloye Lore library** (DELOYE_PLAN.md): 5 Lost Pages (one per area) → flush chain on the outhouse → round library, Deloye (Ebain's art) twirling in the middle, Deloye Lore Neuralink for Xylo, secret achievement + Scrapbook page. Waiting on Ebain's song + real lines
 - 2026-11-23 [asar] Asar's 11/23 batch: troll "It's good" love & light scene (Hold E to skip), enemy HP x/x + red bars over enemies, OG Metocy display case in Mattias's study (E Inspect), hymn only has to play once, summit camera follows again, castle followers no longer run off, interior walls run past the door (village rooms, Mart, Charis's house, lair hall)
 - 2026-11-23 [asar] **Explorer bot**: plays the game at random and reports errors/softlocks with screenshots; runs on GitHub after every push to main
 - 2026-11-24 [ebain] **Ruins side path** (RUINS_PLAN.md): Old Ruins → trap chest → Rat Cave → Three Seals puzzle → Rat Colony 5-way choice, Scrounge's shop, pet rat Lil Nibbs, Charis's house on the Mart street (placeholder art); objective plate fix
@@ -52,10 +52,28 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [asar] godot/assets/items/goblin_tooth.png
-- [ebain] godot/deloye_library.tscn, scripts/deloye_library.gd, deloye_script.gd, lost_pages.gd, level.gd, village.gd, dialogue.gd, combat/combat_data.gd, combat/battle.gd, achievements.gd, scrapbook_ui.gd, inventory_ui.gd, script_scan.gd, dev_mode.gd, tools/sim_combat.gd, assets/characters/deloye*, portraits/deloye.png, props/lost_page.png, DELOYE_PLAN.md
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [ebain] **Secret Deloye Lore library merged** (DELOYE_PLAN.md; how it works: HANDOFF section 1 🔒 + code map).
+  New: `lost_pages.gd` (LostPages), `deloye_library.tscn/.gd`, `deloye_script.gd` (all lines # DRAFT), Deloye's art (Ebain's
+  pictures) + portrait, `props/lost_page.png`, `props/book_page.png`, `items/neuralink.png`, `textures/book_spines/` (drawn),
+  `sounds/flush.ogg` + `library_hum.ogg` (synthesized). **Hot spots:** **level.gd**: `LostPages.spawn(self)` in `_ready`, the
+  page interactable appended in `current_interactables()`, `do_action("lost_page")` routed to LostPages, `LostPages.process`
+  before `_level_process`, `AREA_KEYS` + `deloye_library`. **dialogue.gd**: CHARS `deloye`. **combat/combat_data.gd**: trinket
+  `neuralink` (`foresee`, `dodge` 0.15, `start` 20). **combat/battle.gd**: `_gear_perks()` (reads dodge/foresee from the
+  equipped gear, since game.gd's gear_stats was claimed), `_foresee()` at the start of party turns ("NEURALINK: …" say event),
+  `enemy_plan()` returns a forecast plan, enemy skips go through `_skip()` (drops the forecast), dodge in the attack loop.
+  Also: **village.gd** flush chain (`FLUSH_POS`, built here, NOT in village_buildings.gd) + `_deloye_flush` (reparents the
+  outhouse's meshes onto a spinning pivot right before the scene change) + `arrival("library")` + `VILLAGE_TOUR=flush`;
+  inventory_ui (Quests page lists pages, Neuralink stat lines), scrapbook_ui (secret last page `deloye_found`),
+  achievements (`lore_accurate`, hidden), script_scan, dev_mode (jump to the library), sim_combat (2 Neuralink cases),
+  **tools/test_ui.gd** (the scrapbook check now skips the secret page; wasn't on my claim, one line). Tested:
+  `VILLAGE_TOUR=flush DELOYE_EXIT=1` (pages → flush → library → gift → EXIT → back by the outhouse), library tour, a
+  capsule check on all 5 page spots (Mart one moved out of a shelf), sim (Neuralink helps a little: Mattias L4 good 20→28%),
+  test_ui ALL OK, camp/trail/village/Mart/Pass tours. **@asar:** new DRAFT lines for Xylo and Lykor in deloye_script.gd
+  play on the robot voice for now; Xylo's page barks are floating labels, not lines. Nothing of yours was touched
+  (outhouse, shaman, battle_view are as you left them). If you want the shaman to hint at the pages, that's your file.
 - 2026-11-23 [asar] **Asar's 11/23 batch merged.** **Hot spots:** **combat/battle_view.gd**: enemy panel rows are now name +
   `HP x/x` (`ebars[k].hp_lbl`), new `overhead` Control with a small red bar over each enemy (`_head_bar`, `_set_head_bar` from
   `_refresh`, `_place_head_bars` every frame via `lv.cam.unproject_position`; hidden in the mog/close-up cams with the other
