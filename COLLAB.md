@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Summit finale (SUMMIT_FINALE_PLAN.md: arrival lines, Dulbers ambush, Mattias castle, endings) — files: summit.gd, summit_script.gd, summit.tscn, mart.gd, mart_script.gd, progress_data.gd, achievements.gd, hot spots dialogue.gd (1 line) + combat/combat_data.gd + combat/battle.gd + combat/battle_view.gd (short) — branch: ebain/summit-finale — started 2026-11-24
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -41,6 +42,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/scripts/summit.gd, summit_script.gd, godot/summit.tscn, mart.gd, mart_script.gd, progress_data.gd, achievements.gd, dialogue.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd
 - [asar] godot/scripts/village_buildings.gd, godot/scripts/village.gd
 
 ## Log (newest first)
