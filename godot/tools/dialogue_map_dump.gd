@@ -18,7 +18,7 @@ func _conv(v) -> Variant:
 		return out
 	if v is Dictionary:
 		if v.has("line") and v["line"] is String:
-			var d := { "t": "line", "who": str(v.get("who", "narrator")), "text": v["line"], "voice": _voice(v["line"]) }
+			var d := { "t": "line", "who": str(v.get("who", "narrator")), "text": v["line"], "voice": "" if str(v.get("voice", "")) == "none" else _voice(v["line"]) }
 			for k in ["name", "mood", "thought", "portrait", "if"]:
 				if v.has(k): d[k] = str(v[k])
 			return d

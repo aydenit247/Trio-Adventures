@@ -38,6 +38,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   see HANDOFF "Dialogue map"). It reads the code, so nothing to hand-edit; a line inside a level .gd (not a *_script.gd)
   still shows, under "Short lines in the level code".
 
+- [asar] **Recordings are matched by a line's words alone** (punctuation and case ignored), so a new line with the same words
+  as someone else's take plays THEIR voice (the troll's "Aight bet" got the giant's "Aight. Bet."). Mark the step
+  `"voice": "none"` until it has its own take; the dialogue map then shows it as "no mp3".
+
 ## Godot gotchas
 - [asar] **Windows runs on DirectX 12, not Vulkan** (`driver.windows="d3d12"` in project.godot). Vulkan crashed in the
   GPU driver's shader compiler on Asar's PC (NVIDIA + Overwolf overlay) mid-fight. Don't switch it back without testing a

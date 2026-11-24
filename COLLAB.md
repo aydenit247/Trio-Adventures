@@ -9,7 +9,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Board
 
 ### Claimed / in progress
-- [asar] "voice": "none" per line so the troll's "Aight bet" doesn't play the giant's recording — files: godot/scripts/dialogue.gd (say/_speak only), script_scan.gd, trail_script.gd, godot/tools/dialogue_map_dump.gd — branch: asar/voice-none — started 2026-11-24
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Throne speech ending: reorder Xylo/Chief/beezy lines, trim "Real ones." off Lykor's line — files: godot/scripts/village_script.gd, godot/scripts/voice_lines.gd, godot/assets/voices/lykor/yall_real_for_this.* — branch: asar/speech-order — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
@@ -61,6 +60,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Log (newest first)
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-24 [asar] **Hot spot dialogue.gd:** a dialogue step can say `"voice": "none"` so it never borrows a recording
+  with the same words (recordings are matched by text alone). `say()` passes it to `_speak(who, line, thought, use_rec)`
+  (new optional 4th arg, default true; battle_view's call is unchanged). script_scan.gd skips such lines in the Voice
+  Lines list too. First use: the troll's new "Aight bet" (# Asar), which was playing Diddy Chud's "Aight. Bet." take.
 - 2026-11-24 [asar] Bridge Troll now says "Aight bet" (# Asar) after "It's good", before the love & light scene (trail_script.gd TROLL_MEET). No recording yet: robot voice until Asar's take.
 - 2026-11-24 [asar] **Dialogue map: ▶ play buttons** on every line with a recording (Asar asked). The recordings are copied beside the page as `v/<hash>.<ext>` (a new take gets a new name), mapped in dialogue.json `audio`. A shortcut `Dialogue Map.url` in Asar's game folder opens the live page. Republish = index.html + dialogue.json + only the v/ files list_files doesn't have yet.
 - 2026-11-24 [asar] **Dialogue map is live:** https://claude.ai/artifact/TVQYniLFUFbsRBkhpb62aV — every line, choice and

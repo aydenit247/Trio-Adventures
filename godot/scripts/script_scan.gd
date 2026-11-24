@@ -75,7 +75,7 @@ static func _walk(v, seen: Dictionary) -> void:
 		for x in v:
 			_walk(x, seen)
 	elif v is Dictionary:
-		if v.has("line") and v["line"] is String:
+		if v.has("line") and v["line"] is String and str(v.get("voice", "")) != "none":
 			var st := VoiceLines.stream_for(v["line"])
 			if st and not seen.has(st.resource_path):
 				seen[st.resource_path] = true

@@ -353,7 +353,7 @@ func say(s: Dictionary) -> void:
 		_typing.tween_property(text_lbl, "visible_ratio", 1.0, max(0.2, line.length() * 0.022 * speed))
 		_typing.set_speed_scale(Game.dlg_speed)   # dialogue speed slider
 		_typing.finished.connect(_arm_buffer)   # buffer starts when the line is fully shown
-	_speak(who, line, thought)
+	_speak(who, line, thought, str(s.get("voice", "")) != "none")
 	await _next
 
 func ask(opts: Array) -> int:
@@ -479,14 +479,16 @@ func stop_voice() -> void:
 	if _vo:
 		_vo.stop()
 
-func _speak(who: String, line: String, thought: bool) -> void:
+# use_rec = false: a step marked "voice": "none" never borrows a recording that happens to have the same words
+# (recordings are matched by text alone, e.g. the troll's "Aight bet" vs the giant's "Aight. Bet.") (Asar 11/24)
+func _speak(who: String, line: String, thought: bool, use_rec := true) -> void:
 	_tts_queue.clear()   # newest line wins
 	_pending_rec = null
 	if _vo:
 		_vo.stop()
 	if not tts_on or Game.voice_vol <= 0.01:
 		return
-	var rec := VoiceLines.stream_for(line)   # thoughts too: the studio bakes their echo in
+	var rec := VoiceLines.stream_for(line) if use_rec else null   # thoughts too: the studio bakes their echo in
 	if rec:
 		_vo.volume_db = linear_to_db(Game.voice_vol) + VOICE_GAIN_DB.get(who, 0.0)
 		# Dialogue speed (slider, 0.5x–3x): play faster/slower through a bus that shifts the pitch back, so it
