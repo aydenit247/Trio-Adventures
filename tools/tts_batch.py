@@ -18,7 +18,7 @@ Steps, one file:
 
   2. gen   (on the PC that runs Ultimate TTS Studio; needs `pip install gradio_client`)
        python tts_batch.py gen lines.json --refs refs [--out out] [--url http://127.0.0.1:7860]
-                               [--engine "Chatterbox Turbo"] [--test] [--only "line text" ...]
+                               [--engine ChatterboxTTS] [--test] [--only "line text" ...]
      For each character: sends refs/<who>.mp3 (or .wav) as the voice to clone with each of their lines
      and saves one WAV per line in out/<who>/, each named after its line. --test = just the first line. --only = regenerate just
      those lines (match ignores case/punctuation; repeat the flag for several). Existing WAVs for other
@@ -228,6 +228,25 @@ def cmd_refs(a):
     pathlib.Path(a.lines).write_text(json.dumps(lines, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
+# ---------------------------------------------------------------- pronunciation
+# Same respellings the Emberstage studio uses (Voice-actor-generation src/data/trio/cast.ts PRONUNCIATIONS), applied to
+# the text sent to the TTS ONLY. File names, lines.json and the manifest keep the real line, so the game still matches it.
+PRONUNCIATIONS = {
+    "Lykor": "Lie-kor", "Xylo": "Zy-lo", "Caelid": "Kay-lid", "Dulbers": "Dull-burrs",
+    "Metocin": "Meh-toe-sin", "Mattias": "Muh-tie-us", "Deloye": "Deh-loy", "Bogdrinker": "Bog-drinker",
+    "metocy": "meh-toe-see", "midtocy": "mid-toe-see", "beezy": "bee-zee",
+    "aight": "ite", "looksmaxxin": "looks-maxin", "deadahh": "dead-ahh", "allat": "all-at", "OD": "oh-dee",
+    "ts": "this", "mf": "motherfucker", "ngl": "not gonna lie", "fw": "fuck with",
+}
+
+
+def spoken(line, extra=None):
+    """The line with whole-word respellings swapped in (any capitalization). extra: {"word": "say"} overrides."""
+    table = {k.lower(): v for k, v in {**PRONUNCIATIONS, **(extra or {})}.items()}
+    pat = re.compile(r"(?<![A-Za-z0-9'])(" + "|".join(re.escape(k) for k in sorted(table, key=len, reverse=True)) + r")(?![A-Za-z0-9'])", re.I)
+    return pat.sub(lambda m: table[m.group(1).lower()], line)
+
+
 # ---------------------------------------------------------------- gen
 def cmd_gen(a):
     try:
@@ -271,7 +290,8 @@ def cmd_gen(a):
             line_ref = refs / x["ref"] if x.get("ref") and not a.one_ref else None
             use = line_ref if line_ref and line_ref.exists() else ref
             kw = dict(defaults)
-            kw.update({"text_input": x["line"], "tts_engine": a.engine, "audio_format": "wav",
+            say = x["line"] if a.no_pron else spoken(x["line"], dict(p.split("=", 1) for p in (a.say or [])))
+            kw.update({"text_input": say, "tts_engine": a.engine, "audio_format": "wav",
                        ref_param: handle_file(str(use))})
             if a.exaggeration is not None and prefix.startswith("chatterbox"):
                 kw[prefix + "exaggeration"] = a.exaggeration
@@ -292,7 +312,7 @@ def cmd_gen(a):
             meta = out / who / (dst.stem + ".json")
             meta.write_text(json.dumps({"who": who, "line": x["line"], "engine": a.engine}, ensure_ascii=False), encoding="utf-8")
             done += 1
-            print(f"   ok  {dst.name}  (voice sample: {use.name})")
+            print(f"   ok  {dst.name}  (voice sample: {use.name})" + (f"\n       said as: {say}" if say != x["line"] else ""))
     print(f"{done} WAV(s) in {out}/")
 
 
@@ -375,9 +395,11 @@ def main():
     sp = ap.add_subparsers(dest="cmd", required=True)
     f = sp.add_parser("find"); f.add_argument("--who"); f.add_argument("--include-drafts", action="store_true"); f.add_argument("-o", default="lines.json")
     g = sp.add_parser("gen"); g.add_argument("lines"); g.add_argument("--refs", default="refs"); g.add_argument("--out", default="out")
-    g.add_argument("--url", default="http://127.0.0.1:7860"); g.add_argument("--engine", default="Chatterbox Turbo")
+    g.add_argument("--url", default="http://127.0.0.1:7860"); g.add_argument("--engine", default="ChatterboxTTS")
     g.add_argument("--only", action="append"); g.add_argument("--who"); g.add_argument("--test", action="store_true")
-    g.add_argument("--exaggeration", type=float); g.add_argument("--seed", type=float); g.add_argument("--cfg", type=float)
+    g.add_argument("--exaggeration", type=float, default=0.7); g.add_argument("--seed", type=float); g.add_argument("--cfg", type=float, default=0.3)
+    g.add_argument("--say", action="append", metavar="WORD=SPELLING", help="extra respelling for this run, e.g. --say 'mufug=muh-fug'")
+    g.add_argument("--no-pron", action="store_true", help="send the line exactly as written (skip the respellings)")
     g.add_argument("--one-ref", action="store_true", help="ignore per-line refs, use refs/<who>.mp3|wav for every line")
     r = sp.add_parser("refs"); r.add_argument("lines"); r.add_argument("--out", default="refs"); r.add_argument("--min-seconds", type=float, default=6.0)
     x = sp.add_parser("fx"); x.add_argument("out"); x.add_argument("--dest", default="out_fx"); x.add_argument("--who")
