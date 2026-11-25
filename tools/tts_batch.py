@@ -24,6 +24,11 @@ Steps, one file:
      those lines (match ignores case/punctuation; repeat the flag for several). Existing WAVs for other
      lines are kept, so a re-run with --only only replaces the bad takes.
 
+  2b. fx   (anywhere with librosa + scipy + soundfile)
+       python3 tools/tts_batch.py fx out --dest out_fx [--who skorn] [--hz 90] [--monster 0.15]
+     Pitches each clone down to the character's studio pitch and adds the studio's "monster" layer (FX table),
+     so clones sit next to the Emberstage takes. Pack out_fx instead of out afterwards.
+
   3. pack  (anywhere)
        python3 tools/tts_batch.py pack out -o clones.zip
      Zips out/ in the import_voices.py format (manifest.json: who, line, file, effects). Then
@@ -284,6 +289,64 @@ def cmd_gen(a):
     print(f"{done} WAV(s) in {out}/")
 
 
+# ---------------------------------------------------------------- fx
+# Same "monster" layering as the Emberstage studio (Voice-actor-generation src/trio/fx.ts) so clones sit next to
+# the studio takes. Pitch is matched per line to the character's existing takes (median voice pitch).
+FX = {   # who → target median pitch (Hz) of their studio/real takes, studio monster amount
+    "skorn": {"hz": 90, "monster": 0.15},
+}
+
+
+def _median_f0(y, sr):
+    import librosa, numpy as np
+    y = librosa.resample(y, orig_sr=sr, target_sr=16000)          # same settings the 90 Hz target was measured with
+    f, _, _ = librosa.pyin(y, fmin=50, fmax=400, sr=16000, frame_length=1024)
+    f = f[~np.isnan(f)]
+    return float(np.median(f)) if len(f) else 0.0
+
+
+def apply_fx(src, dst, hz, monster, lo=-8.0, hi=0.0):
+    import librosa, numpy as np, soundfile as sf
+    from scipy.signal import butter, sosfilt
+    y, sr = librosa.load(str(src), sr=None, mono=True)
+    f0 = _median_f0(y, sr)
+    st = max(lo, min(hi, 12 * np.log2(hz / f0))) if f0 else 0.0
+    if st:
+        y = librosa.effects.pitch_shift(y, sr=sr, n_steps=st)
+    out = y
+    if monster > 0:
+        k = monster * 0.35 * 60                                   # studio distortionCurve(monster*0.35)
+        main = ((1 + k) * y) / (1 + k * np.abs(y))
+        main = sosfilt(butter(2, 7000 - monster * 3500, "low", fs=sr, output="sos"), main)
+        sub = librosa.effects.pitch_shift(y, sr=sr, n_steps=-12)   # octave down underneath
+        sub = sosfilt(butter(2, 2200, "low", fs=sr, output="sos"), sub) * monster * 0.9
+        mix = (main + sub) / (1 + monster * 0.8)
+        lowband = sosfilt(butter(2, 180, "low", fs=sr, output="sos"), mix)   # ≈ low shelf +6·m dB at 180 Hz
+        out = mix + lowband * (10 ** (monster * 6 / 20) - 1)
+    a = np.abs(out)                                               # studio loudness: rms 0.13, never clip
+    rms = np.sqrt(np.mean(out[a > 0.01] ** 2)) if (a > 0.01).any() else 0
+    if rms > 1e-5:
+        out = out * min(0.13 / rms, 0.98 / max(a.max(), 1e-5))
+    sf.write(str(dst), out.astype(np.float32), sr, subtype="PCM_16")
+    return f0, st
+
+
+def cmd_fx(a):
+    """Deepen/layer clones to match the character's studio takes. out/<who>/*.wav → <dest>/<who>/ (+ .json copied)."""
+    src, dest = pathlib.Path(a.out), pathlib.Path(a.dest)
+    for who, cfg in FX.items():
+        if a.who and who not in a.who.split(","):
+            continue
+        hz = a.hz or cfg["hz"]; monster = cfg["monster"] if a.monster is None else a.monster
+        for wav in sorted((src / who).glob("*.wav")):
+            (dest / who).mkdir(parents=True, exist_ok=True)
+            f0, st = apply_fx(wav, dest / who / wav.name, hz, monster)
+            meta = wav.with_suffix(".json")
+            if meta.exists():
+                shutil.copyfile(meta, dest / who / meta.name)
+            print(f"{who:>8} | {f0:5.0f} Hz → {st:+.1f} st, monster {monster} | {wav.stem}")
+
+
 # ---------------------------------------------------------------- pack
 def cmd_pack(a):
     out = pathlib.Path(a.out)
@@ -314,9 +377,11 @@ def main():
     g.add_argument("--exaggeration", type=float); g.add_argument("--seed", type=float)
     g.add_argument("--one-ref", action="store_true", help="ignore per-line refs, use refs/<who>.mp3|wav for every line")
     r = sp.add_parser("refs"); r.add_argument("lines"); r.add_argument("--out", default="refs"); r.add_argument("--min-seconds", type=float, default=6.0)
+    x = sp.add_parser("fx"); x.add_argument("out"); x.add_argument("--dest", default="out_fx"); x.add_argument("--who")
+    x.add_argument("--hz", type=float); x.add_argument("--monster", type=float)
     p = sp.add_parser("pack"); p.add_argument("out"); p.add_argument("-o", default="clones.zip")
     a = ap.parse_args()
-    {"find": cmd_find, "refs": cmd_refs, "gen": cmd_gen, "pack": cmd_pack}[a.cmd](a)
+    {"find": cmd_find, "refs": cmd_refs, "gen": cmd_gen, "fx": cmd_fx, "pack": cmd_pack}[a.cmd](a)
 
 
 if __name__ == "__main__":
