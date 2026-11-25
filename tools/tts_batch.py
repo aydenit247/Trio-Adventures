@@ -140,6 +140,11 @@ def cmd_gen(a):
         sys.exit(f"Unknown engine {a.engine!r}. Known: {', '.join(ENGINE_REF_PARAM)}")
     ref_param, prefix = ENGINE_REF_PARAM[a.engine]
     client = Client(a.url, verbose=False)
+    # gradio_client treats every input whose default is null as required, so send all 121 with the
+    # app's own defaults and override only what we need (TIPS.md).
+    api = client.view_api(print_info=False, return_format="dict")
+    params = api["named_endpoints"]["/generate_unified_tts"]["parameters"]
+    defaults = {p["parameter_name"]: p.get("parameter_default") for p in params}
     done = 0
     for who, items in groups.items():
         ref = next((refs / f"{who}{ext}" for ext in (".mp3", ".wav") if (refs / f"{who}{ext}").exists()), None)
@@ -149,8 +154,9 @@ def cmd_gen(a):
         print(f"== {who} ({len(items)} lines, voice: {ref.name})")
         (out / who).mkdir(parents=True, exist_ok=True)
         for x in items:
-            kw = {"text_input": x["line"], "tts_engine": a.engine, "audio_format": "wav",
-                  ref_param: handle_file(str(ref))}
+            kw = dict(defaults)
+            kw.update({"text_input": x["line"], "tts_engine": a.engine, "audio_format": "wav",
+                       ref_param: handle_file(str(ref))})
             if a.exaggeration is not None and prefix.startswith("chatterbox"):
                 kw[prefix + "exaggeration"] = a.exaggeration
             if a.seed is not None and prefix.startswith("chatterbox"):
