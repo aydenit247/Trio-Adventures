@@ -27,6 +27,11 @@ const LINES := {
 	"wegowherethemoggingelfgoes": "goblin/goblin_we_go_where_the_mogging_elf_goes.ogg",  # We go where the Mogging Elf goes.
 	"yallhiring": "goblin/goblin_y_all_hiring.ogg",  # Y'all hiring?
 	"yayyouareallowedtomogthathardrightcooldudethatsfuckingfair": "goblin/goblin_yay_you_are_allowed_to_mog_that_hard_rig.ogg",  # Yay.. you are allowed to mog that hard, right? Cool dude, that's fucking fair.
+	"betherewegofolk": "lykor/lykor_clone_bet_here_we_go_folk.ogg",  # Bet. Here we go, folk
+	"deadahh": "lykor/lykor_clone_deadahh.ogg",  # Deadahh.
+	"itsgoodfolkletstakealookaround": "lykor/lykor_clone_it_s_good_folk_let_s_take_a_look_around.ogg",  # It's good folk, let's take a look around.
+	"shlooksfolk": "lykor/lykor_clone_shlooks_folk.ogg",  # Shlooks folk.
+	"whatthefuckfolktsismassivelikethelowtaperfadememe": "lykor/lykor_clone_what_the_fuck_folk_t_s_is_massive_like_the_low_t.ogg",  # What the fuck folk? T S is massive like the low taper fade meme
 	"echoingimpressivemybelovedtriocomecloser": "mattias/mattias_impressive_my_beloved_trio_come_closer.ogg",  # *echoing* Impressive, my beloved trio. Come closer…
 	"mybelovedtrioivecametotellyouyoumustgetpastthismountainpassandcomefindmeinordertofindyourillustriousmetocydowhateveryoucantogetpast": "mattias/mattias_my_beloved_trio_i_ve_came_to_tell_you_yo.ogg",  # My beloved trio. I've came to tell you, you must get past this mountain pass and come find me in order to find your illustrious "Metocy." Do whatever you can to get past.
 	"youhadcalled": "mattias/mattias_you_had_called.ogg",  # You had called?
