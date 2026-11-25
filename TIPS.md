@@ -335,3 +335,5 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] **Meshy**: rig from a T-pose or arms-out picture (hands touching a coat glue the coat to the arms); Meshy's
   clip names can have typos (Xylo's blast came out `mage_soell_cast_3`); its built-in-browser downloads don't save to
   disk, so get the signed `asset-url` link and have your person open it in their own browser.
+- [asar] Room clamps next to a wall collider: start correcting only *inside* the wall's reach (e.g. half-width - 0.1), or a 3D body touching the wall gets snapped back every frame and looks stuck.
+- [asar] Dialogue probes as a `--script` SceneTree have no autoloads (Game, UITheme): to screenshot a dialogue line, patch the area's `_shot_tour` locally with a long wait + `shot()` and run it under xvfb.

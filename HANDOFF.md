@@ -398,7 +398,9 @@ when a pose picture is up (`views.front != base_tex`), or when knocked over. Eve
 still works: the sprite is just hidden while the 3D body shows; hops (`sprite.position.y`) and squash are mirrored.
 Night areas (`level.night`) give the models a soft glow of the `light_at` colour (`Char3D.FILL`) since the billboards
 are lit that way, not by real lights. The GLBs hold only those three clips (`tools/glb_keep_anims.py` strips the rest; the combat clips we made are still in Asar's Meshy account). No GLB for an id =
-plain billboard as before, so NPCs are untouched.
+plain billboard as before, so NPCs are untouched. **Sitting:** give a unit meta `sitting` = local Vector3 offset and it sits
+(`Char3D.set_sitting`: the GLB's `Chair_Sit_Idle_Male` clip if present, else a bent-leg bone pose); remove the meta to stand.
+Village throne uses it (`SIT_ON_THRONE`, `_off_throne`). Dialogue lines that run long shrink to fit the box (`Dialogue._fit_text`).
 
 ### Polish (Asar 11/22)
 Village names are wooden signs (`Level.wood_sign`, art goes in `assets/signs/`, list in ASSETS_NEEDED.md). Esc ends optional
