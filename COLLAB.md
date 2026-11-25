@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Readable lore books in the Deloye library (book screen + 6 books, Ebain approved the drafts) — files: godot/scripts/book_ui.gd (new), godot/scripts/library_books.gd (new), deloye_library.gd, HANDOFF.md — branch: ebain/library-books — started 2026-11-25
 - [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md, 4 Skorn lines reworded in camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd — branch: ebain/tts-batch — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -61,6 +62,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/scripts/book_ui.gd, godot/scripts/library_books.gd (new), deloye_library.gd, HANDOFF.md (library books)
 - [ebain] tools/tts_batch.py, godot/scripts/voice_index.gd, VOICE_LINES.md, godot/assets/voices/ (new clone files only), camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd (one Skorn line each)
 - [asar] godot/assets/items/goblin_tooth.png
 
