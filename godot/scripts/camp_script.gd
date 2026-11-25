@@ -95,7 +95,7 @@ const TALK := {
 		{ "who": "xylo", "mood": "unimpressed", "line": "Nothing. There is no lore." }, # DRAFT
 	],
 	"skorn": [
-		{ "who": "skorn", "line": "Man, it's about cold as a motherfucker." }, # Ebain
+		{ "who": "skorn", "line": "Man, it's about cold as a mufug." }, # Ebain (11/24 reword)
 		{ "who": "skorn", "mood": "smug", "line": "Good thing I got the fire going though." }, # DRAFT
 	],
 }
@@ -164,7 +164,7 @@ const MORNING := [
 # Walking down the dark path
 const MATTIAS := [
 	{ "who": "mattias", "line": "You had called?" }, # Ebain
-	{ "who": "skorn", "mood": "shocked", "line": "Metocin Mattias? What are you doing here?" }, # Ebain
+	{ "who": "skorn", "mood": "shocked", "line": "Wizard jit? What are you doing here?" }, # Ebain (11/25 reword)
 	{ "do": "mattias_vanish" },
 	{ "who": "xylo", "mood": "shocked", "line": "I did not see ts coming. Ts was not in the Deloye Lore scripture." }, # Ebain
 ]

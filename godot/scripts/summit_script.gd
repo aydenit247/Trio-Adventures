@@ -17,7 +17,7 @@ const PEEP_THE_SONG := [
 
 # A. Arriving at the summit (before the hymn starts).
 const ARRIVE := [
-	{ "who": "skorn", "mood": "shocked", "line": "Woah.. I think we made it boys" }, # Ebain
+	{ "who": "skorn", "mood": "shocked", "line": "Woahhh.. on God, I think we made it boys" }, # DRAFT reword of Ebain's line (11/24, he approved)
 	{ "who": "xylo", "mood": "unimpressed", "dyn": "xylo_arrive", "line": "Damn that was OD to get here, my wings hurt and I don't even use them." }, # Ebain + DRAFT ending
 	{ "who": "lykor", "mood": "unimpressed", "line": "Deadahh." }, # Ebain
 ]
