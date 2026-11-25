@@ -62,7 +62,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] godot/scripts/book_ui.gd, godot/scripts/library_books.gd (new), deloye_library.gd, HANDOFF.md (library books)
+- [ebain] godot/scripts/book_ui.gd, godot/scripts/library_books.gd (new), deloye_library.gd, scrapbook_ui.gd (1 line), HANDOFF.md (library books)
 - [ebain] tools/tts_batch.py, godot/scripts/voice_index.gd, VOICE_LINES.md, godot/assets/voices/ (new clone files only), camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd (one Skorn line each)
 - [asar] godot/assets/items/goblin_tooth.png
 
