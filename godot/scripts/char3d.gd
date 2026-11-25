@@ -7,6 +7,7 @@ class_name Char3D
 const DIR := "res://assets/characters3d/%s.glb"
 const BLEND := 0.18
 const RUN_SPEED := 5.2     # flat m/s above which the run clip plays
+const IDLE_GAP := 5.0       # seconds standing still between idle plays
 const IDLE_AFTER := 15.0   # seconds standing still before the idle clip starts (Asar); until then: hold still
 
 # Clip names as Meshy exported them (same for all three).
@@ -136,7 +137,7 @@ func set_down(on: bool, instant := false) -> void:
 		anim.seek(0.0, true)
 		anim.speed_scale = 1.0
 
-# Standing: blend into the idle clip's first pose and hold it still; after IDLE_AFTER seconds let it play.
+# Standing: blend into the idle clip's first pose and hold it still; after IDLE_AFTER seconds play it once every IDLE_GAP seconds.
 func _stand(t: float) -> void:
 	if not clips.has("idle"):
 		return
@@ -144,10 +145,14 @@ func _stand(t: float) -> void:
 		anim.play(clips["idle"], BLEND)
 		anim.seek(0.0, true)
 		anim.speed_scale = 1.0
-	if t >= IDLE_AFTER:
-		anim.speed_scale = 1.0
-	elif t > BLEND:
+	if t > BLEND:
 		anim.speed_scale = 0.0   # blend from walking is done: freeze on the standing pose
+	if t >= IDLE_AFTER:
+		# Idle plays once, then 5 s standing still, then again (Asar 11/25). The clip starts and ends on the
+		# standing pose, so the pauses don't pop.
+		var length := anim.get_animation(clips["idle"]).length
+		var k := fmod(t - IDLE_AFTER, length + IDLE_GAP)
+		anim.seek(k if k < length else 0.0, true)
 
 # The billboards get lit by level.light_at() (campfire, moon, torches) instead of real lights, and night
 # scenes are tuned for that. Unit passes that colour in night areas as a soft glow of the model's own
