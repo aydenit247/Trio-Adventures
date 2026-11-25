@@ -174,7 +174,7 @@ def cmd_gen(a):
             meta = out / who / (dst.stem + ".json")
             meta.write_text(json.dumps({"who": who, "line": x["line"], "engine": a.engine}, ensure_ascii=False), encoding="utf-8")
             done += 1
-            print(f"   ok  {dst.name}  ← {x['line']}")
+            print(f"   ok  {dst.name}  <- {x['line']}")
     print(f"{done} WAV(s) in {out}/")
 
 
@@ -196,6 +196,9 @@ def cmd_pack(a):
 
 
 def main():
+    for st in (sys.stdout, sys.stderr):   # Windows consoles default to cp1252; lines have … and emoji
+        try: st.reconfigure(encoding="utf-8", errors="replace")
+        except Exception: pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
     f = sp.add_parser("find"); f.add_argument("--who"); f.add_argument("--include-drafts", action="store_true"); f.add_argument("-o", default="lines.json")
