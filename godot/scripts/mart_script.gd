@@ -15,7 +15,7 @@ const INTRO := [
 
 const ARRIVE := [
 	{ "who": "xylo", "mood": "vision", "line": "There. I can feel it. The metocy is near." },
-	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bro, it's a store. You feel a store?" }] },
+	{ "if_not": "skornKing", "steps": [{ "who": "skorn", "mood": "confused", "line": "Bruh, it's a store, mud. You feel a store?" }] },   # DRAFT reword of Ebain's line (11/24, he approved)
 	{ "if": "skornKing", "steps": [{ "who": "lykor", "line": "It's weird without Skorn. …Peaceful, but weird." }] },
 ]
 # Dulbers only pops out once you go for the door (Ebain 11/24), not as soon as you walk up the street.

@@ -24,7 +24,7 @@ const INTRO := [
 const MATTIAS := [
 	{ "do": "mattias_appears" },
 	{ "who": "mattias", "line": "You had called?" }, # Ebain
-	{ "who": "skorn", "mood": "shocked", "line": "Metocin Mattias? What are you doing here?" }, # Ebain
+	{ "who": "skorn", "mood": "shocked", "line": "Metocin Mattias? What yo ahh doing here?" }, # Ebain (11/24 reword)
 	{ "who": "mattias", "line": "My beloved trio. I've came to tell you, you must get past this mountain pass and come find me in order to find your illustrious \"Metocy.\" Do whatever you can to get past." }, # Ebain
 	{ "do": "mattias_vanish" },
 	{ "who": "xylo", "mood": "shocked", "line": "I did not see ts coming. Ts was not in the Deloye Lore scripture." }, # Ebain
