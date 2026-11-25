@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Import Lykor voice clones (5 lines) — files: godot/assets/voices/lykor/ (new clone files), godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/tts-batch2 — started 2026-11-25
-- [asar] Sit more upright on the throne (hold the upright part of the sit clip) — files: godot/scripts/char3d.gd — branch: asar/sit-upright — started 2026-11-25
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -71,6 +70,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
+- 2026-11-25 [asar] char3d.gd idle: after 15 s standing still the idle clip plays once, then 5 s still, then again (`IDLE_GAP`). Tried making the throne sit more upright (holding only the upright start of the sit clip); Asar didn't like it, so the sit is back to the full clip, unchanged. Tested: suite2 29/29, continuity 0, idle timing probed (plays at 15, 24, 33 s).
 - 2026-11-25 [ebain] Voice cloning: added `tools/tts_batch.py` (find/refs/gen/pack, `--only "line"` to redo one) and 6 cloned Skorn lines (ChatterboxTTS 0.7/0.3 + pitch fx) in `voice_index.gd`. Reworded one Skorn line each in camp/pass/mart/summit scripts (cold "mufug", "Wizard jit?", store, Woahhh); "Metocin Mattias" name untouched elsewhere. Mattias/Dulbers/goblin clones NOT imported (not approved). Lykor clones pending. Details in VOICE_LINES.md and TIPS.md.
 - 2026-11-25 [ebain] **Dev menu "Dulbmeethus" toggle merged.** Alt+F1 -> new row: Normal (6.7%) / EVERY FIGHT (turn auto-win off, it skips fights). Hot spots, tiny: **game.gd** one var `dev_dulbmeethus`, **combat/battle_view.gd** one option in the `Battle.new` call, **combat/battle.gd** the `bolt_pending` line reads `o.get("dulbmeethus")`. **Gotcha for everyone:** battle.gd must not name `Game` (the balance sim has no autoloads; my first try broke `sim_combat.gd`), see TIPS. **@asar:** nothing of yours touched. Tested: sim_combat no errors, throwaway check (normal 18/300 fights, toggled 20/20), headless goblins/giant/dulbers.
 - 2026-11-25 [asar] Real sit clip: lykor.glb and skorn.glb re-exported from Meshy with `Chair_Sit_Idle_M` (Char3D CLIPS "sit"; the bent-leg pose stays as a fallback for models without it). village.gd `SIT_ON_THRONE` retuned to (-0.24, 0.31, -0.41): the clip shifts the hips back and right, the seat top is y 0.92. New `godot/assets/props/lore_book.glb` (Meshy open lore book, not used in code yet, kept for Xylo later). Tested: suite2 29/29, continuity 0, throne renders for speech + Skorn king.
