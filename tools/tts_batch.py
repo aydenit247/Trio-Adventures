@@ -305,29 +305,24 @@ def _median_f0(y, sr):
     return float(np.median(f)) if len(f) else 0.0
 
 
-def apply_fx(src, dst, hz, monster, lo=-8.0, hi=0.0):
-    import librosa, numpy as np, soundfile as sf
-    from scipy.signal import butter, sosfilt
+def apply_fx(src, dst, hz, monster, lo=-8.0, hi=0.0, grit=False):
+    """Pitch-match with ffmpeg's Rubber Band (clean, high quality), then the studio's octave-down layer.
+    The studio's waveshaper grit is off by default (Ebain 11/24: "kind of distorted")."""
+    import subprocess, librosa, numpy as np
     y, sr = librosa.load(str(src), sr=None, mono=True)
     f0 = _median_f0(y, sr)
-    st = max(lo, min(hi, 12 * np.log2(hz / f0))) if f0 else 0.0
-    if st:
-        y = librosa.effects.pitch_shift(y, sr=sr, n_steps=st)
-    out = y
-    if monster > 0:
-        k = monster * 0.35 * 60                                   # studio distortionCurve(monster*0.35)
-        main = ((1 + k) * y) / (1 + k * np.abs(y))
-        main = sosfilt(butter(2, 7000 - monster * 3500, "low", fs=sr, output="sos"), main)
-        sub = librosa.effects.pitch_shift(y, sr=sr, n_steps=-12)   # octave down underneath
-        sub = sosfilt(butter(2, 2200, "low", fs=sr, output="sos"), sub) * monster * 0.9
-        mix = (main + sub) / (1 + monster * 0.8)
-        lowband = sosfilt(butter(2, 180, "low", fs=sr, output="sos"), mix)   # ≈ low shelf +6·m dB at 180 Hz
-        out = mix + lowband * (10 ** (monster * 6 / 20) - 1)
-    a = np.abs(out)                                               # studio loudness: rms 0.13, never clip
-    rms = np.sqrt(np.mean(out[a > 0.01] ** 2)) if (a > 0.01).any() else 0
-    if rms > 1e-5:
-        out = out * min(0.13 / rms, 0.98 / max(a.max(), 1e-5))
-    sf.write(str(dst), out.astype(np.float32), sr, subtype="PCM_16")
+    st = float(max(lo, min(hi, 12 * np.log2(hz / f0)))) if f0 else 0.0
+    rb = lambda semis: f"rubberband=pitch={2 ** (semis / 12):.6f}:pitchq=quality:transients=smooth:window=long"
+    m = monster
+    chain = f"[0:a]aformat=channel_layouts=mono,{rb(st)},asplit=2[v][s];"
+    chain += f"[s]{rb(-12)},lowpass=f=2200,volume={m * 0.9:.3f}[sub];" if m > 0 else "[s]anullsink;"
+    main = f"[v]lowpass=f={7000 - m * 3500:.0f}" + (f",asoftclip=type=tanh:param={1 + m * 4:.2f}" if grit else "") + "[main];"
+    chain += main
+    chain += (f"[main][sub]amix=inputs=2:normalize=0,volume={1 / (1 + m * 0.8):.3f},"
+              f"lowshelf=f=180:g={m * 6:.2f}[mx];" if m > 0 else "[main]anull[mx];")
+    chain += "[mx]loudnorm=I=-18:TP=-1.5:LRA=11[o]"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-filter_complex", chain,
+                    "-map", "[o]", "-ar", str(sr), "-c:a", "pcm_s16le", str(dst)], check=True)
     return f0, st
 
 
