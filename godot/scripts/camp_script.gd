@@ -108,7 +108,7 @@ const OBJECTS := {
 	],
 	"map": [
 		{ "who": "skorn", "thought": true, "line": "Bunch of squiggly ass lines." }, # DRAFT (from web Scene 1)
-		{ "who": "lykor", "mood": "shocked", "line": "Why does that look like… nah. Nah." }, # DRAFT
+		{ "who": "lykor", "mood": "shocked", "line": "Dumbass Skorn burning our only map to the metocy, fuck you Skorn, you on some bullshit, I put that on the set." }, # Ebain (11/25 reword; he wrote "meh toe see")
 	],
 	"bag": [
 		{ "choice": [
@@ -122,9 +122,9 @@ const OBJECTS := {
 		] },
 	],
 	"tent": [
-		{ "who": "skorn", "line": "I'm not tired. I'm finna stay up and guard the fire." }, # DRAFT
+		{ "who": "skorn", "line": "I'm not tired. I'm finna stay up and guard the fire." }, # DRAFT (Ebain approved voicing 11/25)
 		{ "who": "xylo", "mood": "unimpressed", "line": "Guard it from what." }, # DRAFT
-		{ "who": "skorn", "mood": "angry", "line": "From… other fires." }, # DRAFT
+		{ "who": "skorn", "mood": "angry", "line": "From… other fires." }, # DRAFT (Ebain approved voicing 11/25)
 	],
 	"goblin": [
 		{ "who": "goblin", "line": "Ayo. Y'all hiring?" }, # DRAFT
@@ -143,9 +143,9 @@ const OBJECTS := {
 # ---------------- Bedtime → the next morning (Asar 11/22) ----------------
 # After the fire, the tents say "Sleep in". Skorn swears he'll stay up; Lykor and Xylo turn in; morning comes.
 const SLEEP := [
-	{ "who": "skorn", "line": "I'm not tired. I'm finna stay up and guard the fire." }, # DRAFT
+	{ "who": "skorn", "line": "I'm not tired. I'm finna stay up and guard the fire." }, # DRAFT (Ebain approved voicing 11/25)
 	{ "who": "xylo", "mood": "unimpressed", "line": "Guard it from what." }, # DRAFT
-	{ "who": "skorn", "mood": "angry", "line": "From… other fires." }, # DRAFT
+	{ "who": "skorn", "mood": "angry", "line": "From… other fires." }, # DRAFT (Ebain approved voicing 11/25)
 	{ "do": "go_to_sleep" },
 ]
 # Trying to walk out of camp at night, before sleeping

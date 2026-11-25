@@ -51,7 +51,7 @@ only Skorn's clones are in the game: the Mattias, Dulbers and goblin test clones
 Reworded to fit his voice: "Man, it's about cold as a mufug." · "Wizard jit? What are you doing here?" (camp + Pass; this
 replaces only that spoken line, **Metocin Mattias's name is unchanged everywhere else**) · "Bruh, it's a store, mud. You
 feel a store?" · "Woahhh.. on God, I think we made it boys" · "Are all of these books Deloye lore scripture?" · "Damn bro,
-you ain't gonna make it, sad in de bih". Redo one line: `python3 tools/tts_batch.py gen ... --only "line text"`.
+you ain't gonna make it, sad in de bih". Also cloned 11/25: "I'm not tired. I'm finna stay up and guard the fire." and "From… other fires." (camp; "From… other fires" was pitched -5 st by hand because pitch detection failed on it). **Lykor** has 6 clones (ChatterboxTTS, no pitch fx), including his reworded camp line "Dumbass Skorn burning our only map to the metocy, fuck you Skorn, you on some bullshit, I put that on the set." (it replaces Asar's "Why does that look like… nah" take). Redo one line: `python3 tools/tts_batch.py gen ... --only "line text"`.
 
 ## Skorn lines still on the robot voice (checked 2026-11-22, Asar)
 These have no generated file yet, so they fall back to TTS. Generate + approve them in the studio and re-import:

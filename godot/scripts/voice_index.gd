@@ -29,6 +29,7 @@ const LINES := {
 	"yayyouareallowedtomogthathardrightcooldudethatsfuckingfair": "goblin/goblin_yay_you_are_allowed_to_mog_that_hard_rig.ogg",  # Yay.. you are allowed to mog that hard, right? Cool dude, that's fucking fair.
 	"betherewegofolk": "lykor/lykor_clone_bet_here_we_go_folk.ogg",  # Bet. Here we go, folk
 	"deadahh": "lykor/lykor_clone_deadahh.ogg",  # Deadahh.
+	"dumbassskornburningouronlymaptothemetocyfuckyouskornyouonsomebullshitiputthatontheset": "lykor/lykor_clone_dumbass_skorn_burning_our_only_map_to_the_metocy.ogg",  # Dumbass Skorn burning our only map to the metocy, fuck you Skorn, you on some bullshit, I put that on the set.
 	"itsgoodfolkletstakealookaround": "lykor/lykor_clone_it_s_good_folk_let_s_take_a_look_around.ogg",  # It's good folk, let's take a look around.
 	"shlooksfolk": "lykor/lykor_clone_shlooks_folk.ogg",  # Shlooks folk.
 	"whatthefuckfolktsismassivelikethelowtaperfadememe": "lykor/lykor_clone_what_the_fuck_folk_t_s_is_massive_like_the_low_t.ogg",  # What the fuck folk? T S is massive like the low taper fade meme
@@ -56,6 +57,8 @@ const LINES := {
 	"areallofthesebooksdeloyelorescripture": "skorn/skorn_clone_are_all_of_these_books_deloye_lore_scripture.ogg",  # Are all of these books Deloye Lore scripture?
 	"bruhitsastoremudyoufeelastore": "skorn/skorn_clone_bruh_it_s_a_store_mud_you_feel_a_store.ogg",  # Bruh, it's a store, mud. You feel a store?
 	"damnbroyouaintgonnamakeitsadindebih": "skorn/skorn_clone_damn_bro_you_ain_t_gonna_make_it_sad_in_de_bih.ogg",  # Damn bro, you ain't gonna make it sad in de bih
+	"fromotherfires": "skorn/skorn_clone_from_other_fires.ogg",  # From… other fires.
+	"imnottiredimfinnastayupandguardthefire": "skorn/skorn_clone_i_m_not_tired_i_m_finna_stay_up_and_guard_the_fi.ogg",  # I'm not tired. I'm finna stay up and guard the fire.
 	"manitsaboutcoldasamufug": "skorn/skorn_clone_man_it_s_about_cold_as_a_mufug.ogg",  # Man, it's about cold as a mufug.
 	"wizardjitwhatareyoudoinghere": "skorn/skorn_clone_wizard_jit_what_are_you_doing_here.ogg",  # Wizard jit? What are you doing here?
 	"woahhhongodithinkwemadeitboys": "skorn/skorn_clone_woahhh_on_god_i_think_we_made_it_boys.ogg",  # Woahhh.. on God, I think we made it boys
