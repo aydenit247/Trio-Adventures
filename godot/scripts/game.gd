@@ -33,6 +33,7 @@ var quests := {}                  # id -> { title, note, state = "active" | "don
 var dev_dialogue := "normal"      # see DevMode.MODES
 var dev_pick := 1                 # which choice "Skip all" picks
 var dev_autowin := false          # fights are skipped and count as won
+var dev_dulbmeethus := false      # Dulbmeethus' lightning (and his cutscene) happens in every fight
 
 # settings
 var difficulty := 1               # 0 Chill · 1 Normal · 2 Crashout

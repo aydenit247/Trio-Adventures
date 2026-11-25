@@ -93,7 +93,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	b = BattleT.new(key, {
 		"party": ids, "mods": o.get("mods", {}), "level": Game.level, "inv": Game.fight_bags(ids),
 		"difficulty": Game.difficulty, "used67": Game.used67, "gear": gear, "hurt": Game.hurt,
-		"faded": int(Game.flags.get("fadedFights", 0)) > 0, "lore_nerf": Game.flag("deloyeBad"),   # the Deloye library
+		"faded": int(Game.flags.get("fadedFights", 0)) > 0, "lore_nerf": Game.flag("deloyeBad"), "dulbmeethus": Game.dev_dulbmeethus,   # the Deloye library
 	})
 	if auto_play and OS.get_environment("AUTO_LOSE") != "":
 		for p in b.party:

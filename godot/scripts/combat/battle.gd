@@ -122,7 +122,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		enemies[i]["next"] = delay(enemies[i]) * (0.7 + i * 0.12)
 	# Dulbmeethus' lightning (Ebain 11/24): 6.7% of fights (11/25), he pulls up on the first enemy turn and smites their side.
 	# BOLT=1 forces it (tests).
-	bolt_pending = rnd() < BOLT_CHANCE or OS.get_environment("BOLT") != ""
+	bolt_pending = rnd() < BOLT_CHANCE or OS.get_environment("BOLT") != "" or o.get("dulbmeethus", false)   # o.dulbmeethus: the dev menu toggle (Game.dev_dulbmeethus)
 
 # ------------------------------------------------------------------ helpers
 func delay(u: Dictionary) -> float:

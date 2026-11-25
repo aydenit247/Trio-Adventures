@@ -117,7 +117,7 @@ func open(level: Node) -> void:
 	panel.add_child(col)
 	col.add_child(lv._label("DEVELOPER MODE", Vector2.ZERO, 30, Color("#7dff8a"), 6))
 	col.add_child(lv._label("For testing. W/S choose · A/D change · E do it · F1 or Esc close", Vector2.ZERO, 14, Color(1, 1, 1, 0.6), 3))
-	for i in 9:
+	for i in 10:
 		var l: Label = lv._label("", Vector2.ZERO, 20, Color.WHITE, 4)
 		col.add_child(l)
 		rows.append(l)
@@ -145,6 +145,7 @@ func _render() -> void:
 		"Dialogue viewer (read every line of a scene)  [E]",
 		"Jump to scene:  < %s >  [E]" % SCENES[scene_i][0],
 		"Fights:  < %s >" % ("AUTO-WIN (skip fights)" if Game.dev_autowin else "Normal"),
+		"Dulbmeethus:  < %s >" % ("EVERY FIGHT (turn auto-win off)" if Game.dev_dulbmeethus else "Normal (6.7%)"),
 		"+100 XP  [E]   (now Level %d, %d XP)" % [Game.level, Game.xp],
 		"Give items: +3 Beezy, +2 Chipotle Bowls  [E]",
 		"Give all gear + flags hasMidtocy / goblinAllies  [E]",
@@ -161,32 +162,33 @@ func _change(d: int) -> void:
 		1: Game.dev_pick = clampi(Game.dev_pick + d, 1, 5)
 		3: scene_i = (scene_i + d + SCENES.size()) % SCENES.size()
 		4: Game.dev_autowin = not Game.dev_autowin
+		5: Game.dev_dulbmeethus = not Game.dev_dulbmeethus
 	_render()
 
 func _do() -> void:
 	lv.ui_sfx.play()
 	match sel:
-		0, 1, 4: _change(1)
+		0, 1, 4, 5: _change(1)
 		2: _open_viewer()
 		3:
 			close()
 			Game.goto(SCENES[scene_i][1])
-		5:
+		6:
 			var ups: Array = Game.add_xp(100)
 			if not ups.is_empty():
 				lv.show_toast("(dev) Level %d" % Game.level)
 			_render()
-		6:
+		7:
 			Game.add_item("beer", 3)
 			Game.add_item("bowl", 2)
 			lv.show_toast("(dev) %s got Beezy ×3 · Bowl ×2 (now %d · %d)" % [Game.active_fighter.capitalize(), Game.count("beer", Game.active_fighter), Game.count("bowl", Game.active_fighter)])
-		7:
+		8:
 			for g in CombatData.GEAR.keys():
 				Game.give_gear(g)
 			Game.set_flag("hasMidtocy")
 			Game.set_flag("goblinAllies")
 			lv.show_toast("(dev) All gear found (equip with I) · hasMidtocy · goblinAllies")
-		8: close()
+		9: close()
 
 func close() -> void:
 	if is_instance_valid(root):

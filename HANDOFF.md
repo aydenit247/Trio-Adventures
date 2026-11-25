@@ -282,9 +282,9 @@ New dialogue script or level file → add it to `SCENES` in `tools/dialogue_map/
   with option #`Skip-all pick`) · `only:skorn|lykor|xylo|goblins|dulbers|mattias_giant|narrator` (only that speaker's lines)
 - open the **dialogue viewer**: read every line of a scene's script without playing it, filtered by speaker
   (A/D switch script, W/S scroll, Q back)
-- **jump to a scene**, set **fights auto-win**, and use cheats (+100 XP, +items, all gear, story flags)
+- **jump to a scene**, set **fights auto-win**, force **Dulbmeethus every fight** (his strike + cutscene on the first enemy turn; turn auto-win off or the fight is skipped), and use cheats (+100 XP, +items, all gear, story flags)
 It works by routing `run_dialogue()` in level.gd through `DevMode.run()`, so dialogue.gd is untouched. Settings live
-in `Game.dev_dialogue`, `Game.dev_pick` and `Game.dev_autowin`. Nested dialogue (village rooms) uses `lv.run_nested(steps)`.
+in `Game.dev_dialogue`, `Game.dev_pick`, `Game.dev_autowin` and `Game.dev_dulbmeethus` (passed into the fight as the `dulbmeethus` option). Nested dialogue (village rooms) uses `lv.run_nested(steps)`.
 
 Balance sim for combat: `godot --headless --path godot --script res://tools/sim_combat.gd`.
 
