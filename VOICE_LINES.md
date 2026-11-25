@@ -42,6 +42,17 @@ Same deal as the narrator: 71 Lykor + 40 Xylo mp3s in `godot/assets/voices/lykor
 and Ebain reworded in the recordings were changed in the scripts to match (see the COLLAB log, 2026-11-22). Adding or
 rewording a Lykor or Xylo line means it needs a new recording, or it plays on the robot voice.
 
+## Cloned Skorn lines (Ebain's PC, 2026-11-25)
+6 Skorn lines are voice-cloned with **Ultimate TTS Studio** (ChatterboxTTS, Exaggeration 0.7, CFG 0.3) using
+`tools/tts_batch.py` (`find` → `refs` → `gen` → `pack` → `tools/import_voices.py`). Each take uses reference audio built
+from Skorn's existing takes closest in wording and mood, then `pack` lowers the pitch to Skorn's ~90 Hz (Rubber Band,
+capped at -5 semitones, plus a quiet octave-down layer). Only Ebain-tagged lines are cloned (DRAFT lines are skipped), and
+only Skorn's clones are in the game: the Mattias, Dulbers and goblin test clones are not approved, so they aren't imported.
+Reworded to fit his voice: "Man, it's about cold as a mufug." · "Wizard jit? What are you doing here?" (camp + Pass; this
+replaces only that spoken line, **Metocin Mattias's name is unchanged everywhere else**) · "Bruh, it's a store, mud. You
+feel a store?" · "Woahhh.. on God, I think we made it boys" · "Are all of these books Deloye lore scripture?" · "Damn bro,
+you ain't gonna make it, sad in de bih". Redo one line: `python3 tools/tts_batch.py gen ... --only "line text"`.
+
 ## Skorn lines still on the robot voice (checked 2026-11-22, Asar)
 These have no generated file yet, so they fall back to TTS. Generate + approve them in the studio and re-import:
 - camp: "Man, it's about cold as a motherfucker." · "Good thing I got the fire going though." · "Bunch of squiggly ass lines." ·
