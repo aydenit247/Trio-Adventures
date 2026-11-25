@@ -48,6 +48,12 @@ const LINES := {
 	"broreallyjustkickedusoutofastore": "skorn/skorn_bro_really_just_kicked_us_out_of_a_store.ogg",  # Bro really just kicked us out of a store.
 	"bunchofsquigglyasslinesyeahthatsfirestarter": "skorn/skorn_bunch_of_squiggly_ass_lines_yeah_that_s.ogg",  # Bunch of squiggly ass lines. Yeah, that's fire starter.
 	"cantstartafirewithnothingneedsomefirestarter": "skorn/skorn_can_t_start_a_fire_with_nothing_need_som.ogg",  # Can't start a fire with nothing. Need some fire starter.
+	"areallofthesebooksdeloyelorescripture": "skorn/skorn_clone_are_all_of_these_books_deloye_lore_scripture.ogg",  # Are all of these books Deloye Lore scripture?
+	"bruhitsastoremudyoufeelastore": "skorn/skorn_clone_bruh_it_s_a_store_mud_you_feel_a_store.ogg",  # Bruh, it's a store, mud. You feel a store?
+	"damnbroyouaintgonnamakeitsadindebih": "skorn/skorn_clone_damn_bro_you_ain_t_gonna_make_it_sad_in_de_bih.ogg",  # Damn bro, you ain't gonna make it sad in de bih
+	"manitsaboutcoldasamufug": "skorn/skorn_clone_man_it_s_about_cold_as_a_mufug.ogg",  # Man, it's about cold as a mufug.
+	"wizardjitwhatareyoudoinghere": "skorn/skorn_clone_wizard_jit_what_are_you_doing_here.ogg",  # Wizard jit? What are you doing here?
+	"woahhhongodithinkwemadeitboys": "skorn/skorn_clone_woahhh_on_god_i_think_we_made_it_boys.ogg",  # Woahhh.. on God, I think we made it boys
 	"diddyslapsupremacy": "skorn/skorn_diddy_slap_supremacy.ogg",  # Diddy slap supremacy.
 	"doitlooklikewegotalight": "skorn/skorn_do_it_look_like_we_got_a_light.ogg",  # Do it LOOK like we got a light?
 	"dontjudgeme": "skorn/skorn_don_t_judge_me.ogg",  # Don't judge me.

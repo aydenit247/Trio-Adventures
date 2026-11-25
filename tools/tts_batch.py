@@ -29,9 +29,10 @@ Steps, one file:
      Pitches each clone down to the character's studio pitch and adds the studio's "monster" layer (FX table),
      so clones sit next to the Emberstage takes. Pack out_fx instead of out afterwards.
 
-  3. pack  (anywhere)
-       python3 tools/tts_batch.py pack out -o clones.zip
-     Zips out/ in the import_voices.py format (manifest.json: who, line, file, effects). Then
+  3. pack  (anywhere with ffmpeg + librosa for the fx)
+       python3 tools/tts_batch.py pack out -o clones.zip [--who skorn] [--no-fx]
+     Zips out/ in the import_voices.py format (manifest.json: who, line, file, effects). Skorn's pitch drop (the FX
+     table) is applied automatically while packing, so no separate fx step is needed. Then
        python3 tools/import_voices.py clones.zip
      (or upload the zip to voice-imports/ on GitHub).
 
@@ -232,7 +233,7 @@ def cmd_refs(a):
 # Same respellings the Emberstage studio uses (Voice-actor-generation src/data/trio/cast.ts PRONUNCIATIONS), applied to
 # the text sent to the TTS ONLY. File names, lines.json and the manifest keep the real line, so the game still matches it.
 PRONUNCIATIONS = {
-    "Lykor": "Lie-kor", "Xylo": "Zy-lo", "Caelid": "Kay-lid", "Dulbers": "Dull-burrs",
+    "Lykor": "Lie-core", "Xylo": "Zy-lo", "Caelid": "Kay-lid", "Dulbers": "Dull-burrs",
     "Deloye": "Duh-loy", "Bogdrinker": "Bog-drinker",   # Deloye = da-loy (Ebain). No Metocin/Mattias respelling: Ebain found it silly
     "metocy": "meh-toe-see", "midtocy": "mid-toe-see", "beezy": "bee-zee",
     "aight": "ite", "looksmaxxin": "looks-maxin", "deadahh": "dead-ahh", "allat": "all-at", "OD": "oh-dee",
@@ -372,16 +373,28 @@ def cmd_fx(a):
 
 # ---------------------------------------------------------------- pack
 def cmd_pack(a):
+    """Zip out/<who>/*.wav + manifest.json for import_voices.py. Characters in the FX table (Skorn) get their pitch
+    drop + layer applied automatically here (--no-fx to skip), so it can't be forgotten. --who limits the characters."""
+    import tempfile
     out = pathlib.Path(a.out)
+    want = set(a.who.split(",")) if a.who else None
     manifest = []
-    with zipfile.ZipFile(a.o, "w", zipfile.ZIP_DEFLATED) as z:
+    with tempfile.TemporaryDirectory() as tmp, zipfile.ZipFile(a.o, "w", zipfile.ZIP_DEFLATED) as z:
         for meta in sorted(out.glob("*/*.json")):
             wav = meta.with_suffix(".wav")
             if not wav.exists():
                 continue
             m = json.loads(meta.read_text(encoding="utf-8"))
+            if want and m["who"] not in want:
+                continue
+            src = wav
+            cfg = FX.get(m["who"])
+            if cfg and not a.no_fx:
+                src = pathlib.Path(tmp) / f"{m['who']}_{len(manifest)}.wav"
+                f0, st = apply_fx(wav, src, cfg.get("hz", 0), cfg["monster"], lo=cfg.get("lo", -8.0), fixed=cfg.get("st"))
+                print(f"  fx {m['who']}: {f0:.0f} Hz → {st:+.1f} st  {wav.stem}")
             name = f"{m['who']}/{m['who']}_clone_{slug(m['line'])}.wav"   # in-game file: plain slug, no spaces/quotes
-            z.write(wav, name)
+            z.write(src, name)
             manifest.append({"who": m["who"], "line": m["line"], "file": name, "effects": []})
         z.writestr("manifest.json", json.dumps(manifest, indent=1, ensure_ascii=False))
     print(f"{len(manifest)} lines → {a.o}. Next: python3 tools/import_voices.py {a.o}")
@@ -405,6 +418,7 @@ def main():
     x = sp.add_parser("fx"); x.add_argument("out"); x.add_argument("--dest", default="out_fx"); x.add_argument("--who")
     x.add_argument("--hz", type=float); x.add_argument("--monster", type=float); x.add_argument("--st", type=float, help="fixed semitone shift")
     p = sp.add_parser("pack"); p.add_argument("out"); p.add_argument("-o", default="clones.zip")
+    p.add_argument("--who"); p.add_argument("--no-fx", action="store_true", help="don't auto-apply the FX table (Skorn pitch drop)")
     a = ap.parse_args()
     {"find": cmd_find, "refs": cmd_refs, "gen": cmd_gen, "fx": cmd_fx, "pack": cmd_pack}[a.cmd](a)
 
