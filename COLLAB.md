@@ -11,6 +11,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md, 4 Skorn lines reworded in camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd — branch: ebain/tts-batch — started 2026-11-24
+- [ebain] Dulbmeethus: 6.7% chance per fight + Ebain's bolt/impact/scorch art on the strike's hits — files: godot/scripts/combat/battle.gd (the BOLT_CHANCE constant + its comment only), godot/scripts/combat/battle_view.gd (the `lightning` event + new bolt-art helpers), godot/scripts/combat/combat_data.gd (one comment), godot/assets/vfx/ (new) — branch: ebain/dulbmeethus-vfx — started 2026-11-25
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
