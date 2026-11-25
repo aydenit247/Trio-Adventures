@@ -329,3 +329,9 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] `tools/sim_combat.gd` was broken (read `b.inv`, now per-fighter `b.item_count()`); fixed. `SIM_ONLY=a,b` runs just those fights.
 - [ebain] Story fights can't be lost, so **never use `AUTO_LOSE=1` on a tour that passes a story fight** without `lose_ends`:
   it retries forever.
+- [asar] **3D trio (Char3D)**: the billboard sprite still exists, just hidden while walking. Anything that should show
+  the 2D art (fights, cutscene poses) gets it automatically via `set_pose` / meta `in_fight`; don't hide `u.sprite`
+  yourself. New 3D character = drop `assets/characters3d/<id>.glb` with clips named `Idle`, `Walking`, `Running`.
+- [asar] **Meshy**: rig from a T-pose or arms-out picture (hands touching a coat glue the coat to the arms); Meshy's
+  clip names can have typos (Xylo's blast came out `mage_soell_cast_3`); its built-in-browser downloads don't save to
+  disk, so get the signed `asset-url` link and have your person open it in their own browser.

@@ -298,7 +298,8 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/keybinds.gd` | **Keybinds** (Settings → Controls): rebind each action's main keyboard key (swaps on clash, Space/Enter always work for interact). Saved in settings.cfg `[keys]`, applied by Game before any level's `_setup_input()`. `ACTIONS` defaults must match level.gd |
 | `scripts/game.gd` | **Game** autoload: story `flags`, per-character `bags`, XP/level, gear, HP between fights (`hurt`, `hp()`, `heal()`), `quests`; `goto(scene)` (shows a loading card with a joke tip); **settings** (saved in `user://settings.cfg`; F11/Alt+Enter fullscreen); **saves** (`user://saves/<auto/1/2/3>.sav`: `save_game`, `load_game`, `latest_slot`, `new_game`) |
 | `scripts/level.gd` | **Level** base class every area extends: environment (night/day/lava), ground shader, `card()`, `backdrop()`, party + NPCs (`spawn_npc`, `add_to_party`, `walk_to`, `hop`, `knock`), camera (`cam_locked`, `zoom`, `cam_height`, `cam_look_h`, `focus_override`), interactions, `run_dialogue()`, HUD (`objective`, `show_toast`, `char_label`), `fight()`, roaming enemies (`spawn_roamers`), the defeat penalty, Esc pause menu, Tab inventory (`open_party_menu()` → InventoryUI), `item_icon(id)`, test helpers. Hooks: `_configure`, `_build_level`, `_after_build`, `_begin`, `_level_interactables`, `_on_action`, `_level_process`, `_shot_tour` |
-| `scripts/unit.gd` | **Unit**: a character (CharacterBody3D + billboard Sprite3D), views, `set_pose`, `restore_views` |
+| `scripts/unit.gd` | **Unit**: a character (CharacterBody3D + billboard Sprite3D), views, `set_pose`, `restore_views`; the trio also get a `body3d` (Char3D) for walking |
+| `scripts/char3d.gd` | **Char3D**: the trio's rigged 3D bodies (Meshy GLBs in `assets/characters3d/`), idle/walk/run only |
 | `scripts/dialogue.gd` | **Dialogue** box + TTS. Steps: `{who, mood, line, thought, name?, portrait?}`, `{do: "action"}` → `_on_action`, `{choice: [{text, if?, steps}]}`, `{if: flag, steps}`, `{if_not: flag, steps}`. `CHARS` = speakers, voices, pronunciation fixes. Voices: recordings play instantly; the robot TTS is never interrupted (Windows deadlock), so it reads one sentence at a time from `_tts_queue` and the newest line waits for the current sentence (skipping never mutes the next line). Test: `res://tools/test_skip_voice.tscn` |
 | `scripts/crash_reporter.gd` | **CrashReporter** (started by Game): freeze watchdog thread (12 s without a frame), crash/force-close detection on next launch (session marker), `OS.add_logger` catches every error. Writes Markdown reports to `Crash Reports/` next to the exe (user:// in the editor). `CrashReporter.note("...")` adds a breadcrumb. Repo folder `Crash Reports/` collects them |
 | `scripts/inventory_ui.gd` | **InventoryUI** (Tab): Deloye Lore parchment window over the blurred game. Fighter + 7 gear slots, **that fighter's own bag** (right-click → View / Give to another character) (`_bag_items()`: Beezy/Bowl, unequipped gear, key items), gold, quests page (J). Q = next fighter. Own grid input (MenuUI is list-only) but it joins `MenuUI.stack` |
@@ -387,6 +388,17 @@ as a 4th fighter, `CombatD.PARTY["mattias"]`), `mattias` (the sucker-punch boss;
 balance with `SIM_ONLY=mattias godot --headless --path godot --script res://tools/sim_combat.gd`). `fight(key, { lose_ends
 = true })` makes a loss return "lose" instead of the penalty + retry. Enemies show **HP x/x** in the top-right panel and a
 small red bar over their heads (Asar 11/23, `battle_view.gd _head_bar/_place_head_bars`, hidden during close-up cams).
+
+### 3D trio for walking (Asar 11/24)
+Skorn, Lykor and Xylo walk around as rigged 3D models (`assets/characters3d/<id>.glb`, made in Meshy from the
+arms-out references in `art_refs/3d/`, Mixamo skeleton). `Char3D` plays the GLB's `Idle` / `Walking` / `Running`
+clips matched to speed and turns toward movement. **Fights and posed moments stay 2D** (Asar's call): `Unit._sync_body`
+shows the billboard again when the unit has meta `in_fight` (battle_view sets it in `_intro`, clears it in `_outro`),
+when a pose picture is up (`views.front != base_tex`), or when knocked over. Everything else that pokes `u.sprite`
+still works: the sprite is just hidden while the 3D body shows; hops (`sprite.position.y`) and squash are mirrored.
+Night areas (`level.night`) give the models a soft glow of the `light_at` colour (`Char3D.FILL`) since the billboards
+are lit that way, not by real lights. The GLBs also hold the combat clips we made (not used now). No GLB for an id =
+plain billboard as before, so NPCs are untouched.
 
 ### Polish (Asar 11/22)
 Village names are wooden signs (`Level.wood_sign`, art goes in `assets/signs/`, list in ASSETS_NEEDED.md). Esc ends optional
