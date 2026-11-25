@@ -294,6 +294,7 @@ def cmd_gen(a):
 # the studio takes. Pitch is matched per line to the character's existing takes (median voice pitch).
 FX = {   # who → target median pitch (Hz) of their studio/real takes, studio monster amount
     "skorn": {"hz": 90, "monster": 0.15},
+    "mattias": {"st": -3, "monster": 0},   # Ebain 11/24: clones good, just deeper (fixed shift, his takes are ~240 Hz)
 }
 
 
@@ -305,13 +306,13 @@ def _median_f0(y, sr):
     return float(np.median(f)) if len(f) else 0.0
 
 
-def apply_fx(src, dst, hz, monster, lo=-8.0, hi=0.0, grit=False):
+def apply_fx(src, dst, hz, monster, lo=-8.0, hi=0.0, grit=False, fixed=None):
     """Pitch-match with ffmpeg's Rubber Band (clean, high quality), then the studio's octave-down layer.
     The studio's waveshaper grit is off by default (Ebain 11/24: "kind of distorted")."""
     import subprocess, librosa, numpy as np
     y, sr = librosa.load(str(src), sr=None, mono=True)
     f0 = _median_f0(y, sr)
-    st = float(max(lo, min(hi, 12 * np.log2(hz / f0)))) if f0 else 0.0
+    st = float(fixed) if fixed is not None else (float(max(lo, min(hi, 12 * np.log2(hz / f0)))) if f0 else 0.0)
     rb = lambda semis: f"rubberband=pitch={2 ** (semis / 12):.6f}:pitchq=quality:transients=smooth:window=long"
     m = monster
     chain = f"[0:a]aformat=channel_layouts=mono,{rb(st)},asplit=2[v][s];"
@@ -332,10 +333,10 @@ def cmd_fx(a):
     for who, cfg in FX.items():
         if a.who and who not in a.who.split(","):
             continue
-        hz = a.hz or cfg["hz"]; monster = cfg["monster"] if a.monster is None else a.monster
+        hz = a.hz or cfg.get("hz", 0); fixed = a.st if a.st is not None else cfg.get("st"); monster = cfg["monster"] if a.monster is None else a.monster
         for wav in sorted((src / who).glob("*.wav")):
             (dest / who).mkdir(parents=True, exist_ok=True)
-            f0, st = apply_fx(wav, dest / who / wav.name, hz, monster)
+            f0, st = apply_fx(wav, dest / who / wav.name, hz, monster, fixed=fixed)
             meta = wav.with_suffix(".json")
             if meta.exists():
                 shutil.copyfile(meta, dest / who / meta.name)
@@ -373,7 +374,7 @@ def main():
     g.add_argument("--one-ref", action="store_true", help="ignore per-line refs, use refs/<who>.mp3|wav for every line")
     r = sp.add_parser("refs"); r.add_argument("lines"); r.add_argument("--out", default="refs"); r.add_argument("--min-seconds", type=float, default=6.0)
     x = sp.add_parser("fx"); x.add_argument("out"); x.add_argument("--dest", default="out_fx"); x.add_argument("--who")
-    x.add_argument("--hz", type=float); x.add_argument("--monster", type=float)
+    x.add_argument("--hz", type=float); x.add_argument("--monster", type=float); x.add_argument("--st", type=float, help="fixed semitone shift")
     p = sp.add_parser("pack"); p.add_argument("out"); p.add_argument("-o", default="clones.zip")
     a = ap.parse_args()
     {"find": cmd_find, "refs": cmd_refs, "gen": cmd_gen, "fx": cmd_fx, "pack": cmd_pack}[a.cmd](a)
