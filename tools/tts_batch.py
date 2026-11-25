@@ -275,6 +275,8 @@ def cmd_gen(a):
                        ref_param: handle_file(str(use))})
             if a.exaggeration is not None and prefix.startswith("chatterbox"):
                 kw[prefix + "exaggeration"] = a.exaggeration
+            if a.cfg is not None and prefix.startswith("chatterbox"):
+                kw[prefix + "cfg_weight"] = a.cfg            # lower = follows the voice sample's delivery more
             if a.seed is not None and prefix.startswith("chatterbox"):
                 kw[prefix + "seed"] = a.seed
             try:
@@ -375,7 +377,7 @@ def main():
     g = sp.add_parser("gen"); g.add_argument("lines"); g.add_argument("--refs", default="refs"); g.add_argument("--out", default="out")
     g.add_argument("--url", default="http://127.0.0.1:7860"); g.add_argument("--engine", default="Chatterbox Turbo")
     g.add_argument("--only", action="append"); g.add_argument("--who"); g.add_argument("--test", action="store_true")
-    g.add_argument("--exaggeration", type=float); g.add_argument("--seed", type=float)
+    g.add_argument("--exaggeration", type=float); g.add_argument("--seed", type=float); g.add_argument("--cfg", type=float)
     g.add_argument("--one-ref", action="store_true", help="ignore per-line refs, use refs/<who>.mp3|wav for every line")
     r = sp.add_parser("refs"); r.add_argument("lines"); r.add_argument("--out", default="refs"); r.add_argument("--min-seconds", type=float, default=6.0)
     x = sp.add_parser("fx"); x.add_argument("out"); x.add_argument("--dest", default="out_fx"); x.add_argument("--who")
