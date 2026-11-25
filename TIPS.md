@@ -338,3 +338,4 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] Room clamps next to a wall collider: start correcting only *inside* the wall's reach (e.g. half-width - 0.1), or a 3D body touching the wall gets snapped back every frame and looks stuck.
 - [asar] Dialogue probes as a `--script` SceneTree have no autoloads (Game, UITheme): to screenshot a dialogue line, patch the area's `_shot_tour` locally with a long wait + `shot()` and run it under xvfb.
 - [asar] `get_meta("k", null)` still errors when the meta is missing (a null default counts as "no default"). Use `has_meta` first. And when grepping tour logs for errors, count plain `ERROR:` lines (ignore "resources still in use at exit"), not just SCRIPT ERROR: runtime errors like this one only print as `ERROR:`.
+- [asar] Always clamp a lerp weight built from delta (`clampf(delta * k, 0, 1)`). Unclamped, one slow frame overshoots and it can blow up to infinity.
