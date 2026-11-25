@@ -25,7 +25,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 - **Metocin Mattias:** shows up out of nowhere: "You had called?"
 - **Chief Bogdrinker:** goblin chief, gives out beezy (beer). The goblins are all unemployed.
 - **Diddy Chud Giant:** the boss blocking the Pass. Wakes up with "Aight. Bet."
-- **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?" Sometimes pulls up mid-fight and lightning-strikes the whole enemy side (Ebain 11/24, 3% of fights).
+- **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?" Sometimes pulls up mid-fight and lightning-strikes the whole enemy side (Ebain 11/24; 6.7% of fights since 11/25).
 - **King Nibbsworth III** (Rat King), **Scrounge** (rat trader), **Lil Nibbs** (pet rat): the Rat Cave. All three names
   are Claude DRAFTs (Ebain said "you draft names"), so he may rename them.
 - **Deloye:** wrote Deloye Lore. Floats and twirls in the middle of the secret library, earbuds in, chill, surprised
@@ -410,8 +410,8 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 ### Combat in one paragraph
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
 FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T or the Esc menu), meters → ultimates
-(FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events (+ **Dulbmeethus' lightning**, 3% of fights: "Y'all could hear me doe?" on the first enemy
-turn, then **Ebain's 10 s cutscene** (`assets/video/dulbmeethus_strike.ogv`, full-screen, music ducked, E/Esc skips after 0.6 s, `battle_view.gd _strike_cutscene()`; skipped in headless runs / env `NO_CUTSCENE`) that ends on a white-out which fades into a bolt on every enemy with Ebain's attack clip (`assets/sounds/dulbmeethus_attack.ogg`), regular ones drop, bosses lose 40%; `battle.gd _dulbmeethus_bolt`, `BOLT=1` forces it), banter, XP +
+(FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events (+ **Dulbmeethus' lightning**, 6.7% of fights (`BOLT_CHANCE` in battle.gd): "Y'all could hear me doe?" on the first enemy
+turn, then **Ebain's 10 s cutscene** (`assets/video/dulbmeethus_strike.ogv`, full-screen, music ducked, E/Esc skips after 0.6 s, `battle_view.gd _strike_cutscene()`; skipped in headless runs / env `NO_CUTSCENE`) that ends on a white-out which fades into a bolt on every enemy (Ebain's lightning art in `assets/vfx/`: additive bolt + impact burst + scorch on the ground, `battle_view.gd _bolt_art()`, plain `_bolt()` if the pictures are missing) with Ebain's attack clip (`assets/sounds/dulbmeethus_attack.ogg`), regular ones drop, bosses lose 40%; `battle.gd _dulbmeethus_bolt`, `BOLT=1` forces it), banter, XP +
 levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (flat cut per hit), permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
 roaming fights wake you at the area's `checkpoint`). **Roaming patrols** you beat or talk down stay gone for the run

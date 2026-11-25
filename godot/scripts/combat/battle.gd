@@ -36,7 +36,7 @@ var hype := 0
 var now := 0.0
 var chaos_used := false
 var bolt_pending := false         # Dulbmeethus' lightning this fight (rolled once in _init)
-const BOLT_CHANCE := 0.03
+const BOLT_CHANCE := 0.067        # Ebain 11/25: 6.7% of fights (was 3%)
 const BOLT_BOSS := 0.4            # bosses aren't one-shot: they lose 40% of their max HP
 var emergency_given := false
 var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 0, "perfects": 0 }
@@ -120,7 +120,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		party[i]["next"] = delay(party[i]) * (0.35 + i * 0.02)
 	for i in enemies.size():
 		enemies[i]["next"] = delay(enemies[i]) * (0.7 + i * 0.12)
-	# Dulbmeethus' lightning (Ebain 11/24): 3% of fights, he pulls up on the first enemy turn and smites their side.
+	# Dulbmeethus' lightning (Ebain 11/24): 6.7% of fights (11/25), he pulls up on the first enemy turn and smites their side.
 	# BOLT=1 forces it (tests).
 	bolt_pending = rnd() < BOLT_CHANCE or OS.get_environment("BOLT") != ""
 

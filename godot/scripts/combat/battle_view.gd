@@ -246,6 +246,84 @@ func _bolt(n: Node3D) -> void:
 		mi.queue_free()
 		l.queue_free())
 
+# ---- Ebain's lightning art (11/25): the real pictures for Dulbmeethus' hits. Each enemy gets an additive (glow-only,
+# the black parts add nothing) bolt from the sky, an impact flash and a glowing scorch on the ground that fades slowly.
+# _bolt_art() returns false when the pictures are missing, and the plain bolt above is used instead.
+var _vfx_tex := {}
+
+func _vfx(vname: String) -> Texture2D:
+	if not _vfx_tex.has(vname):
+		var p := "res://assets/vfx/%s.png" % vname
+		_vfx_tex[vname] = load(p) if ResourceLoader.exists(p) else null
+	return _vfx_tex[vname]
+
+# one additive picture in the 3D world: upright and facing the camera, or lying flat on the ground
+func _glow_quad(tex: Texture2D, size: Vector2, pos: Vector3, flat := false) -> MeshInstance3D:
+	var q := QuadMesh.new()
+	q.size = size
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.albedo_texture = tex
+	m.albedo_color = Color(0, 0, 0, 1)
+	if not flat:
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+	var mi := MeshInstance3D.new()
+	mi.mesh = q
+	mi.material_override = m
+	mi.position = pos
+	if flat:
+		mi.rotation_degrees = Vector3(-90, randf_range(0, 360), 0)
+	lv.add_child(mi)
+	return mi
+
+# brightness steps (each held 0.05 s: a flicker), then a fade to black over `tail` seconds, then it removes itself.
+# The tween belongs to the picture itself, so nothing is left behind if the fight scene goes away early.
+func _fade_glow(mi: MeshInstance3D, steps: Array, tail: float) -> void:
+	var m: StandardMaterial3D = mi.material_override
+	var tw := mi.create_tween()
+	for v in steps:
+		tw.tween_property(m, "albedo_color", Color(v, v, v, 1), 0.05)
+	tw.tween_property(m, "albedo_color", Color(0, 0, 0, 1), tail)
+	tw.tween_callback(mi.queue_free)
+
+func _bolt_art(n: Node3D) -> bool:
+	if n == null:
+		return true
+	var tex := _vfx("bolt_%d" % (randi() % 3 + 1))
+	if tex == null:
+		return false
+	var base: Vector3 = n.global_position
+	var cam := get_viewport().get_camera_3d()
+	var toward := Vector3.ZERO
+	if cam != null:   # a little toward the camera, so the glow sits in front of the enemy card
+		toward = ((cam.global_position - base) * Vector3(1, 0, 1)).normalized() * 0.5
+	var h := 11.0   # the bolt's tip lands at the enemy's feet
+	var bolt := _glow_quad(tex, Vector2(h * tex.get_width() / tex.get_height(), h), base + toward + Vector3(0, h * 0.5 - 0.2, 0))
+	_fade_glow(bolt, [2.0, 0.6, 1.8, 0.5, 1.4], 0.45)
+	var burst := _vfx("impact")
+	if burst != null:   # the burst where it lands: pops out as it fades
+		var fl := _glow_quad(burst, Vector2(3.4, 3.4), base + toward + Vector3(0, 0.9, 0))
+		_fade_glow(fl, [1.6, 1.3], 0.5)
+		fl.scale = Vector3(0.4, 0.4, 0.4)
+		fl.create_tween().tween_property(fl, "scale", Vector3(1.5, 1.5, 1.5), 0.55).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	var burn := _vfx("scorch")
+	if burn != null:   # the burn left on the ground, fades over ~3 s
+		var sc := _glow_quad(burn, Vector2(3.6, 3.6 * burn.get_height() / burn.get_width()), Vector3(base.x, base.y + 0.04, base.z), true)
+		_fade_glow(sc, [1.2, 1.0, 0.9, 1.0, 0.8], 3.2)
+	var l := OmniLight3D.new()
+	l.light_color = Color(0.95, 0.6, 1.0)
+	l.light_energy = 8.0
+	l.omni_range = 9.0
+	l.position = base + Vector3(0, 2.0, 0)
+	lv.add_child(l)
+	var lt := l.create_tween()
+	lt.tween_property(l, "light_energy", 0.0, 0.7)
+	lt.tween_callback(l.queue_free)
+	return true
+
 func _tex(n: String) -> Texture2D:
 	var p := "res://assets/characters/%s.png" % n
 	return load(p) if ResourceLoader.exists(p) else null
@@ -1229,7 +1307,9 @@ func _event(ev: Dictionary) -> void:
 			if cover != null:
 				_strike_reveal(cover)
 			for e in ev["us"]:
-				_bolt(_node(e))
+				var eu = _node(e)
+				if not _bolt_art(eu):   # Ebain's lightning pictures; the plain bolt if they're missing
+					_bolt(eu)
 				lv.shake = 1.2
 				await lv.wait(0.12)
 			flash(0.8, Color(1, 1, 1))
