@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Asar's 11/25 batch: throne chair faces front + no sign, beer gone after the throne choice, fight menu no longer cut off, long dialogue lines shrink to fit, no "Don't walk" toast on the Mattias walk, building-wall stuck bug — files: village.gd, village_script.gd (do steps only), combat/battle_view.gd, dialogue.gd, summit.gd, village_buildings.gd — branch: asar/batch-1125 — started 2026-11-25
 - [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md, 4 Skorn lines reworded in camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd — branch: ebain/tts-batch — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
