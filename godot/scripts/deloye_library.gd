@@ -52,6 +52,15 @@ const PIECES := {   # the 3 joint pieces (Ebain 11/25), each on a glowing lecter
 	"lighter": Vector3(14.0, 0, 27.5),    # the Rock Room
 }
 const PIECE_NAMES := { "plant": "the cannabis plant", "papers": "RAW papers", "lighter": "a lighter" }
+const BOOK_SPOTS := {   # readable books (LibraryBooks, BookUI): [where, "stand" = an open book on a stand / "shelf" = glowing spine]
+	"prophecy_three": [Vector3(-3.4, 0, 27.0), "stand"],    # the Grand Stacks, on a stand by itself
+	"on_metocy": [Vector3(-27.6, 0, 36.0), "stand"],        # the Hall of Wind, by the window
+	"dulbmeethus": [Vector3(-27.0, 0, 43.4), "stand"],      # the Restricted Section, behind the rope
+	"library_card": [Vector3(19.5, 0, 43.5), "shelf"],      # the Reading Corner, tucked in a book on the bookshelf
+	"the_giant": [Vector3(24.5, 0, 29.0), "stand"],         # the Rock Room, near THE ROCK
+	"prophecy_death": [Vector3(sin(-0.95) * (R - 1.0), 0, -cos(-0.95) * (R - 1.0)), "shelf"],   # Deloye's room
+}
+const LB = preload("res://scripts/library_books.gd")
 const RADIO_POS := Vector3(20.2, 0, 49.4)   # the Reading Corner: plays Ebain's Deloye song (SONG)
 # rooms (x0, z0, x1, z1) for floors, the maps and the explorer
 const ROOMS := {
@@ -467,6 +476,9 @@ func _build_rooms(r: RandomNumberGenerator) -> void:
 	radio.max_distance = 45.0
 	radio.bus = &"Music"   # Settings → Audio → Music
 	add_child(radio)
+	# ---- the readable books
+	for id in BOOK_SPOTS:
+		_book_spot(BOOK_SPOTS[id][0], BOOK_SPOTS[id][1])
 	# ---- the 3 joint pieces, each on a glowing lectern
 	for k in PIECES:
 		_lectern(k, PIECES[k], r)
@@ -511,6 +523,29 @@ func _lectern(key: String, p: Vector3, r: RandomNumberGenerator) -> void:
 	var l := _light(p + Vector3(0, 1.8, 0.4), Color(1.0, 0.85, 0.5), 1.0, 4.0)
 	lect[key] = [b, sp, l]
 	add_glow(p + Vector3(0, 1.3, 0), Color(1.0, 0.85, 0.5), 3.0, func(): return 0.0 if Game.flag("libPiece_" + key) else 0.7)
+
+# A readable book: an open book on a small stand, or a glowing spine on a shelf (both pulse a little so you notice them)
+func _book_spot(p: Vector3, kind: String) -> void:
+	var paper := StandardMaterial3D.new()
+	paper.albedo_color = Color(0.95, 0.9, 0.78)
+	paper.emission_enabled = true
+	paper.emission = Color(1.0, 0.85, 0.55)
+	paper.emission_energy_multiplier = 0.35
+	if kind == "stand":
+		Models.block(self, p + Vector3(0, 0.03, 0), Vector3(0.5, 0.06, 0.4), wood_m)
+		Models.block(self, p + Vector3(0, 0.45, 0), Vector3(0.12, 0.84, 0.12), wood_m)
+		var top := Models.block(self, p + Vector3(0, 0.9, 0), Vector3(0.62, 0.05, 0.44), wood_m)
+		top.rotation.x = -0.4
+		Util.static_box(self, p + Vector3(0, 0.5, 0), Vector3(0.5, 1.0, 0.4))
+		for sx in [-1.0, 1.0]:   # the two open pages
+			var pg := Models.block(self, p + Vector3(sx * 0.13, 0.95, 0.02), Vector3(0.24, 0.015, 0.32), paper)
+			pg.rotation = Vector3(-0.4, 0, sx * 0.08)
+		add_glow(p + Vector3(0, 1.0, 0), Color(1.0, 0.85, 0.55), 2.0, func(): return 0.55)
+	else:
+		var b := Models.block(self, p + Vector3(0, 1.5, 0), Vector3(0.12, 0.36, 0.26), paper)
+		b.rotation.y = atan2(p.x, p.z)
+		add_glow(p + Vector3(0, 1.5, 0), Color(1.0, 0.85, 0.55), 1.6, func(): return 0.6)
+	_sparkle(p + Vector3(0, 1.2 if kind == "stand" else 1.6, 0)).amount = 4
 
 # The joint pieces, hovering over their lecterns (simple shapes, shown ~2x size so you can tell what they are)
 func _piece_node(key: String) -> Node3D:
@@ -1069,6 +1104,13 @@ func _level_interactables() -> Array:
 				pst += _steps(DS.DELOYE_CALL)   # "You had let's burn it? Pull up my trio." → the curtain opens
 			pst.append({ "do": "after_piece" })
 			list.append({ "id": "piece_" + k, "label": PIECE_NAMES[k], "verb": "Take", "pos": PIECES[k] + Vector3(0, 0, 1.0), "h": 1.7, "r": 1.4, "steps": pst })
+	# the readable books (Deloye's room's one only once you're in there)
+	for id in BOOK_SPOTS:
+		var bp: Vector3 = BOOK_SPOTS[id][0]
+		if bp.z < GATE_Z and not Game.flag("libGateOpen"):
+			continue
+		var at := bp + (Vector3(0, 0, 0.9) if BOOK_SPOTS[id][1] == "stand" else -bp.normalized() * 0.9 if bp.z < GATE_Z else Vector3(0.9, 0, 0))
+		list.append({ "id": "read_" + id, "label": LB.BOOKS[id]["title"], "verb": "Read", "pos": at, "h": 1.6, "r": 1.3, "steps": [{ "do": "read:" + id }] })
 	# things to look at
 	list.append({ "id": "radio", "label": "the radio", "verb": "Turn off" if radio and radio.playing else "Turn on", "pos": RADIO_POS + Vector3(0, 0, 1.2), "h": 1.4, "r": 1.4, "steps": DS.RADIO })
 	list.append({ "id": "pipe", "label": "the pipe", "verb": "Look at", "pos": CHUTE + Vector3(0.6, 0, 1.4), "h": 2.4, "r": 1.6, "steps": _steps(DS.CHUTE) })
@@ -1087,6 +1129,9 @@ func _level_interactables() -> Array:
 func _on_action(n: String) -> void:
 	if n.begins_with("take:"):
 		await _take_piece(n.get_slice(":", 1))
+		return
+	if n.begins_with("read:"):
+		await BookUI.read(self, n.get_slice(":", 1))
 		return
 	match n:
 		"mattias_appears":
@@ -1328,6 +1373,13 @@ func _shot_tour() -> void:
 		if i in [3, 5, 11]:
 			await shot("dl_route_%02d_%s" % [i, ROUTE[i][0]])
 	print("LIB ROUTE ", "ALL OK" if ok else "BLOCKED")
+	if OS.get_environment("LIB_BOOKS") != "":   # read every book (the one in Deloye's room needs the gate open)
+		var was := Game.flag("libGateOpen")
+		Game.flags["libGateOpen"] = true
+		for id in BOOK_SPOTS:
+			await _tour_use("read_" + id)
+		Game.flags["libGateOpen"] = was
+		print("LIB BOOKS read all")
 	# the gate is shut: the curtain must stop you
 	place_party(Vector3(0, 0, GATE_Z + 2.0), Vector3(0, 0, -1))
 	await walk_to(leader, Vector3(0, 0, 4.0), 1.6, 3.0)

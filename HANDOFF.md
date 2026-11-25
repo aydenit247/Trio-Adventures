@@ -106,6 +106,10 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    **Faded** (Ebain: "chill healing"): heal 4×level-scale every turn, take 10% less damage (`combat_data FADED`,
    `battle.gd faded_ids`). Flags (per run): `libEntered`, `libMattias`, `libBanter`, `libGuided1`, `libGuideAll`,
    `libPiece_plant/papers/lighter`, `libGateOpen`, `deloyeMet`, `deloyeGift`, `deloyeBad`, `fadedFights` (int).
+   **Readable books (Ebain 11/25):** 6 lore books on stands/shelves (glow + sparkles), "Read" opens a two-page parchment
+   book screen (`book_ui.gd`, A/D turn, Esc closes), text in `library_books.gd` (Ebain OK'd the drafts): The Prophecy of
+   the Three (Grand Stacks), Vol. 3,112 On Metocy (Hall of Wind), The Book of Dulbmeethus Ch. 1 (Restricted), Mattias's
+   Library Card (Reading Corner bookshelf), Vol. 6,700 The Giant (Rock Room), The Prophecy of Death (Deloye's room).
    Arriving unlocks `deloye_found` (hidden achievement "Lore Accurate" + the secret last Scrapbook page). The EXIT door
    (rotunda) or the pipe (Atrium) also go back to the village by the outhouse. Free roam resumes from saves where you
    stood (Mattias too). Room/look-at lines are DRAFT.
@@ -144,7 +148,16 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
   comes back (the summit ambush) on runs where he got away.
 - **Fentocy** is a different pill from midtocy. Offering it to Dulbers kills him (he thinks it's midtocy).
 - Losing the sucker-punch fight against Mattias is its own Chapter 1 ending, not a retry.
-- **Metocin Mattias** (Ebain 11/25): almost 500 years old, has spent it learning Deloye Lore and taking metocy with
+- **The land is called Chudmoor** (Ebain 11/25).
+- **Death** (Ebain 11/25) is a real character: a really nice, personable guy who is also the Grim Reaper. He isn't after
+  the metocy; he only shows up to be there for people who died. He has taken metocy with Dulbmeethus.
+- **Dulbmeethus** was a god from the start and **made metocy**; he gave Mattias the metocy spells and made him its
+  wielder in this reality (he keeps it from the unworthy). They've been metocy and smoking buddies for ~500 years.
+- **Deloye** is just some guy who ended up in the library and is forced to write about the universe forever by
+  **John and John's orb**; some see him as a god and all-knowing prophet. (What John is: not given yet.)
+- **Game 2 (Ebain 11/25):** the trio meet Dulbmeethus and get put on a mission for him, plus lots of other mishaps.
+  Book 1 hints at it; book 10 hints they'll meet Death.
+- **Metocin Mattias** (Ebain 11/25): almost 500 years old, a wise, resilient wizard (no special reason he's that old), has spent it learning Deloye Lore and taking metocy with
   Dulbmeethus, and fears that one day he'll succumb to Death himself. He knows the Deloye library and guides the trio there.
 - **Deloye** smokes; the library's final room is about passing him a joint (A/B/C above). Telling him "Bad." makes him
   disapprove of Xylo for the rest of the run.
@@ -195,7 +208,7 @@ too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "
   answer when Mattias helps (Ebain 11/25, meaning not spelled out). **"in de bih"**: Skorn ("you ain't gonna make it sad
   in de bih"). **Mud:** what Deloye calls you ("Here you go, mud."; also "Dat bih fire mud"). **Pull up:** come over.
   **Got da plug:** has a dealer coming. **Faded:** high (the buff). (All from Ebain's Deloye library script, 11/25.)
-- **John's orb:** a lore term from the title music. Meaning not given yet. Ask Ebain before using it.
+- **John's orb:** a lore term from the title music. **John and John's orb** make Deloye write forever (Ebain 11/25). What John is: not given yet, ask Ebain before saying more.
 
 ---
 

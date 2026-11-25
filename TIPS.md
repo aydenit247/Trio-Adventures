@@ -324,6 +324,11 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] An NPC that walks with you: meta `follow` = true (Level moves it behind the party); to lead somewhere set meta
   `goal` + `goal_speed` instead (set speed 0 to make it wait when the leader falls behind).
 
+- [ebain] To look at a UI screen by itself under xvfb, use a throwaway **.tscn** with a script on a Node, not
+  `--script` (a SceneTree script runs without the autoloads: "Identifier not found: Game" and a blank picture).
+- [ebain] Pages of text in a book/scrapbook: give the RichTextLabel/Label column a `custom_minimum_size.x` up front, or
+  autowrap measures one letter per line and the panel grows off screen (book_ui.gd `_page_col`).
+
 ## Summit finale (ebain, 11/24)
 - [ebain] **`way_<scene>` flags are Strings** (`Game.flags["way_pass"] == "lore"`). Read them with `Game.flags.get("way_pass", "")`,
   never `Game.flag()` (it's typed `-> bool` and errors on a String). Set by `ProgressData.pick_outcome()` for any choice with `"outcome"`.
