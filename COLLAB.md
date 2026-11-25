@@ -10,7 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/tts-batch — started 2026-11-24
+- [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md, 4 Skorn lines reworded in camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd — branch: ebain/tts-batch — started 2026-11-24
 - [asar] **3D rigged trio** (Meshy models with real walk/run + combat-move animations, replacing the billboard art; test first, Ebain sees it before it goes live) — files: godot/assets/characters3d/* (new), godot/scripts/char3d.gd (new), godot/scripts/unit.gd, godot/scripts/combat/battle_view.gd — branch: asar/3d-characters — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -58,7 +58,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [ebain] tools/tts_batch.py, godot/scripts/voice_index.gd, VOICE_LINES.md, godot/assets/voices/ (new clone files only)
+- [ebain] tools/tts_batch.py, godot/scripts/voice_index.gd, VOICE_LINES.md, godot/assets/voices/ (new clone files only), camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd (one Skorn line each)
 - [asar] godot/assets/characters3d/*, godot/scripts/char3d.gd, godot/scripts/unit.gd, godot/scripts/combat/battle_view.gd (3D trio)
 - [asar] godot/assets/items/goblin_tooth.png
 
