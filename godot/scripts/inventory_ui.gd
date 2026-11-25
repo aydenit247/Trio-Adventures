@@ -363,6 +363,8 @@ func _bag_items() -> Array:   # what the fighter on screen carries (everyone has
 			var G: Dictionary = CombatD.GEAR[g]
 			out.append({ "id": g, "kind": "gear", "name": G.get("name", g), "desc": G.get("desc", ""), "count": 1 })
 	var keys := []
+	if Game.count("joint", fid) > 0:   # fight-only (Battle: the whole party is Faded)
+		keys.append({ "id": "joint", "kind": "key", "name": CombatD.ITEMS["joint"]["name"], "desc": CombatD.ITEMS["joint"]["desc"], "count": Game.count("joint", fid) })
 	if Game.flag("hasMap"):
 		keys.append({ "id": "metocy_map", "kind": "key", "name": "Metocy Map (firestarter)", "desc": "The map to the metocy. Lykor packed it. Skorn has other plans for it.", "count": 1 })
 	if Game.flag("hasMidtocy"):

@@ -88,14 +88,27 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    **a big library you walk through** (Ebain 11/24: "much bigger place you have to walk around in", Deloye at the end).
    You drop out of a pipe into the **Atrium** (south) → the **Grand Stacks** (long hall north) → side wings: **Hall of
    Wind** (west, open window, blowing pages) → **Restricted Section** (velvet rope), **Rock Room** (east, THE ROCK on a
-   pedestal) → **Reading Corner** (table, SAVED SEAT). The **Reading Room** at the north end (the round rotunda with
-   Deloye) is behind a rune curtain until you return **3 overdue Deloye Lore volumes** (Wind / Blank / Rock, one on a
-   glowing lectern in the Hall of Wind, the Restricted Section and the Rock Room) at the book return by its door.
-   Walking in the first time: the camera swings to Deloye twirling over the rune dais, the giant manuscript turning above
-   him. Talk to him → the Neuralink for Xylo (flag `deloyeGift`, once per run; `deloyeMet` after). Arriving unlocks
-   `deloye_found` (hidden achievement "Lore Accurate" + the secret last Scrapbook page). EXIT door (rotunda) or the pipe
-   (Atrium) → back to the village by the outhouse. Flags (per run): `libEntered`, `libBook_wind/blank/rock`,
-   `libGateOpen`, `libRotunda`. Free roam resumes from saves where you stood. All lines DRAFT.
+   pedestal) → **Reading Corner** (table, SAVED SEAT, and a **radio** that plays Ebain's Deloye song from there:
+   `assets/music/deloye_lore.ogg`, on when you arrive, E toggles; until the file exists it's static).
+   **Ebain's script (11/25, `deloye_script.gd`, his lines tagged `# Ebain`):** landing → Lykor "What the fuck folk? T S is
+   massive…", Xylo "On dulbmeethus" → **Metocin Mattias teleports in** ("Y'all had said Deloye Lore easter egg?…") and
+   follows you. Walking banter plays as speech bubbles (the game keeps going), ending with Mattias "My fault folk, Look
+   over here. Follow me." → he walks you to the first **joint piece**. Three pieces, one per lectern: **the cannabis plant**
+   (Hall of Wind), **RAW papers** (Restricted Section), **a lighter** (Rock Room). First piece → "I think we need to find all
+   the materials for T S…" + Lykor "Shlooks folk." Talk to Mattias → "You could help me?" ("Bet.", he walks you to the rest,
+   then to Deloye's room) or Leave. All 3 → Deloye from his room: "You had let's burn it? Pull up my trio." → the rune
+   curtain opens. Walking in: Deloye "U could pass that shi?" → **A** "Here you go folk." → "Thank you. Here you go, mud." +
+   the Neuralink · **B** "You had said puff puff pass?" → everyone smokes (placeholder smoke + haze; Ebain may make a real
+   cutscene) → **Faded** for the next 3 fights + the Neuralink · **C** "Bad." → "Aight. Im not trippin i got da plug on the
+   way", you keep the **Joint** (fight item: whole party Faded for that fight) and Deloye disapproves of Xylo: his Deloye
+   Lore moves (Deloye Lore, Citation Needed, Lore Slap) **fizzle 50%** for the rest of the run. Then "Aight imma catch
+   yall" → everyone poofs back to the goblin village. Coming back later: no Mattias, Deloye's room open.
+   **Faded** (Ebain: "chill healing"): heal 4×level-scale every turn, take 10% less damage (`combat_data FADED`,
+   `battle.gd faded_ids`). Flags (per run): `libEntered`, `libMattias`, `libBanter`, `libGuided1`, `libGuideAll`,
+   `libPiece_plant/papers/lighter`, `libGateOpen`, `deloyeMet`, `deloyeGift`, `deloyeBad`, `fadedFights` (int).
+   Arriving unlocks `deloye_found` (hidden achievement "Lore Accurate" + the secret last Scrapbook page). The EXIT door
+   (rotunda) or the pipe (Atrium) also go back to the village by the outhouse. Free roam resumes from saves where you
+   stood (Mattias too). Room/look-at lines are DRAFT.
 4. **The Pass (lava, as Skorn):** Mattias appears → the giant is asleep in the way → A throw the midtocy (giant trips)
    · B **Snore Sneak** minigame · C **Lore Session** minigame (pick the true Deloye Lore continuation) · D slap him ·
    E it's the Chief's cousin (if allies). Fights are real boss fights. The only way on is the gorge right behind where he
@@ -131,6 +144,10 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
   comes back (the summit ambush) on runs where he got away.
 - **Fentocy** is a different pill from midtocy. Offering it to Dulbers kills him (he thinks it's midtocy).
 - Losing the sucker-punch fight against Mattias is its own Chapter 1 ending, not a retry.
+- **Metocin Mattias** (Ebain 11/25): almost 500 years old, has spent it learning Deloye Lore and taking metocy with
+  Dulbmeethus, and fears that one day he'll succumb to Death himself. He knows the Deloye library and guides the trio there.
+- **Deloye** smokes; the library's final room is about passing him a joint (A/B/C above). Telling him "Bad." makes him
+  disapprove of Xylo for the rest of the run.
 
 **Big direction (Ebain):** these four are the MAIN EVENTS. Between them he wants lots of optional, open-world-ish
 stuff: places to walk into, joke NPCs, side quests, roaming enemies, gear to find. More chapters later; Dulbers is
@@ -173,6 +190,11 @@ too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "
 - **Da crib:** home (Mattias's castle: "Welcome to da crib folk"). **Geeking:** high, tripping ("geeking off that midtocy").
 - **"Good boy."**: Dulbers, when the trio swears loyalty to Dulbmeethus. **"Bad."**: the troll answer, also Mattias's
   castle ("Oh okay.").
+- **T S:** "this shit" (Lykor: "T S is massive like the low taper fade meme"). **Folk:** what they call each other.
+  **On dulbmeethus:** swearing on it (like "on god"). **Peep:** check out ("I gotta peep T S"). **Shlooks folk.**: Lykor's
+  answer when Mattias helps (Ebain 11/25, meaning not spelled out). **"in de bih"**: Skorn ("you ain't gonna make it sad
+  in de bih"). **Mud:** what Deloye calls you ("Here you go, mud."; also "Dat bih fire mud"). **Pull up:** come over.
+  **Got da plug:** has a dealer coming. **Faded:** high (the buff). (All from Ebain's Deloye library script, 11/25.)
 - **John's orb:** a lore term from the title music. Meaning not given yet. Ask Ebain before using it.
 
 ---

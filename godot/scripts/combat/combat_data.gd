@@ -92,7 +92,13 @@ const COMBOS := [
 const ITEMS := {
 	"beer": { "name": "Beezy", "heal": 30, "desc": "Heals 30 (or revives at 30). Makes you Buzzed for a turn." },
 	"bowl": { "name": "Chipotle Bowl", "heal": 60, "desc": "Heals 60 (or revives at 60)." },
+	# the Deloye library (Ebain 11/25): you keep it if you tell Deloye "Bad." Smoking it = Faded for that fight
+	"joint": { "name": "Joint", "heal": 0, "faded": true, "desc": "From the Deloye library. Spark it mid-fight: the whole party is Faded for the rest of the fight." }, # DRAFT (desc)
 }
+# Faded (Ebain 11/25, "chill healing"): puff puff pass with Deloye = the next 3 fights, or the joint item = one fight
+const FADED := { "heal": 4, "cut": 0.9 }
+# Telling Deloye "Bad." (Ebain 11/25): he disapproves, and Xylo's Deloye Lore moves fizzle half the time (rest of the run)
+const LORE_FIZZLE := 0.5
 
 # Gear: each fighter has 7 slots (Game.GEAR_SLOTS). Found in the world or dropped by fights.
 #   slot = helmet · armor · shoes · shield · weapon · trinket (trinkets fit either trinket slot)
@@ -148,6 +154,7 @@ const STATUS := {
 	"stun": { "label": "SAT ON", "good": false, "desc": "Loses their next turn." },
 	"itis": { "label": "THE ITIS", "good": false, "desc": "Ate too much. 70% chance to doze off each turn." },
 	"locked": { "label": "LOCKED IN", "good": true, "desc": "Can't be charmed, stunned or Lore-pilled." },
+	"faded": { "label": "FADED", "good": true, "desc": "Chill. Heals a little every turn and takes 10% less damage." },
 	"hyped": { "label": "HYPED UP", "good": true, "desc": "Next attack does double damage." },
 	"copium": { "label": "COPIUM", "good": true, "desc": "Heals 8 a turn. A hit of 25+ breaks it." },
 	"shield": { "label": "AURA SHIELD", "good": true, "desc": "Absorbs damage." },

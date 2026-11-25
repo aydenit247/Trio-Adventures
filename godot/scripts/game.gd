@@ -150,7 +150,7 @@ func owner_of_key(id: String) -> String:
 func fight_bags(ids: Array) -> Dictionary:
 	var out := {}
 	for f in ids:
-		out[f] = { "beer": count("beer", f), "bowl": count("bowl", f) }
+		out[f] = { "beer": count("beer", f), "bowl": count("bowl", f), "joint": count("joint", f) }
 	return out
 
 func gear_in_bag(f: String) -> Array:   # unequipped gear this fighter carries

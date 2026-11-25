@@ -87,11 +87,12 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	b = BattleT.new(key, {
 		"party": ids, "mods": o.get("mods", {}), "level": Game.level, "inv": Game.fight_bags(ids),
 		"difficulty": Game.difficulty, "used67": Game.used67, "gear": gear, "hurt": Game.hurt,
+		"faded": int(Game.flags.get("fadedFights", 0)) > 0, "lore_nerf": Game.flag("deloyeBad"),   # the Deloye library
 	})
 	if auto_play and OS.get_environment("AUTO_LOSE") != "":
 		for p in b.party:
 			p["hp"] = 1
-		for id in b.bags: b.bags[id] = { "beer": 0, "bowl": 0 }
+		for id in b.bags: b.bags[id] = { "beer": 0, "bowl": 0, "joint": 0 }
 		b.emergency_given = true
 		b.used67 = true
 	_make_sounds()
@@ -843,7 +844,8 @@ func _choose(u: Dictionary) -> Dictionary:
 			opts.append({ "text": "Team-Up!", "desc": "Spend meter with a friend for a combo move.", "v": "combo", "hot": true })
 		var nb := b.item_count(u["id"], "beer")
 		var nw := b.item_count(u["id"], "bowl")
-		opts.append({ "text": "Items  (Beezy %d · Bowl %d)" % [nb, nw], "desc": "Heal or revive someone with %s's own items." % u["name"], "v": "item", "off": nb + nw == 0 })
+		var nj := b.item_count(u["id"], "joint")
+		opts.append({ "text": "Items  (Beezy %d · Bowl %d%s)" % [nb, nw, " · Joint %d" % nj if nj > 0 else ""], "desc": "Heal or revive someone with %s's own items." % u["name"], "v": "item", "off": nb + nw + nj == 0 })
 		opts.append({ "text": "Defend", "desc": "Half damage, enemies aim at you, cooldowns tick faster, +meter.", "v": "defend" })
 		if not b.talk_options(u).is_empty():
 			opts.append({ "text": "Talk", "desc": "Try talking your way through this.", "v": "talk" })
@@ -872,11 +874,13 @@ func _choose(u: Dictionary) -> Dictionary:
 					if t != null: act = { "type": "combo", "combo": c, "target": t }
 			"item":
 				var iopts := []
-				for k in ["beer", "bowl"]:
+				for k in ["beer", "bowl", "joint"]:
 					if b.item_count(u["id"], k) > 0:
 						iopts.append({ "text": "%s ×%d" % [D.ITEMS[k]["name"], b.item_count(u["id"], k)], "desc": D.ITEMS[k]["desc"], "v": k })
 				var it = await _menu("Items", iopts, true)
-				if it != null:
+				if it == "joint":   # the whole party, no target
+					act = { "type": "item", "item": it, "target": u }
+				elif it != null:
 					var t = await _pick_target(b.party, true)
 					if t != null: act = { "type": "item", "item": it, "target": t }
 			"defend":
@@ -1720,7 +1724,10 @@ func _outro(res: String) -> void:
 	for id in b.bags:   # what's left in each fighter's bag
 		Game.set_count(id, "beer", b.bags[id]["beer"])
 		Game.set_count(id, "bowl", b.bags[id]["bowl"])
+		Game.set_count(id, "joint", b.bags[id].get("joint", 0))
 	Game.used67 = b.used67
+	if int(Game.flags.get("fadedFights", 0)) > 0:   # puff puff pass with Deloye: 3 fights of Faded
+		Game.flags["fadedFights"] = int(Game.flags["fadedFights"]) - 1
 	_refresh()
 	if res == "win" or res == "talked":
 		await _results(res)

@@ -3,23 +3,86 @@
 # rotunda at the far end of the library. Vibe (Ebain 11/24): chill, earbuds in, barely looks up, surprised anyone
 # actually read it.
 # The walk (11/24, Ebain: "make it a much bigger place you have to walk around in, Deloye at the end"): you land in the
-# Atrium, walk the Grand Stacks, and the Reading Room (Deloye's rotunda) is closed until you return 3 overdue volumes
-# found in the Hall of Wind, the Restricted Section and the Rock Room.
+# Atrium, walk the Grand Stacks, and the Reading Room (Deloye's rotunda) stays shut until you find the 3 joint pieces.
+# Ebain's script (11/25): Metocin Mattias teleports in, guides you to the first piece (the cannabis plant, the RAW papers,
+# the lighter), "You could help me?" → he guides you to the rest and to Deloye's room. Deloye: "U could pass that shi?"
+# A give it (Neuralink) · B puff puff pass (Faded for 3 fights + Neuralink) · C "Bad." (keep the joint, Xylo's lore
+# fizzles half the time). Then "Aight imma catch yall" → everyone back to the goblin village.
 extends RefCounted
 
-# Landing in a heap after the flush (in the Atrium)
+# Landing in a heap after the flush (in the Atrium). Mattias teleports in mid-way.
 const ARRIVE := [
-	{ "who": "skorn", "line": "Bro. We just got FLUSHED." }, # DRAFT
-	{ "who": "lykor", "line": "My hair touched outhouse water. Somebody is paying for this." }, # DRAFT
-	{ "who": "xylo", "mood": "smug", "line": "Shelves. Endless shelves. Gentlemen... this is the Deloye Lore library." }, # DRAFT
-	{ "who": "skorn", "line": "It's hella big. How many books does one dude need to write about nothing." }, # DRAFT
-	{ "who": "xylo", "mood": "smug", "line": "All of them, Skorn. All of them." }, # DRAFT
+	{ "who": "lykor", "line": "What the fuck folk? T S is massive like the low taper fade meme" }, # Ebain
+	{ "who": "xylo", "line": "On dulbmeethus" }, # Ebain
+	{ "do": "mattias_appears" },
+	{ "who": "mattias", "line": "Y'all had said Deloye Lore easter egg? I ain't gon hold u I gotta peep T S with y'all" }, # Ebain
+	{ "who": "lykor", "line": "It's good folk, let's take a look around." }, # Ebain
+]
+
+# While walking (speech bubbles over their heads, the game keeps going). The last line starts Mattias guiding you.
+const WALK_BANTER := [
+	{ "who": "skorn", "line": "Are all of these books Deloye Lore scripture?" }, # Ebain
+	{ "who": "xylo", "line": "Yes. The depth of this lore is too deep for one human to be able to learn or ingest it all" }, # Ebain
+	{ "who": "mattias", "line": "Except me, i've been around for almost 500 years learning about Deloye Lore and taking metocy with Dulbmeethus n shi, but i fear one day I will succumb to the inevitable power of Death, himself." }, # Ebain
+	{ "who": "skorn", "line": "Damn bro, you ain't gonna make it sad in de bih" }, # Ebain
+	{ "who": "mattias", "line": "My fault folk, Look over here. Follow me." }, # Ebain
+]
+
+# Picking up the first joint piece (Mattias led you to it)
+const PIECE_FIRST := [
+	{ "who": "mattias", "line": "I think we need to find all the materials for T S. Let me know if you need more help." }, # Ebain
+	{ "who": "lykor", "line": "Shlooks folk." }, # Ebain
+]
+
+# Talking to Mattias after that
+const MATTIAS_HELP := [
+	{ "choice": [
+		{ "text": "You could help me?", "steps": [ # Ebain
+			{ "who": "mattias", "line": "Bet." }, # Ebain
+			{ "do": "guide_all" },
+		] },
+		{ "text": "Leave", "steps": [] }, # DRAFT (Ebain: "just the ability to leave the convo")
+	] },
+]
+const MATTIAS_GUIDING := [   # talking to him while he's already showing you the way
+	{ "who": "mattias", "line": "Follow me folk." }, # DRAFT
+]
+
+# All 3 pieces: Deloye, from his room, right away
+const DELOYE_CALL := [
+	{ "do": "deloye_far" },
+	{ "who": "deloye", "line": "You had let's burn it? Pull up my trio." }, # Ebain
+	{ "do": "gate_open" },
+]
+
+# In Deloye's room
+const PASS := [
+	{ "do": "deloye_faces" },
+	{ "who": "deloye", "line": "U could pass that shi?" }, # Ebain
+	{ "choice": [
+		{ "text": "Here you go folk.", "steps": [ # Ebain
+			{ "do": "give_joint" },
+			{ "who": "deloye", "line": "Thank you. Here you go, mud." }, # Ebain
+			{ "do": "gift" },
+		] },
+		{ "text": "You had said puff puff pass?", "steps": [ # Ebain
+			{ "do": "smoke" },   # placeholder scene (Ebain may make a real cutscene)
+			{ "do": "faded" },
+			{ "do": "gift" },    # Ebain 11/25: A and B both get the Neuralink
+		] },
+		{ "text": "Bad.", "steps": [ # Ebain
+			{ "who": "deloye", "line": "Aight. Im not trippin i got da plug on the way" }, # Ebain
+			{ "do": "keep_joint" },
+		] },
+	] },
+	{ "who": "deloye", "line": "Aight imma catch yall" }, # Ebain
+	{ "do": "teleport_out" },
 ]
 
 # ---------------------------------------------------------------- the Atrium
 const DIRECTORY := [
 	{ "who": "xylo", "line": "\"Hall of Wind: west. The Rock Room: east. Restricted Section: past the wind. Reading Room: straight ahead.\"" }, # DRAFT
-	{ "who": "xylo", "line": "\"Reading Room closed until all overdue books are returned.\"" }, # DRAFT
+	{ "who": "xylo", "line": "\"Reading Room: closed.\"" }, # DRAFT
 	{ "who": "lykor", "line": "Closed? We came in through a TOILET." }, # DRAFT
 ]
 const RETURN_DESK := [
@@ -44,19 +107,8 @@ const STAFF_PICKS := [
 	{ "who": "lykor", "line": "\"Staff Picks.\" It's one book. Picked by Deloye. Written by Deloye." }, # DRAFT
 ]
 const GATE_SIGN := [
-	{ "who": "xylo", "line": "\"READING ROOM. Overdue books must be returned before entry. — Management\"" }, # DRAFT
-	{ "who": "skorn", "line": "We don't even got a library card." }, # DRAFT
-	{ "who": "xylo", "line": "Three volumes are overdue. The Wind, the Rock, and... a blank one. We find them, we get in." }, # DRAFT
-]
-const RETURN_SHORT := [   # at the book return with fewer than 3 (the count is shown in the objective)
-	{ "who": "xylo", "line": "We still don't have all three. The slot is judging us." }, # DRAFT
-]
-const GATE_OPEN := [
-	{ "do": "return_books" },
-	{ "who": "xylo", "mood": "smug", "line": "Returned. All three. Only a few hundred years late." }, # DRAFT
-	{ "do": "gate_open" },
-	{ "who": "skorn", "line": "The wall is melting. That's normal." }, # DRAFT
-	{ "who": "lykor", "line": "Something's in there. Spinning." }, # DRAFT
+	{ "who": "xylo", "line": "\"READING ROOM. Do not disturb. Unless you're bringing something.\"" }, # DRAFT
+	{ "who": "skorn", "line": "Bringing what?" }, # DRAFT
 ]
 
 # ---------------------------------------------------------------- the Hall of Wind (west)
@@ -68,21 +120,11 @@ const PAGES := [
 	{ "who": "skorn", "line": "Loose pages everywhere. I ain't reading those." }, # DRAFT
 	{ "who": "xylo", "line": "They're all page one. He kept starting over." }, # DRAFT
 ]
-const BOOK_WIND := [
-	{ "who": "xylo", "line": "Volume 4,019: The Wind. Forty years overdue. Smells like a breeze." }, # DRAFT
-	{ "do": "take:wind" },
-]
 
 # ---------------------------------------------------------------- the Restricted Section (past the wind)
 const ROPE := [
 	{ "who": "skorn", "line": "\"RESTRICTED SECTION. Lore too lore.\"" }, # DRAFT
 	{ "who": "lykor", "line": "A velvet rope. Classy. I'm stepping over it." }, # DRAFT
-]
-const BOOK_BLANK := [
-	{ "who": "xylo", "line": "Volume 0. Completely blank." }, # DRAFT
-	{ "who": "lykor", "line": "So it's the same as the other ones." }, # DRAFT
-	{ "who": "xylo", "mood": "angry", "line": "...How DARE you." }, # DRAFT
-	{ "do": "take:blank" },
 ]
 
 # ---------------------------------------------------------------- the Rock Room (east)
@@ -90,14 +132,17 @@ const ROCK := [
 	{ "who": "skorn", "line": "\"THE ROCK. As described in Chapter 10,000.\" ...It's a rock." }, # DRAFT
 	{ "who": "xylo", "mood": "smug", "line": "It's THE rock." }, # DRAFT
 ]
-const BOOK_ROCK := [
-	{ "who": "xylo", "line": "Volume 10,000. The whole book is just the word \"rock.\" I've read it eleven times." }, # DRAFT
-	{ "do": "take:rock" },
-]
 
 # ---------------------------------------------------------------- the Reading Corner (past the rock)
 const TABLE := [
 	{ "who": "lykor", "line": "Somebody left a magnifying glass. For reading lore this small, you'd need it." }, # DRAFT
+]
+const RADIO := [   # Ebain 11/25: a radio for his Deloye song (assets/music/deloye_lore.ogg, coming)
+	{ "do": "radio" },
+]
+const RADIO_STATIC := [   # until the song is in
+	{ "who": "skorn", "line": "It's just static." }, # DRAFT
+	{ "who": "xylo", "line": "The Deloye Lore theme song isn't out yet. Patience." }, # DRAFT
 ]
 const SAVED_SEAT := [
 	{ "who": "lykor", "line": "\"SAVED SEAT.\" The bookmark in this chair is older than me." }, # DRAFT
@@ -106,33 +151,6 @@ const SAVED_SEAT := [
 ]
 
 # ---------------------------------------------------------------- the Reading Room (rotunda, the end)
-# Walking in the first time
-const ROTUNDA := [
-	{ "who": "skorn", "line": "Why is there a dude spinning in the middle of it." }, # DRAFT
-	{ "who": "lykor", "line": "...Is he okay?" }, # DRAFT
-	{ "who": "xylo", "line": "No. It can't be. It's HIM." }, # DRAFT
-]
-
-# First talk: he takes ONE earbud out
-const MEET := [
-	{ "do": "earbud_out" },
-	{ "who": "deloye", "line": "Oh. Hey." }, # DRAFT
-	{ "who": "xylo", "line": "You're... Deloye. THE Deloye. I've read every chapter. Twice." }, # DRAFT
-	{ "who": "deloye", "line": "Wait, fr? Like all of it?" }, # DRAFT
-	{ "who": "xylo", "mood": "smug", "line": "Chapter 8,784, section B12. True metocy is never moist." }, # DRAFT
-	{ "who": "deloye", "line": "Yeah... I kinda just wrote that. Didn't think anybody would actually read it, ngl." }, # DRAFT
-	{ "who": "skorn", "line": "Why are you spinning." }, # DRAFT
-	{ "who": "deloye", "line": "Idk. It's a vibe. I've been up here a while." }, # DRAFT
-	{ "who": "lykor", "line": "How did you get up there?" }, # DRAFT
-	{ "who": "deloye", "line": "Same way you got down here, bro." }, # DRAFT
-	{ "who": "deloye", "line": "Anyway. You found all my pages. And you returned my books? That's crazy. Here, dragon guy." }, # DRAFT
-	{ "do": "gift" },
-	{ "who": "deloye", "line": "Deloye Lore Neuralink. Plug it in and you just... know what's about to happen. Mostly." }, # DRAFT
-	{ "who": "xylo", "line": "I can hear the lore. I can SEE the next move. Is this what it feels like to be you?" }, # DRAFT
-	{ "who": "deloye", "line": "Kinda. Aight, I'm putting my earbud back in. Exit's that way. Don't tell anybody about this place." }, # DRAFT
-	{ "do": "earbud_in" },
-]
-
 # Talking to him again (one of these at random)
 const AGAIN := [
 	[{ "who": "deloye", "line": "*nods to the music. Still spinning.*" }], # DRAFT

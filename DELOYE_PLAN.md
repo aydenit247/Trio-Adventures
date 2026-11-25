@@ -1,7 +1,8 @@
 # The Secret Deloye Lore Library (plan, Ebain 2026-11-24)
 
 Status: **built 2026-11-24 (ebain); made a big walkable library the same day** (Ebain: "much bigger place you have
-to walk around in", Deloye's rotunda = the end; 3 overdue volumes open its door). How it works now: HANDOFF section 1 ("Secret Deloye Lore library"). Still open:
+to walk around in", Deloye's rotunda = the end). **11/25: Ebain's own script replaced the drafts** (Mattias guide,
+3 joint pieces, Deloye's A/B/C, Faded, Xylo's fizzle, radio): see HANDOFF section 1. This plan is history now. How it works now: HANDOFF section 1 ("Secret Deloye Lore library"). Still open:
 Ebain's song, his real lines (everything in `deloye_script.gd` is DRAFT), Deloye's voice, the shaman hint.
 Everything marked DRAFT is a placeholder: Ebain writes the real lines and has the final say on story and characters.
 

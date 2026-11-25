@@ -313,6 +313,14 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Check a big layout is walkable with a scripted `walk_to` along waypoints (deloye_library.gd `ROUTE`): it caught
   freestanding stacks sitting in front of a wing doorway and a lectern in the way.
 
+- [ebain] **Don't start a dialogue from inside a `do` action** that a conversation is running (`run_dialogue` in
+  `_on_action`): the nested one gets swallowed. Build the whole step list up front instead (the library's joint pieces
+  append PIECE_FIRST / DELOYE_CALL to the take step when the interactable is listed).
+- [ebain] Lines "while walking" (Ebain's library banter): `char_label` speech bubbles + `dialogue._speak(who, line)` for
+  the voice, awaited one by one in a coroutine that pauses while a real conversation is open (`deloye_library _walk_banter`).
+- [ebain] An NPC that walks with you: meta `follow` = true (Level moves it behind the party); to lead somewhere set meta
+  `goal` + `goal_speed` instead (set speed 0 to make it wait when the leader falls behind).
+
 ## Summit finale (ebain, 11/24)
 - [ebain] **`way_<scene>` flags are Strings** (`Game.flags["way_pass"] == "lore"`). Read them with `Game.flags.get("way_pass", "")`,
   never `Game.flag()` (it's typed `-> bool` and errors on a String). Set by `ProgressData.pick_outcome()` for any choice with `"outcome"`.

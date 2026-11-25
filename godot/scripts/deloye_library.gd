@@ -3,8 +3,10 @@
 # A big library you walk through (Ebain 11/24: "much bigger place you have to walk around in", Deloye = the end):
 #   Atrium (south, you land here) → the Grand Stacks (long hall north) → wings: Hall of Wind (west) → Restricted
 #   Section (south of it), Rock Room (east) → Reading Corner (south of it). The Reading Room at the north end (the round
-#   rotunda) is behind a rune curtain until you put the 3 overdue volumes (wind / blank / rock, flags libBook_<key>)
-#   in the book return by its door (libGateOpen). Camera is fixed facing north, so every east-west wall that has
+#   rotunda) is behind a rune curtain until you find the 3 joint pieces (plant / papers / lighter, flags
+#   libPiece_<key>): then Deloye calls you in and it opens (libGateOpen). Ebain's script 11/25: Metocin Mattias
+#   teleports in on arrival (libMattias), walking banter as speech bubbles, he guides you to the first piece, then
+#   "You could help me?" → he guides you to the rest (libGuideAll) and to Deloye's room. Camera is fixed facing north, so every east-west wall that has
 #   walkable floor north of it is a LOW bookcase (full-height collision); only north/outer walls are tall.
 # The rotunda: book walls climbing into the dark, a spiral stair, ladders, chandeliers, dust in light beams, books
 # orbiting the middle. In the center Deloye himself (Ebain's art) floats and twirls on a rune dais, the giant
@@ -13,7 +15,8 @@
 # (rotunda, west) or the pipe (Atrium) go back to the village, next to the outhouse.
 # Saves: free roam resumes where you stood (libEntered).
 # Arriving unlocks progress "deloye_found" (secret achievement + the secret Scrapbook page).
-# Music: Ebain's Deloye Lore song when it exists (SONG, an AreaMusic made in code); until then a soft hum.
+# Music: a soft hum everywhere; Ebain's Deloye Lore song (SONG, when it exists) plays from the radio in the Reading
+# Corner (Ebain 11/25), on when you arrive, E toggles it; heard up close = unlocked in the title Library.
 extends Level
 
 const DS = preload("res://scripts/deloye_script.gd")
@@ -33,7 +36,6 @@ const LOW_H := 1.3                    # low bookcases (camera side)
 const LIP_H := 0.45                   # the south edge of the rooms: just a wooden lip, so it never covers the view
 const GATE_Z := 11.0                  # the rune curtain across the rotunda's south opening
 const GATE_HW := 3.3                  # its half width
-const RETURN_BOX := Vector3(4.9, 0, 13.6)
 const CHUTE := Vector3(-6.5, 0, 55.5)
 const DIRECTORY := Vector3(0, 0, 47.4)
 const RETURN_DESK := Vector3(6.8, 0, 55.0)
@@ -44,11 +46,13 @@ const PAGES := Vector3(-13.5, 0, 27.0)
 const ROPE_Z := 40.0
 const ROCK := Vector3(19.5, 0, 29.5)
 const SEAT := Vector3(27.0, 0, 49.0)
-const BOOKS := {   # the 3 overdue volumes: lectern positions (you read from the south side)
-	"wind": Vector3(-24.0, 0, 27.5),
-	"blank": Vector3(-24.0, 0, 46.5),
-	"rock": Vector3(14.0, 0, 27.5),
+const PIECES := {   # the 3 joint pieces (Ebain 11/25), each on a glowing lectern (you take it from the south side)
+	"plant": Vector3(-24.0, 0, 27.5),     # the Hall of Wind
+	"papers": Vector3(-24.0, 0, 46.5),    # the Restricted Section
+	"lighter": Vector3(14.0, 0, 27.5),    # the Rock Room
 }
+const PIECE_NAMES := { "plant": "the cannabis plant", "papers": "RAW papers", "lighter": "a lighter" }
+const RADIO_POS := Vector3(20.2, 0, 49.4)   # the Reading Corner: plays Ebain's Deloye song (SONG)
 # rooms (x0, z0, x1, z1) for floors, the maps and the explorer
 const ROOMS := {
 	"atrium": Rect2(-12, 46, 24, 14),
@@ -75,7 +79,13 @@ var floaters: Array = []              # [node, base_y, speed, phase]
 var hum: AudioStreamPlayer
 var swell := 0.0                      # 1 = hum/song at full (by the book)
 var music: Node                       # AreaMusic, only if Ebain's song is in
-var lect := {}                        # key -> [book node, sparkle, light]
+var lect := {}                        # key -> [piece node, sparkle, light]
+var mattias: Unit                     # Metocin Mattias (Ebain's script): follows you, or walks ahead to guide
+var mattias_light: OmniLight3D
+var guide_target = null               # Vector3 he's walking to (null = following)
+var radio: AudioStreamPlayer3D        # Ebain's Deloye song, from the Reading Corner radio
+var _banter_running := false
+var _radio_heard := false
 var curtain: MeshInstance3D
 var curtain_mat: ShaderMaterial
 var curtain_body: StaticBody3D
@@ -299,12 +309,6 @@ func _build_gate() -> void:
 	add_child(curtain_body)
 	add_glow(Vector3(0, 1.4, GATE_Z + 0.5), Color(1.0, 0.75, 0.4), 4.0, func(): return 0.0 if Game.flag("libGateOpen") else 0.7)
 	_light(Vector3(0, 2.0, GATE_Z + 0.8), Color(1.0, 0.72, 0.4), 1.0, 6.0)
-	# the book return, by the door (east)
-	var box := RETURN_BOX
-	Models.block(self, box + Vector3(0, 0.55, 0), Vector3(1.1, 1.1, 0.7), wood_m)
-	Models.block(self, box + Vector3(0, 1.0, 0.36), Vector3(0.6, 0.06, 0.02), Util.mat(Color(0.05, 0.04, 0.03)))
-	Util.static_box(self, box + Vector3(0, 0.6, 0), Vector3(1.1, 1.2, 0.7))
-	wood_sign("sign_book_return", "BOOK RETURN", box + Vector3(0, 1.45, 0.2), 0.0, 1.3, 0.3)
 
 func _open_gate_now() -> void:   # no animation (loaded save / tours)
 	if curtain:
@@ -451,9 +455,21 @@ func _build_rooms(r: RandomNumberGenerator) -> void:
 	Models.place(self, "gothic_coffee_table", Vector3(26.5, 0, 46.5), 0.4, 1.0, true)
 	for sp in [Vector3(20.5, 0, 49.5), Vector3(28.2, 0, 44.5), Vector3(21.0, 0, 41.5)]:
 		_book_stack(sp, r)
-	# ---- the 3 overdue volumes, each on a glowing lectern
-	for k in BOOKS:
-		_lectern(k, BOOKS[k], r)
+	# the radio (Ebain 11/25): a little side table + a boxy radio; plays his Deloye song from here (SONG)
+	Models.place(self, "round_wooden_table_01", RADIO_POS, 0.0, 0.8, true, Color(0.6, 0.48, 0.42))
+	Models.block(self, RADIO_POS + Vector3(0, 0.98, 0), Vector3(0.5, 0.3, 0.22), Util.mat(Color(0.45, 0.28, 0.18)))
+	Models.block(self, RADIO_POS + Vector3(-0.08, 0.98, 0.115), Vector3(0.24, 0.2, 0.01), Util.mat(Color(0.15, 0.12, 0.1)))
+	Models.cylinder(self, RADIO_POS + Vector3(0.15, 0.98, 0.12), 0.04, 0.04, 0.02, Util.mat(Color(0.85, 0.7, 0.4)), 10).rotation.x = PI / 2.0
+	Models.cylinder(self, RADIO_POS + Vector3(0.15, 1.3, -0.05), 0.006, 0.006, 0.4, Util.mat(Color(0.7, 0.7, 0.72)), 6)
+	radio = AudioStreamPlayer3D.new()
+	radio.position = RADIO_POS + Vector3(0, 1.0, 0)
+	radio.unit_size = 9.0          # fills the Reading Corner, fades out down the halls
+	radio.max_distance = 45.0
+	radio.bus = &"Music"   # Settings → Audio → Music
+	add_child(radio)
+	# ---- the 3 joint pieces, each on a glowing lectern
+	for k in PIECES:
+		_lectern(k, PIECES[k], r)
 
 func _window() -> void:
 	var frame := wood_m
@@ -489,14 +505,42 @@ func _lectern(key: String, p: Vector3, r: RandomNumberGenerator) -> void:
 	var top := Models.block(self, p + Vector3(0, 1.1, 0), Vector3(0.8, 0.06, 0.6), wood_m)
 	top.rotation.x = -0.35
 	Util.static_box(self, p + Vector3(0, 0.6, 0), Vector3(0.7, 1.2, 0.55))
-	var b := _small_book(r)
-	b.position = p + Vector3(0, 1.2, 0.02)
-	b.rotation = Vector3(-0.35, 0, 0)
-	b.scale = Vector3.ONE * 1.3
+	var b := _piece_node(key)
+	b.position = p + Vector3(0, 1.4, 0.02)
 	var sp := _sparkle(p + Vector3(0, 1.4, 0))
 	var l := _light(p + Vector3(0, 1.8, 0.4), Color(1.0, 0.85, 0.5), 1.0, 4.0)
 	lect[key] = [b, sp, l]
-	add_glow(p + Vector3(0, 1.3, 0), Color(1.0, 0.85, 0.5), 3.0, func(): return 0.0 if Game.flag("libBook_" + key) else 0.7)
+	add_glow(p + Vector3(0, 1.3, 0), Color(1.0, 0.85, 0.5), 3.0, func(): return 0.0 if Game.flag("libPiece_" + key) else 0.7)
+
+# The joint pieces, hovering over their lecterns (simple shapes, shown ~2x size so you can tell what they are)
+func _piece_node(key: String) -> Node3D:
+	var n := Node3D.new()
+	add_child(n)
+	match key:
+		"plant":
+			Models.cylinder(n, Vector3(0, 0.08, 0), 0.1, 0.08, 0.16, Util.mat(Color(0.7, 0.36, 0.22)), 12)
+			var leaf := Util.mat(Color(0.25, 0.62, 0.22))
+			leaf.cull_mode = BaseMaterial3D.CULL_DISABLED
+			for k in 7:   # a fan of pointy leaves
+				var qm := QuadMesh.new()
+				qm.size = Vector2(0.06, 0.3)
+				var q := Util.add_mesh(n, qm, leaf, Vector3(0, 0.3, 0), Vector3(0, k * 0.9, -0.9 + k * 0.3))
+				q.position += Vector3(sin(k * 0.9), 0, cos(k * 0.9)) * 0.04
+		"papers":
+			Models.block(n, Vector3(0, 0.05, 0), Vector3(0.16, 0.025, 0.09), Util.mat(Color(0.85, 0.72, 0.5)))
+			var l := Label3D.new()
+			l.text = "RAW"
+			l.font_size = 48
+			l.pixel_size = 0.002
+			l.modulate = Color(0.75, 0.25, 0.1)
+			l.position = Vector3(0, 0.064, 0)
+			l.rotation.x = -PI / 2.0
+			n.add_child(l)
+		"lighter":
+			Models.block(n, Vector3(0, 0.07, 0), Vector3(0.04, 0.12, 0.022), Util.mat(Color(0.85, 0.12, 0.12)))
+			Models.block(n, Vector3(0, 0.145, 0), Vector3(0.04, 0.03, 0.022), Util.mat(Color(0.75, 0.75, 0.8)))
+	n.scale = Vector3.ONE * 2.0
+	return n
 
 func _sparkle(p: Vector3) -> CPUParticles3D:
 	var sp := CPUParticles3D.new()
@@ -513,18 +557,18 @@ func _sparkle(p: Vector3) -> CPUParticles3D:
 	sp.global_position = p
 	return sp
 
-func _apply_book_state() -> void:
+func _apply_piece_state() -> void:
 	for k in lect:
-		var gone := Game.flag("libBook_" + k)
+		var gone := Game.flag("libPiece_" + k)
 		for n in lect[k]:
 			n.visible = not gone
 	if Game.flag("libGateOpen"):
 		_open_gate_now()
 
-func books_found() -> int:
+func pieces_found() -> int:
 	var n := 0
-	for k in BOOKS:
-		if Game.flag("libBook_" + k):
+	for k in PIECES:
+		if Game.flag("libPiece_" + k):
 			n += 1
 	return n
 
@@ -783,13 +827,12 @@ func _after_build() -> void:
 	sun_light.light_energy = 0.0
 	sun_light.shadow_enabled = false
 	sun_light.visible = false
-	if ResourceLoader.exists(SONG):   # Ebain's song: a normal AreaMusic (unlocks it in the Library once heard)
-		music = load("res://scripts/area_music.gd").new()
-		music.track = load(SONG)
-		music.stages = PackedStringArray(["walk"])
-		add_child(music)
-	else:
-		hum = play_sound("library_hum", -60.0, 1.0, true)
+	hum = play_sound("library_hum", -60.0, 1.0, true)
+	if ResourceLoader.exists(SONG) and radio:   # Ebain's song plays from the Reading Corner radio (on when you arrive)
+		radio.stream = load(SONG)
+		if radio.stream is AudioStreamOggVorbis:
+			radio.stream.loop = true
+		radio.play()
 
 # ================================================================ per frame
 func _level_process(delta: float) -> void:
@@ -825,10 +868,16 @@ func _level_process(delta: float) -> void:
 		c[0].rotation.z = -0.35 - sin(t * 1.7 + c[1]) * 0.18
 	for k in lect:   # the overdue volumes bob a little
 		var bn: Node3D = lect[k][0]
-		bn.position.y = BOOKS[k].y + 1.2 + sin(t * 2.0 + BOOKS[k].x) * 0.03
-	# walking into the Reading Room the first time
-	if stage == "walk" and not busy and Game.flag("libGateOpen") and not Game.flag("libRotunda") and leader.global_position.z < GATE_Z - 1.5:
-		_rotunda_moment()
+		bn.position.y = PIECES[k].y + 1.4 + sin(t * 2.0 + PIECES[k].x) * 0.04
+		bn.rotation.y += delta * 0.8
+	# walking into the Reading Room the first time: Deloye's "U could pass that shi?"
+	if stage == "walk" and not busy and Game.flag("libGateOpen") and not Game.flag("deloyeMet") and leader.global_position.z < GATE_Z - 1.5:
+		_pass_scene()
+	if radio and radio.playing and leader.global_position.distance_to(RADIO_POS) < 10.0 and not _radio_heard:
+		_radio_heard = true
+		if LibraryUI.mark_heard(SONG):
+			show_toast("New song in the Library: Deloye Lore", 2.5)
+	_mattias_process()
 	# the hum swells near the middle (and all the way at the book)
 	var d := Vector2(leader.global_position.x, leader.global_position.z).length()
 	var want := clampf(1.0 - (d - 2.5) / 7.0, 0.0, 1.0) * 0.6
@@ -845,7 +894,7 @@ func _begin() -> void:
 	follow_enabled = false
 	Game.unlock("deloye_found")   # secret achievement + the Scrapbook page
 	Game.set_flag("libEntered")
-	_apply_book_state()
+	_apply_piece_state()
 	fade.color = Color(1, 1, 1, 1)   # white, from the flush
 	for i in party.size():   # everyone drops out of the pipe
 		party[i].global_position = CHUTE + Vector3(-0.4 + i * 0.4, 6.0 + i * 1.2, 0)
@@ -868,8 +917,12 @@ func _begin() -> void:
 	fade.color = Color(0, 0, 0, 0)
 	follow_enabled = true
 	freeze_all(false)
+	if Game.flag("deloyeMet"):   # coming back later this run: just the library (Deloye's room is open)
+		_walk()
+		return
 	await run_dialogue(_steps(DS.ARRIVE))
 	_walk()
+	_walk_banter()
 
 func _walk() -> void:
 	stage = "walk"
@@ -880,22 +933,111 @@ func _walk_objective() -> void:
 	if Game.flag("deloyeMet"):
 		objective("Look around, or take the EXIT.")
 	elif Game.flag("libGateOpen"):
-		objective("Talk to the guy spinning in the middle.", CENTER)
-	elif books_found() >= BOOKS.size():
-		objective("Return the overdue books at the Reading Room door.", RETURN_BOX)
+		objective("Pull up to Deloye's room.", CENTER)
+	elif guide_target != null and mattias and mattias.visible:
+		objective("Follow Metocin Mattias.", guide_target)
 	else:
-		objective("Find the overdue Deloye Lore volumes (%d/%d)." % [books_found(), BOOKS.size()])   # no star: explore
+		objective("Find the joint pieces (%d/%d)." % [pieces_found(), PIECES.size()])   # no star: explore
 
-func _rotunda_moment() -> void:
+# ---------------------------------------------------------------- Metocin Mattias
+func _ensure_mattias() -> void:
+	if mattias:
+		return
+	mattias = spawn_npc("mattias", "Metocin Mattias", "mattias", 1.95, START + Vector3(2.2, 0, -1.6))
+	mattias.visible = false
+	mattias.set_meta("tint", Color(0.75, 0.85, 1.15))
+	mattias_light = OmniLight3D.new()
+	mattias_light.light_color = Color(0.4, 0.6, 1.0)
+	mattias_light.light_energy = 0.0
+	mattias_light.omni_range = 4.0
+	mattias.add_child(mattias_light)
+	mattias_light.position = Vector3(0, 1.6, 0.6)
+
+func _mattias_show(at: Vector3) -> void:
+	_ensure_mattias()
+	mattias.global_position = at
+	mattias.visible = true
+	mattias.set_meta("follow", true)
+	mattias.set_meta("follow_i", 0)
+	var f := Fx.poof(Color(0.5, 0.7, 1.0))
+	add_child(f)
+	f.global_position = at + Vector3(0, 1.0, 0)
+	f.emitting = true
+	play_sound("sfx_pop", -3.0)
+	create_tween().tween_property(mattias_light, "light_energy", 2.0, 0.5)
+
+# He walks ahead to `p` and waits there (follow is paused); guide_target = null → back to following you
+func _guide(p) -> void:
+	guide_target = p
+	if mattias == null:
+		return
+	if p == null:
+		mattias.remove_meta("goal")
+		mattias.set_meta("follow", true)
+	else:
+		mattias.set_meta("follow", false)
+		mattias.set_meta("goal", p + Vector3(1.3, 0, 1.4))
+		mattias.set_meta("goal_speed", 1.0)
+	_walk_objective()
+
+func _next_guide_spot():   # the next thing to show you: a missing piece, then Deloye's room
+	for k in PIECES:
+		if not Game.flag("libPiece_" + k):
+			return PIECES[k]
+	return ROT_IN if Game.flag("libGateOpen") else Vector3(0, 0, GATE_Z + 2.0)
+
+func _mattias_process() -> void:
+	if mattias == null or not mattias.visible:
+		return
+	if mattias.has_meta("goal"):   # don't run off too far ahead: wait for the leader
+		var ahead := mattias.global_position.distance_to(leader.global_position)
+		mattias.set_meta("goal_speed", 0.0 if ahead > 9.0 else 1.0)
+
+# Walking banter (Ebain: "while walking these voicelines commence"): speech bubbles, the game keeps going
+func _walk_banter() -> void:
+	if _banter_running or Game.flag("libBanter"):
+		return
+	_banter_running = true
+	await wait(1.5)
+	for st in _steps(DS.WALK_BANTER):
+		if stage != "walk":
+			break
+		while busy or dialogue.active:   # a conversation started: wait it out
+			await wait(0.3)
+		await _bubble(st["who"], st["line"])
+	Game.set_flag("libBanter")
+	_banter_running = false
+	if not Game.flag("libPiece_plant") and stage == "walk":   # "Look over here. Follow me." → the first piece
+		_guide(PIECES["plant"])
+
+func _bubble(who: String, line: String) -> void:
+	var u: Unit = mattias if who == "mattias" else null
+	for p in party:
+		if p.id == who:
+			u = p
+	var secs := clampf(line.length() * 0.06, 2.4, 8.0)
+	if u:
+		var col: Color = Dialogue.CHARS.get(who, {}).get("color", Color("#f3e3b0"))
+		var l := char_label(u, line, secs, u.height_m + 0.5, col.lightened(0.25))
+		l.width = 520
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.font_size = 34
+	dialogue._speak(who, line, false, true)   # the recording if there is one (or the robot voice)
+	await wait(secs + 0.35)
+
+# ---------------------------------------------------------------- Deloye's room
+func _pass_scene() -> void:
 	busy = true
-	Game.set_flag("libRotunda")
 	freeze_all(true)
 	var tw := create_tween()
 	tw.tween_method(func(v: float): focus_override = leader.global_position.lerp(CENTER + Vector3(0, 0, 3.0), v), 0.0, 1.0, 1.4).set_trans(Tween.TRANS_SINE)
 	await tw.finished
-	await run_dialogue(_steps(DS.ROTUNDA))
-	focus_override = null
-	_walk()
+	for i in party.size():   # gather in front of him
+		party[i].global_position = CENTER + Vector3(-1.4 + i * 1.4, 0, 3.6)
+	if mattias and mattias.visible:
+		_guide(null)
+		mattias.global_position = CENTER + Vector3(3.0, 0, 3.0)
+	await run_dialogue(_steps(DS.PASS))
 
 func _level_interactables() -> Array:
 	var list: Array = []
@@ -904,8 +1046,8 @@ func _level_interactables() -> Array:
 	var skorn_here := "skorn" in party_ids
 	# the rotunda
 	if Game.flag("libGateOpen"):
-		var deloye_steps: Array = DS.AGAIN[randi() % DS.AGAIN.size()] if Game.flag("deloyeMet") else DS.MEET
-		list.append({ "id": "deloye", "label": "Deloye", "verb": "Talk to", "pos": CENTER + Vector3(0, 0, 2.5), "h": 3.6, "r": 2.2, "steps": _steps(deloye_steps) })
+		if Game.flag("deloyeMet"):
+			list.append({ "id": "deloye", "label": "Deloye", "verb": "Talk to", "pos": CENTER + Vector3(0, 0, 2.5), "h": 3.6, "r": 2.2, "steps": _steps(DS.AGAIN[randi() % DS.AGAIN.size()]) })
 		list.append({ "id": "book", "label": "the floating book", "verb": "Look up at", "pos": BOOK_SPOT, "h": 2.4, "r": 1.4, "steps": DS.BOOK })
 		var sp := Vector3(sin(SHELF_A), 0, -cos(SHELF_A)) * (R - 1.4)
 		list.append({ "id": "shelf", "label": "the shelves", "verb": "Read", "pos": sp, "h": 2.0, "r": 1.6, "steps": _steps(DS.SHELF) if skorn_here else [{ "who": "xylo", "line": "Volume 4,019: The Wind. A classic." }] }) # DRAFT
@@ -913,14 +1055,22 @@ func _level_interactables() -> Array:
 		list.append({ "id": "exit", "label": "the EXIT", "verb": "Go through", "pos": dp, "h": 3.4, "r": 1.8, "steps": _steps(DS.EXIT_DOOR), "major": true })
 	else:
 		list.append({ "id": "gate", "label": "the Reading Room door", "verb": "Read", "pos": Vector3(-1.6, 0, GATE_Z + 1.4), "h": 2.6, "r": 1.6, "steps": _steps(DS.GATE_SIGN) })
-		var ret: Array = DS.GATE_OPEN if books_found() >= BOOKS.size() else DS.RETURN_SHORT
-		list.append({ "id": "return", "label": "the book return", "verb": "Return books at" if books_found() >= BOOKS.size() else "Look at", "pos": RETURN_BOX + Vector3(0, 0, 1.0), "h": 1.6, "r": 1.5, "steps": _steps(ret), "major": books_found() >= BOOKS.size() })
-	# the overdue volumes
-	for k in BOOKS:
-		if not Game.flag("libBook_" + k):
-			var st: Array = { "wind": DS.BOOK_WIND, "blank": DS.BOOK_BLANK, "rock": DS.BOOK_ROCK }[k]
-			list.append({ "id": "book_" + k, "label": "an overdue volume", "verb": "Take", "pos": BOOKS[k] + Vector3(0, 0, 1.0), "h": 1.7, "r": 1.4, "steps": _steps(st) })
+	# Metocin Mattias
+	if mattias and mattias.visible and not Game.flag("deloyeMet") and Game.flag("libGuided1"):
+		var mst: Array = DS.MATTIAS_GUIDING if Game.flag("libGuideAll") else DS.MATTIAS_HELP
+		list.append({ "id": "mattias", "label": "Metocin Mattias", "verb": "Talk to", "pos": mattias.global_position, "h": 2.4, "r": 1.6, "steps": mst })
+	# the joint pieces
+	for k in PIECES:
+		if not Game.flag("libPiece_" + k):
+			var pst: Array = [{ "do": "take:" + k }]   # (one conversation: no dialogue started inside an action)
+			if pieces_found() == 0 and mattias and mattias.visible:
+				pst += [{ "do": "guided1" }] + _steps(DS.PIECE_FIRST)
+			if pieces_found() == PIECES.size() - 1:
+				pst += _steps(DS.DELOYE_CALL)   # "You had let's burn it? Pull up my trio." → the curtain opens
+			pst.append({ "do": "after_piece" })
+			list.append({ "id": "piece_" + k, "label": PIECE_NAMES[k], "verb": "Take", "pos": PIECES[k] + Vector3(0, 0, 1.0), "h": 1.7, "r": 1.4, "steps": pst })
 	# things to look at
+	list.append({ "id": "radio", "label": "the radio", "verb": "Turn off" if radio and radio.playing else "Turn on", "pos": RADIO_POS + Vector3(0, 0, 1.2), "h": 1.4, "r": 1.4, "steps": DS.RADIO })
 	list.append({ "id": "pipe", "label": "the pipe", "verb": "Look at", "pos": CHUTE + Vector3(0.6, 0, 1.4), "h": 2.4, "r": 1.6, "steps": _steps(DS.CHUTE) })
 	list.append({ "id": "directory", "label": "the directory", "verb": "Read", "pos": DIRECTORY + Vector3(0, 0, 1.0), "h": 2.0, "r": 1.5, "steps": _steps(DS.DIRECTORY) })
 	list.append({ "id": "desk", "label": "the return desk", "verb": "Look at", "pos": RETURN_DESK + Vector3(0, 0, 1.8), "h": 1.8, "r": 1.6, "steps": _steps(DS.RETURN_DESK) if skorn_here else [{ "who": "lykor", "line": "\"Please do not return Deloye Lore.\" Got it." }] }) # DRAFT
@@ -936,30 +1086,54 @@ func _level_interactables() -> Array:
 
 func _on_action(n: String) -> void:
 	if n.begins_with("take:"):
-		await _take_book(n.get_slice(":", 1))
+		await _take_piece(n.get_slice(":", 1))
 		return
 	match n:
-		"earbud_out":
+		"mattias_appears":
+			_mattias_show(leader.global_position + Vector3(2.2, 0, -1.6))
+			Game.set_flag("libMattias")
+			char_label(mattias, "Metocin Mattias (Teleported In)", 3.5, 2.5, Color("#9cc4ff"))   # DRAFT
+			await wait(0.8)
+		"guided1":
+			Game.set_flag("libGuided1")
+		"after_piece":
+			_guide(_next_guide_spot() if Game.flag("libGuideAll") else null)
+		"guide_all":
+			Game.set_flag("libGuideAll")
+			_guide(_next_guide_spot())
+		"deloye_far":
+			char_label_at(CENTER + Vector3(0, 6.0, 0), "(Deloye, from the Reading Room)", 3.5, Color("#d9d2ff"))   # DRAFT
+			await wait(0.5)
+		"deloye_faces":
 			spin_speed = 0.0
-			char_label(deloye, "*takes one earbud out*", 2.2, DELOYE_H + 0.3, Color("#d9d2ff"))   # DRAFT
-			await wait(0.9)
-		"earbud_in":
-			char_label(deloye, "*earbud back in*", 2.2, DELOYE_H + 0.3, Color("#d9d2ff"))   # DRAFT
-			Game.set_flag("deloyeMet")
 			await wait(0.6)
-			spin_speed = 1.4
-			objective("Look around, or take the EXIT.")
+		"give_joint":
+			play_sound("sfx_grab", -6.0)
+			await wait(0.4)
+		"smoke":
+			await _smoke()
+		"faded":
+			Game.flags["fadedFights"] = 3
+			play_sound("sfx_reward", -4.0)
+			show_toast("Everyone is FADED: heal a little every turn and take 10% less damage, next 3 fights", 3.5)
+			await wait(0.6)
+		"keep_joint":
+			Game.set_flag("deloyeBad")
+			Game.add_item("joint", 1, "xylo" if "xylo" in party_ids else leader.id)
+			play_sound("sfx_grab", -6.0)
+			show_toast("You kept the Joint (use it in a fight). Deloye disapproves of Xylo now.", 3.5)
+			await wait(0.6)
+		"teleport_out":
+			Game.set_flag("deloyeMet")
+			await _teleport_out()
+		"radio":
+			await _radio_toggle()
 		"gift":
 			await _gift()
 		"book_swell":
 			_book_swelling = true
 			get_tree().create_timer(8.0).timeout.connect(func(): _book_swelling = false)
 			await wait(0.4)
-		"return_books":
-			play_sound("sfx_door", -8.0, 1.4)
-			for k in 3:
-				play_sound("sfx_punch", -16.0, 1.6 + k * 0.15)   # thunk thunk thunk into the slot
-				await wait(0.25)
 		"gate_open":
 			await _gate_open()
 		"leave", "leave_pipe":
@@ -969,10 +1143,18 @@ func _on_action(n: String) -> void:
 			await fade_out(0.7)
 			Game.travel("res://village.tscn", "library", leader.id)
 
-func _take_book(k: String) -> void:
-	if Game.flag("libBook_" + k):
+func char_label_at(p: Vector3, text: String, secs := 3.0, color := Color("#f3e3b0")) -> void:
+	var n := Node3D.new()
+	n.position = p
+	add_child(n)
+	var l := char_label(n, text, secs, 0.0, color)
+	l.pixel_size = 0.016
+	get_tree().create_timer(secs + 0.6).timeout.connect(n.queue_free)
+
+func _take_piece(k: String) -> void:
+	if Game.flag("libPiece_" + k):
 		return
-	Game.set_flag("libBook_" + k)
+	Game.set_flag("libPiece_" + k)
 	if lect.has(k):
 		var b: Node3D = lect[k][0]
 		var p := Fx.poof(Color(1.0, 0.85, 0.5))
@@ -982,9 +1164,8 @@ func _take_book(k: String) -> void:
 		for nd in lect[k]:
 			nd.visible = false
 	play_sound("sfx_reward", -6.0)
-	show_toast("Overdue volume found (%d/%d)" % [books_found(), BOOKS.size()], 2.2)
-	_walk_objective()
-	await wait(0.4)
+	show_toast("Got %s (%d/%d)" % [PIECE_NAMES[k], pieces_found(), PIECES.size()], 2.2)
+	await wait(0.5)
 
 func _gate_open() -> void:
 	Game.set_flag("libGateOpen")
@@ -996,6 +1177,67 @@ func _gate_open() -> void:
 		await tw.finished
 	_open_gate_now()
 	_walk_objective()
+
+func _radio_toggle() -> void:
+	if radio == null or radio.stream == null:
+		await dialogue._run_steps(_steps(DS.RADIO_STATIC), self)
+		return
+	play_sound("sfx_grab", -10.0, 1.4)
+	if radio.playing:
+		radio.stop()
+		show_toast("Radio off", 1.2)
+	else:
+		radio.play()
+		show_toast("Radio on: Deloye Lore", 1.6)
+	await wait(0.3)
+
+# B: puff puff pass. Placeholder scene (Ebain may make a real cutscene): smoke rises, the screen goes hazy, back.
+func _smoke() -> void:
+	var sm := CPUParticles3D.new()
+	sm.amount = 70
+	sm.lifetime = 3.5
+	sm.mesh = Fx.quad(0.6, false)
+	sm.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	sm.emission_box_extents = Vector3(2.4, 0.4, 0.8)
+	sm.direction = Vector3(0, 1, 0)
+	sm.spread = 25.0
+	sm.gravity = Vector3(0, 0.25, 0)
+	sm.initial_velocity_min = 0.3
+	sm.initial_velocity_max = 0.8
+	sm.scale_amount_min = 0.8
+	sm.scale_amount_max = 2.4
+	sm.color_ramp = Fx.ramp([[0.0, Color(0.85, 0.85, 0.85, 0)], [0.2, Color(0.85, 0.85, 0.85, 0.35)], [1.0, Color(0.85, 0.85, 0.85, 0)]])
+	add_child(sm)
+	sm.global_position = CENTER + Vector3(0, 1.6, 3.2)
+	for u in party:
+		char_label(u, "*puff*", 1.6, u.height_m + 0.3, Color("#cfe8c8"))   # DRAFT
+		await wait(0.55)
+	char_label(deloye, "*puff*", 1.6, DELOYE_H + 0.3, Color("#d9d2ff"))   # DRAFT
+	var haze := fade.color
+	var tw := create_tween()
+	tw.tween_property(fade, "color", Color(0.75, 0.9, 0.7, 0.35), 1.2)
+	await wait(2.4)
+	var tw2 := create_tween()
+	tw2.tween_property(fade, "color", Color(haze.r, haze.g, haze.b, 0.0), 1.2)
+	await wait(1.0)
+	sm.emitting = false
+	get_tree().create_timer(4.0).timeout.connect(sm.queue_free)
+
+# "Aight imma catch yall": everyone poofs out → the goblin village, by the outhouse
+func _teleport_out() -> void:
+	stage = "end"
+	busy = true
+	for u in party + ([mattias] if mattias and mattias.visible else []):
+		var f := Fx.poof(Color(0.8, 0.7, 1.0))
+		add_child(f)
+		f.global_position = u.global_position + Vector3(0, 1.0, 0)
+		f.emitting = true
+		u.visible = false
+		play_sound("sfx_pop", -4.0, 1.0 + randf() * 0.3)
+		await wait(0.18)
+	await wait(0.6)
+	await fade_out(0.6)
+	Game.travel("res://village.tscn", "library", leader.id)
 
 func _gift() -> void:
 	if Game.flag("deloyeGift"):   # already got it this run (came back on a loaded save)
@@ -1027,10 +1269,16 @@ func can_resume_saved() -> bool:
 	return Game.flag("libEntered")
 
 func _resume(r: Dictionary) -> void:
-	_apply_book_state()
+	_apply_piece_state()
 	stage = "walk"
 	await super._resume(r)
+	if Game.flag("libMattias") and not Game.flag("deloyeMet"):   # Mattias is still with you
+		_mattias_show(leader.global_position + Vector3(1.6, 0, 1.2))
+		if Game.flag("libGuideAll"):
+			_guide(_next_guide_spot())
 	_walk()
+	if Game.flag("libMattias") and not Game.flag("libBanter"):
+		_walk_banter()
 
 func arrival(_from: String) -> Array:
 	return [START, Vector3(0, 0, -1)]
@@ -1047,18 +1295,27 @@ func map_buildings() -> Array:
 	]
 
 # ---------------------------------------------------------------- automated test
-# Lands in the Atrium, walks the whole route (checks every doorway is walkable), takes the 3 overdue volumes, returns
-# them, walks into the Reading Room (ROTUNDA), talks to Deloye (gift), looks at the book; DELOYE_EXIT=1 then leaves
-# through the EXIT → the village (its tour doesn't run on travel).
+# Lands in the Atrium with Mattias, lets the walking banter play (he starts guiding to the plant), walks the whole route
+# (checks every doorway is walkable), takes the plant (PIECE_FIRST), asks Mattias "You could help me?" (he guides),
+# takes the other two (Deloye calls, the curtain opens), walks into the Reading Room and answers Deloye with
+# LIB_CHOICE = 0 (A, default) / 1 (B, puff puff pass) / 2 (C, "Bad.") → teleported back to the village.
 const ROUTE := [   # waypoints through every room, in the order a player would go
 	["atrium", Vector3(0, 0, 50)], ["stacks", Vector3(0, 0, 34)], ["wind", Vector3(-12, 0, 34)], ["wind", Vector3(-22, 0, 33)],
 	["restricted", Vector3(-24, 0, 38)], ["restricted", Vector3(-21.5, 0, 48)], ["wind", Vector3(-23, 0, 36)],
 	["stacks", Vector3(-4, 0, 34)], ["rock", Vector3(12, 0, 34)], ["rock", Vector3(22, 0, 33)], ["corner", Vector3(24, 0, 38)],
 	["corner", Vector3(21, 0, 48)], ["rock", Vector3(23, 0, 36)], ["stacks", Vector3(4, 0, 34)], ["stacks", Vector3(0, 0, 14)],
 ]
+var tour_pick := 0
 func _shot_tour() -> void:
+	tour_pick = int(OS.get_environment("LIB_CHOICE")) if OS.get_environment("LIB_CHOICE") != "" else 0
 	await _begin_quick()
 	await shot("dl_01_atrium")
+	for k in 80:   # the walking banter (bubbles), then "Follow me." → he heads for the plant
+		if Game.flag("libBanter"):
+			break
+		await wait(0.5)
+	await shot("dl_01b_mattias_guides")
+	print("LIB BANTER done=", Game.flag("libBanter"), " guiding_to_plant=", guide_target == PIECES["plant"], " mattias_moving=", mattias.has_meta("goal"))
 	var ok := true
 	for i in ROUTE.size():   # walk it for real (collision on), like a player holding the stick
 		var wp: Vector3 = ROUTE[i][1]
@@ -1068,41 +1325,47 @@ func _shot_tour() -> void:
 			ok = false
 			print("LIB ROUTE stuck before ", ROUTE[i][0], " ", wp, " at ", leader.global_position)
 			place_party(wp, Vector3(0, 0, -1))
-		if i in [1, 3, 5, 9, 11]:
+		if i in [3, 5, 11]:
 			await shot("dl_route_%02d_%s" % [i, ROUTE[i][0]])
 	print("LIB ROUTE ", "ALL OK" if ok else "BLOCKED")
 	# the gate is shut: the curtain must stop you
 	place_party(Vector3(0, 0, GATE_Z + 2.0), Vector3(0, 0, -1))
 	await walk_to(leader, Vector3(0, 0, 4.0), 1.6, 3.0)
 	print("LIB GATE closed holds=", leader.global_position.z > GATE_Z)
-	await shot("dl_02_gate")
-	for k in BOOKS:
-		await _tour_use("book_" + k)
-	await _tour_use("return")
-	print("LIB BOOKS found=", books_found(), " gate=", Game.flag("libGateOpen"), " curtain=", curtain_body == null)
+	await _tour_use("piece_plant")
+	await _tour_use("mattias")
+	print("LIB HELP guide_all=", Game.flag("libGuideAll"), " guiding_to_papers=", guide_target == PIECES["papers"])
+	await _tour_use("radio")
+	await _tour_use("piece_papers")
+	await _tour_use("piece_lighter")
+	print("LIB PIECES found=", pieces_found(), " gate=", Game.flag("libGateOpen"), " curtain=", curtain_body == null, " guiding_to_room=", guide_target == ROT_IN)
 	place_party(Vector3(0, 0, GATE_Z + 2.0), Vector3(0, 0, -1))
-	await walk_to(leader, ROT_IN + Vector3(0, 0, -0.5), 1.6, 6.0)
-	await wait(1.8)
-	await shot("dl_03_rotunda")
-	for k in 12:
+	walk_to(leader, ROT_IN + Vector3(0, 0, -0.5), 1.6, 6.0)
+	for k in 30:
+		if dialogue.active:
+			break
+		await wait(0.2)
+	await wait(1.2)
+	await shot("dl_03_pass")
+	await _drain()
+	for k in 20:
+		if stage == "end":
+			break
+		await wait(0.1)
+	print("DELOYE TOUR pick=", tour_pick, " met=", Game.flag("deloyeMet"), " gift=", Game.flag("deloyeGift"), " owner=", Game.gear_owner.get("neuralink", ""),
+		" faded=", Game.flags.get("fadedFights", 0), " bad=", Game.flag("deloyeBad"), " joint=", Game.count("joint"), " stage=", stage)
+	await wait(3.0)
+	get_tree().quit()
+
+func _drain() -> void:   # click through a conversation; choices get tour_pick
+	for k in 60:
 		if not dialogue.active:
 			break
-		await advance(1, 0.25)
-	await wait(0.6)
-	print("LIB ROTUNDA seen=", Game.flag("libRotunda"), " stage=", stage, " busy=", busy)
-	place_party(CENTER + Vector3(0, 0, 3.6), Vector3(0, 0, -1))
-	await wait(0.8)
-	await shot("dl_04_deloye")
-	await _tour_use("deloye")
-	print("DELOYE TOUR met=", Game.flag("deloyeMet"), " gift=", Game.flag("deloyeGift"), " owner=", Game.gear_owner.get("neuralink", ""),
-		" found=", Game.progress.has("deloye_found"), " ach=", Game.ach.got.has("lore_accurate"))
-	await _tour_use("book")
-	await shot("dl_05_book")
-	if OS.get_environment("DELOYE_EXIT") != "":
-		await _tour_use("exit")
-		print("DELOYE TOUR exit stage=", stage)
-		await wait(3.0)
-	get_tree().quit()
+		await wait(0.3)
+		if not dialogue._choices.is_empty():
+			dialogue._picked.emit(mini(tour_pick, dialogue._choices.size() - 1))
+		else:
+			dialogue._next.emit()
 
 func _tour_use(id: String) -> void:
 	var it: Array = current_interactables().filter(func(i): return i["id"] == id)
@@ -1116,20 +1379,23 @@ func _tour_use(id: String) -> void:
 	if it.is_empty():
 		print("LIB TOUR can't reach ", id)
 		return
+	var keep := tour_pick
+	tour_pick = 0   # "You could help me?"
 	start(it[0])
 	await wait(0.4)
-	for k in 40:
-		if not dialogue.active:
-			break
-		await advance(1, 0.25)
-	await wait(0.5)
+	await _drain()
+	tour_pick = keep
+	await wait(0.8)
 
 func _begin_quick() -> void:
 	fade.color.a = 0.0
 	Game.unlock("deloye_found")
 	Game.set_flag("libEntered")
-	_apply_book_state()
+	_apply_piece_state()
 	busy = false
 	await wait(1.2)
+	_mattias_show(leader.global_position + Vector3(2.2, 0, -1.6))
+	Game.set_flag("libMattias")
 	stage = "walk"
 	_walk()
+	_walk_banter()

@@ -28,6 +28,8 @@ var rng := RandomNumberGenerator.new()
 var diff: Dictionary
 var level := 1
 var lvl := 1.0
+var faded_ids := {}        # Faded fighters (Deloye library): heal a little each turn, take 10% less; survives a KO
+var lore_nerf := false     # told Deloye "Bad.": Xylo's Deloye Lore moves fizzle half the time
 var bags := {}                    # fighter id -> { beer, bowl }: everyone uses their own items
 var used67 := false
 var hype := 0
@@ -59,6 +61,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 	lvl = 1.0 + 0.1 * (level - 1)
 	var oi: Dictionary = o.get("inv", {})
 	used67 = o.get("used67", false)
+	lore_nerf = o.get("lore_nerf", false)
 	var gear: Dictionary = o.get("gear", {})
 	var hurt: Dictionary = o.get("hurt", {})   # HP missing from earlier fights (Game.hurt); empty = full HP
 
@@ -80,10 +83,12 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 			"tripping": mods.get("tripping", "") == "party" or (mods.get("tripping", "") == "skorn" and id == "skorn"),
 		})
 
-	for p in party:   # o.inv = { fighter: {beer, bowl} } (Game.fight_bags), or one shared {beer, bowl} (balance sim) → first fighter
-		bags[p["id"]] = { "beer": 0, "bowl": 0 }
+	for p in party:   # o.inv = { fighter: {beer, bowl, joint} } (Game.fight_bags), or one shared {beer, bowl} (balance sim) → first fighter
+		bags[p["id"]] = { "beer": 0, "bowl": 0, "joint": 0 }
 		if oi.get(p["id"]) is Dictionary:
-			bags[p["id"]] = { "beer": int(oi[p["id"]].get("beer", 0)), "bowl": int(oi[p["id"]].get("bowl", 0)) }
+			bags[p["id"]] = { "beer": int(oi[p["id"]].get("beer", 0)), "bowl": int(oi[p["id"]].get("bowl", 0)), "joint": int(oi[p["id"]].get("joint", 0)) }
+		if o.get("faded", false):
+			_make_faded(p)
 	if oi.has("beer") or oi.has("bowl"):
 		bags[party[0]["id"]] = { "beer": int(oi.get("beer", 0)), "bowl": int(oi.get("bowl", 0)) }
 	var full_party: int = def.get("party", ids).size()
@@ -193,6 +198,12 @@ func next_actor() -> Dictionary:
 	if u["side"] == "party":
 		stats["party_turns"] += 1
 		u["defending"] = false
+		if faded_ids.has(u["id"]) and u["hp"] > 0:
+			u["st"]["faded"] = 1   # (a KO or a cleanse clears statuses: Faded comes back)
+			var fh := mini(int(round(D.FADED["heal"] * lvl)), u["max_hp"] - u["hp"])
+			if fh > 0:
+				u["hp"] += fh
+				ev.append({ "t": "heal", "u": u, "amt": fh, "hp": u["hp"], "text": "%s is Faded. Real chill. (+%d)" % [u["name"], fh], "quiet": true })
 		for c in u["cds"]:
 			u["cds"][c] = maxi(0, u["cds"][c] - 1)
 		if u["st"].has("flattened"):
@@ -378,6 +389,10 @@ func talk_options(m: Dictionary) -> Array:
 		out.append({ "id": tid, "text": T["text"], "ok": need == "" or item_count(m["id"], need) > 0, "need": need })
 	return out
 
+func _make_faded(p: Dictionary) -> void:
+	faded_ids[p["id"]] = true
+	p["st"]["faded"] = 1
+
 func item_count(id: String, k: String) -> int:
 	return int(bags.get(id, {}).get(k, 0))
 
@@ -435,6 +450,10 @@ func party_act(m: Dictionary, a: Dictionary, o: Dictionary = {}) -> Array:
 	var h := { "attacker": m, "timing": timing, "crit": crit }
 
 	if a["type"] == "combo":
+		if lore_nerf and a["combo"]["id"] == "loreslap" and rnd() < D.LORE_FIZZLE:
+			for id in a["combo"]["who"]:
+				member(id)["meter"] -= a["combo"]["cost"]
+			return ev + [{ "t": "misfire", "u": m, "text": "Deloye left Xylo on read. Skorn slaps nothing.", "sound": "miss", "ms": 1500 }] # DRAFT
 		ev += do_combo(m, a["combo"], a["target"], h)
 	else:
 		var move: Dictionary = m["moves"][a["slot"]]
@@ -442,6 +461,8 @@ func party_act(m: Dictionary, a: Dictionary, o: Dictionary = {}) -> Array:
 			m["cds"][a["slot"]] = move["cd"] + (1 if a["slot"] == "special" and m["st"].has("bricked") else 0)
 		if a["slot"] == "special":
 			m["st"].erase("bricked")
+		if lore_nerf and m["id"] == "xylo" and move.get("fx", "") == "lore" and rnd() < D.LORE_FIZZLE:
+			return ev + [{ "t": "misfire", "u": m, "text": "Deloye left Xylo on read. The lore fizzles.", "sound": "miss", "ms": 1500 }] # DRAFT
 		if a["slot"] == "ult":
 			m["meter"] = 0
 			ev += bark(m, "ult", 1.0)
@@ -619,6 +640,12 @@ func use_item(m: Dictionary, k: String, t: Dictionary) -> Array:
 	bags[m["id"]][k] -= 1   # from the user's own bag
 	stats["items"] += 1
 	var ev := [{ "t": "item", "u": m, "target": t, "item": k }]
+	if it.get("faded", false):   # the joint: the whole party, for the rest of this fight
+		ev.append({ "t": "say", "text": "%s sparks it up and passes it around." % m["name"], "sound": "sparkle", "ms": 1400 }) # DRAFT
+		for p in alive(party):
+			_make_faded(p)
+			ev.append({ "t": "status", "u": p, "name": "faded", "text": "%s is FADED." % p["name"], "quiet": true })
+		return ev
 	ev += _heal_member(m, t, it["heal"], "%s has a %s." % [t["name"], it["name"]])
 	if k == "beer" and t["hp"] > 0:
 		t["st"]["buzzed"] = 1
@@ -1048,6 +1075,8 @@ func party_status(p: Dictionary, name: String, turns: int, text: String) -> Arra
 
 func hurt(p: Dictionary, dmg: int, block: String, aoe: bool) -> Array:
 	var ev := []
+	if dmg > 0 and faded_ids.has(p["id"]):
+		dmg = maxi(1, int(round(dmg * D.FADED["cut"])))
 	if dmg > 0 and p.get("armor", 0) > 0:   # armor: flat cut per hit (10 − 3 = 7), never below 1
 		dmg = maxi(1, dmg - p["armor"])
 	p["hp"] = maxi(0, p["hp"] - dmg)
