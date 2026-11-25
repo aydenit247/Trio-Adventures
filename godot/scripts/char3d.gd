@@ -1,5 +1,5 @@
 # A rigged 3D body for one of the trio (Meshy model, Mixamo skeleton, clips baked into the GLB), used for
-# walking around: idle / walk / run. Unit creates one when res://assets/characters3d/<id>.glb exists.
+# walking around: stand / walk / run, idle clip after 15 s still. Unit creates one when res://assets/characters3d/<id>.glb exists.
 # Fights and posed moments stay on the original 2D art (Asar's call): Unit swaps back to the billboard then.
 extends Node3D
 class_name Char3D
@@ -7,9 +7,11 @@ class_name Char3D
 const DIR := "res://assets/characters3d/%s.glb"
 const BLEND := 0.18
 const RUN_SPEED := 5.2     # flat m/s above which the run clip plays
+const IDLE_AFTER := 15.0   # seconds standing still before the idle clip starts (Asar); until then: hold still
 
 # Clip names as Meshy exported them (same for all three).
-const CLIPS := { "idle": "Idle", "walk": "Walking", "run": "Running" }
+const CLIPS := { "idle": "Idle", "walk": "Walking", "run": "Running", "down": "dying_backwards" }
+# "down" (falling over backward) is only in Skorn's GLB for now: his tent nap in camp (Asar). Others stay 2D on a knock.
 
 var id := ""
 var model: Node3D
@@ -19,6 +21,8 @@ var _mats: Array[StandardMaterial3D] = []
 var _fill := Color(-1, 0, 0)
 var _walk_ref := 1.5        # m/s the walk clip covers at speed 1 (scaled with the body)
 var _run_ref := 4.2
+var _still := 0.0           # seconds since we last moved
+var down := false           # lying on the ground (fell over); locomotion waits
 
 static func has_model(_id: String) -> bool:
 	return ResourceLoader.exists(DIR % _id)
@@ -53,8 +57,11 @@ func setup(_id: String, height: float) -> void:
 	for role in CLIPS:
 		if CLIPS[role] in have:
 			clips[role] = CLIPS[role]
-			anim.get_animation(CLIPS[role]).loop_mode = Animation.LOOP_LINEAR
-	_loop("idle")
+			anim.get_animation(CLIPS[role]).loop_mode = Animation.LOOP_NONE if role == "down" else Animation.LOOP_LINEAR
+	if clips.has("idle"):   # start standing still (no idle motion at launch)
+		anim.play(clips["idle"])
+		anim.seek(0.0, true)
+		anim.speed_scale = 0.0
 
 # Every frame from Unit.drive(): turn toward the way we're going, pick idle / walk / run, match the pace.
 func locomote(vel: Vector3, delta: float) -> void:
@@ -62,14 +69,50 @@ func locomote(vel: Vector3, delta: float) -> void:
 	var spd := flat.length()
 	if spd > 0.4:
 		rotation.y = lerp_angle(rotation.y, atan2(flat.x, flat.z), clampf(delta * 12.0, 0.0, 1.0))
-	if anim == null:
+	if anim == null or down:
 		return
+	if spd > 0.4:
+		_still = 0.0
 	if spd > RUN_SPEED and clips.has("run"):
 		_loop("run", clampf(spd / _run_ref, 0.7, 1.8))
 	elif spd > 0.4:
 		_loop("walk", clampf(spd / _walk_ref, 0.6, 2.2))
 	else:
-		_loop("idle")
+		_still += delta
+		_stand(_still)
+
+func can_fall() -> bool:
+	return clips.has("down")
+
+# level.knock() → fall over backward and stay down; unknock → stand back up. instant = already lying there
+# (e.g. the camp reloading in the morning with Skorn still face-down).
+func set_down(on: bool, instant := false) -> void:
+	if on == down or not clips.has("down"):
+		return
+	down = on
+	if on:
+		anim.play(clips["down"], 0.1)
+		anim.speed_scale = 1.0
+		if instant:
+			anim.seek(anim.current_animation_length, true)
+	else:
+		_still = 0.0
+		anim.play(clips["idle"], 0.3)
+		anim.seek(0.0, true)
+		anim.speed_scale = 1.0
+
+# Standing: blend into the idle clip's first pose and hold it still; after IDLE_AFTER seconds let it play.
+func _stand(t: float) -> void:
+	if not clips.has("idle"):
+		return
+	if anim.current_animation != clips["idle"]:
+		anim.play(clips["idle"], BLEND)
+		anim.seek(0.0, true)
+		anim.speed_scale = 1.0
+	if t >= IDLE_AFTER:
+		anim.speed_scale = 1.0
+	elif t > BLEND:
+		anim.speed_scale = 0.0   # blend from walking is done: freeze on the standing pose
 
 # The billboards get lit by level.light_at() (campfire, moon, torches) instead of real lights, and night
 # scenes are tuned for that. Unit passes that colour in night areas as a soft glow of the model's own

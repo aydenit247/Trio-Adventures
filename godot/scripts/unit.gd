@@ -86,10 +86,13 @@ func _physics_process(delta: float) -> void:
 
 # 3D for walking around; the original 2D art for fights and posed moments (Asar's call). The billboard
 # comes back whenever we're in a fight (battle_view sets meta "in_fight"), showing a pose picture
-# (set_pose), or knocked over (level.knock freezes + tips the sprite). Hops/floats are mirrored.
+# (set_pose), or knocked over (level.knock freezes + tips the sprite) — unless the 3D body has a fall clip,
+# then it falls over backward in 3D instead (Skorn at the camp tents). Hops/floats are mirrored.
 func _sync_body(_delta: float) -> void:
 	var knocked := sprite.billboard == BaseMaterial3D.BILLBOARD_DISABLED and absf(sprite.rotation.z) > 0.6
-	var use_2d: bool = has_meta("in_fight") or views.get("front") != base_tex or knocked
+	var falls: bool = knocked and body3d.can_fall() and not has_meta("in_fight")   # 3D fall (Skorn's tent nap)
+	var use_2d: bool = has_meta("in_fight") or views.get("front") != base_tex or (knocked and not falls)
+	body3d.set_down(falls, absf(sprite.rotation.z) > 1.3)   # already fully tipped = was lying there already
 	sprite.visible = use_2d
 	body3d.visible = not use_2d
 	if use_2d:
