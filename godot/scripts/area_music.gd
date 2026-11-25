@@ -35,7 +35,8 @@ func _ready() -> void:
 	add_child(player)
 	player.finished.connect(func(): played_once = true)
 	if (Game.music_once or force_once) and track is AudioStreamOggVorbis:   # play it through once, no loop
-		var once: AudioStreamOggVorbis = track.duplicate()
+		var full := track.resource_path.replace(".ogg", "_full.ogg")   # the full version has the song's real ending
+		var once: AudioStreamOggVorbis = (load(full) if ResourceLoader.exists(full) else track).duplicate()
 		once.loop = false
 		player.stream = once
 

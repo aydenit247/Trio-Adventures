@@ -195,8 +195,14 @@ func _playing(i: int) -> bool:
 	return i >= 0 and i == cur and player.playing and not player.stream_paused
 
 func _dur(i: int) -> String:
-	var st = load("res://assets/music/%s.ogg" % SONGS[i]["id"])
+	var st = load(_song_path(SONGS[i]["id"]))
 	return _mmss(st.get_length()) if st else ""
+
+# The Library plays the full version of a song (id + "_full.ogg": the real ending) when there is one; the game's
+# area music is the loop-trimmed id.ogg.
+static func _song_path(id: String) -> String:
+	var full := "res://assets/music/%s_full.ogg" % id
+	return full if ResourceLoader.exists(full) else "res://assets/music/%s.ogg" % id
 
 static func _mmss(t: float) -> String:
 	var s := int(t)
@@ -214,7 +220,7 @@ func _toggle(i: int) -> void:
 		else:
 			player.play()
 	else:
-		var st: AudioStream = load("res://assets/music/%s.ogg" % SONGS[i]["id"])
+		var st: AudioStream = load(_song_path(SONGS[i]["id"]))
 		if st is AudioStreamOggVorbis:   # the Library plays each song through once
 			st = st.duplicate()
 			st.loop = false

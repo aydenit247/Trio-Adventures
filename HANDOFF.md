@@ -493,7 +493,7 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
   battle, boss, mountain/pass, victory jingle, "YOU GOT COOKED" sting. A new area track = add an AreaMusic node to
   that area's .tscn, and add it to `LibraryUI.SONGS` + `Lyrics.TEXT` so it shows in the Library.
 - **Lyrics:** Ebain's lyrics for all four songs (Prophecy of Metocy, The Mogging Elf, The Hymn of Metocin Mattias, Deloye Lore) are in `scripts/lyrics.gd`, as he sent them (`# Ebain`).
-- **The Mogging Elf's ending:** the repo's `the_mogging_elf.ogg` is trimmed to loop and ends mid-song, so the real last line ("On some type shit, you feel me? Hehe.") is cut. Ebain wants it back: needs his full original file (see COLLAB Log 11/25).
+- **Songs with an ending:** `<id>.ogg` is the loop-trimmed in-game track; if `<id>_full.ogg` exists (The Mogging Elf has one, with "On some type shit, you feel me? Hehe."), the Library and Settings → Music: Play once use it instead.
 - **Every song is Ebain's** (Prophecy of Metocy, The Mogging Elf, The Hymn of Metocin Mattias), made in Google Flow Music.
   Older notes that call the hymn "Asar's track" are wrong: Asar wired it into the summit, Ebain made it.
 - **Secret Deloye Lore library (built, see section 1):** the **Deloye Lore song is in** (`godot/assets/music/deloye_lore.ogg`,
