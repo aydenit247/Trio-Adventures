@@ -233,7 +233,7 @@ def cmd_refs(a):
 # the text sent to the TTS ONLY. File names, lines.json and the manifest keep the real line, so the game still matches it.
 PRONUNCIATIONS = {
     "Lykor": "Lie-kor", "Xylo": "Zy-lo", "Caelid": "Kay-lid", "Dulbers": "Dull-burrs",
-    "Metocin": "Meh-toe-sin", "Mattias": "Muh-tie-us", "Deloye": "Deh-loy", "Bogdrinker": "Bog-drinker",
+    "Deloye": "Duh-loy", "Bogdrinker": "Bog-drinker",   # Deloye = da-loy (Ebain). No Metocin/Mattias respelling: Ebain found it silly
     "metocy": "meh-toe-see", "midtocy": "mid-toe-see", "beezy": "bee-zee",
     "aight": "ite", "looksmaxxin": "looks-maxin", "deadahh": "dead-ahh", "allat": "all-at", "OD": "oh-dee",
     "ts": "this", "mf": "motherfucker", "ngl": "not gonna lie", "fw": "fuck with",
