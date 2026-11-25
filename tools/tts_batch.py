@@ -145,7 +145,9 @@ def script_lines():
             d = m.group(0)
             line = unq(m.group(1))
             mood = re.search(r'"mood"\s*:\s*"([^"]+)"', d)
+            name = re.search(r'"name"\s*:\s*"?([A-Za-z_][^",}]*)', d)   # speaker (a constant like SLUDGE or a string)
             info.setdefault(key(line), {"line": line, "mood": mood.group(1) if mood else "",
+                                        "name": name.group(1).strip() if name else "",
                                         "thought": bool(re.search(r'"thought"\s*:\s*true', d))})
     return info
 
@@ -167,7 +169,8 @@ def takes_for(who, info):
         i = info.get(k)
         if i and (i["thought"] or "*echo" in i["line"].lower()):   # echo/thought effects would get cloned too
             continue
-        res.append({"file": VOICES / f, "line": i["line"] if i else f, "mood": i["mood"] if i else ""})
+        res.append({"file": VOICES / f, "line": i["line"] if i else f, "mood": i["mood"] if i else "",
+                    "name": i["name"] if i else ""})
     return res
 
 
@@ -195,11 +198,13 @@ def cmd_refs(a):
             print(f"-- {who}: no existing takes, uses refs/{who}.wav")
             continue
         mood = info.get(key(x["line"]), {}).get("mood", "")
+        name = info.get(key(x["line"]), {}).get("name", "")
         w = words(x["line"])
         def score(t):
             tw = words(t["line"])
             j = len(w & tw) / max(1, len(w | tw))
-            return j + (0.3 if mood and t["mood"] == mood else 0) - (1 if key(t["line"]) == key(x["line"]) else 0)
+            return (j + (0.3 if mood and t["mood"] == mood else 0) + (0.5 if name and t["name"] == name else 0)
+                    - (1 if key(t["line"]) == key(x["line"]) else 0))   # same speaker (e.g. Sludge) first
         ranked = sorted(takes, key=score, reverse=True)
         pick, total = [], 0.0
         for t in ranked:           # best match first, then add the next best until the sample is ~6 s+
