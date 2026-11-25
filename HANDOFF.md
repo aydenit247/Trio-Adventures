@@ -398,7 +398,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 Fights happen right where you're standing: `await fight("giant", { enemies = [unit], mods = { enraged = true } })`.
 FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T or the Esc menu), meters → ultimates
 (FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events (+ **Dulbmeethus' lightning**, 3% of fights: "Y'all could hear me doe?" on the first enemy
-turn, a bolt on every enemy, regular ones drop, bosses lose 40%; `battle.gd _dulbmeethus_bolt`, `BOLT=1` forces it), banter, XP +
+turn, then **Ebain's 10 s cutscene** (`assets/video/dulbmeethus_strike.ogv`, full-screen, music ducked, E/Esc skips after 0.6 s, `battle_view.gd _strike_cutscene()`; skipped in headless runs / env `NO_CUTSCENE`) that ends on a white-out which fades into a bolt on every enemy with Ebain's attack clip (`assets/sounds/dulbmeethus_attack.ogg`), regular ones drop, bosses lose 40%; `battle.gd _dulbmeethus_bolt`, `BOLT=1` forces it), banter, XP +
 levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (flat cut per hit), permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
 roaming fights wake you at the area's `checkpoint`). **Roaming patrols** you beat or talk down stay gone for the run

@@ -34,6 +34,12 @@ var speed := 1.0
 var saved := {}
 var sounds := {}
 var auto_play := false
+# Dulbmeethus' strike cutscene (Ebain 11/25): a full-screen video that ends on a white-out. See _strike_cutscene().
+const STRIKE_VIDEO := "res://assets/video/dulbmeethus_strike.ogv"   # Godot only plays Ogg Theora (.ogv), not mp4/mov
+const STRIKE_SOUND := "res://assets/sounds/dulbmeethus_attack.ogg"
+var _strike_vp: VideoStreamPlayer = null
+var _strike_skip := false
+var _strike_t0 := 0
 
 # UI
 var root: Control
@@ -265,6 +271,9 @@ func _make_sounds() -> void:
 			sounds[pair[0]].stream = st
 			sounds[pair[0]].volume_db = pair[2]
 	sounds["shi"] = lv._sfx(load("res://assets/voices/lykor/on_some_type_shit.mp3"), linear_to_db(maxf(Game.voice_vol, 0.01)))   # Asar's Lykor take (same file as his Mart line), at the Voice volume
+	var strike_st = load(STRIKE_SOUND) if ResourceLoader.exists(STRIKE_SOUND) else null
+	if strike_st:
+		sounds["strike"] = lv._sfx(strike_st, 0.0)   # Ebain's clip for the moment Dulbmeethus actually attacks (played plain, no pitch change)
 
 func sfx(k: String, pitch := 1.0) -> void:
 	if sounds.has(k):
@@ -1210,14 +1219,22 @@ func _event(ev: Dictionary) -> void:
 			flash(0.5, Color(0.8, 0.6, 1.0))
 			_say(c["title"])
 			await _banner("DULBMEETHUS" if c["id"] == "dulbmeethus_bolt" else "CHAOS EVENT", PURPLE, 1.6)
-		"lightning":   # Dulbmeethus smites the enemy side: a white flash, bolts on every enemy, a big shake
+		"lightning":   # Dulbmeethus smites the enemy side: Ebain's cutscene, then the white-out fades into a bolt on every enemy
 			Game.achieve("hear_me_doe")
+			var cover: ColorRect = await _strike_cutscene()   # null when there's no video (headless tests, missing file)
+			if sounds.has("strike"):
+				sounds["strike"].play()   # the attack clip: starts as the white fades and the bolts land
+			else:
+				sfx("blast", 0.6)
+			if cover != null:
+				_strike_reveal(cover)
 			for e in ev["us"]:
 				_bolt(_node(e))
+				lv.shake = 1.2
+				await lv.wait(0.12)
 			flash(0.8, Color(1, 1, 1))
 			lv.shake = 1.2
-			sfx("blast", 0.6)
-			await lv.wait(0.5)
+			await lv.wait(0.9 if cover != null else 0.5)
 		"attack":
 			sfx(ev.get("sound", "hit"))
 			if ev.get("sit", false):
@@ -1541,7 +1558,76 @@ func _confirm_menu() -> void:
 	sfx("select")
 	_menu_done.emit(o["v"])
 
+# Plays Dulbmeethus' cutscene full-screen (16:9 kept, black bars on other window shapes, music ducked) and returns
+# a white cover that is still up, so the battle can fade in from the white-out (see _strike_reveal). Press interact
+# / back / click after a moment to skip. Returns null (nothing shown) in headless runs (explorer bot, tours) or if
+# the video can't load, so fights never get stuck on it.
+func _strike_cutscene() -> ColorRect:
+	if DisplayServer.get_name() == "headless" or OS.get_environment("NO_CUTSCENE") != "":
+		return null
+	if not ResourceLoader.exists(STRIKE_VIDEO):
+		return null
+	var stream = load(STRIKE_VIDEO)
+	if stream == null:
+		return null
+	var cover := ColorRect.new()
+	cover.color = Color.BLACK
+	cover.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cover.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.add_child(cover)
+	var frame := AspectRatioContainer.new()
+	frame.ratio = 16.0 / 9.0
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cover.add_child(frame)
+	var vp := VideoStreamPlayer.new()
+	vp.stream = stream
+	vp.expand = true
+	vp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if AudioServer.get_bus_index("SFX") != -1:
+		vp.bus = &"SFX"
+	frame.add_child(vp)
+	var skip_lbl := Label.new()
+	skip_lbl.text = "E / Esc: skip"
+	skip_lbl.modulate = Color(1, 1, 1, 0.0)
+	skip_lbl.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	skip_lbl.offset_left = -170; skip_lbl.offset_top = -40; skip_lbl.offset_right = -16; skip_lbl.offset_bottom = -12
+	skip_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	cover.add_child(skip_lbl)
+	_strike_vp = vp
+	_strike_skip = false
+	var mus := AudioServer.get_bus_index("Music")   # the song drops out while he's on screen
+	var mus_db := AudioServer.get_bus_volume_db(mus) if mus != -1 else 0.0
+	if mus != -1:
+		AudioServer.set_bus_volume_db(mus, -60.0)
+	vp.play()
+	_strike_t0 = Time.get_ticks_msec()
+	while vp.is_playing() and not _strike_skip and Time.get_ticks_msec() - _strike_t0 < 14000:   # watchdog: the clip is 10 s
+		if Time.get_ticks_msec() - _strike_t0 > 1200 and skip_lbl.modulate.a == 0.0:
+			create_tween().tween_property(skip_lbl, "modulate:a", 0.6, 0.4)
+		await get_tree().process_frame
+	vp.stop()
+	vp.queue_free()
+	skip_lbl.queue_free()
+	_strike_vp = null
+	if mus != -1:
+		AudioServer.set_bus_volume_db(mus, mus_db)
+	cover.color = Color.WHITE   # the video ends on a white-out, so the cover takes over from there
+	return cover
+
+# fades the white cover away to reveal the battle, then removes it
+func _strike_reveal(cover: ColorRect) -> void:
+	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tw := create_tween()
+	tw.tween_property(cover, "color:a", 0.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(cover.queue_free)
+
 func _input(ev: InputEvent) -> void:
+	if _strike_vp != null:   # cutscene running: only skipping works
+		if (ev.is_action_pressed("interact") or _is_back(ev) or (ev is InputEventMouseButton and ev.pressed)) and Time.get_ticks_msec() - _strike_t0 > 600:
+			_strike_skip = true   # (not in the first 0.6 s, so mashing E before it starts doesn't skip it)
+		get_viewport().set_input_as_handled()
+		return
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_T:
 		Game.timed_auto = not Game.timed_auto
 		_update_hint()

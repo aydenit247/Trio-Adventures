@@ -107,6 +107,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] **Screen-space overlays that follow 3D things** (enemy HP bars, the timed-hit ring): `lv.cam.unproject_position()`
   straight into a Control under `lv.hud`, every frame; skip it when `cam.is_position_behind()`, and clamp to the screen
   for giants.
+- [ebain] **Video: Godot only plays Ogg Theora (`.ogv`), not mp4/mov/h264.** Convert with `ffmpeg -i in.mov -c:v libtheora -q:v 10 -c:a libvorbis -q:a 8 out.ogv` (q:v 10 = best). Play it in a `VideoStreamPlayer` (`expand = true`, inside an `AspectRatioContainer` ratio 16/9 so other window shapes get black bars; set `bus = &"SFX"` yourself, the SFX auto-routing only catches `AudioStreamPlayer`). `stream.get_length()` is 0 for Theora, so don't wait on a length: poll `is_playing()` with a watchdog. Example: `battle_view.gd _strike_cutscene()` (Dulbmeethus' strike).
 
 ## Testing tricks
 - [asar] **Windows crash dumps** are in `%LOCALAPPDATA%\CrashDumps\TrioAdventures.exe.*.dmp`. You can parse the minidump with plain Python `struct` (exception stream 6, module list 4, thread list 3, memory64 list 9). Asar's 4 crashes were all worker threads with GPU shader-compiler DLLs on the stack (Vulkan driver), not scripts or TTS.
@@ -135,6 +136,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   on a loop. The explorer bot marks a play-once song finished after its length; tours need their own way around it.
 - [asar] `Level.auto_dir` is NOT gated by `busy` (unlike keyboard input): zero it during dialogue/cutscenes or the party
   keeps walking. `BattleView.auto_play` can be switched on from outside after `run()` started (it's read every turn).
+- [ebain] A cutscene video must skip itself when `DisplayServer.get_name() == "headless"` (explorer bot, headless tours) or env `NO_CUTSCENE` is set, or a 10 s clip stalls every automated run. `BOLT=1 FIGHT=goblins` under xvfb (not headless) plays Dulbmeethus' cutscene for real: grab the screen with `ffmpeg -f x11grab` from a manually started `Xvfb :99` to see it.
 
 ## Performance (players have laptops)
 - [ebain] Budget about 1M triangles per frame. Poly Haven boulders/trunks are 65–100k each; use `rock_07`, `rock_09` or
@@ -177,6 +179,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] `notes.md` is Ebain's idea list (not claimed work). Turn an item into a board task before building it, and mark it done there.
 - [asar] Gear art: name the file after the gear id in `assets/items/` (`spoon.png`, `conditioner.png`…) and the inventory
   picks it up.
+- [ebain] AI-generated video from Gemini can have **black bars baked in that shrink over the first seconds** (the Dulbmeethus clip's bars went 86/93 px to 0 over 3 s). A fixed crop doesn't fix that. Measure the bar rows per frame (mean luma <= 3 from the top/bottom edge), then per frame crop a 16:9 box around the real picture (`PIL resize(box=...)`) so the zoom ends exactly at the full frame; re-encode from the PNG frames.
 
 ## Git / workflow
 - [ebain] The remote has no remote-tracking refs: use `git fetch -q origin foundation && git rebase -q FETCH_HEAD`.
