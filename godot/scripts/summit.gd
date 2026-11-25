@@ -869,7 +869,7 @@ func _begin() -> void:
 	tw.tween_property(self, "focus_override", leader.global_position, 1.4).set_trans(Tween.TRANS_SINE)
 	await tw.finished   # (Asar 11/23) not wait(1.4): the tween's last frame used to land after this and pin the camera
 	focus_override = null
-	show_toast("Don't walk yet if you want to hear the song.", 4.0)   # Ebain
+	# (Asar 11/25: dropped the "Don't walk yet if you want to hear the song." toast)
 	await wait(0.4)
 	stage = "walk"   # → the hymn starts
 	Game.set_flag("summitStarted")   # (after the intro: a save from before it replays the arrival)

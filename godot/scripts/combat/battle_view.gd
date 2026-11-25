@@ -388,6 +388,7 @@ func _build_ui() -> void:
 	menu_panel.anchor_left = 1.0; menu_panel.anchor_right = 1.0; menu_panel.anchor_top = 1.0; menu_panel.anchor_bottom = 1.0
 	menu_panel.offset_left = -400; menu_panel.offset_right = -18; menu_panel.offset_bottom = -40
 	menu_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	menu_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN   # long move names widen it leftward, not off-screen (Asar 11/25)
 	var mp := UITheme.panel(0.95, _th())
 	mp.content_margin_left = 22; mp.content_margin_right = 22; mp.content_margin_top = 20; mp.content_margin_bottom = 14
 	menu_panel.add_theme_stylebox_override("panel", mp)

@@ -212,6 +212,21 @@ static func _knob(col: Color, d: int) -> ImageTexture:
 	return ImageTexture.create_from_image(img)
 
 # Box height: 214 px at 100% text size, taller with bigger text so 3 lines still fit.
+# Long lines shrink to fit the box instead of running off the bottom (Asar 11/25: Mattias's long line lost
+# "past"). Starts at the normal size (Settings text size) and steps down until the wrapped text fits.
+func _fit_text(line: String) -> void:
+	var base := UITheme.fs(24)
+	var font: Font = text_lbl.get_theme_font("normal_font")
+	var w := text_lbl.size.x
+	var h := text_lbl.size.y
+	var fs := base
+	if font and w > 50.0 and h > 20.0:
+		var plain := line.replace("[i]", "").replace("[/i]", "")
+		while fs > int(base * 0.6) and font.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, w, fs).y > h:
+			fs -= 1
+	text_lbl.add_theme_font_size_override("normal_font_size", fs)
+	text_lbl.add_theme_font_size_override("italics_font_size", fs)
+
 func _box_h() -> float:
 	return 214.0 + maxf(0.0, Game.text_scale - 1.0) * 220.0
 
@@ -342,6 +357,7 @@ func say(s: Dictionary) -> void:
 		text_lbl.text = "[i][color=#%s]%s[/color][/i]" % [UITheme.c("note").to_html(false), line]
 	else:
 		text_lbl.text = line
+	_fit_text(line)
 	var speed: float = Game.TEXT_SPEED_MULT[Game.text_speed]   # Settings → Text speed (0 = instant)
 	if speed <= 0.0:
 		text_lbl.visible_ratio = 1.0

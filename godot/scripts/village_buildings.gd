@@ -576,7 +576,10 @@ func _place_party(p: Vector3, ahead: Vector3) -> void:
 # Safety net: nobody in a room can end up outside its walls or below its floor (would fall forever).
 func _keep_in_room() -> void:
 	var o := origin(room)
-	var hx := ROOM_W / 2.0 - 0.6
+	# Only snap someone who is really past a wall. (Asar 11/25: the old 0.6 margin was inside the spot where the
+	# walls stop you (wall face 0.25 + body radius 0.32), so leaning on any wall snapped you back and zeroed your
+	# speed every frame: you got stuck on the wall and couldn't slide along it.)
+	var hx := ROOM_W / 2.0 - 0.1
 	for u in lv.party + lv.npcs:
 		if not is_instance_valid(u) or not u.visible:
 			continue
@@ -585,8 +588,8 @@ func _keep_in_room() -> void:
 		var l: Vector3 = u.global_position - o
 		if absf(l.x) > 30.0:   # not in this room at all (the band waiting outside, village goblins)
 			continue
-		if absf(l.x) > hx or l.z > FRONT_Z - 0.6 or l.z < BACK_Z + 0.6 or l.y < -0.3:
-			u.global_position = o + Vector3(clampf(l.x, -hx, hx), 0.0, clampf(l.z, BACK_Z + 0.6, FRONT_Z - 0.6))
+		if absf(l.x) > hx or l.z > FRONT_Z - 0.1 or l.z < BACK_Z + 0.1 or l.y < -0.3:
+			u.global_position = o + Vector3(clampf(l.x, -(ROOM_W / 2.0 - 0.6), ROOM_W / 2.0 - 0.6), 0.0, clampf(l.z, BACK_Z + 0.6, FRONT_Z - 0.6))
 			u.velocity = Vector3.ZERO
 
 func process(_delta: float) -> void:

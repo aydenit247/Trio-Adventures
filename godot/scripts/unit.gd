@@ -97,8 +97,17 @@ func _sync_body(_delta: float) -> void:
 	body3d.visible = not use_2d
 	if use_2d:
 		return
-	# (skip the cutout's own little walk bob / breathing: the 3D body has real legs)
-	body3d.position.y = sprite.position.y if sprite.position.y > 0.1 else 0.0
+	# Sitting (meta "sitting" = where the body goes, relative to the unit; set by the area, e.g. the throne)
+	var sit: bool = has_meta("sitting")
+	body3d.set_sitting(sit)
+	if sit:
+		body3d.position = get_meta("sitting")
+		body3d.rotation.y = 0.0   # facing +Z, the way the throne faces
+	else:
+		body3d.position.x = 0.0
+		body3d.position.z = 0.0
+		# (skip the cutout's own little walk bob / breathing: the 3D body has real legs)
+		body3d.position.y = sprite.position.y if sprite.position.y > 0.1 else 0.0
 	body3d.scale = sprite.scale if absf(sprite.scale.y - 1.0) > 0.05 else Vector3.ONE
 	var sc := get_tree().current_scene
 	body3d.set_fill(sprite.modulate if sc and sc.get("night") == true else Color.BLACK)   # night areas only

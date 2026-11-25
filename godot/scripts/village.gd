@@ -10,6 +10,7 @@ const VS = preload("res://scripts/village_script.gd")
 const VB = preload("res://scripts/village_buildings.gd")
 const THRONE_POS := Vector3(0, 0, -9)
 const SEAT_POS := Vector3(0, 0, -8.2)
+const SIT_ON_THRONE := Vector3(0, 0.0, -0.72)   # 3D body offset from SEAT_POS so a sitting Lykor/Skorn lands on the chair (Asar 11/25)
 const FIRE_POS := Vector3(6.5, 0, 2.5)
 const EXIT_POS := Vector3(30, 0, -2)
 const GOBLIN_TAGS := ["(Unemployed)", "(Also Unemployed)", "(Between Jobs)", "(Laid Off)", "(Freelance)", "(Looking for Work)"]
@@ -181,7 +182,7 @@ func _build_throne() -> void:
 	add_child(root)
 	var planks := Models.mat("weathered_planks", 1.0, Color(0.75, 0.65, 0.55))
 	Models.block(self, THRONE_POS + Vector3(0, 0.12, 0), Vector3(2.2, 0.24, 1.6), planks)   # little stage
-	var chair := Models.place(self, "painted_wooden_chair_01", THRONE_POS + Vector3(0, 0.24, 0), PI, 1.5, false, Color(0.42, 0.3, 0.2))
+	var chair := Models.place(self, "painted_wooden_chair_01", THRONE_POS + Vector3(0, 0.24, 0), 0.0, 1.5, false, Color(0.42, 0.3, 0.2))   # faces the room (Asar 11/25: was backwards)
 	chair.name = "ThroneChair"
 	var wheel := Models.place(self, "rusted_wheel_rim_01", THRONE_POS + Vector3(0, 1.85, -0.7), 0.0, 4.2)
 	wheel.rotation.z = 0.12
@@ -196,7 +197,6 @@ func _build_throne() -> void:
 		_bone(root, p, rng.randf() * TAU, rng.randf_range(0.8, 1.15), bone)
 	_bone(root, Vector3(-0.9, 0.09, 1.2), 0.9, 0.9, bone)   # one crossed over another, for that throne-room look
 	Util.static_box(self, THRONE_POS + Vector3(0, 0.6, -0.3), Vector3(1.4, 1.2, 1.0))
-	wood_sign("sign_throne", "THRONE\n(SPOONS, BONES, 1 WHEEL)", THRONE_POS + Vector3(0, 0.62, 0.62), 0.0, 1.35, 0.5)   # plaque on the base
 
 # ---------------------------------------------------------------- per frame
 func _level_process(_delta: float) -> void:
@@ -355,6 +355,10 @@ func _on_action(n: String) -> void:
 			await _skorn_slap()
 		"fight_goblins":
 			await _fight_goblins()
+		"mug_away":   # Asar 11/25: the beezy mug is gone once you pick how Lykor gets out of this
+			if mug:
+				mug.visible = false
+				mug.set_meta("owner", null)
 		"dethrone":
 			Game.set_flag("lykorDethroned")
 			if king_label:
@@ -411,6 +415,7 @@ func _to_throne() -> void:
 	await fade_out(0.4)
 	leader.global_position = SEAT_POS
 	leader.set_view("front")
+	leader.set_meta("sitting", SIT_ON_THRONE)   # 3D Lykor sits on the throne (Char3D)
 	for u in party:
 		if u.id == "xylo":
 			u.global_position = SEAT_POS + Vector3(-2.6, 0, 2.2)
@@ -427,6 +432,10 @@ func _to_throne() -> void:
 	zoom = 8.5
 	fade_in(0.5)
 	await wait(0.5)
+
+func _off_throne(u: Unit) -> void:
+	if u and u.has_meta("sitting"):
+		u.remove_meta("sitting")
 
 func _give_mug(owner: Unit) -> void:
 	if mug == null:
@@ -542,6 +551,7 @@ func _input(ev: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _pass_out() -> void:
+	_off_throne(leader)
 	shake = 0.3
 	knock(leader, -80.0, 0.5)
 	await wait(0.6)
@@ -575,6 +585,7 @@ func _crown_skorn() -> void:
 	# Lykor gets off the throne FIRST and stands to its left (Asar: he used to stay on the seat, right on top of Skorn).
 	# Left side, because the Chief stands on the right and Xylo further left in front.
 	var lykor_spot := SEAT_POS + Vector3(-1.9, 0, 0.7)
+	_off_throne(leader)
 	hop(leader, 0.4)
 	await walk_to(leader, lykor_spot, 1.2, 1.2)
 	leader.global_position = lykor_spot   # make sure, even if the walk got stuck
@@ -582,6 +593,7 @@ func _crown_skorn() -> void:
 	await walk_to(sk, SEAT_POS + Vector3(0, 0, 0.3), 1.0, 3.0)
 	sk.global_position = SEAT_POS
 	sk.set_view("front")
+	sk.set_meta("sitting", SIT_ON_THRONE)   # the Purple King sits (Char3D)
 	ui_sfx.play()
 	char_label(sk, "The Purple King (Downgrade)", 4.0)
 	if king_label:
@@ -593,6 +605,7 @@ func _crown_skorn() -> void:
 
 # ---- D: sneak out (you actually control Lykor, slowly… and they catch you anyway)
 func _sneak() -> void:
+	_off_throne(leader)
 	dialogue.hide_box()
 	objective("Sneak out of the village… slow… quiet…")
 	walk_mult = 0.32
@@ -649,6 +662,7 @@ func _skorn_slap() -> void:
 	await wait(0.2)
 
 func _fight_goblins() -> void:
+	_off_throne(leader)
 	# Skorn vs. 3 goblins, turn-based, right there in front of the throne
 	await fight("goblins", { "enemies": goblins.slice(0, 3) })
 	var kneel: Texture2D = load("res://assets/characters/goblin_kneel.png")
@@ -656,6 +670,7 @@ func _fight_goblins() -> void:
 		g.set_pose(kneel, 0.75)
 
 func _leave() -> void:
+	_off_throne(leader)
 	stage = "after"
 	focus_override = null
 	follow_enabled = true
@@ -663,6 +678,7 @@ func _leave() -> void:
 	if Game.flag("skornKing") and not Game.flag("martDone"):   # after the Mart he travels with you again
 		var sk := remove_from_party("skorn")
 		sk.global_position = SEAT_POS
+		sk.set_meta("sitting", SIT_ON_THRONE)
 	var stand: Texture2D = load("res://assets/characters/goblin.png")
 	for g in goblins:
 		if g.visible and not Game.flag("skornKing"):
