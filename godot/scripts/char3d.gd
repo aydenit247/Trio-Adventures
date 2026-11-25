@@ -10,7 +10,7 @@ const RUN_SPEED := 5.2     # flat m/s above which the run clip plays
 const IDLE_AFTER := 15.0   # seconds standing still before the idle clip starts (Asar); until then: hold still
 
 # Clip names as Meshy exported them (same for all three).
-const CLIPS := { "idle": "Idle", "walk": "Walking", "run": "Running", "down": "dying_backwards", "sit": "Chair_Sit_Idle_Male" }
+const CLIPS := { "idle": "Idle", "walk": "Walking", "run": "Running", "down": "dying_backwards", "sit": "Chair_Sit_Idle_M" }
 # "down" (falling over backward) is only in Skorn's GLB for now: his tent nap in camp (Asar). Others stay 2D on a knock.
 
 var id := ""
