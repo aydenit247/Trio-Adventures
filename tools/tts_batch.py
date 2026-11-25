@@ -298,7 +298,7 @@ def cmd_gen(a):
 # Same "monster" layering as the Emberstage studio (Voice-actor-generation src/trio/fx.ts) so clones sit next to
 # the studio takes. Pitch is matched per line to the character's existing takes (median voice pitch).
 FX = {   # who → target median pitch (Hz) of their studio/real takes, studio monster amount
-    "skorn": {"hz": 90, "monster": 0.15},
+    "skorn": {"hz": 90, "monster": 0.15, "lo": -5},   # Ebain 11/24: -8 st was TOO low on the high takes
     "mattias": {"st": -3, "monster": 0},   # Ebain 11/24: clones good, just deeper (fixed shift, his takes are ~240 Hz)
 }
 
@@ -341,7 +341,7 @@ def cmd_fx(a):
         hz = a.hz or cfg.get("hz", 0); fixed = a.st if a.st is not None else cfg.get("st"); monster = cfg["monster"] if a.monster is None else a.monster
         for wav in sorted((src / who).glob("*.wav")):
             (dest / who).mkdir(parents=True, exist_ok=True)
-            f0, st = apply_fx(wav, dest / who / wav.name, hz, monster, fixed=fixed)
+            f0, st = apply_fx(wav, dest / who / wav.name, hz, monster, lo=cfg.get("lo", -8.0), fixed=fixed)
             meta = wav.with_suffix(".json")
             if meta.exists():
                 shutil.copyfile(meta, dest / who / meta.name)
