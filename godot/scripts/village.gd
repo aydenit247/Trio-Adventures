@@ -212,7 +212,7 @@ func _level_process(_delta: float) -> void:
 		Game.set_flag("luckySpoonFound")
 		Game.key_owner["lucky_spoon"] = Game.active_fighter
 		show_toast("The patrol dropped something: Grubnik's Lucky Spoon! (%s has it)" % leader.display_name, 2.6)
-	if mug and mug.get_meta("owner", null):
+	if mug and mug.has_meta("owner") and mug.get_meta("owner") != null:   # get_meta(k, null) errors once the meta is cleared
 		var o: Unit = mug.get_meta("owner")
 		mug.global_position = o.global_position + Vector3(0.45, 1.05, 0.1)
 	if busy:
@@ -358,7 +358,7 @@ func _on_action(n: String) -> void:
 		"mug_away":   # Asar 11/25: the beezy mug is gone once you pick how Lykor gets out of this
 			if mug:
 				mug.visible = false
-				mug.set_meta("owner", null)
+				mug.remove_meta("owner")
 		"dethrone":
 			Game.set_flag("lykorDethroned")
 			if king_label:
