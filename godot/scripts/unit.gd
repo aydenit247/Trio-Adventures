@@ -158,7 +158,7 @@ func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> voi
 			stepped.emit()
 	else:
 		_idle += delta * 2.0
-		sprite.position.y = lerp(sprite.position.y, 0.0, delta * 10.0)
+		sprite.position.y = lerp(sprite.position.y, 0.0, clampf(delta * 10.0, 0.0, 1.0))   # unclamped, a slow frame (delta > 0.2) overshoots and the sprite flies off to infinity
 		sprite.scale = Vector3(1.0, 1.0 + sin(_idle) * 0.008, 1.0)
 
 # Swap to a pose (kneeling goblin, fighting goblin, ...). h = height in meters for this image.
