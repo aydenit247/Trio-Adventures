@@ -42,7 +42,82 @@ The Mogging Elf, Metocy, the Mogging Elf
 [Instrumental]
 
 On some type shit, you feel me? Hehe.""",
-	"the_hymn_of_metocin_mattias": "",
+	# Ebain
+	"the_hymn_of_metocin_mattias": """[Intro]
+From Caelid's dust shall three arise
+To seek the holy pill;
+One purple, full of fury's fire,
+Who cannot read, nor will.
+One golden-haired, whose face is law,
+Whom kingdoms bow to see;
+One red, who reads the endless lore
+And talks eternally.
+
+[Verse 1]
+Upon the night before the quest
+He found the only map;
+He fed it to the campfire's flame,
+Then settled for a nap.
+'Bags is for maps!' the golden cried,
+The fire answered, 'snap.'
+
+[Verse 2]
+The goblins bowed to golden hair,
+They crowned him with a spoon;
+They poured him bee-zee, cold and fair,
+He passed out before noon.
+A shop where no shop ought to be,
+A grin behind the till;
+'The first one's free,' said Dull-Burz Frint.
+It was a bootleg pill.
+
+[Pre-Chorus]
+The giant slept across the pass,
+His snoring shook the stone;
+By slap, by lore, by sneaking feet,
+The three went on alone.
+
+[Chorus]
+Meh-Toe-Sin Muh-Tie-Us!
+(You had called? You had called?)
+We climbed your mountain high!
+(Come closer, my beloved three)
+True Meh-Toe-See is never moist,
+It's dry as bone and blue as sky!
+On my Dragon Mama,
+The trio does not die!
+
+[Verse 3]
+Upon the night before the quest
+He found the only map;
+He fed it to the campfire's flame,
+Then settled for a nap.
+'Bags is for maps!' the golden cried,
+The fire answered, 'snap.'
+
+[Verse 4]
+The goblins bowed to golden hair,
+They crowned him with a spoon;
+They poured him bee-zee, cold and fair,
+He passed out before noon.
+A shop where no shop ought to be,
+A grin behind the till;
+'The first one's free,' said Dull-Burz Frint.
+It was a bootleg pill.
+
+[Chorus]
+Meh-Toe-Sin Muh-Tie-Us!
+(You had called? You had called?)
+We climbed your mountain high!
+(Come closer, my beloved three)
+True Meh-Toe-See is never moist,
+It's dry as bone and blue as sky!
+On my Dragon Mama,
+The trio does not die!
+
+[Outro]
+From Caelid's dust shall three arise
+To seek the holy pill.""",
 	# Ebain
 	"deloye_lore": """[Intro]
 (Check it, yeah...)
