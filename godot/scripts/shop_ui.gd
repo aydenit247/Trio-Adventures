@@ -275,6 +275,7 @@ func _buy() -> void:
 		return
 	var id: String = stock[sel][0]
 	Game.add_gold(-_price(sel))
+	Game.set_flag("bought_" + id)   # achievements: flag:bought_golden_ladle, flag:bought_jordan9s
 	var who: String = Game.active_fighter
 	var nm: String = CombatD.PARTY[who]["name"]
 	if stock[sel][1] == "item":

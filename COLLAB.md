@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md, 4 Skorn lines reworded in camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd — branch: ebain/tts-batch — started 2026-11-24
-- [ebain] Achievements batch (Ebain's 18) — files: godot/scripts/achievements.gd, combat/battle_view.gd (3 small hooks), inventory_ui.gd, shop_ui.gd, mart.gd (1 flag), pass.gd (1 flag) — branch: ebain/achievements — started 2026-11-25
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-25 [ebain] **Ebain's achievements**: 21 new (27 total): Sneaky Shi, Good boy, Slopbowl Consumer, Crunk, Neuralinked, Deloye Lore Specialist, 6-7!!!!!, Yall could hear me doe?, Trail Mix, Hey guys it's your boy, 3 Pass ones, Geeking, Slayer of Metocin Mattias, On some metocy shi, Tactical retreat, 100%, On Some Ladle Shi, U had said drip?, You got cooked
 - 2026-11-25 [asar] Asar's 11/25 batch: Lykor (and crowned Skorn) sit on the throne, chair faces front, no throne sign, beer gone after the throne choice, fight menu widens left instead of off-screen, long dialogue lines shrink to fit, no "Don't walk" toast on the Mattias walk, 3D model no longer sticks on building walls
 - 2026-11-24 [ebain] **Big Deloye Lore library**: Atrium → Grand Stacks → Hall of Wind / Restricted Section / Rock Room / Reading Corner; 3 overdue volumes open the rune curtain to Deloye's rotunda (the end)
 - 2026-11-24 [ebain] Combat settings: Battle speed (Settings → Gameplay: Normal/Fast/Very fast), fights follow the menu theme (Parchment too)
@@ -60,10 +60,10 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [ebain] tools/tts_batch.py, godot/scripts/voice_index.gd, VOICE_LINES.md, godot/assets/voices/ (new clone files only), camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd (one Skorn line each)
-- [ebain] godot/scripts/achievements.gd, combat/battle_view.gd, inventory_ui.gd, shop_ui.gd, mart.gd, pass.gd (achievement hooks only)
 - [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
+- 2026-11-25 [ebain] **Achievements merged** (Ebain's list). New trigger types in achievements.gd (`all:`, `count:`, `pct:100`) + saved counters (`Game.ach.bump`). Hot spot **combat/battle_view.gd**, 6 one-liners only: `Game.achieve("six_seven")` / `("hear_me_doe")` in those events, `Game.ach.bump(ev["item"])` in "item", `Game.ach.bump("fled")` in "fled", `Game.achieve("cooked")` at the top of `_outro` when `res == "lose"`. Others: inventory_ui.gd (bump when Tab-eating), shop_ui.gd (flag `bought_<id>` per purchase), mart.gd (flag `dulbersMet`), pass.gd (flag `giantWoke`). **@asar:** nothing needed from you. Tested: new `tools/test_achievements.tscn` ALL OK (every trigger type), Pass tour with all 3 hooked choices, Mart tour, a lost patrol fight: no errors, right achievements unlocked.
 - 2026-11-25 [asar] Fix (unit.gd, 1 line): idle bob `lerp(y, 0, delta * 10)` had no clamp, so any frame slower than 0.2 s overshot and goblin sprites flew off to ±inf ("!v.is_finite()" spam, found by the persona runs at 6x). Now `clampf(..., 0, 1)`. Persona playtest 11/25 (8 runs, same 4 personas): all finished Chapter 1, no other new problems. Tested: suite2 29/29, the two seeds that hit it now run clean.
 - 2026-11-25 [asar] Fix (village.gd): the batch's `mug_away` cleared the mug's `owner` meta and `_level_process` then logged "no meta owner" every frame (`get_meta(k, null)` errors when the meta is gone). Now `has_meta` check + `remove_meta`. Found by the persona runs, not the suite: **the suite only counted SCRIPT ERROR lines; count plain `ERROR:` lines too** (TIPS). Tested: suite2 29/29 with the wider error count, continuity 0.
 - 2026-11-25 [asar] **Asar's 11/25 batch merged.** Hot spots: **dialogue.gd** new `_fit_text()` called from `say()`: shrinks the text (down to 60%) until the wrapped line fits the box. **combat/battle_view.gd** 1 line: `menu_panel.grow_horizontal = BEGIN`. Also: **village.gd** throne chair yaw 0 (it faced backward), `sign_throne` removed, new do `mug_away` (first step of all 5 throne choices in village_script.gd), sitting: units with meta `sitting` (a local offset) sit in 3D (`Char3D.set_sitting`; uses a `Chair_Sit_Idle_Male` clip if the GLB has one, otherwise a bent-leg pose); `_off_throne()` clears it. **village_buildings.gd** `_keep_in_room` now only kicks in just inside the wall (the old 0.6 margin sat inside the wall collider and froze the 3D player). **summit.gd**: removed the `# Ebain` toast "Don't walk yet if you want to hear the song." (Asar asked). Dulbers at the Mart left as is (Asar: keep it). Tested: suite2 29/29, continuity 0, throne renders, Mattias long line fits.

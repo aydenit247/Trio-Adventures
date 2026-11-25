@@ -454,6 +454,7 @@ func _heal_with(fid: String, it: Dictionary) -> void:
 	var fname: String = CombatD.PARTY[fid]["name"]
 	var got := Game.use_heal_item(fid, it["id"])
 	if got > 0:
+		Game.ach.bump(it["id"])   # Crunk (3 beezy) / Slopbowl Consumer (3 bowls)
 		note = "%s %s %s. +%d HP (%d/%d)." % [fname, "drank a" if it["id"] == "beer" else "ate a", it["name"], got, Game.hp(fid), Game.max_hp(fid)]
 		_click()
 	else:

@@ -618,6 +618,7 @@ func _on_action(n: String) -> void:
 			Game.set_flag("charisMet")
 			await run_nested(RS.CHARIS_HI if first else RS.CHARIS_AGAIN)
 		"dulbers_appears":
+			Game.set_flag("dulbersMet")   # achievement "Hey guys it's your boy"
 			dulbers.global_position = DOOR_OUT
 			dulbers.visible = true
 			_poof(DOOR_OUT, Color(0.6, 0.5, 0.9))

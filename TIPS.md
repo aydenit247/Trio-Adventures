@@ -339,3 +339,11 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] Dialogue probes as a `--script` SceneTree have no autoloads (Game, UITheme): to screenshot a dialogue line, patch the area's `_shot_tour` locally with a long wait + `shot()` and run it under xvfb.
 - [asar] `get_meta("k", null)` still errors when the meta is missing (a null default counts as "no default"). Use `has_meta` first. And when grepping tour logs for errors, count plain `ERROR:` lines (ignore "resources still in use at exit"), not just SCRIPT ERROR: runtime errors like this one only print as `ERROR:`.
 - [asar] Always clamp a lerp weight built from delta (`clampf(delta * k, 0, 1)`). Unclamped, one slow frame overshoots and it can blow up to infinity.
+
+## Achievements (ebain, 11/25)
+- [ebain] **`Game.unlock(id)` calls `ach.event("progress:id")` BEFORE it records the id**, so an "all:" check must count the trigger id as found
+  (`Achievements._check_all`), and the `pct:100` check is `call_deferred` so it sees the id.
+- [ebain] `Game.set_flag(name, false)` never fires achievements (only truthy values do), so `Game.set_flag("sneakWon", won)` is safe to use as a trigger.
+- [ebain] Counters ("ate 3 bowls") = `Game.ach.bump("<key>")` + `"when": "count:<key>:<n>"`; saved across playthroughs in achievements.cfg `[counts]`.
+  Shops set a flag `bought_<item id>` on every purchase, so "bought X" is one `flag:bought_<id>` line.
+- [ebain] `tools/test_achievements.tscn` tests every trigger type in about 10 s (clears the saved achievements/progress first).

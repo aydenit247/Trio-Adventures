@@ -5,9 +5,13 @@
 #   "progress:<id>"  any id from progress_data.gd: story outcomes ("village_chug"), quests ("quest_bar_tab"), "chapter1"…
 #   "flag:<name>"    any story flag the moment it's set (Game.set_flag), e.g. "flag:skornKing"
 #   "manual"         you call Game.achieve("<id>") yourself from any script (for things with no flag, like "fell 10 times")
+#   "all:<id>,<id>"  every one of these progress ids found (across playthroughs): "all:loot_0,loot_1,…"
+#   "count:<key>:<n>" the counter <key> reached n. Bump it with Game.ach.bump("<key>") (saved across playthroughs)
+#   "pct:100"        every progress item found (100% completion)
 # "hidden": true shows "???" in the list until it's unlocked (for spoilers / secret ones).
 #
-# Ebain picks the real achievements. The ones below are # DRAFT examples wired to things that already exist.
+# Ebain's batch (11/25): the names marked "# Ebain" are his words; descriptions and the three Pass names are # DRAFT.
+# The first six are older # DRAFT examples.
 class_name Achievements
 extends CanvasLayer
 
@@ -20,9 +24,34 @@ const LIST := [
 	{ "id": "bar_tab", "name": "Fiscally Responsible", "desc": "Settled the bar tab.", "when": "progress:quest_bar_tab" }, # DRAFT
 	{ "id": "chapter1", "name": "On Some Type Shi", "desc": "Finished Chapter 1.", "when": "progress:chapter1", "hidden": true }, # DRAFT
 	{ "id": "lore_accurate", "name": "Lore Accurate", "desc": "Found the Deloye Lore library.", "when": "progress:deloye_found", "hidden": true }, # DRAFT (name)
+	# --- Ebain 11/25
+	{ "id": "sneaky_shi", "name": "On Some Sneaky Shi", "desc": "Snuck past Diddy Chud Giant.", "when": "flag:sneakWon" }, # Ebain (name), DRAFT (desc)
+	{ "id": "good_boy", "name": "Good boy", "desc": "Swore loyalty to Dulbmeethus. Dulbers approves.", "when": "progress:ambush_apologize", "hidden": true }, # Ebain (name), DRAFT (desc)
+	{ "id": "slopbowl", "name": "Slopbowl Consumer", "desc": "Ate 3 Chipotle Bowls.", "when": "count:bowl:3" }, # Ebain (name), DRAFT (desc)
+	{ "id": "neuralinked", "name": "Neuralinked", "desc": "Got the Deloye Lore Neuralink.", "when": "flag:deloyeGift", "hidden": true }, # Ebain (name), DRAFT (desc)
+	{ "id": "crunk", "name": "Crunk", "desc": "Drank 3 beezy.", "when": "count:beer:3" }, # Ebain (name), DRAFT (desc)
+	{ "id": "lore_specialist", "name": "Deloye Lore Specialist", "desc": "Found all 5 secret Lost Deloye Lore pages.",
+		"when": "all:lostpage_camp,lostpage_trail,lostpage_village,lostpage_mart,lostpage_pass", "hidden": true }, # Ebain (name), DRAFT (desc)
+	{ "id": "six_seven", "name": "6-7!!!!!", "desc": "Did the 6-7.", "when": "manual", "hidden": true }, # Ebain (name), DRAFT (desc)
+	{ "id": "hear_me_doe", "name": "Yall could hear me doe?", "desc": "Dulbmeethus pulls up to help yo ahh.", "when": "manual", "hidden": true }, # Ebain
+	{ "id": "trail_mix", "name": "Trail Mix", "desc": "Found all 6 loot spots on the trail.",
+		"when": "all:loot_0,loot_1,loot_2,loot_3,loot_4,loot_5" }, # Ebain
+	{ "id": "dulbers_boy", "name": "Hey guys it's your boy", "desc": "Met Dulbers Frint.", "when": "flag:dulbersMet" }, # Ebain (name), DRAFT (desc)
+	{ "id": "aight_bet", "name": "Aight. Bet.", "desc": "Woke up Diddy Chud Giant.", "when": "flag:giantWoke" }, # DRAFT (Ebain liked the Pass ones)
+	{ "id": "lore_session", "name": "Lore Session", "desc": "Out-lored a giant.", "when": "flag:loreWon" }, # DRAFT
+	{ "id": "diddy_slap", "name": "The Slap Heard Round the Pass", "desc": "Slapped Diddy Chud awake.", "when": "progress:pass_fight" }, # DRAFT
+	{ "id": "geeking", "name": "Geeking off that midtocy", "desc": "Lost to Metocin Mattias.", "when": "flag:endingCooked", "hidden": true }, # Ebain (name), DRAFT (desc)
+	{ "id": "mattias_slayer", "name": "Slayer of Metocin Mattias", "desc": "Beat Mattias.", "when": "flag:mattiasBeaten", "hidden": true }, # Ebain
+	{ "id": "metocy_party", "name": "On some metocy shi", "desc": "Gave every goblin metocy.", "when": "flag:endingParty", "hidden": true }, # Ebain (name), DRAFT (desc)
+	{ "id": "tactical_retreat", "name": "Tactical retreat", "desc": "Ran from 5 fights.", "when": "count:fled:5" }, # Ebain (name), DRAFT (desc)
+	{ "id": "hundred", "name": "100%", "desc": "Hit 100% completion. I sincerely thank you for enjoying the game this much.", "when": "pct:100", "hidden": true }, # Ebain (also unlocks the 100% song, not made yet)
+	{ "id": "ladle_shi", "name": "On Some Ladle Shi", "desc": "Bought The Golden Ladle.", "when": "flag:bought_golden_ladle" }, # Ebain (name), DRAFT (desc)
+	{ "id": "drip", "name": "U had said drip?", "desc": "Bought the Jordan 9's.", "when": "flag:bought_jordan9s" }, # Ebain (name), DRAFT (desc)
+	{ "id": "cooked", "name": "You got cooked", "desc": "Lost your first fight.", "when": "manual" }, # Ebain (name), DRAFT (desc)
 ]
 
 var got := {}            # id -> true
+var counts := {}         # counter key -> n (beer, bowl, fled), saved across playthroughs
 var _queue: Array = []   # popups waiting their turn
 var _showing := false
 var _sfx: AudioStreamPlayer
@@ -34,6 +63,9 @@ func _ready() -> void:
 	if cf.load(SAVE_PATH) == OK and cf.has_section("got"):
 		for k in cf.get_section_keys("got"):
 			got[k] = true
+	if cf.has_section("counts"):
+		for k in cf.get_section_keys("counts"):
+			counts[k] = int(cf.get_value("counts", k, 0))
 	_sfx = AudioStreamPlayer.new()
 	if ResourceLoader.exists("res://assets/sounds/sfx_reward.ogg"):
 		_sfx.stream = load("res://assets/sounds/sfx_reward.ogg")
@@ -41,9 +73,49 @@ func _ready() -> void:
 
 # Called by Game for every progress unlock and flag. Unlocks any achievement whose "when" matches.
 func event(trigger: String) -> void:
+	var is_progress := trigger.begins_with("progress:")
 	for a in LIST:
-		if a["when"] == trigger:
+		var w: String = a["when"]
+		if w == trigger:
 			give(a["id"])
+		elif is_progress and w.begins_with("all:"):
+			_check_all(a, trigger)
+	if is_progress:
+		_check_pct.call_deferred()   # after Game.unlock has recorded the id
+
+# "all:" achievements: every listed progress id found. Game.unlock calls event() BEFORE it records the id, so the
+# id that triggered this event counts as found.
+func _check_all(a: Dictionary, trigger: String) -> void:
+	for id in a["when"].substr(4).split(","):
+		if not (Game.progress.has(id) or trigger == "progress:" + id):
+			return
+	give(a["id"])
+
+func _check_pct() -> void:
+	if not ProgressData.ITEMS.all(func(it): return Game.progress.has(it[0])):
+		return
+	for a in LIST:
+		if a["when"] == "pct:100":
+			give(a["id"])
+
+# Counters for "count:<key>:<n>" achievements (beer/bowl eaten, fights fled). Saved across playthroughs.
+func bump(key: String, n := 1) -> void:
+	if Game.title_mode:
+		return
+	counts[key] = int(counts.get(key, 0)) + n
+	_save()
+	for a in LIST:
+		var p: PackedStringArray = String(a["when"]).split(":")
+		if p.size() == 3 and p[0] == "count" and p[1] == key and counts[key] >= int(p[2]):
+			give(a["id"])
+
+func _save() -> void:
+	var cf := ConfigFile.new()
+	for k in got:
+		cf.set_value("got", k, true)
+	for k in counts:
+		cf.set_value("counts", k, counts[k])
+	cf.save(SAVE_PATH)
 
 func give(id: String) -> void:
 	if got.has(id) or Game.title_mode:
@@ -53,10 +125,7 @@ func give(id: String) -> void:
 		push_warning("Achievement '%s' isn't in achievements.gd LIST" % id)
 		return
 	got[id] = true
-	var cf := ConfigFile.new()
-	for k in got:
-		cf.set_value("got", k, true)
-	cf.save(SAVE_PATH)
+	_save()
 	_queue.append(a)
 	if not _showing:
 		_show_next()

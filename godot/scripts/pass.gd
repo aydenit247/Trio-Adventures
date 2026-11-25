@@ -559,6 +559,7 @@ func _throw_midtocy() -> void:
 
 # Wake-up, no cut to black: he stirs, sits up (sitting picture), then rises into the standing giant.
 func _giant_wakes(angry: bool) -> void:
+	Game.set_flag("giantWoke")   # achievement "Aight. Bet."
 	giant_awake = true
 	_clear_giant_block()
 	focus_override = Vector3(1.5, 0, -6.0)

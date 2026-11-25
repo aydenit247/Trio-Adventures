@@ -1169,6 +1169,7 @@ func _event(ev: Dictionary) -> void:
 		"throw_thing":
 			await _throw(n, _node(ev["target"]), ev["thing"])
 		"six_seven":
+			Game.achieve("six_seven")
 			flash(0.7, Color(1, 0.95, 0.6))
 			sfx("crit", 0.67)
 			for p in b.alive(b.party):
@@ -1196,6 +1197,7 @@ func _event(ev: Dictionary) -> void:
 		"rally":
 			await _rally(ev["count"])
 		"item":
+			Game.ach.bump(ev["item"])   # Crunk (3 beezy) / Slopbowl Consumer (3 bowls)
 			_float(_node(ev["target"]), D.ITEMS[ev["item"]]["name"], Color("#8ad8ff"), 0.8, 0.5)
 			sfx("gulp")
 			await lv.wait(0.4)
@@ -1205,6 +1207,7 @@ func _event(ev: Dictionary) -> void:
 			_say(c["title"])
 			await _banner("DULBMEETHUS" if c["id"] == "dulbmeethus_bolt" else "CHAOS EVENT", PURPLE, 1.6)
 		"lightning":   # Dulbmeethus smites the enemy side: a white flash, bolts on every enemy, a big shake
+			Game.achieve("hear_me_doe")
 			for e in ev["us"]:
 				_bolt(_node(e))
 			flash(0.8, Color(1, 1, 1))
@@ -1268,6 +1271,7 @@ func _event(ev: Dictionary) -> void:
 			sfx("heal")
 			await _banner("TALKED IT OUT", GREEN, 1.6)
 		"fled":
+			Game.ach.bump("fled")   # Tactical retreat (5 fights)
 			_say(ev["text"])
 			sfx("throw", 1.4)
 			await _banner("GOT AWAY", Color("#8ad8ff"), 1.2)
@@ -1700,6 +1704,8 @@ func _ask_67() -> bool:
 var knocked_out: Array = []   # names knocked out when the fight ended (Level.fight tells you they got up at 1 HP)
 
 func _outro(res: String) -> void:
+	if res == "lose":
+		Game.achieve("cooked")   # "You got cooked": lose your first fight
 	for p in pile:   # tidy up the throw pile
 		if is_instance_valid(p["node"]): p["node"].queue_free()
 	pile = []
