@@ -14,7 +14,7 @@ Three steps, one file:
        python tts_batch.py gen lines.json --refs refs [--out out] [--url http://127.0.0.1:7860]
                                [--engine "Chatterbox Turbo"] [--test] [--only "line text" ...]
      For each character: sends refs/<who>.mp3 (or .wav) as the voice to clone with each of their lines
-     and saves one WAV per line in out/<who>/. --test = just the first line. --only = regenerate just
+     and saves one WAV per line in out/<who>/, each named after its line. --test = just the first line. --only = regenerate just
      those lines (match ignores case/punctuation; repeat the flag for several). Existing WAVs for other
      lines are kept, so a re-run with --only only replaces the bad takes.
 
@@ -53,6 +53,13 @@ def key(s):
 
 def slug(s, n=48):
     return (re.sub(r"[^a-z0-9]+", "_", s.lower()).strip("_") or "line")[:n].rstrip("_")
+
+
+def filename(line, n=150):
+    """The line itself as a Windows-safe file name: drops <>:"/\\|?* and trailing dots/spaces."""
+    s = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", line).replace("…", "...")
+    s = re.sub(r"\s+", " ", s).strip()[:n].rstrip(". ")
+    return s or slug(line)
 
 
 def unq(s):
@@ -156,7 +163,7 @@ def cmd_gen(a):
             if not audio or not pathlib.Path(audio).exists():
                 print(f"   FAIL {x['line']!r}: no audio ({status})")
                 continue
-            dst = out / who / f"{who}_{slug(x['line'])}.wav"
+            dst = out / who / f"{filename(x['line'])}.wav"   # named after the line itself (Ebain's ask)
             shutil.copyfile(audio, dst)
             meta = out / who / (dst.stem + ".json")
             meta.write_text(json.dumps({"who": who, "line": x["line"], "engine": a.engine}, ensure_ascii=False), encoding="utf-8")
@@ -175,7 +182,7 @@ def cmd_pack(a):
             if not wav.exists():
                 continue
             m = json.loads(meta.read_text(encoding="utf-8"))
-            name = f"{m['who']}/{wav.name}"
+            name = f"{m['who']}/{m['who']}_clone_{slug(m['line'])}.wav"   # in-game file: plain slug, no spaces/quotes
             z.write(wav, name)
             manifest.append({"who": m["who"], "line": m["line"], "file": name, "effects": []})
         z.writestr("manifest.json", json.dumps(manifest, indent=1, ensure_ascii=False))
