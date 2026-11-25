@@ -364,3 +364,4 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] Counters ("ate 3 bowls") = `Game.ach.bump("<key>")` + `"when": "count:<key>:<n>"`; saved across playthroughs in achievements.cfg `[counts]`.
   Shops set a flag `bought_<item id>` on every purchase, so "bought X" is one `flag:bought_<id>` line.
 - [ebain] `tools/test_achievements.tscn` tests every trigger type in about 10 s (clears the saved achievements/progress first).
+- [ebain] **A loop-trimmed song loses its real ending.** `the_mogging_elf.ogg` was cut at its loop point (`loop_offset` in the .import), so the last line of the song is gone from the file. Keep Ebain's full original too (not in git yet) before trimming a track for looping. Lyrics for the Library go in `lyrics.gd` as triple-quoted strings, verbatim.

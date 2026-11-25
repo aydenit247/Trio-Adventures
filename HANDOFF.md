@@ -187,6 +187,7 @@ set up to come back as a villain.
 ### Ebain's slang and humor (keep this list updated: add new terms as Ebain uses them)
 Humor: dumb, deadpan, absurd, committed. Joke labels over people's heads. Lots of internet slang (ts/mf/ngl). Nothing is
 too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "Lie-core" for songs and voice generators).
+**Deloye is pronounced da-loy** (spell it "Duh-loy" for songs and voice generators). **Dulbmeethus** → "Dulb-mee-thus", **Metocy** → "Meh-toe-see", and "dough" (as in "Y'all could hear me dough?") for the TTS/song tools (Ebain 11/25).
 - **Mogging / mogged:** out-looking someone. Lykor is "the Mogging Elf." **Mog** is his combat move (camera pushes onto his jawline).
 - **On some type shi:** Lykor's buff move, also a chant in the title music. Ebain also names achievements this way ("On Some Sneaky Shi", "On some metocy shi", "On Some Ladle Shi"); spell it **shi**, not chi (Ebain 11/25).
 - **Crunk** (3 beezy), **Slopbowl Consumer** (3 Chipotle Bowls), **"U had said drip?"** (buy the Jordan 9's): Ebain's achievement names (11/25).
@@ -491,11 +492,13 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
   `loop_offset` = where the loop restarts, so an intro plays once). Still wanted: camp, Mart (+ warped trip version),
   battle, boss, mountain/pass, victory jingle, "YOU GOT COOKED" sting. A new area track = add an AreaMusic node to
   that area's .tscn, and add it to `LibraryUI.SONGS` + `Lyrics.TEXT` so it shows in the Library.
-- **Lyrics:** Ebain will send lyrics for all 3 songs. Paste them into `scripts/lyrics.gd` as-is.
+- **Lyrics:** Ebain's lyrics for Prophecy of Metocy, The Mogging Elf and Deloye Lore are in `scripts/lyrics.gd` (as he sent them, `# Ebain`); the Hymn of Metocin Mattias still has none.
+- **The Mogging Elf's ending:** the repo's `the_mogging_elf.ogg` is trimmed to loop and ends mid-song, so the real last line ("On some type shit, you feel me? Hehe.") is cut. Ebain wants it back: needs his full original file (see COLLAB Log 11/25).
 - **Every song is Ebain's** (Prophecy of Metocy, The Mogging Elf, The Hymn of Metocin Mattias), made in Google Flow Music.
   Older notes that call the hymn "Asar's track" are wrong: Asar wired it into the summit, Ebain made it.
-- **Secret Deloye Lore library (built, see section 1):** still wanted from Ebain: the **Deloye Lore song** (drop it in as
-  `godot/assets/music/deloye_lore.ogg`; then add it to `LibraryUI.SONGS` + `Lyrics.TEXT`), his real lines (all of
+- **Secret Deloye Lore library (built, see section 1):** the **Deloye Lore song is in** (`godot/assets/music/deloye_lore.ogg`,
+  a phonk house track Ebain made in Google Flow Music; plays from the Reading Corner radio, unlocks in the Library, lyrics in
+  `lyrics.gd`). Still wanted from Ebain: his real lines (all of
   `deloye_script.gd`, the page snippets and Xylo's barks in `lost_pages.gd` are DRAFT), a voice for Deloye, and whether
   the shaman should hint at the pages (her tent is Asar's file).
 - **Credits:** asked Ebain whether to keep "Code, Cutouts & Sounds: Claude". No answer yet.
