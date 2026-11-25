@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Deloye library: Ebain's script (Mattias guide, joint pieces, Deloye's 3 choices, Faded / Xylo fizzle / joint item) — files: deloye_library.gd, deloye_script.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, game.gd, inventory_ui.gd — branch: ebain/deloye-script — started 2026-11-25
 - [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md, 4 Skorn lines reworded in camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd — branch: ebain/tts-batch — started 2026-11-24
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
@@ -59,6 +60,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/scripts/deloye_library.gd, deloye_script.gd, combat/combat_data.gd, combat/battle.gd, combat/battle_view.gd, game.gd, inventory_ui.gd (Deloye script; combat/game/inventory only briefly)
 - [ebain] tools/tts_batch.py, godot/scripts/voice_index.gd, VOICE_LINES.md, godot/assets/voices/ (new clone files only), camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd (one Skorn line each)
 - [asar] godot/assets/items/goblin_tooth.png
 
