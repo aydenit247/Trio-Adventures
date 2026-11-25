@@ -24,6 +24,10 @@ var view := "front"
 var base_tex: Texture2D
 var base_h := 1.9
 
+# 3D body (Char3D) when assets/characters3d/<id>.glb exists; the billboard sprite stays (hidden) so every
+# script that pokes u.sprite keeps working, and its position/scale/knock-over are mirrored onto the body.
+var body3d: Char3D
+
 var _bob := 0.0
 var _idle := randf() * TAU
 var _last_step_sign := 1.0
@@ -65,12 +69,36 @@ func setup(_id: String, _name: String, tex: Texture2D, h: float) -> void:
 
 	add_child(Util.blob_shadow(0.5 + h * 0.12))
 
+	if Char3D.has_model(_id):
+		body3d = Char3D.new()
+		add_child(body3d)
+		body3d.setup(_id, h)
+		sprite.visible = false   # _sync_body shows it again in fights / poses
+
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
 	else:
 		velocity.y = -0.5
 	move_and_slide()
+	if body3d:
+		_sync_body(delta)
+
+# 3D for walking around; the original 2D art for fights and posed moments (Asar's call). The billboard
+# comes back whenever we're in a fight (battle_view sets meta "in_fight"), showing a pose picture
+# (set_pose), or knocked over (level.knock freezes + tips the sprite). Hops/floats are mirrored.
+func _sync_body(_delta: float) -> void:
+	var knocked := sprite.billboard == BaseMaterial3D.BILLBOARD_DISABLED and absf(sprite.rotation.z) > 0.6
+	var use_2d: bool = has_meta("in_fight") or views.get("front") != base_tex or knocked
+	sprite.visible = use_2d
+	body3d.visible = not use_2d
+	if use_2d:
+		return
+	# (skip the cutout's own little walk bob / breathing: the 3D body has real legs)
+	body3d.position.y = sprite.position.y if sprite.position.y > 0.1 else 0.0
+	body3d.scale = sprite.scale if absf(sprite.scale.y - 1.0) > 0.05 else Vector3.ONE
+	var sc := get_tree().current_scene
+	body3d.set_fill(sprite.modulate if sc and sc.get("night") == true else Color.BLACK)   # night areas only
 
 # Called every frame by main.gd with the wanted horizontal direction (length 0..1)
 func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> void:
@@ -82,6 +110,8 @@ func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> voi
 	velocity.z = lerp(velocity.z, target.z, clamp(delta * 12.0, 0.0, 1.0))
 	var flat := Vector2(velocity.x, velocity.z).length()
 	moving = flat > 0.4
+	if body3d:
+		body3d.locomote(velocity, delta)
 
 	# Pick the view from the walking direction relative to the camera (with a little hysteresis)
 	var flat_v := Vector3(velocity.x, 0, velocity.z)

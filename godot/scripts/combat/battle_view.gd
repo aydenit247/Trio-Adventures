@@ -728,6 +728,7 @@ func _intro() -> void:
 		u.remove_meta("goal")
 		u.set_view("front")
 		u.sprite.flip_h = b.enemies.any(func(e): return e["key"] == k)
+		u.set_meta("in_fight", true)   # the trio's 3D bodies (Char3D) hand over to the 2D art in fights
 	lv.focus_override = center + fwd * 0.3
 	lv.cam_height = 0.36
 	var widest := maxi(b.party.size(), b.enemies.size())
@@ -1730,6 +1731,7 @@ func _outro(res: String) -> void:
 		if not is_instance_valid(n):
 			continue
 		lv.unknock(n)
+		n.remove_meta("in_fight")
 		n.set_meta("tint", base_tint[k])
 		if lv.party.has(n) or n.id == "chief":
 			n.restore_views()
