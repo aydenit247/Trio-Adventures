@@ -11,6 +11,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Batch-clone robot lines with Ultimate TTS Studio (Ebain's PC) — files: tools/tts_batch.py (new), godot/assets/voices/<char>/ (new files), godot/scripts/voice_index.gd, VOICE_LINES.md, 4 Skorn lines reworded in camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd — branch: ebain/tts-batch — started 2026-11-24
+- [ebain] Achievements batch (Ebain's 18) — files: godot/scripts/achievements.gd, combat/battle_view.gd (3 small hooks), inventory_ui.gd, shop_ui.gd, mart.gd (1 flag), pass.gd (1 flag) — branch: ebain/achievements — started 2026-11-25
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -59,6 +60,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 - [ebain] tools/tts_batch.py, godot/scripts/voice_index.gd, VOICE_LINES.md, godot/assets/voices/ (new clone files only), camp_script.gd, pass_script.gd, mart_script.gd, summit_script.gd (one Skorn line each)
+- [ebain] godot/scripts/achievements.gd, combat/battle_view.gd, inventory_ui.gd, shop_ui.gd, mart.gd, pass.gd (achievement hooks only)
 - [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
