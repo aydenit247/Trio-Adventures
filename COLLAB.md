@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Troll "It's good": Xylo stays in the hut until you knock; no idle during dialogue — files: godot/scripts/trail.gd, trail_script.gd, unit.gd, char3d.gd — branch: asar/troll-knock — started 2026-11-25
 - [ebain] Import Lykor voice clones (5 lines) — files: godot/assets/voices/lykor/ (new clone files), godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/tts-batch2 — started 2026-11-25
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
