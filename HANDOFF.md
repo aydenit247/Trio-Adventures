@@ -111,7 +111,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    `battle.gd faded_ids`). Flags (per run): `libEntered`, `libMattias`, `libBanter`, `libGuided1`, `libGuideAll`,
    `libPiece_plant/papers/lighter`, `libGateOpen`, `deloyeMet`, `deloyeGift`, `deloyeBad`, `fadedFights` (int).
    **Readable books (Ebain 11/25):** 6 lore books on stands/shelves (glow + sparkles), "Read" opens a two-page parchment
-   book screen (`book_ui.gd`, A/D turn, Esc closes), text in `library_books.gd` (Ebain OK'd the drafts): The Prophecy of
+   book screen (`book_ui.gd`, A/D turn, Esc closes; the narrator reads each page aloud via `VoiceLines.read_aloud`, voice files keyed by the page text, so a reworded page goes silent until regenerated), text in `library_books.gd` (Ebain OK'd the drafts): The Prophecy of
    the Three (Grand Stacks), Vol. 3,112 On Metocy (Hall of Wind), The Book of Dulbmeethus Ch. 1 (Restricted), Mattias's
    Library Card (Reading Corner bookshelf), Vol. 6,700 The Giant (Rock Room), The Prophecy of Death (Deloye's room).
    Arriving unlocks `deloye_found` (hidden achievement "Lore Accurate" + the secret last Scrapbook page). The EXIT door
