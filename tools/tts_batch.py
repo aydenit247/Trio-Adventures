@@ -253,7 +253,9 @@ PRONUNCIATIONS = {
     "metocy": "meh-toe-see", "midtocy": "mid-toe-see", "beezy": "bee-zee",
     "aight": "ite", "looksmaxxin": "looks-maxin", "deadahh": "dead-ahh", "allat": "all-at", "OD": "oh-dee",
     "ts": "this", "mf": "motherfucker", "ngl": "not gonna lie", "fw": "fuck with",
-    "shi": "shee", "Im": "I'm", "Dulbmeethus": "Dulb-mee-thus",   # Deloye's lines (Ebain 11/26)
+    "shi": "shee", "Im": "I'm", "Dulbmeethus": "Dulb-mee-thus",
+    "bussy": "buh-see",   # troll line: say it like "pussy" with a b (Ebain 11/26)
+   # Deloye's lines (Ebain 11/26)
 }
 
 

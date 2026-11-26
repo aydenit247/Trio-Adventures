@@ -923,7 +923,7 @@ func _level_process(delta: float) -> void:
 		var bn: Node3D = lect[k][0]
 		bn.position.y = PIECES[k].y + 1.4 + sin(t * 2.0 + PIECES[k].x) * 0.04
 		bn.rotation.y += delta * 0.8
-	# walking into the Reading Room the first time: Deloye's "U could pass that shi?"
+	# walking into the Reading Room the first time: Deloye's "You could pass that shit?"
 	if stage == "walk" and not busy and Game.flag("libGateOpen") and not Game.flag("deloyeMet") and leader.global_position.z < GATE_Z - 1.5:
 		_pass_scene()
 	if radio and radio.playing and leader.global_position.distance_to(RADIO_POS) < 10.0 and not _radio_heard:
@@ -1351,7 +1351,7 @@ func _smoke() -> void:
 	sm.emitting = false
 	get_tree().create_timer(4.0).timeout.connect(sm.queue_free)
 
-# "Aight imma catch yall": everyone poofs out → the goblin village, by the outhouse
+# "Alright I'm gonna catch y'all later": everyone poofs out → the goblin village, by the outhouse
 func _teleport_out() -> void:
 	stage = "end"
 	busy = true

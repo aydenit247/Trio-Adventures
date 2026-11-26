@@ -101,7 +101,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    (Hall of Wind), **RAW papers** (Restricted Section), **a lighter** (Rock Room). First piece → "I think we need to find all
    the materials for T S…" + Lykor "Shlooks folk." Talk to Mattias → "You could help me?" ("Bet.", he walks you to the rest,
    then to Deloye's room) or Leave. All 3 → Deloye from his room: "You had let's burn it? Pull up my trio." → the rune
-   curtain opens. Walking in: Deloye "U could pass that shi?" → **A** "Here you go folk." → "Thank you. Here you go, mud." +
+   curtain opens. Walking in: Deloye "You could pass that shit?" → **A** "Here you go folk." → "Thank you. Here you go, mud." +
    the Neuralink · **B** "You had said puff puff pass?" → everyone smokes (placeholder smoke + haze; Ebain may make a real
    cutscene) → **Faded** for the next 3 fights + the Neuralink · **C** "Bad." → "Aight. Im not trippin i got da plug on the
    way", you keep the **Joint** (fight item: whole party Faded for that fight) and Deloye disapproves of Xylo: his Deloye

@@ -5,9 +5,9 @@
 # The walk (11/24, Ebain: "make it a much bigger place you have to walk around in, Deloye at the end"): you land in the
 # Atrium, walk the Grand Stacks, and the Reading Room (Deloye's rotunda) stays shut until you find the 3 joint pieces.
 # Ebain's script (11/25): Metocin Mattias teleports in, guides you to the first piece (the cannabis plant, the RAW papers,
-# the lighter), "You could help me?" → he guides you to the rest and to Deloye's room. Deloye: "U could pass that shi?"
+# the lighter), "You could help me?" → he guides you to the rest and to Deloye's room. Deloye: "You could pass that shit?"
 # A give it (Neuralink) · B puff puff pass (Faded for 3 fights + Neuralink) · C "Bad." (keep the joint, Xylo's lore
-# fizzles half the time). Then "Aight imma catch yall" → everyone back to the goblin village.
+# fizzles half the time). Then "Alright I'm gonna catch y'all later" → everyone back to the goblin village.
 extends RefCounted
 
 # Landing in a heap after the flush (in the Atrium). Mattias teleports in mid-way.
@@ -58,7 +58,7 @@ const DELOYE_CALL := [
 # In Deloye's room
 const PASS := [
 	{ "do": "deloye_faces" },
-	{ "who": "deloye", "line": "U could pass that shi?" }, # Ebain
+	{ "who": "deloye", "line": "You could pass that shit?" }, # Ebain
 	{ "choice": [
 		{ "text": "Here you go folk.", "steps": [ # Ebain
 			{ "do": "give_joint" },
@@ -75,7 +75,7 @@ const PASS := [
 			{ "do": "keep_joint" },
 		] },
 	] },
-	{ "who": "deloye", "line": "Aight imma catch yall" }, # Ebain
+	{ "who": "deloye", "line": "Alright I'm gonna catch y'all later" }, # Ebain
 	{ "do": "teleport_out" },
 ]
 
