@@ -131,10 +131,11 @@ func _soundtrack() -> MenuUI:
 			"arrows": false,
 			"note": func(): return ("by %s  ·  plays on %s" % [s["by"], s["where"]]) if is_heard(id) else "Locked. Keep playing and you'll hear this one.",
 			"side": { "text": "Lyrics", "pick": func(): _lyrics(i), "enabled": func(): return is_heard(id) },
+			"side2": { "text": "Save", "pick": func(): _save_song(i), "enabled": func(): return is_heard(id) },
 		})
 	rows.append({ "text": "Back", "pick": func(): menu.close() })
 	menu = MenuUI.open(parent, "LIBRARY  ·  SOUNDTRACK", rows, { "w": 820, "font": 22, "footer": _now_playing(),
-		"hint": "E play / pause · A/D skip 10 s · L or Y lyrics · Esc back · mouse works too" })
+		"hint": "E play / pause · A/D skip 10 s · L or Y lyrics · K or X save · Esc back · mouse works too" })
 	menu.closed.connect(func():
 		player.stop()
 		_duck_title(false))
@@ -201,6 +202,49 @@ func _dur(i: int) -> String:
 
 # The Library plays the full version of a song (id + "_full.ogg": the real ending) when there is one; the game's
 # area music is the loop-trimmed id.ogg.
+# Save (Ebain 11/26): copies an unlocked song's .ogg to Downloads/Trio Adventures Soundtrack/<Title>.ogg and opens
+# the folder (browser build: a normal browser download). The raw .ogg is only in the builds because export_presets.cfg includes "assets/music/*.ogg".
+const SAVE_DIR := "Trio Adventures Soundtrack"
+
+func _save_song(i: int) -> void:
+	var s: Dictionary = SONGS[i]
+	if not is_heard(s["id"]):
+		return
+	if OS.has_feature("web"):   # browser build: hand the file to the browser's own download
+		var bytes := FileAccess.get_file_as_bytes(_song_path(s["id"]))
+		if not bytes.is_empty():
+			JavaScriptBridge.download_buffer(bytes, String(s["title"]).validate_filename() + ".ogg", "audio/ogg")
+		if is_instance_valid(menu):
+			menu.set_note(("Downloading \"%s\"." % s["title"]) if not bytes.is_empty() else "Couldn't save that one. Try again?")
+		return
+	var r := save_song(s["id"])
+	if is_instance_valid(menu):
+		menu.set_note(("Saved \"%s\" to Downloads → %s." % [s["title"], SAVE_DIR]) if r != "" else "Couldn't save that one. Try again?")
+	if r != "" and not Engine.has_meta("no_shell"):
+		OS.shell_show_in_file_manager(r)
+
+# Returns the saved file's path, or "" if it failed.
+static func save_song(id: String) -> String:
+	var title := id
+	for s in SONGS:
+		if s["id"] == id:
+			title = s["title"]
+	var bytes := FileAccess.get_file_as_bytes(_song_path(id))
+	if bytes.is_empty():
+		return ""
+	var base := OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
+	if base == "":
+		base = OS.get_user_data_dir()
+	var dir := base.path_join(SAVE_DIR)
+	DirAccess.make_dir_recursive_absolute(dir)
+	var out := dir.path_join(title.validate_filename() + ".ogg")
+	var f := FileAccess.open(out, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_buffer(bytes)
+	f.close()
+	return out
+
 static func _song_path(id: String) -> String:
 	var full := "res://assets/music/%s_full.ogg" % id
 	return full if ResourceLoader.exists(full) else "res://assets/music/%s.ogg" % id

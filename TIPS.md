@@ -243,6 +243,10 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   world (log, banner, floating numbers, enemy list on the right) keep `lv._label` with light colors + outline.
 - [ebain] **Battle pacing = `BattleView.speed`** (boss 1.0, others 0.7, × Settings → Battle speed). New fight waits and
   tweens: multiply by `speed`. Never scale `_timed()` (the ring), or Very fast makes timed hits harder.
+- [ebain] Imported audio isn't in a build as a file, only as Godot's own resource. To read a song's raw bytes in
+  the game (Library Save), its folder must be in export_presets.cfg `include_filter` (`assets/music/*.ogg` for both
+  presets). A new song in assets/music is covered; a song somewhere else isn't.
+- [ebain] MenuUI rows can have two buttons: `side` (L / Y) and `side2` (K / X).
 - [ebain] Fonts: Cinzel has no ◆ ▶ ✓ 🏆 glyphs. Draw them (`UITheme.Icon`, `Divider`) instead of putting them in text.
 - [ebain] **Hover = real mouse movement only.** For any hoverable row/button, select it in `gui_input` with
   `if UITheme.hover_moved(ev)`, never `mouse_entered` (that fires when the layout moves under a still cursor, which made
