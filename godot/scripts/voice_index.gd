@@ -42,6 +42,7 @@ const LINES := {
 	"echoingimpressivemybelovedtriocomecloser": "mattias/mattias_impressive_my_beloved_trio_come_closer.ogg",  # *echoing* Impressive, my beloved trio. Come closer…
 	"mybelovedtrioivecametotellyouyoumustgetpastthismountainpassandcomefindmeinordertofindyourillustriousmetocydowhateveryoucantogetpast": "mattias/mattias_my_beloved_trio_i_ve_came_to_tell_you_yo.ogg",  # My beloved trio. I've came to tell you, you must get past this mountain pass and come find me in order to find your illustrious "Metocy." Do whatever you can to get past.
 	"youhadcalled": "mattias/mattias_you_had_called.ogg",  # You had called?
+	"andsothetriofoundthemetocyandchapter1comestoaclose": "narrator/narrator_clone_and_so_the_trio_found_the_metocy_and_chapter_1_c.ogg",  # And so, the trio found the metocy, and Chapter 1 comes to a close.
 	"actnatural": "skorn/skorn_act_natural.ogg",  # Act natural.
 	"aightfuckallatwakeupchud": "skorn/skorn_aight_fuck_allat_wake_up_chud.ogg",  # Aight, fuck allat. WAKE UP, CHUD!
 	"aightnowimmad": "skorn/skorn_aight_now_i_m_mad.ogg",  # Aight now I'm mad.

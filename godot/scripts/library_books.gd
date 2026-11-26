@@ -1,5 +1,5 @@
-# The readable books in the Deloye library (Ebain 11/25: "a book UI with an actual decent amount of lore in it", not read
-# out loud). Ebain picked these six from a draft list and OK'd the text ("Go ahead"); every word is still # DRAFT, he
+# The readable books in the Deloye library (Ebain 11/25: "a book UI with an actual decent amount of lore in it"; the
+# narrator reads every page aloud, cloned voice files keyed by the page text: reword a page = regenerate it). Ebain picked these six from a draft list and OK'd the text ("Go ahead"); every word is still # DRAFT, he
 # can rewrite any of it. Pages are BBCode ([b] [i]). BookUI shows two pages side by side.
 # Lore they rest on (Ebain 11/25): the land is Chudmoor. Dulbmeethus is a god from the start and made metocy; he gave
 # Metocin Mattias the metocy spells and made him its wielder in this reality (keeps it from the unworthy); they've been

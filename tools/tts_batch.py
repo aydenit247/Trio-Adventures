@@ -74,6 +74,41 @@ def filename(line, n=150):
     return s or slug(line)
 
 
+def chunks(text, limit=280):
+    """Split long text at sentence ends into pieces of at most ~limit characters (Chatterbox drifts on long input)."""
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= limit:
+        return [text]
+    out, cur = [], ""
+    for sent in re.split(r"(?<=[.!?…])\s+", text):
+        if cur and len(cur) + 1 + len(sent) > limit:
+            out.append(cur)
+            cur = sent
+        else:
+            cur = (cur + " " + sent).strip()
+    if cur:
+        out.append(cur)
+    return out
+
+
+def join_wavs(paths, dst, gap=0.35):
+    """Glue WAV files end to end with a short pause (stdlib only, so it runs in the Windows venv)."""
+    import wave
+    if len(paths) == 1:
+        shutil.copyfile(paths[0], dst)
+        return
+    with wave.open(str(paths[0])) as w0:
+        params = w0.getparams()
+    silence = b"\x00" * int(params.framerate * gap) * params.sampwidth * params.nchannels
+    with wave.open(str(dst), "wb") as o:
+        o.setparams(params)
+        for i, p in enumerate(paths):
+            with wave.open(str(p)) as w:
+                o.writeframes(w.readframes(w.getnframes()))
+            if i < len(paths) - 1:
+                o.writeframes(silence)
+
+
 def unq(s):
     return s.replace('\\"', '"').replace("\\n", " ")
 
@@ -324,20 +359,28 @@ def cmd_gen(a):
                 kw[prefix + "cfg_weight"] = a.cfg            # lower = follows the voice sample's delivery more
             if a.seed is not None and prefix.startswith("chatterbox"):
                 kw[prefix + "seed"] = a.seed
-            try:
-                audio, status = client.predict(api_name="/generate_unified_tts", **kw)
-            except Exception as e:  # keep going; the bad line can be redone with --only
-                print(f"   FAIL {x['line']!r}: {e}")
-                continue
-            if not audio or not pathlib.Path(audio).exists():
-                print(f"   FAIL {x['line']!r}: no audio ({status})")
-                continue
             dst = out / who / f"{filename(x['line'])}.wav"   # named after the line itself (Ebain's ask)
-            shutil.copyfile(audio, dst)
+            parts, status = [], ""
+            for chunk in chunks(say):   # long text (book pages) goes in sentence chunks, then gets joined
+                kw["text_input"] = chunk
+                try:
+                    audio, status = client.predict(api_name="/generate_unified_tts", **kw)
+                except Exception as e:  # keep going; the bad line can be redone with --only
+                    print(f"   FAIL {x['line'][:80]!r}: {e}")
+                    parts = None
+                    break
+                if not audio or not pathlib.Path(audio).exists():
+                    print(f"   FAIL {x['line'][:80]!r}: no audio ({status})")
+                    parts = None
+                    break
+                parts.append(audio)
+            if not parts:
+                continue
+            join_wavs(parts, dst)
             meta = out / who / (dst.stem + ".json")
             meta.write_text(json.dumps({"who": who, "line": x["line"], "engine": a.engine}, ensure_ascii=False), encoding="utf-8")
             done += 1
-            print(f"   ok  {dst.name}  (voice sample: {use.name})" + (f"\n       said as: {say}" if say != x["line"] else ""))
+            print(f"   ok  {dst.name}  (voice sample: {use.name})" + (f"\n       said as: {say[:200]}" if say != x["line"] else ""))
     print(f"{done} WAV(s) in {out}/")
 
 
