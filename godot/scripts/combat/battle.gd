@@ -666,7 +666,7 @@ func flee(m: Dictionary, roll: int) -> Array:
 		ended = "fled"
 		ev.append({ "t": "fled", "text": "The party RUNS. Skorn is somehow the fastest." })
 	else:
-		ev.append({ "t": "say", "text": "%s trips over nothing. Didn't get away." % m["name"], "sound": "miss", "ms": 1200 })
+		ev.append({ "t": "say", "text": "%s trips over nothing. Didn't get away." % m["name"], "sound": "boing", "ms": 1200 })
 	return ev
 
 func talk(m: Dictionary, tid: String) -> Array:
@@ -689,7 +689,7 @@ func talk(m: Dictionary, tid: String) -> Array:
 				ended = "talked"
 				ev.append({ "t": "talked", "text": T["win"] })
 			else:
-				ev.append({ "t": "say", "text": T["lose"], "sound": "miss", "ms": 1500 })
+				ev.append({ "t": "say", "text": T["lose"], "sound": "awkward", "ms": 1500 })   # talk failed: record scratch
 		"backfire":
 			for e in alive(enemies):
 				e["st"]["hyped"] = 1
@@ -700,7 +700,7 @@ func talk(m: Dictionary, tid: String) -> Array:
 					ev += apply_cc(e, T["status"], 2 if T["status"] == "lorepill" else 1)
 				ev.append({ "t": "say", "text": T["win"], "ms": 1300 })
 			else:
-				ev.append({ "t": "say", "text": T["lose"], "sound": "miss", "ms": 1400 })
+				ev.append({ "t": "say", "text": T["lose"], "sound": "awkward", "ms": 1400 })
 		"itis":
 			for e in alive(enemies):
 				var amt := mini(40, e["max_hp"] - e["hp"])

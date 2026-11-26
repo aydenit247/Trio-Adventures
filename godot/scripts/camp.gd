@@ -56,8 +56,9 @@ func _build_level() -> void:
 	add_child(amb)
 	amb.setup(FIRE_POS)
 	amb.fire_player.volume_db = -80.0
-	if not night:   # morning: no crickets
+	if not night:   # morning: no crickets, no spooky night bed
 		amb.cricket_player.stop()
+		amb.night_player.stop()
 
 func _build_forest() -> void:
 	var placed := 0
@@ -360,7 +361,10 @@ func _burn_map() -> void:
 	create_tween().tween_property(coal_mat, "emission_energy_multiplier", 2.5, 0.6)
 	create_tween().tween_property(amb.fire_player, "volume_db", -4.0, 1.2)
 	objective("")
-	await wait(1.3)
+	await wait(0.8)
+	if party.size() > 1:   # (Ebain's sfx pack) somebody catches a lungful of burnt map
+		play_sound_at("sfx_cough", party[1].global_position + Vector3(0, 1.4, 0), -8.0)
+	await wait(0.5)
 	whoosh_sfx.pitch_scale = 1.0
 
 # ---------------------------------------------------------------- title screen + saves

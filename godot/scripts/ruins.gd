@@ -177,6 +177,7 @@ func _sparkle(p: Vector3, amount := 6, rad := 0.35) -> Node3D:
 	return sp
 
 func _after_build() -> void:
+	amb_loop("amb_wind", -21.0)   # a light breeze through the broken walls (Ebain's sfx pack)
 	var env: Environment = world_env.environment
 	env.fog_density = 0.006
 	env.volumetric_fog_density = 0.003

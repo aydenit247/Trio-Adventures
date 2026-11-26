@@ -558,9 +558,37 @@ func set_leader(u: Unit) -> void:
 		leader_lbl.text = "Controlling: %s" % u.display_name
 		leader_por.texture = load("res://assets/portraits/%s.png" % u.id)
 
+# Footsteps (Ebain's sfx pack 11/26): real steps cut from his grass / wood floor / hall recordings
+# (assets/sounds/step_<kind>_N.ogg, picked at random). An area sets floor_kind, or overrides floor_at() when the
+# floor changes inside it (a hut, a hall). Anything else falls back to the old synth tick.
+var floor_kind := "grass"
+const STEP_DB := { "grass": -15.0, "wood": -14.0, "hall": -16.0 }
+var _step_streams := {}
+func floor_at(_p: Vector3) -> String:
+	return floor_kind
+
+func _step_stream(kind: String) -> AudioStream:
+	if not _step_streams.has(kind):
+		var r := AudioStreamRandomizer.new()
+		r.random_pitch = 1.12
+		r.random_volume_offset_db = 2.0
+		for i in range(1, 9):
+			var p := "res://assets/sounds/step_%s_%d.ogg" % [kind, i]
+			if ResourceLoader.exists(p):
+				r.add_stream(-1, load(p))
+		_step_streams[kind] = r if r.streams_count > 0 else null
+	return _step_streams[kind]
+
 func _on_step(u: Unit) -> void:
 	if u == leader and step_sfx:
-		step_sfx.pitch_scale = rng.randf_range(0.8, 1.15)
+		var kind := floor_at(u.global_position)
+		var st := _step_stream(kind)
+		if st:
+			step_sfx.stream = st
+			step_sfx.pitch_scale = 1.0
+			step_sfx.volume_db = STEP_DB.get(kind, -15.0) + (2.5 if u.velocity.length() > 5.5 else 0.0)
+		else:
+			step_sfx.pitch_scale = rng.randf_range(0.8, 1.15)
 		step_sfx.play()
 
 # Move a unit to a point (for cutscenes). Awaitable.
@@ -679,6 +707,7 @@ func _build_ui() -> void:
 	add_child(prompt)
 
 	step_sfx = _sfx(Util.noise_burst(55, 0.18, 0.7), -12.0)
+	step_sfx.max_polyphony = 2
 	ui_sfx = _sfx(Util.chime(990.0, 180, 0.2), -10.0)
 	whoosh_sfx = _sfx(Util.noise_burst(700, 0.05, 0.9), -6.0)
 
@@ -752,6 +781,49 @@ func play_sound(id: String, db := 0.0, pitch := 1.0, loop := false) -> AudioStre
 		a.finished.connect(a.queue_free)
 	return a
 
+# A one-shot sound that comes from a spot in the world (a goblin laughing over there). Frees itself.
+func play_sound_at(id: String, pos: Vector3, db := 0.0, pitch := 1.0, unit := 5.0) -> AudioStreamPlayer3D:
+	var p := "res://assets/sounds/%s.ogg" % id
+	if Game.title_mode or not ResourceLoader.exists(p):
+		return null
+	var a := AudioStreamPlayer3D.new()
+	a.stream = load(p)
+	a.volume_db = db
+	a.pitch_scale = pitch
+	a.unit_size = unit
+	a.max_distance = 40.0
+	add_child(a)
+	a.global_position = pos
+	a.play()
+	a.finished.connect(a.queue_free)
+	return a
+
+# A looping background sound (Ebain's sfx pack 11/26: amb_*.ogg). With a position it's 3D (a river you walk up to),
+# without one it's everywhere at once (wind). Starts at a random spot in the loop. Returns the player (or null).
+func amb_loop(id: String, db: float, pos := Vector3.INF, unit := 6.0, max_dist := 45.0) -> Node:
+	var p := "res://assets/sounds/%s.ogg" % id
+	if Game.title_mode or not ResourceLoader.exists(p):
+		return null
+	var st: AudioStreamOggVorbis = load(p).duplicate()
+	st.loop = true
+	var a: Node
+	if pos == Vector3.INF:
+		var a2 := AudioStreamPlayer.new()
+		a2.stream = st
+		a2.volume_db = db
+		a = a2
+	else:
+		var a3 := AudioStreamPlayer3D.new()
+		a3.stream = st
+		a3.volume_db = db
+		a3.unit_size = unit
+		a3.max_distance = max_dist
+		a3.position = pos
+		a = a3
+	add_child(a)
+	a.call("play", randf() * maxf(0.0, st.get_length() - 1.0))
+	return a
+
 func _sfx(stream: AudioStream, db: float) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.stream = stream
@@ -776,7 +848,14 @@ func show_toast(msg: String, secs := 1.6) -> void:
 	tw.tween_property(toast, "modulate:a", 0.0, 0.4)
 
 # at = where the objective is (gold star on the maps); leave it out for no star
+var _pen_t := -10.0
 func objective(text: String, at := Vector3.INF) -> void:
+	# (Ebain's sfx pack) a quick pen scratch when a new objective goes in the log (not when it's cleared / re-set)
+	if text != "" and objective_lbl and objective_lbl.text != "Objective: " + text and t - _pen_t > 3.0 and not shots_mode:
+		_pen_t = t
+		var pen := play_sound("sfx_pen", -17.0, 1.15)
+		if pen:
+			get_tree().create_timer(1.0).timeout.connect(func(): if is_instance_valid(pen): create_tween().tween_property(pen, "volume_db", -60.0, 0.35).finished.connect(pen.queue_free))
 	objective_at = at if text != "" else Vector3.INF
 	objective_lbl.text = ("Objective: " + text) if text != "" else ""
 	# an autowrap Label in a SHRINK_CENTER box shrinks to ~0 wide (one letter per line), so give it its natural width
@@ -982,7 +1061,7 @@ func _process(delta: float) -> void:
 		else:
 			var i := party.find(leader)
 			set_leader(party[(i + 1) % party.size()])
-			ui_sfx.play()
+			play_sound("ui_switch", -8.0)
 			show_toast("Now controlling %s" % leader.display_name)
 	if Input.is_action_just_pressed("party_menu"):
 		open_party_menu()

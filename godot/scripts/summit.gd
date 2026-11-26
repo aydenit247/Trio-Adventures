@@ -131,7 +131,12 @@ func _build_level() -> void:
 	add_child(hymn)
 	# arrival mood: cold wind on the climb, a few embers drifting up the path
 	wind = AudioStreamPlayer.new()
-	wind.stream = _wind_loop()
+	if ResourceLoader.exists("res://assets/sounds/amb_wind.ogg"):   # Ebain's wind howling (sfx pack 11/26)
+		var ws: AudioStreamOggVorbis = load("res://assets/sounds/amb_wind.ogg").duplicate()
+		ws.loop = true
+		wind.stream = ws
+	else:
+		wind.stream = _wind_loop()
 	wind.volume_db = -22.0
 	add_child(wind)
 	if not Game.title_mode:
@@ -412,6 +417,7 @@ func _hall_build() -> void:
 	mir.rotation.y = -PI / 2.0 - 0.15
 	Models.block(self, OG_POS + Vector3(0, 0.6, 0), Vector3(0.7, 1.2, 0.7), marble, 0.0, true)   # the bust's pedestal, kept
 	_og_case()   # (Asar 11/23) the OG Metocy in a glass case instead of the Greek head
+	amb_loop("amb_aura", -9.0, OG_POS + Vector3(0, 1.4, 0), 1.6, 9.0)   # it hums (Ebain's sfx pack)
 	# floating candles all through the hall
 	for k in 22:
 		var a := rng.randf() * TAU
@@ -1524,6 +1530,7 @@ func _sucker_punch() -> void:
 	shake = 0.6
 	knock(mattias, 10.0, 0.1)
 	_letterbox(true)
+	var heart := play_sound("sfx_heartbeat", -5.0, 1.0, true)   # Ebain's heartbeat, right before the boss fight
 	await wait(0.6)
 	unknock(mattias)
 	char_label(mattias, "Metocin Mattias (Unbothered)", 3.0, 2.6, Color("#9fc0ff"))   # DRAFT label
@@ -1533,8 +1540,12 @@ func _sucker_punch() -> void:
 	sk.frozen = true
 	zoom = 9.0
 	focus_override = null
+	if heart:
+		create_tween().tween_property(heart, "volume_db", -40.0, 0.5).finished.connect(heart.queue_free)
 	var res := await fight("mattias", { "enemies": [mattias], "center": DAIS + Vector3(0, 0, 7.5), "lose_ends": true })
 	Game.set_flag("mattiasBeaten", res == "win")
+	if res == "win":
+		play_sound("sfx_bell", -3.0)   # the church bell: he's done
 	_letterbox(false)
 	focus_override = (leader.global_position + mattias.global_position) * 0.5 + Vector3(0, 0, 1.0)
 	zoom = 8.0
@@ -1610,6 +1621,7 @@ func _goblin_party() -> void:
 	song.volume_db = -6.0
 	add_child(song)
 	song.play()
+	play_sound("sfx_goblin_cheer", -7.0)   # the whole village going off (sfx pack)
 	focus_override = PARTY_POS + Vector3(0, 0, 0.5)
 	cam_target = focus_override
 	zoom = 13.0
@@ -1978,3 +1990,7 @@ func _autopilot(picks: Array) -> void:
 				last = txt
 				print("LINE ", dialogue.name_lbl.text if dialogue.get("name_lbl") else "", ": ", txt)
 			dialogue._next.emit()
+
+# footsteps (Ebain's sfx pack): stone hall inside the tower, ground outside
+func floor_at(p: Vector3) -> String:
+	return "hall" if p.x > 200.0 else "grass"

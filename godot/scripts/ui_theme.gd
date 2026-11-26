@@ -164,6 +164,8 @@ static func pop_in(n: Control) -> void:    # a panel appearing
 
 # ---------------------------------------------------------------- sounds (made in code, cached)
 static var _players := {}
+# Real recordings that replace a synth sound (Ebain's sfx pack, 11/26). Others stay made in code.
+const FILES := { "move": "res://assets/sounds/ui_switch.ogg" }
 static var _streams := {}
 
 static func play(kind: String, pitch := 1.0) -> void:
@@ -173,11 +175,11 @@ static func play(kind: String, pitch := 1.0) -> void:
 	if p == null or not is_instance_valid(p):
 		var root := (Engine.get_main_loop() as SceneTree).root
 		p = AudioStreamPlayer.new()
-		p.stream = _sound(kind)
+		p.stream = load(FILES[kind]) if FILES.has(kind) and ResourceLoader.exists(FILES[kind]) else _sound(kind)
 		p.bus = &"SFX"
 		p.max_polyphony = 3
 		p.process_mode = Node.PROCESS_MODE_ALWAYS
-		p.volume_db = { "move": -14.0, "pick": -11.0, "back": -12.0, "open": -13.0, "page": -10.0 }.get(kind, -12.0)
+		p.volume_db = { "move": -17.0, "pick": -11.0, "back": -12.0, "open": -13.0, "page": -10.0 }.get(kind, -12.0)
 		root.add_child.call_deferred(p)
 		_players[kind] = p
 		await p.ready

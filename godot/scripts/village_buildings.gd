@@ -736,6 +736,7 @@ func _outhouse_trip(id: String) -> void:
 	lv.dialogue.hide_box()
 	await lv.walk_to(u, OUTHOUSE_POS + Vector3(0, 0, 0.9), 1.0, 3.0)
 	u.visible = false
+	lv.play_sound("sfx_door", -8.0)
 	lv.whoosh_sfx.play()
 	for k in 3:
 		await lv.wait(0.5)
@@ -744,7 +745,10 @@ func _outhouse_trip(id: String) -> void:
 		p.pitch_scale = randf_range(0.6, 1.4)
 		p.play()
 		get_tree().create_timer(1.0).timeout.connect(p.queue_free)
-	await lv.wait(0.6)
+	await lv.wait(0.3)
+	lv.play_sound_at("sfx_fart", OUTHOUSE_POS + Vector3(0, 1.0, 0), -2.0, randf_range(0.85, 1.15))   # (Ebain's sfx pack)
+	await lv.wait(1.1)
+	lv.play_sound("sfx_door", -8.0)
 	u.visible = true
 	lv.hop(u, 0.4)
 	lv.dialogue.show_box()

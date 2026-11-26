@@ -1,26 +1,37 @@
-# Night ambience: synthesized campfire crackle (3D, at the fire) + a real cricket recording (assets/sounds/crickets.ogg,
-# a seamless 61 s loop cut from Ebain's crickets mp3, low hum filtered out).
+# Night ambience: the campfire (3D, at the fire) + a real cricket recording (assets/sounds/crickets.ogg,
+# a seamless 61 s loop cut from Ebain's crickets mp3, low hum filtered out) + Ebain's scary night bed (amb_night.ogg,
+# "have this be the background of scene 1", sfx pack 11/26; night only, camp.gd stops it in the morning).
+# The fire is Ebain's "really satisfying campfire" recording (amb_campfire.ogg, looped); the old synth crackle is the
+# fallback if that file is missing.
 extends Node3D
 class_name Ambience
 
 const RATE := 22050.0
 var fire_player: AudioStreamPlayer3D
 var cricket_player: AudioStreamPlayer
+var night_player: AudioStreamPlayer
 var _fire_pb: AudioStreamGeneratorPlayback
 var _crackles: Array = []   # [samples_left, amp, lp_state]
 var _rumble := 0.0
 
 func setup(fire_pos: Vector3) -> void:
 	fire_player = AudioStreamPlayer3D.new()
-	fire_player.stream = _gen()
+	var fire_rec: AudioStreamOggVorbis = load("res://assets/sounds/amb_campfire.ogg") if ResourceLoader.exists("res://assets/sounds/amb_campfire.ogg") else null
+	if fire_rec:
+		fire_rec = fire_rec.duplicate()
+		fire_rec.loop = true
+		fire_player.stream = fire_rec
+	else:
+		fire_player.stream = _gen()
+		fire_player.playback_type = AudioServer.PLAYBACK_TYPE_STREAM   # generators need stream mode (web defaults to samples)
 	fire_player.position = fire_pos + Vector3(0, 0.5, 0)
 	fire_player.unit_size = 4.0
 	fire_player.max_distance = 40.0
 	fire_player.volume_db = -4.0
-	fire_player.playback_type = AudioServer.PLAYBACK_TYPE_STREAM   # generators need stream mode (web defaults to samples)
 	add_child(fire_player)
-	fire_player.play()
-	_fire_pb = fire_player.get_stream_playback()
+	fire_player.play(randf() * 20.0 if fire_rec else 0.0)
+	if not fire_rec:
+		_fire_pb = fire_player.get_stream_playback()
 
 	cricket_player = AudioStreamPlayer.new()
 	var crk: AudioStreamOggVorbis = load("res://assets/sounds/crickets.ogg")
@@ -29,6 +40,16 @@ func setup(fire_pos: Vector3) -> void:
 	cricket_player.volume_db = -17.0   # (Asar 11/22: was -9, too loud at the campfire)
 	add_child(cricket_player)
 	cricket_player.play(randf() * 50.0)   # start somewhere random in the loop
+
+	night_player = AudioStreamPlayer.new()
+	if ResourceLoader.exists("res://assets/sounds/amb_night.ogg"):
+		var nt: AudioStreamOggVorbis = load("res://assets/sounds/amb_night.ogg").duplicate()
+		nt.loop = true
+		night_player.stream = nt
+		night_player.volume_db = -14.0
+	add_child(night_player)
+	if night_player.stream:
+		night_player.play(randf() * 25.0)
 
 func _gen() -> AudioStreamGenerator:
 	var g := AudioStreamGenerator.new()

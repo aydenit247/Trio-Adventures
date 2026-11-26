@@ -204,6 +204,7 @@ func _canyon() -> void:
 	add_child(snore)
 	snore.play()
 	play_sound("sfx_lava_ambient", -8.0, 1.0, true)   # Asar's lava ambience, low under everything
+	amb_loop("amb_wind", -15.0)   # wind through the pass (Ebain's sfx pack)
 	giant_lying = Sprite3D.new()
 	giant_lying.texture = load("res://assets/characters/giant_sleep.png")   # Asar's sleeping picture (head on the right, rock pillow)
 	giant_lying.pixel_size = 8.0 / giant_lying.texture.get_width()           # 8 m from feet to pillow
@@ -567,6 +568,8 @@ func _giant_wakes(angry: bool) -> void:
 	# 1. stirs
 	shake = 0.35 if angry else 0.15
 	_sfx(Util.noise_burst(260, 0.4, 0.5), -4.0).play()
+	if angry:
+		play_sound("sfx_tiger_roar", -1.0, 0.68)   # Ebain's tiger roar, slowed down to giant size
 	var tw := create_tween()
 	tw.tween_property(giant_lying, "rotation:z", 0.05, 0.12)
 	tw.tween_property(giant_lying, "rotation:z", -0.04, 0.12)

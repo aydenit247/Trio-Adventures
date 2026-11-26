@@ -89,6 +89,7 @@ var hum: AudioStreamPlayer
 var swell := 0.0                      # 1 = hum/song at full (by the book)
 var music: Node                       # AreaMusic, only if Ebain's song is in
 var lect := {}                        # key -> [piece node, sparkle, light]
+var lect_hum := {}                    # key -> the piece's magic hum (Ebain's sfx pack), stops when you take it
 var mattias: Unit                     # Metocin Mattias (Ebain's script): follows you, or walks ahead to guide
 var mattias_light: OmniLight3D
 var guide_target = null               # Vector3 he's walking to (null = following)
@@ -103,6 +104,7 @@ var wood_m: Material
 var books_m: StandardMaterial3D
 
 func _configure() -> void:
+	floor_kind = "hall"   # stone footsteps (Ebain's sfx pack)
 	night = true
 	light_dir = Vector3(-0.3, 0.8, -0.5)
 	clear_center = Vector2(999, 999)
@@ -527,6 +529,7 @@ func _lectern(key: String, p: Vector3, r: RandomNumberGenerator) -> void:
 	var sp := _sparkle(p + Vector3(0, 1.4, 0))
 	var l := _light(p + Vector3(0, 1.8, 0.4), Color(1.0, 0.85, 0.5), 1.0, 4.0)
 	lect[key] = [b, sp, l]
+	lect_hum[key] = amb_loop("amb_aura", -11.0, p + Vector3(0, 1.4, 0), 1.4, 10.0)
 	add_glow(p + Vector3(0, 1.3, 0), Color(1.0, 0.85, 0.5), 3.0, func(): return 0.0 if Game.flag("libPiece_" + key) else 0.7)
 
 # A readable book: an open book on a small stand, or a glowing spine on a shelf (both pulse a little so you notice them)
@@ -602,6 +605,8 @@ func _apply_piece_state() -> void:
 		var gone := Game.flag("libPiece_" + k)
 		for n in lect[k]:
 			n.visible = not gone
+		if gone and lect_hum.get(k) and is_instance_valid(lect_hum[k]):
+			lect_hum[k].queue_free()
 	if Game.flag("libGateOpen"):
 		_open_gate_now()
 
@@ -1255,6 +1260,8 @@ func _on_action(n: String) -> void:
 		"give_joint":
 			play_sound("sfx_grab", -6.0)
 			await wait(0.4)
+			play_sound_at("sfx_lighter", deloye.global_position + Vector3(0, 1.6, 0), -3.0)   # Deloye sparks it up (sfx pack)
+			await wait(0.6)
 		"smoke":
 			await _smoke()
 		"faded":
@@ -1308,6 +1315,8 @@ func _take_piece(k: String) -> void:
 		p.emitting = true
 		for nd in lect[k]:
 			nd.visible = false
+	if lect_hum.get(k) and is_instance_valid(lect_hum[k]):
+		lect_hum[k].queue_free()
 	play_sound("sfx_reward", -6.0)
 	show_toast("Got %s (%d/%d)" % [PIECE_NAMES[k], pieces_found(), PIECES.size()], 2.2)
 	await wait(0.5)
@@ -1354,10 +1363,14 @@ func _smoke() -> void:
 	sm.color_ramp = Fx.ramp([[0.0, Color(0.85, 0.85, 0.85, 0)], [0.2, Color(0.85, 0.85, 0.85, 0.35)], [1.0, Color(0.85, 0.85, 0.85, 0)]])
 	add_child(sm)
 	sm.global_position = CENTER + Vector3(0, 1.6, 3.2)
+	play_sound("sfx_lighter", -3.0)   # (Ebain's sfx pack) flick + the first pull
+	await wait(1.2)
 	for u in party:
 		char_label(u, "*puff*", 1.6, u.height_m + 0.3, Color("#cfe8c8"))   # DRAFT
 		await wait(0.55)
 	char_label(deloye, "*puff*", 1.6, DELOYE_H + 0.3, Color("#d9d2ff"))   # DRAFT
+	if not party.is_empty():   # somebody can't hang
+		play_sound_at("sfx_cough", party[party.size() - 1].global_position + Vector3(0, 1.4, 0), -5.0)
 	var haze := fade.color
 	var tw := create_tween()
 	tw.tween_property(fade, "color", Color(0.75, 0.9, 0.7, 0.35), 1.2)
@@ -1402,6 +1415,12 @@ func _gift() -> void:
 		p.emitting = true
 		hop(x, 0.4)
 		char_label(x, "Xylo (Plugged In)", 3.0, x.height_m + 0.3, Color("#ffdf4a"))   # DRAFT
+	var boot := play_sound("amb_engine", -10.0, 0.8)   # (Ebain's sfx pack) the Neuralink booting up
+	if boot:
+		var btw := create_tween()
+		btw.tween_property(boot, "pitch_scale", 1.6, 1.6)
+		btw.parallel().tween_property(boot, "volume_db", -40.0, 1.8).set_delay(0.6)
+		btw.tween_callback(boot.queue_free)
 	play_sound("sfx_reward", -4.0)
 	show_toast("Xylo got: Deloye Lore Neuralink (equip it in Tab)", 3.0)
 	await wait(0.8)

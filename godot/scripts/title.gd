@@ -37,6 +37,7 @@ func _start_music() -> void:
 	create_tween().tween_property(music, "volume_db", MUSIC_DB, 2.0)
 	if bg and "amb" in bg and bg.amb:   # menu = just the song (Ebain): no campfire crackle, no crickets
 		bg.amb.cricket_player.stop()
+		bg.amb.night_player.stop()
 		bg.amb.fire_player.stop()
 		bg.amb.set_process(false)
 

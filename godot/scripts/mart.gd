@@ -1312,3 +1312,7 @@ void fragment() {
 	ROUGHNESS = 0.8;
 }
 """
+
+# footsteps (Ebain's sfx pack): wood floor in the shop and Charis's house (built off to the side), grass outside
+func floor_at(p: Vector3) -> String:
+	return "wood" if p.x > 200.0 else "grass"

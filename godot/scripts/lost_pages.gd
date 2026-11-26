@@ -98,6 +98,18 @@ static func spawn(lv) -> void:
 	sp.mesh = qm
 	sp.position = Vector3(0, 0.35, 0)
 	root.add_child(sp)
+	# (Ebain's sfx pack) a soft magic hum you can hear when you get close
+	if ResourceLoader.exists("res://assets/sounds/amb_aura.ogg"):
+		var hum := AudioStreamPlayer3D.new()
+		var hs: AudioStreamOggVorbis = load("res://assets/sounds/amb_aura.ogg").duplicate()
+		hs.loop = true
+		hum.stream = hs
+		hum.volume_db = -10.0
+		hum.unit_size = 1.4
+		hum.max_distance = 11.0
+		hum.position = Vector3(0, 0.4, 0)
+		hum.autoplay = true
+		root.add_child(hum)
 	lv.set_meta("lost_page", root)
 	lv.set_meta("lost_page_hinted", false)
 
@@ -133,6 +145,8 @@ static func pickup(lv) -> void:
 	tw.tween_property(node, "scale", Vector3.ONE * 0.05, 0.5)
 	lv.play_sound("sfx_pop", -12.0, 1.6)
 	if lv.ui_sfx: lv.ui_sfx.play()
+	for c in node.get_children():   # the hum stops when you take it
+		if c is AudioStreamPlayer3D: c.stop()
 	await lv.wait(0.5)
 	node.visible = false
 	var n := count()
