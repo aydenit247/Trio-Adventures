@@ -24,6 +24,7 @@ var gain_db := 0.0                     # extra volume set by the area each frame
 var _since_dialogue := 99.0
 var _heard := false                    # already sent to the Library this visit
 var played_once := false               # Settings → Music: Play once, and the song has finished: stay quiet
+var paused := false                    # the area holds the song where it is (summit: while Dulbers ambushes); false = carry on
 var force_once := false                # set before adding: always play it through once, whatever the setting (summit hymn)
 
 func _ready() -> void:
@@ -42,6 +43,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if track == null:
+		return
+	player.stream_paused = paused
+	if paused:
 		return
 	if _dialogue_open():
 		_since_dialogue = 0.0

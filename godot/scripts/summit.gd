@@ -1217,12 +1217,14 @@ func _halfway() -> void:
 func _ambush() -> void:
 	busy = true
 	freeze_all(true)
-	music_gain = -16.0   # Ebain: if they walked on during the song, it drops to the background when Dulbers shows up
+	if hymn:   # Asar 11/25: the song pauses while Dulbers is here and picks up where it left off once he's gone
+		hymn.paused = true   # (was Ebain's: drop it to the background)
 	await run_dialogue(_fill(SS.AMBUSH))
 	busy = true
 	target_yaw = 0.0
 	focus_override = null
-	music_gain = 0.0
+	if hymn:
+		hymn.paused = false
 	await wait(0.7)
 	busy = false
 	interact_cooldown = 0.3
