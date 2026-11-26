@@ -23,8 +23,8 @@ const BUILDINGS := {
 const OUTHOUSE_POS := Vector3(12.8, 0, 7.8)
 const BOARD_POS := Vector3(4.2, 0, -4.6)
 const HOUSE_POS := Vector3(10.5, 0, -6.5)
-const STALL_POS := Vector3(26.5, 0, 1.7)   # Haggle's market stall on the east road to the Metocy Mart (Asar 11/25; was in the square)
-const STALL_YAW := PI + 0.3                # counter faces the road, a little toward the village
+const STALL_POS := Vector3(26.5, 0, -6.0)  # Haggle's market stall, north side of the east road to the Metocy Mart (Asar 11/26)
+const STALL_YAW := -0.3                    # customer side (fwd) faces the road and the camera, a little toward the village
 const BEDROLL_POS := Vector3(-2.2, 0, -11.6)       # rest spot by the Chief's Hut (replaces his hay bed)
 const CONDITIONER_POS := Vector3(-1.4, 0, -10.6)   # the Backup Conditioner used to be in the Chief's chest
 
