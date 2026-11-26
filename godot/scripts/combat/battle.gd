@@ -43,6 +43,8 @@ var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 
 var party: Array = []
 var enemies: Array = []
 var dmg_scale := 1.0
+var _ahead := 0
+var enemy_hp_mul := 1.0           # what enemy HP was scaled by (Dulbers' adds use it too)
 var boss_dmg := 1.0               # D.BOSS_SCALE: bosses hit harder when you out-level them
 var throwables: Array = []        # names of the real props piled next to the party (BattleView); empty = D.THROWABLES
 var ended := ""          # "fled" / "talked" when the fight ends without a winner
@@ -99,11 +101,16 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		var over := clampi(level - int(def["lvl"]), 0, int(D.BOSS_SCALE["cap"]))
 		hp_mul *= 1.0 + D.BOSS_SCALE["hp"] * over
 		boss_dmg = 1.0 + D.BOSS_SCALE["dmg"] * over
+	if def.get("boss", false) and not def.get("drip_scale", false):   # every other boss keeps up with your gear too, milder (11/26)
+		var bd := 0.0
+		for p in party:
+			bd += _drip(p["gear"])
+		hp_mul *= 1.0 + D.BALANCE["boss_drip_hp"] * bd
+		boss_dmg *= 1.0 + D.BALANCE["boss_drip_dmg"] * bd
 	if def.get("drip_scale", false):   # the final boss "out-mogs your drip": scales with the party's gear (Ebain 11/26)
 		var drip := 0.0
 		for p in party:
-			var g: Dictionary = p["gear"]
-			drip += g.get("power", 0.0) + g.get("armor", 0) * 0.03 + g.get("spd", 0) * 0.03 + g.get("hp", 0) / 150.0 + g.get("start", 0) / 200.0
+			drip += _drip(p["gear"])
 		hp_mul *= 1.0 + D.MATTIAS_BOSS["drip_hp"] * drip
 		boss_dmg *= 1.0 + D.MATTIAS_BOSS["drip_dmg"] * drip
 	if not def.get("story", false):
@@ -111,6 +118,7 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		# a 3-person patrol used to end at ~90% HP)
 		hp_mul *= 0.85 + 0.38 * (ids.size() - 1)
 		dmg_scale = 1.0 + 0.35 * (ids.size() - 1)
+	enemy_hp_mul = hp_mul
 	for i in def["enemies"].size():
 		var E: Dictionary = def["enemies"][i]
 		var e := {
@@ -133,8 +141,12 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 	bolt_pending = rnd() < BOLT_CHANCE or OS.get_environment("BOLT") != "" or o.get("dulbmeethus", false)   # o.dulbmeethus: the dev menu toggle (Game.dev_dulbmeethus)
 
 # ------------------------------------------------------------------ helpers
+# gear score of one fighter (Mattias' "Out-Mogs your drip" and the milder boss version both use it)
+func _drip(g: Dictionary) -> float:
+	return g.get("power", 0.0) + g.get("armor", 0) * 0.03 + g.get("spd", 0) * 0.03 + g.get("hp", 0) / 150.0 + g.get("start", 0) / 200.0
+
 func delay(u: Dictionary) -> float:
-	return BASE / (u["spd"] * (1.25 if u.get("phase", 1) == 2 and u.get("ai", "") == "giant" else 1.0))
+	return BASE / u["spd"]   # (the Giant's phase-2 speed-up went away 11/26: the free second action replaces it)
 
 func alive(list: Array) -> Array:
 	return list.filter(func(x): return x["hp"] > 0)
@@ -145,8 +157,23 @@ func pick(arr: Array):
 func rnd() -> float:
 	return rng.randf()
 
-func units() -> Array:
-	return alive(party) + alive(enemies)
+func units() -> Array:   # downed fighters still get turns: they roll death saves (11/26)
+	return alive(party) + downed() + alive(enemies)
+
+# Downed (Ebain 11/26, BG3 death saves): at 0 HP you're Downed, not out. Each turn you roll a d20 (10+ passes):
+# 3 passes = back up at 1 HP, a nat 20 = up at half HP (and you act), a nat 1 = two fails, 3 fails = dead for the rest of
+# the fight (back up at 1 HP afterward, like a knockout always was). A teammate can spend their turn to Help Up.
+func downed() -> Array:
+	return party.filter(func(p): return p["hp"] <= 0 and p.get("down", false) and not p.get("dead", false))
+
+# Drivers (BattleView, the sim) call this before planning each action: action 0 is the real one, 1 is the bonus
+func begin_action(e: Dictionary, i: int) -> void:
+	e["bonus_act"] = i > 0
+
+# How many actions an enemy gets this turn (Ebain 11/26: bosses in phase 2 get a free second one, BG3 legendary style).
+# Intents with "free" (Dulbers shapeshifting) don't use one up. The view and the sim both loop on this.
+func enemy_actions(e: Dictionary) -> int:
+	return 2 if e.get("boss", false) and e.get("phase", 1) == 2 and not def.get("no_tempo", false) else 1
 
 func result() -> String:
 	if ended != "": return ended
@@ -185,6 +212,8 @@ func add_meter(m: Dictionary, amt: float) -> Array:
 	if m == null or m.is_empty() or m["side"] != "party" or m["hp"] <= 0 or amt <= 0:
 		return []
 	var before: int = m["meter"]
+	if m["hp"] < m["max_hp"] * D.BALANCE["comeback_hp"]:   # comeback power (11/26): low HP fills the meter faster
+		amt *= D.BALANCE["comeback_mult"]
 	m["meter"] = mini(100, m["meter"] + int(round(amt * m["gear"].get("meter", 1.0))))
 	return [{ "t": "meter_full", "u": m }] if before < 100 and m["meter"] >= 100 else []
 
@@ -203,6 +232,8 @@ func next_actor() -> Dictionary:
 			if u["st"][k] <= 0:
 				u["st"].erase(k)
 
+	if u["side"] == "party" and u["hp"] <= 0:
+		return _death_save(u, ev)
 	if u["side"] == "party":
 		stats["party_turns"] += 1
 		u["defending"] = false
@@ -221,6 +252,7 @@ func next_actor() -> Dictionary:
 		return { "u": u, "events": ev + _foresee(), "skip": false }
 
 	# Enemy: burns and copium first
+	u["turns_taken"] = u.get("turns_taken", 0) + 1
 	if had.has("cooked"):
 		ev += damage_enemy({}, u, 6, { "text": "%s is Cooked. The fire is still going." % u["name"], "sound": "fire", "raw": true })
 		if u["hp"] <= 0: return _skip(u, ev)
@@ -230,9 +262,13 @@ func next_actor() -> Dictionary:
 		ev.append({ "t": "heal", "u": u, "amt": h, "hp": u["hp"], "text": "%s is on Copium. (+%d)" % [u["name"], h] })
 	# Telegraph counters: CC'd while winding up a sit or a snack
 	var cc := "stun" if u["st"].has("stun") else ("charm" if u["st"].has("charm") else "")
-	if cc != "" and (u.get("sit_pending", false) or u.get("eat_pending", false)):
+	if cc != "" and (u.get("sit_pending", false) or u.get("eat_pending", false) or u.get("sale_pending", false) or u.get("stampede_pending", false)):
 		u["st"].erase(cc)
-		if u.get("sit_pending", false):
+		if u.get("sale_pending", false) or u.get("stampede_pending", false):
+			u["sale_pending"] = false
+			u["stampede_pending"] = false
+			ev.append({ "t": "say", "text": "%s loses his train of thought. The big attack is cancelled." % u["name"], "sound": "miss" }) # DRAFT
+		elif u.get("sit_pending", false):
 			u["sit_pending"] = false
 			ev.append({ "t": "tex", "u": u, "tex": u["E"]["tex"] })
 			ev += damage_enemy({}, u, 35, { "text": "%s loses his balance and sits on his OWN FOOT!" % u["name"], "sound": "sit", "raw": true, "shake": true })
@@ -265,6 +301,47 @@ func next_actor() -> Dictionary:
 func _skip(u: Dictionary, ev: Array) -> Dictionary:
 	_drop_plan(u)
 	return { "u": u, "events": ev, "skip": true }
+
+func _death_save(u: Dictionary, ev: Array) -> Dictionary:
+	var roll := rng.randi_range(1, 20)
+	var sv: Array = u["saves"]
+	var txt := ""
+	if roll == 20:
+		u["hp"] = int(ceil(u["max_hp"] / 2.0))
+		u["down"] = false
+		ev.append({ "t": "save", "u": u, "roll": roll, "text": "%s rolls a NAT 20 and gets up!" % u["name"] }) # DRAFT
+		ev.append({ "t": "revive", "u": u, "hp": u["hp"], "text": "%s is back! (%d %s)" % [u["name"], u["hp"], u["P"]["hp_label"]] })
+		return { "u": u, "events": ev, "skip": false }
+	if roll == 1:
+		sv[1] += 2
+		txt = "A nat 1. Two fails."
+	elif roll >= 10:
+		sv[0] += 1
+		txt = "Pass."
+	else:
+		sv[1] += 1
+		txt = "Fail."
+	ev.append({ "t": "save", "u": u, "roll": roll, "text": "%s's death save: %d. %s (%d/3 passes, %d/3 fails)" % [u["name"], roll, txt, mini(3, sv[0]), mini(3, sv[1])] })
+	if sv[1] >= 3:
+		ev += _die(u)
+	elif sv[0] >= 3:
+		u["hp"] = 1
+		u["down"] = false
+		ev.append({ "t": "revive", "u": u, "hp": 1, "text": "%s stabilizes and gets up. (1 %s)" % [u["name"], u["P"]["hp_label"]] }) # DRAFT
+	return { "u": u, "events": ev, "skip": true }
+
+func _die(u: Dictionary) -> Array:
+	u["dead"] = true
+	stats["deaths"] = stats.get("deaths", 0) + 1
+	return [{ "t": "dead", "u": u, "text": "%s is DEAD. (Out for the rest of this fight.)" % u["name"] }] # DRAFT
+
+# AoE hits landing on a Downed fighter: one failed save each
+func _downed_hit(p: Dictionary) -> Array:
+	p["saves"][1] += 1
+	var ev := [{ "t": "save_fail", "u": p, "text": "%s gets hit while Downed. Failed save (%d/3)." % [p["name"], mini(3, p["saves"][1])] }] # DRAFT
+	if p["saves"][1] >= 3:
+		ev += _die(p)
+	return ev
 
 func _drop_plan(e: Dictionary) -> void:
 	if e.has("planned"):
@@ -308,7 +385,9 @@ func _foresee() -> Array:
 		if e.get("foresaw", false):
 			return []   # already said this one
 		if not e.has("planned"):
+			_ahead = 1   # planning his NEXT turn: telegraph timing counts that turn (_telegraph)
 			e["planned"] = enemy_plan(e)
+			_ahead = 0
 		e["foresaw"] = true
 		return [{ "t": "say", "text": "NEURALINK: " + _intent_text(e, e["planned"]), "sound": "sparkle", "ms": 1500 }]
 	return []
@@ -336,7 +415,7 @@ func lock_in(u: Dictionary) -> Array:
 	return [{ "t": "status", "u": u, "name": "locked", "text": "%s is LOCKED IN. Can't be charmed, stunned or Lore-pilled for a bit." % u["name"] }]
 
 func can_cc(e: Dictionary) -> bool:
-	return not e["st"].has("locked") or e.get("sit_pending", false) or e.get("eat_pending", false)
+	return not e["st"].has("locked") or e.get("sit_pending", false) or e.get("eat_pending", false) or e.get("sale_pending", false) or e.get("stampede_pending", false)
 
 func apply_cc(e: Dictionary, kind: String, turns := 1) -> Array:
 	if e["hp"] <= 0: return []
@@ -439,6 +518,8 @@ func party_act(m: Dictionary, a: Dictionary, o: Dictionary = {}) -> Array:
 			return flee(m, o.get("roll", rng.randi_range(1, 6)))
 		"talk":
 			return talk(m, a["talk"])
+		"help":
+			return help_up(m, a["target"])
 
 	# Misfires: midtocy trip or beezy buzz
 	var buzzed: bool = m["st"].has("buzzed")
@@ -591,6 +672,17 @@ func do_move(m: Dictionary, move: Dictionary, t: Dictionary, h: Dictionary, o: D
 					ev += apply_status(e, "downbad", 2, "%s is DOWN BAD. That was a lot of goblins." % e["name"])
 	return ev
 
+# Help Up (11/26): spend your turn pulling a Downed teammate back up
+func help_up(m: Dictionary, t: Dictionary) -> Array:
+	if t["hp"] > 0 or t.get("dead", false):
+		return [{ "t": "say", "text": "Too late for that.", "ms": 900 }]
+	t["hp"] = maxi(1, int(round(t["max_hp"] * D.BALANCE["help_up"])))
+	t["down"] = false
+	t["next"] = now + delay(t) * 0.6
+	var ev := [{ "t": "revive", "u": t, "hp": t["hp"], "text": "%s drags %s back up. (%d %s)" % [m["name"], t["name"], t["hp"], t["P"]["hp_label"]] }] # DRAFT
+	ev += add_meter(m, 10)
+	return ev
+
 func heal_amt(p: Dictionary, amt: int) -> int:
 	if p["st"].has("gouged"):
 		amt = int(round(amt / 2.0))
@@ -598,7 +690,10 @@ func heal_amt(p: Dictionary, amt: int) -> int:
 
 func _heal_member(_m: Dictionary, t: Dictionary, amt: int, text: String) -> Array:
 	var ev := []
+	if t.get("dead", false):
+		return [{ "t": "say", "text": "%s is dead. Too late for this fight." % t["name"], "ms": 1000 }] # DRAFT
 	if t["hp"] <= 0:
+		t["down"] = false
 		t["hp"] = mini(t["max_hp"], amt)
 		t["meter"] = 0
 		t["st"] = {}
@@ -645,6 +740,8 @@ func do_combo(m: Dictionary, c: Dictionary, t: Dictionary, h: Dictionary) -> Arr
 
 func use_item(m: Dictionary, k: String, t: Dictionary) -> Array:
 	var it: Dictionary = D.ITEMS[k]
+	if t.get("dead", false) and not it.get("faded", false):   # (the view doesn't offer dead targets; this is a guard)
+		return [{ "t": "say", "text": "%s is dead. Too late for this fight." % t["name"], "ms": 1000 }]
 	bags[m["id"]][k] -= 1   # from the user's own bag
 	stats["items"] += 1
 	var ev := [{ "t": "item", "u": m, "target": t, "item": k }]
@@ -760,6 +857,11 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 			e["eat_pending"] = false
 			e["st"] = {}
 			ev.append({ "t": "down", "u": e })
+			if e.get("boss", false):   # his adds clock out (11/26)
+				for x in alive(enemies):
+					if x.get("minion", false):
+						x["hp"] = 0
+						ev.append({ "t": "down", "u": x, "text": "%s clocks out." % x["name"] }) # DRAFT
 	elif e["phase"] == 1 and e["boss"] and e["hp"] <= e["max_hp"] * 0.5:
 		e["phase_pending"] = true
 	return ev
@@ -863,7 +965,8 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			e["disguise"] = pick(ps)["id"]
 			if e["disguise"] in ["chief", "mattias"]: e["disguise"] = "skorn"
 			e["disguise_turns"] = 2
-			return { "kind": "phase", "text": "Dulbers SHAPESHIFTS… into %s?! (Bootleg version)" % D.PARTY[e["disguise"]]["name"], "bark": "phase", "disguise": e["disguise"] }
+			# 11/26: shapeshifting is free (he still gets his attack), and at the Mart he calls in his employees
+			return { "kind": "phase", "text": "Dulbers SHAPESHIFTS… into %s?! (Bootleg version)" % D.PARTY[e["disguise"]]["name"], "bark": "phase", "disguise": e["disguise"], "free": true, "summon": def.has("adds") }
 		if e["ai"] == "mattias":
 			return { "kind": "phase", "text": "Metocin Mattias stops holding back. (Every hit lands harder now.)", "bark": "phase" }
 		if e["ai"] == "rat_king":   # DRAFT
@@ -893,6 +996,10 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 		var t := target(e)
 		return { "kind": "hit", "name": "Spoon Bonk", "power": 9, "targets": [t], "text": "%s bonks %s with a spoon!" % [e["name"], t["name"]], "sound": "bonk" }
 
+	if e["ai"] == "employee":   # Dulbers' adds at the Mart (11/26). Texts: # DRAFT
+		var t := target(e, "random")
+		return { "kind": "hit", "name": "Mop Swing", "power": 6, "targets": [t], "text": "%s swings a mop at %s! \"Cleanup on aisle YOU.\"" % [e["name"], t["name"]], "sound": "bonk" }
+
 	# the rat cave (RUINS_PLAN.md). Move names/texts: # DRAFT
 	if e["ai"] == "rat":
 		var buddies := alive(enemies).filter(func(x): return not is_same(x, e) and not x["st"].has("hyped"))
@@ -904,6 +1011,11 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 		return { "kind": "hit", "name": "Toothpick Poke", "power": 11, "targets": [t], "text": "%s pokes %s with a toothpick spear!" % [e["name"], t["name"]], "sound": "bonk" }
 
 	if e["ai"] == "rat_king":
+		var st := _telegraph(e, "stampede", D.STAMPEDE, all,
+			"King Nibbsworth III whistles for the whole colony… (Next turn: a rat stampede. Defend, block it, or stun/charm him to cancel.)", # DRAFT
+			"RAT STAMPEDE! Every rat in the cave runs over the party!") # DRAFT
+		if not st.is_empty():
+			return st
 		if e["phase"] == 2 and e.get("corn", 0) < 2 and e["hp"] < e["max_hp"] * 0.4 and rnd() < 0.35:
 			e["corn"] = e.get("corn", 0) + 1
 			return { "kind": "eat", "amt": 45, "text": "King Nibbsworth III gnaws on the Corncob Scepter. Royal snack. (+45)" }
@@ -913,6 +1025,11 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 		return { "kind": "hit", "name": "Corncob Bonk", "power": 32, "targets": [t], "text": "King Nibbsworth III bonks %s with the Corncob Scepter!" % t["name"], "sound": "slap" }
 
 	if e["ai"] == "dulbers":
+		var sale := _telegraph(e, "sale", D.SALE, all,
+			"Dulbers: \"CLEARANCE SALE! EVERYTHING MUST GO!\" (Next turn he hits everyone HARD. Defend, block it, or stun/charm him to cancel.)", # DRAFT
+			"EVERYTHING MUST GO! Dulbers hurls the whole store at the party!") # DRAFT
+		if not sale.is_empty():
+			return sale
 		if e["phase"] == 2:
 			e["disguise_turns"] -= 1
 			if e["disguise_turns"] < 0:
@@ -923,13 +1040,13 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 				if not opts.is_empty():
 					e["disguise"] = pick(opts)
 				e["disguise_turns"] = 1
-				return { "kind": "phase", "text": "Dulbers shapeshifts into %s now." % D.PARTY[e["disguise"]]["name"], "disguise": e["disguise"], "quick": true }
+				return { "kind": "phase", "text": "Dulbers shapeshifts into %s now." % D.PARTY[e["disguise"]]["name"], "disguise": e["disguise"], "quick": true, "free": true }
 			if e["hp"] < e["max_hp"] * 0.35 and not e.get("cope_used", false) and rnd() < 0.3:
 				e["cope_used"] = true
 				return { "kind": "buff", "status": "copium", "turns": 3, "text": "Dulbers: \"I'm not losing, I'm just… restocking.\" (COPIUM: heals each turn. Hit him hard to break it.)" }
 			if e["disguise"] == "skorn":
 				var t := target(e)
-				return { "kind": "hit", "name": "Diddy Slap (Bootleg)", "power": 36, "targets": [t], "text": "Bootleg Skorn slaps %s!" % t["name"], "sound": "slap" }
+				return { "kind": "hit", "name": "Diddy Slap (Bootleg)", "power": 30, "targets": [t], "text": "Bootleg Skorn slaps %s!" % t["name"], "sound": "slap" }
 			if e["disguise"] == "lykor":
 				var t := target(e)
 				return { "kind": "hit", "name": "Hair Flip (Knockoff)", "power": 18, "targets": [t], "flatten": 0.45, "text": "Knockoff Lykor hair-flips at %s!" % t["name"], "sound": "sparkle" }
@@ -944,8 +1061,8 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 			return { "kind": "shield", "amt": 35, "drain": lykor, "text": "Dulbers steals some of Lykor's aura and makes an AURA SHIELD out of it." }
 		if rnd() < 0.62:
 			var t := target(e)
-			return { "kind": "hit", "name": "Price Gouge", "power": 34, "targets": [t], "gouge": true, "text": "Dulbers price-gouges %s! \"That'll be 34 HP, plus tax.\"" % t["name"], "sound": "slap" }
-		return all.merged({ "kind": "hit", "name": "NO REFUNDS", "power": 21, "brick": true, "text": "Dulbers screams \"NO REFUNDS!\" It hurts everyone's ears.", "sound": "roar" })
+			return { "kind": "hit", "name": "Price Gouge", "power": 30, "targets": [t], "gouge": true, "text": "Dulbers price-gouges %s! \"That'll be 30 HP, plus tax.\"" % t["name"], "sound": "slap" }
+		return all.merged({ "kind": "hit", "name": "NO REFUNDS", "power": 18, "brick": true, "text": "Dulbers screams \"NO REFUNDS!\" It hurts everyone's ears.", "sound": "roar" })
 
 	if e["ai"] == "giant":
 		if e.get("sit_pending", false):
@@ -983,6 +1100,22 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 		return all.merged({ "kind": "hit", "name": "Pill Rain", "power": int(M["rain"] * mul), "brick": true, "text": "It rains little blue pills. They hurt. A lot.", "sound": "lore" })
 	return { "kind": "nothing", "text": "%s waits." % e["name"] }
 
+# Big telegraphed hits (Ebain 11/26, like the Giant's SIT): turn N winds up, his NEXT turn (not a bonus action in the
+# same turn) lands it on everyone. T = { power, first, every } in combat_data. Returns {} when it's not time.
+func _telegraph(e: Dictionary, id: String, T: Dictionary, all: Dictionary, warn: String, hit: String) -> Dictionary:
+	var n: int = e.get("turns_taken", 0) + _ahead
+	if e.get(id + "_pending", false):
+		if n > e.get(id + "_at", 0):
+			e[id + "_pending"] = false
+			return all.merged({ "kind": "hit", "name": hit, "power": T["power"], "text": hit, "sound": "roar", "big": true })
+		return {}   # same turn (his bonus action): just a normal attack
+	if n >= T["first"] and (n - T["first"]) % T["every"] == 0 and e.get(id + "_last", -1) != n:
+		e[id + "_pending"] = true
+		e[id + "_at"] = n
+		e[id + "_last"] = n
+		return { "kind": "telegraph", "text": warn, "status": id }
+	return {}
+
 # Apply the intent. block = "perfect" | "good" | "mid" | ""
 func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 	var ev := []
@@ -994,6 +1127,8 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 		"phase":
 			if it.has("disguise"): e["disguise"] = it["disguise"]
 			ev.append({ "t": "phase", "u": e, "text": it["text"], "disguise": it.get("disguise", ""), "quick": it.get("quick", false) })
+			if it.get("summon", false):
+				ev += _summon(e)
 			return ev
 		"nothing":
 			ev.append({ "t": "say", "text": it["text"], "ms": 1400 })
@@ -1039,6 +1174,8 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 			ev.append({ "t": "miss", "u": e, "text": "%s swings at nothing. BLINDED." % e["name"], "sound": "miss" })
 			return ev
 	var mult: float = diff["dmg"] * dmg_scale * (boss_dmg if e.get("boss", false) else 1.0) * (1.1 if mods.get("enraged", false) else 1.0)
+	if e.get("bonus_act", false):   # the phase-2 free action is a lighter one (the driver sets bonus_act, 11/26)
+		mult *= D.BALANCE["bonus_mult"]
 	if e["st"].has("hyped"):
 		mult *= 2.0
 		e["st"].erase("hyped")
@@ -1050,6 +1187,7 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 	ev.append({ "t": "attack", "u": e, "text": it["text"], "sound": it.get("sound", "hit"), "sit": it.get("sit", false), "block": block })
 	if it.get("tex", "") != "":
 		ev.append({ "t": "tex", "u": e, "tex": e["E"]["tex"] })   # back to standing after the sit
+	var was_down := downed()   # (only those already Downed before this hit take a failed save)
 	for p in it["targets"]:
 		if p["hp"] <= 0:
 			continue
@@ -1069,6 +1207,10 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 			ev += party_status(p, "flattened", 1, "%s is FLATTENED. Loses their next turn." % p["name"])
 		if it.has("flatten") and not soft and rnd() < it["flatten"]:
 			ev += party_status(p, "flattened", 1, "%s is too charmed by the knockoff hair. Loses their next turn." % p["name"])
+	if it.get("aoe", false):   # the shockwave reaches the Downed too (11/26)
+		for p in was_down:
+			if not p.get("dead", false):
+				ev += _downed_hit(p)
 	if it.get("brick", false):
 		var list := alive(party)
 		if not list.is_empty():
@@ -1077,6 +1219,22 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 			p["cds"]["special"] += 1
 			ev.append({ "t": "status", "u": p, "name": "bricked", "text": "%s is BRICKED. Their special takes an extra turn." % p["name"] })
 	return ev
+
+# Adds (11/26): the fight's "adds" list joins mid-fight (Dulbers at the Mart, at half HP). They leave when the boss drops.
+func _summon(boss: Dictionary) -> Array:
+	var made := []
+	for A in def["adds"]:
+		var i := enemies.size()
+		var x := {
+			"side": "enemy", "key": "e%d" % i, "E": A, "name": A["name"], "tag": A.get("tag", ""), "ai": A["ai"],
+			"boss": false, "order": 10 + i, "max_hp": int(round(A["hp"] * enemy_hp_mul)), "spd": A["spd"],
+			"st": {}, "turn": 0, "phase": 1, "second_wind": false, "minion": true,
+		}
+		x["hp"] = x["max_hp"]
+		x["next"] = now + delay(x) * 1.0
+		enemies.append(x)
+		made.append(x)
+	return [{ "t": "summon", "u": boss, "us": made, "text": def.get("adds_text", "Reinforcements!") }]
 
 func party_status(p: Dictionary, name: String, turns: int, text: String) -> Array:
 	p["st"][name] = turns
@@ -1098,12 +1256,14 @@ func hurt(p: Dictionary, dmg: int, block: String, aoe: bool) -> Array:
 		p["meter"] = 0
 		p["st"] = {}
 		p["defending"] = false
+		p["down"] = true
+		p["saves"] = [0, 0]
 		ev.append({ "t": "ko", "u": p })
 		ev += bark(p, "ko", 0.8)
 		var rest := alive(party)
 		if not rest.is_empty():
 			ev += bark(rest[0], "allyKo", 0.6)
-			if total_items("beer") + total_items("bowl") == 0 and not emergency_given:
+			if total_items("beer") + total_items("bowl") == 0 and not emergency_given and not def.get("boss", false):   # (11/26: not in boss fights)
 				emergency_given = true
 				bags[rest[0]["id"]]["beer"] = 1
 				ev.append({ "t": "say", "text": "Someone's down and you're out of items? Here — 1 Emergency Beezy (complimentary).", "sound": "grab", "ms": 1600 })
