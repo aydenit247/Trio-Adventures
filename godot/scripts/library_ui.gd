@@ -17,6 +17,7 @@ const SONGS := [
 	{ "id": "the_mogging_elf", "title": "The Mogging Elf", "by": "Ebain", "where": "the goblin village" },
 	{ "id": "the_hymn_of_metocin_mattias", "title": "The Hymn of Metocin Mattias", "by": "Ebain", "where": "the Summit Path" },
 	{ "id": "deloye_lore", "title": "Deloye Lore", "by": "Ebain", "where": "the Deloye library radio" },
+	{ "id": "the_tale_of_diddy_chud", "title": "The Tale of Diddy Chud", "by": "Ebain", "where": "the Pass (the giant's music video)" },
 ]
 const CFG := "user://library.cfg"
 
