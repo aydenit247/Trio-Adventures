@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Troll hut video cutscene + shaking hut under the love and light clips — files: godot/assets/video/troll_hut_*.ogv, trail.gd — branch: ebain/troll-video — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -19,6 +18,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-26 [ebain] **Troll hut cutscene**: Xylo goes into the hut (video), then the love and light clips play over the hut shaking
 - 2026-11-26 [ebain] **3 more video cutscenes + a fixed pipe ride**: map burn (Scene 1), pipe exit (library → outhouse), Neuralink install
 - 2026-11-26 [ebain] **Pipe-ride cutscene**: Ebain's Gemini video of the trio sliding down the outhouse pipe into the library
 - 2026-11-26 [ebain] Library: Save button on each unlocked song (downloads the .ogg)
@@ -80,6 +80,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-26 [ebain] **Troll hut video merged.** trail.gd "troll_enter": plays `troll_hut_in.ogv` (7.3 s, cut at the door slam) instead of Xylo walking in; `_love_and_light()` plays `troll_hut_love.ogv` (Asar's 3 clips baked in, 49.5 s, the hut shaking) under the same Hold [E] skip ring, instead of the black screen + separate clips. Both fall back to the old way if the files are missing, and tours (`shots_mode`) use the old way. @asar your love and light clips are untouched, they're just mixed into the video now (hut ambience at -14 dB under them). Tested: both videos play full length under xvfb, trail tour rc 0.
 - 2026-11-26 [ebain] **Video cutscenes 2 merged.** assets/video/: new pipe_ride.ogv (Ebain's redo; cut at 8.95 s with a zoom + white flash because Lykor and Skorn morph into each other at the end), pipe_exit.ogv, neuralink.ogv, map_burn.ogv (cropped to Skorn + Xylo so Lykor's "Damn, you started that up quick" still works). camp.gd `_burn_map`: video, then the fire is already lit and the black fades away (in-game toss kept for tours). deloye_library.gd: "leave_pipe" plays pipe_exit before traveling; `_gift` plays neuralink before giving it. No hot spots. Tested: all 4 videos play full length under xvfb, camp tour rc 0, library tour no script errors.
 - 2026-11-26 [ebain] **Pipe-ride video merged.** New `scripts/video_cutscene.gd` (VideoCutscene.play, reusable for any video cutscene). village.gd `_deloye_flush`: after the white flash plays `assets/video/pipe_ride.ogv` (10 s, ends on white), skipped in tours. No hot spots. Tested: video plays full length (10.08 s) under xvfb, VILLAGE_TOUR=flush runs outhouse → library → back with no script errors.
 - 2026-11-25 [ebain] Cut Deloye's 5 Reading Room draft lines (Ebain): `AGAIN` is now just Skorn's "Bro is NOT coming down." (with Skorn away, talking to Deloye again says nothing; he keeps spinning), and `BOOK` ends on Xylo's "...is mostly blank." Every Deloye line left is Ebain's and voiced.
