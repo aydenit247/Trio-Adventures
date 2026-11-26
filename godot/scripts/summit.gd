@@ -1133,6 +1133,8 @@ func _finale() -> void:
 			return
 		"party":
 			await _goblin_party()
+	await run_dialogue(SS.CHAPTER_CLOSE)
+	busy = true
 	end_card(_end_lines(), "res://title.tscn")
 
 func _end_lines() -> Array:

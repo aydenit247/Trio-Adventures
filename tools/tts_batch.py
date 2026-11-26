@@ -74,6 +74,41 @@ def filename(line, n=150):
     return s or slug(line)
 
 
+def chunks(text, limit=280):
+    """Split long text at sentence ends into pieces of at most ~limit characters (Chatterbox drifts on long input)."""
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= limit:
+        return [text]
+    out, cur = [], ""
+    for sent in re.split(r"(?<=[.!?…])\s+", text):
+        if cur and len(cur) + 1 + len(sent) > limit:
+            out.append(cur)
+            cur = sent
+        else:
+            cur = (cur + " " + sent).strip()
+    if cur:
+        out.append(cur)
+    return out
+
+
+def join_wavs(paths, dst, gap=0.35):
+    """Glue WAV files end to end with a short pause (stdlib only, so it runs in the Windows venv)."""
+    import wave
+    if len(paths) == 1:
+        shutil.copyfile(paths[0], dst)
+        return
+    with wave.open(str(paths[0])) as w0:
+        params = w0.getparams()
+    silence = b"\x00" * int(params.framerate * gap) * params.sampwidth * params.nchannels
+    with wave.open(str(dst), "wb") as o:
+        o.setparams(params)
+        for i, p in enumerate(paths):
+            with wave.open(str(p)) as w:
+                o.writeframes(w.readframes(w.getnframes()))
+            if i < len(paths) - 1:
+                o.writeframes(silence)
+
+
 def unq(s):
     return s.replace('\\"', '"').replace("\\n", " ")
 
@@ -171,6 +206,8 @@ def takes_for(who, info):
     res, seen = [], set()
     for k, f in out:
         if f in seen or f.split("/")[0] not in dirs or not (VOICES / f).exists():
+            continue
+        if "_clone_" in f:   # never clone from a clone: it drifts further from the real voice each time
             continue
         seen.add(f)
         i = info.get(k)
@@ -300,6 +337,10 @@ def cmd_gen(a):
     done = 0
     for who, items in groups.items():
         ref = next((refs / f"{who}{ext}" for ext in (".mp3", ".wav") if (refs / f"{who}{ext}").exists()), None)
+        if not ref and not a.one_ref:   # no main sample is fine when every line has its own (refs/lines/)
+            items = [x for x in items if x.get("ref") and (refs / x["ref"]).exists()] or items
+            if all(x.get("ref") and (refs / x["ref"]).exists() for x in items):
+                ref = refs / items[0]["ref"]
         if not ref:
             print(f"-- {who}: no {refs}/{who}.mp3 or .wav, skipping {len(items)} line(s)")
             continue
@@ -318,20 +359,28 @@ def cmd_gen(a):
                 kw[prefix + "cfg_weight"] = a.cfg            # lower = follows the voice sample's delivery more
             if a.seed is not None and prefix.startswith("chatterbox"):
                 kw[prefix + "seed"] = a.seed
-            try:
-                audio, status = client.predict(api_name="/generate_unified_tts", **kw)
-            except Exception as e:  # keep going; the bad line can be redone with --only
-                print(f"   FAIL {x['line']!r}: {e}")
-                continue
-            if not audio or not pathlib.Path(audio).exists():
-                print(f"   FAIL {x['line']!r}: no audio ({status})")
-                continue
             dst = out / who / f"{filename(x['line'])}.wav"   # named after the line itself (Ebain's ask)
-            shutil.copyfile(audio, dst)
+            parts, status = [], ""
+            for chunk in chunks(say):   # long text (book pages) goes in sentence chunks, then gets joined
+                kw["text_input"] = chunk
+                try:
+                    audio, status = client.predict(api_name="/generate_unified_tts", **kw)
+                except Exception as e:  # keep going; the bad line can be redone with --only
+                    print(f"   FAIL {x['line'][:80]!r}: {e}")
+                    parts = None
+                    break
+                if not audio or not pathlib.Path(audio).exists():
+                    print(f"   FAIL {x['line'][:80]!r}: no audio ({status})")
+                    parts = None
+                    break
+                parts.append(audio)
+            if not parts:
+                continue
+            join_wavs(parts, dst)
             meta = out / who / (dst.stem + ".json")
             meta.write_text(json.dumps({"who": who, "line": x["line"], "engine": a.engine}, ensure_ascii=False), encoding="utf-8")
             done += 1
-            print(f"   ok  {dst.name}  (voice sample: {use.name})" + (f"\n       said as: {say}" if say != x["line"] else ""))
+            print(f"   ok  {dst.name}  (voice sample: {use.name})" + (f"\n       said as: {say[:200]}" if say != x["line"] else ""))
     print(f"{done} WAV(s) in {out}/")
 
 
@@ -391,6 +440,16 @@ def cmd_fx(a):
 
 
 # ---------------------------------------------------------------- pack
+def tidy(src, dst, keep=0.6):
+    """Chatterbox sometimes adds long dead air (seconds of silence mid-line or at the end; Ebain 11/25). Trim the start
+    and end, and shorten any pause longer than ~1 s to `keep` seconds. Returns how many seconds were cut."""
+    import subprocess
+    af = (f"silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,"
+          f"silenceremove=stop_periods=-1:stop_duration=1.0:stop_threshold=-45dB:stop_silence={keep}")
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(src), "-af", af, str(dst)], check=True)
+    return max(0.0, duration(src) - duration(dst))
+
+
 def cmd_pack(a):
     """Zip out/<who>/*.wav + manifest.json for import_voices.py. Characters in the FX table (Skorn) get their pitch
     drop + layer applied automatically here (--no-fx to skip), so it can't be forgotten. --who limits the characters."""
@@ -412,8 +471,12 @@ def cmd_pack(a):
                 src = pathlib.Path(tmp) / f"{m['who']}_{len(manifest)}.wav"
                 f0, st = apply_fx(wav, src, cfg.get("hz", 0), cfg["monster"], lo=cfg.get("lo", -8.0), fixed=cfg.get("st"))
                 print(f"  fx {m['who']}: {f0:.0f} Hz → {st:+.1f} st  {wav.stem}")
+            tidy_src = pathlib.Path(tmp) / f"tidy_{len(manifest)}.wav"
+            cut = tidy(src, tidy_src)
+            if cut >= 1.0:
+                print(f"  tidy: cut {cut:.1f}s of dead air  {wav.stem[:60]}")
             name = f"{m['who']}/{m['who']}_clone_{slug(m['line'])}.wav"   # in-game file: plain slug, no spaces/quotes
-            z.write(src, name)
+            z.write(tidy_src, name)
             manifest.append({"who": m["who"], "line": m["line"], "file": name, "effects": []})
         z.writestr("manifest.json", json.dumps(manifest, indent=1, ensure_ascii=False))
     print(f"{len(manifest)} lines → {a.o}. Next: python3 tools/import_voices.py {a.o}")

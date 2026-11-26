@@ -279,3 +279,25 @@ static func stream_for(line: String) -> AudioStream:
 	if p == "" or not ResourceLoader.exists(p):
 		return null
 	return load(p)
+
+# A page's plain text (BBCode tags out), so a book page finds its voice file (the key ignores punctuation, not tags).
+static func plain(t: String) -> String:
+	return RegEx.create_from_string("\\[/?[a-z]+[^\\]]*\\]").sub(t, "", true)
+
+# The narrator reads a page aloud (Deloye library books, the Pass Lore Session; Ebain 11/25). Returns the player, or
+# null if the page has no recording. The player frees itself when done; call stop_reading() to cut it off.
+static func read_aloud(parent: Node, text: String) -> AudioStreamPlayer:
+	var s := stream_for(plain(text))
+	if s == null or Game.voice_vol <= 0.01:
+		return null
+	var p := AudioStreamPlayer.new()
+	p.stream = s
+	p.volume_db = linear_to_db(Game.voice_vol)
+	parent.add_child(p)
+	p.finished.connect(p.queue_free)
+	p.play()
+	return p
+
+static func stop_reading(p: AudioStreamPlayer) -> void:
+	if p != null and is_instance_valid(p):
+		p.queue_free()

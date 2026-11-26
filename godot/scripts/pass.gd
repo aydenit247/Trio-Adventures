@@ -842,6 +842,7 @@ func _lore_game() -> bool:
 		body.add_theme_font_size_override("italics_font_size", 19)
 		body.text = "[i]%s[/i]" % L["text"]
 		col.add_child(body)
+		var voice := VoiceLines.read_aloud(self, L["text"])   # the narrator reads the page (Ebain 11/25)
 		col.add_child(_label("How does it truly continue?  (W/S to choose, E to read it aloud)", Vector2.ZERO, 16, Color("#e8b923"), 4))
 		var opts: Array = [L["right"]] + L["wrong"]
 		opts.shuffle()
@@ -863,6 +864,7 @@ func _lore_game() -> bool:
 				await wait(0.8)
 				mini_pick = opts.find(L["right"])
 		mini_running = false
+		VoiceLines.stop_reading(voice)
 		var correct: bool = opts[mini_pick] == L["right"]
 		mini_labels[mini_pick].add_theme_color_override("font_color", Color("#7dff8a") if correct else Color("#ff6a5a"))
 		mini_opts = []

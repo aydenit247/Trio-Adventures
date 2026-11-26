@@ -1,4 +1,5 @@
-# BookUI: read one of the Deloye library's books (Ebain 11/25: a book screen, not read out loud). Two parchment pages
+# BookUI: read one of the Deloye library's books (Ebain 11/25: a book screen; later that day: the narrator reads each page
+# aloud, left page then right, and stops when you turn or close). Two parchment pages
 # side by side with a spine; A/D or ←/→ (or the buttons) turn a spread, Esc / E / B closes. Text: LibraryBooks.
 #   await BookUI.read(level, "on_metocy")
 class_name BookUI
@@ -22,6 +23,8 @@ var right_no: Label
 var prev_b: Button
 var next_b: Button
 var _at := 0
+var _voice: AudioStreamPlayer   # the narrator reading the current spread
+var _read_gen := 0              # bumps on every page turn so an old spread stops queueing its right page
 
 static func read(level: Node, id: String) -> void:
 	if not LB.BOOKS.has(id):
@@ -139,6 +142,20 @@ func _render() -> void:
 	right_no.text = str(i + 2) if i + 1 < pages.size() else ""
 	prev_b.disabled = spread == 0
 	next_b.disabled = spread >= _last_spread()
+	_read_spread()
+
+# The narrator reads the left page, then the right one (pages without a recording are skipped).
+func _read_spread() -> void:
+	VoiceLines.stop_reading(_voice)
+	_read_gen += 1
+	var gen := _read_gen
+	var i := spread * 2
+	for j in [i, i + 1]:
+		if j >= pages.size() or gen != _read_gen or not is_inside_tree():
+			return
+		_voice = VoiceLines.read_aloud(self, pages[j])
+		if _voice != null:
+			await _voice.finished
 
 func _turn(d: int) -> void:
 	var s := clampi(spread + d, 0, _last_spread())
@@ -150,6 +167,8 @@ func _turn(d: int) -> void:
 	_render()
 
 func close() -> void:
+	_read_gen += 1
+	VoiceLines.stop_reading(_voice)
 	if ResourceLoader.exists("res://assets/sounds/sfx_book_close.ogg"):   # (Ebain's sfx pack) the book shuts
 		var a := AudioStreamPlayer.new()
 		a.stream = load("res://assets/sounds/sfx_book_close.ogg")

@@ -66,6 +66,11 @@ const AMBUSH := [
 	] },
 ]
 
+# F. Right before the end card (every ending except "Bad.", which stays silent).
+const CHAPTER_CLOSE := [
+	{ "who": "narrator", "line": "And so, the trio found the metocy, and Chapter 1 comes to a close." }, # Ebain
+]
+
 # E. After the metocy (castle choices 1, 2, 4-won and 5).
 const AFTER := [
 	{ "who": "mattias", "line": "Now peep this, folk. What if we gave every goblin some metocy?" }, # DRAFT
