@@ -431,7 +431,7 @@ small red bar over their heads (Asar 11/23, `battle_view.gd _head_bar/_place_hea
 ### 3D trio for walking (Asar 11/24)
 Skorn, Lykor and Xylo walk around as rigged 3D models (`assets/characters3d/<id>.glb`, made in Meshy from the
 arms-out references in `art_refs/3d/`, Mixamo skeleton). `Char3D` plays the GLB's `Idle` / `Walking` / `Running`
-clips matched to speed and turns toward movement. Standing still it holds a pose; after 15 s of free walking time (not during dialogue) the idle clip plays once every 5 s (`IDLE_AFTER`, `IDLE_GAP`). **In fights the trio stands in 3D, moves are 2D** (Asar 11/25): `Unit._sync_body`
+clips matched to speed and turns toward movement. Look: `shaders/char_grade.gdshader` (Meshy textures re-graded darker/punchier, no fog, faint rim; tweak its uniform defaults). Standing still it holds a pose; after 15 s of free walking time (not during dialogue) the idle clip plays once every 5 s (`IDLE_AFTER`, `IDLE_GAP`). **In fights the trio stands in 3D, moves are 2D** (Asar 11/25): `Unit._sync_body`
 shows the billboard during a move (meta `attacking`, battle_view `_windup` → end of `_recover`) and faces the 3D body along meta `fight_face` (set in `_intro`); `in_fight` is still set for the fight,
 when a pose picture is up (`views.front != base_tex`), or when knocked over. Everything else that pokes `u.sprite`
 still works: the sprite is just hidden while the 3D body shows; hops (`sprite.position.y`) and squash are mirrored.
