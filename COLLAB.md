@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Hymn pauses while Dulbers ambushes, resumes after — files: godot/scripts/summit.gd, godot/scripts/area_music.gd — branch: asar/hymn-pause — started 2026-11-25
 - [ebain] Ebain's 11/26 batch: remove "Who drew this map" line, troll voice (Bogdrinker, lower pitch) + Lykor/Xylo lines after Xylo goes with the troll, Skorn voice-gen batch, spoon crown, Deloye library camera drag + Mattias stuck, combat balance (Mattias + all fights) — files: trail.gd, trail_script.gd, dialogue.gd (CHARS only), village.gd/village_script.gd (crown), deloye_library.gd, combat/combat_data.gd, combat/battle.gd, tools/tts_batch.py, tools/sim_combat.gd, VOICE_LINES.md, voice batch files (new) — branch: ebain/batch-1126 — started 2026-11-26
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
