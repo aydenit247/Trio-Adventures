@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] SFX pack 2 (page flip, book close, pages rewind, giant steps, item pickup, level up) — files: godot/assets/sounds/, godot/scripts/game.gd (2 signals), level.gd, ui_theme.gd, book_ui.gd, dialogue.gd, pass.gd, trail.gd, combat/battle_view.gd, village_buildings.gd — branch: ebain/sfx-pack-2 — started 2026-11-26
 - [ebain] Narrator: chapter-close line, reads the Deloye library books + the Pass Lore Session aloud; clone all ruins Skorn lines — files: godot/scripts/summit.gd, summit_script.gd, ruins_script.gd (one Skorn line), book_ui.gd, pass.gd (Lore Session only), voice_lines.gd (one helper), voice_index.gd, tools/tts_batch.py, godot/assets/voices/ (new clone files), VOICE_LINES.md — branch: ebain/narrator-ruins — started 2026-11-25
 - [asar] Charis's car + driveway, cat, collector shelf (figures, card, manga) — files: godot/scripts/charis_props.gd (new), godot/shaders/holo_card.gdshader (new), godot/assets/props/charis_*.glb + anime_figures.glb (new); needs 2 lines in mart.gd after Ebain's sfx claim — branch: asar/charis-props — started 2026-11-25
 
