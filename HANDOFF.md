@@ -81,7 +81,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    in `ruins_script.gd`.
    **Charis's house:** the house right of the Mart (yard behind a gap in the back wall) can be entered **before and after**
    the Mart scene (Ebain 11/24), no sign over the door. Inside: her **gaming setup** (desk, two glowing monitors, RGB
-   tower, pink gaming chair; `_gaming_setup`, "Look at" → `RS.CHARIS_PC`, DRAFT). Interior built off to the side at x 340 (`mart.gd _charis_house`). Talking to Charis: `charisMet`.
+   tower, pink gaming chair; `_gaming_setup`, "Look at" → `RS.CHARIS_PC`, DRAFT). Interior built off to the side at x 340 (`mart.gd _charis_house`). Talking to Charis: `charisMet`. His stuff is `charis_props.gd` (Asar 11/25): driveway + red car out front, Morgana (Bahgoots) the cat, collector shelf on the back wall (figures, holo card, manga).
 🔒 **Secret: the Deloye Lore library (DELOYE_PLAN.md, built 11/24).** Never on the main route, no markers. 5 **Lost Deloye
    Lore Pages**, one per area (`lost_pages.gd SPOTS`: camp behind Skorn's tent, trail at the north end of the troll bridge,
    village behind the outhouse, Mart in the shop's back-left shelf corner, Pass in the rocks left of the sleeping giant).
