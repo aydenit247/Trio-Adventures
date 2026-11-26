@@ -6,7 +6,7 @@ class_name VideoCutscene
 # Usage:  await VideoCutscene.play(hud, "res://assets/video/pipe_ride.ogv", Color.WHITE)
 # The screen behind it is covered while it plays; E / Esc / Enter / click skips after half a second. Music ducks out
 # and comes back. When it's done the cover becomes `end_color` and is returned, so the caller can fade it or change
-# scene behind it (free it yourself). Returns null (and plays nothing) headless, under NO_CUTSCENE or if the file is missing.
+# scene behind it (free it yourself; it sits above everything until you do). Returns null (and plays nothing) headless, under NO_CUTSCENE or if the file is missing.
 
 var _vp: VideoStreamPlayer
 var _skip := false
@@ -26,7 +26,13 @@ static func play(parent: Node, path: String, end_color := Color.BLACK, max_secs 
 	cover.color = Color.BLACK
 	cover.set_anchors_preset(Control.PRESET_FULL_RECT)
 	cover.mouse_filter = Control.MOUSE_FILTER_STOP
-	parent.add_child(cover)
+	# its own layer above everything, including the level's screen fade (layer 20): a cutscene usually starts right
+	# after a fade to black/white, and on the HUD it played hidden behind it (sound, no picture; fixed 11/26)
+	var cl := CanvasLayer.new()
+	cl.layer = 95
+	parent.add_child(cl)
+	cl.add_child(cover)
+	cover.tree_exited.connect(cl.queue_free)
 	cover.add_child(vc)
 	await vc._run(stream, max_secs)
 	vc.queue_free()
