@@ -817,7 +817,9 @@ func _intro() -> void:
 		u.remove_meta("goal")
 		u.set_view("front")
 		u.sprite.flip_h = b.enemies.any(func(e): return e["key"] == k)
-		u.set_meta("in_fight", true)   # the trio's 3D bodies (Char3D) hand over to the 2D art in fights
+		u.set_meta("in_fight", true)
+		if not u.sprite.flip_h:   # our side: the 3D trio stands facing the enemies, 3/4 to the camera (Asar 11/25)
+			u.set_meta("fight_face", (right - fwd * 0.7).normalized())
 	lv.focus_override = center + fwd * 0.3
 	lv.cam_height = 0.36
 	var widest := maxi(b.party.size(), b.enemies.size())
@@ -1015,6 +1017,7 @@ func _windup(u: Dictionary, move: Dictionary, t: Dictionary) -> void:
 	var dest: Vector3 = spots[u["key"]] + right * 0.8
 	if melee and not t.is_empty():
 		dest = nodes[t["key"]].global_position - right * (1.3 + (1.5 if key == "giant" else 0.0))
+	n.set_meta("attacking", true)   # 3D trio: 2D art for the whole move (Unit._sync_body)
 	var tw := create_tween()
 	tw.tween_property(n, "global_position", dest, 0.22 * speed + (0.12 if melee else 0.0))
 	await tw.finished
@@ -1035,6 +1038,7 @@ func _recover(u: Dictionary) -> void:
 	var tw := create_tween()
 	tw.tween_property(n, "global_position", spots[u["key"]], 0.25 * speed)
 	await tw.finished
+	n.remove_meta("attacking")
 
 func _stand(n: Unit) -> void:
 	if n.views.get("front") != saved_pose[n][0].get("front"):
@@ -1912,6 +1916,8 @@ func _outro(res: String) -> void:
 			continue
 		lv.unknock(n)
 		n.remove_meta("in_fight")
+		n.remove_meta("fight_face")
+		n.remove_meta("attacking")
 		n.set_meta("tint", base_tint[k])
 		if lv.party.has(n) or n.id == "chief":
 			n.restore_views()

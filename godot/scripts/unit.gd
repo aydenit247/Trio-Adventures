@@ -84,14 +84,14 @@ func _physics_process(delta: float) -> void:
 	if body3d:
 		_sync_body(delta)
 
-# 3D for walking around; the original 2D art for fights and posed moments (Asar's call). The billboard
-# comes back whenever we're in a fight (battle_view sets meta "in_fight"), showing a pose picture
+# 3D for walking around and for standing in fights (Asar 11/25); the original 2D art for moves and posed
+# moments. The billboard comes back during a fight move (battle_view sets meta "attacking"), showing a pose picture
 # (set_pose), or knocked over (level.knock freezes + tips the sprite) — unless the 3D body has a fall clip,
 # then it falls over backward in 3D instead (Skorn at the camp tents). Hops/floats are mirrored.
 func _sync_body(_delta: float) -> void:
 	var knocked := sprite.billboard == BaseMaterial3D.BILLBOARD_DISABLED and absf(sprite.rotation.z) > 0.6
 	var falls: bool = knocked and body3d.can_fall() and not has_meta("in_fight")   # 3D fall (Skorn's tent nap)
-	var use_2d: bool = has_meta("in_fight") or views.get("front") != base_tex or (knocked and not falls)
+	var use_2d: bool = has_meta("attacking") or views.get("front") != base_tex or (knocked and not falls)
 	body3d.set_down(falls, absf(sprite.rotation.z) > 1.3)   # already fully tipped = was lying there already
 	sprite.visible = use_2d
 	body3d.visible = not use_2d
@@ -103,6 +103,10 @@ func _sync_body(_delta: float) -> void:
 	if sit:
 		body3d.position = get_meta("sitting")
 		body3d.rotation.y = 0.0   # facing +Z, the way the throne faces
+	elif has_meta("fight_face"):   # standing in a fight: face the enemies (battle_view)
+		var f: Vector3 = get_meta("fight_face")
+		body3d.rotation.y = atan2(f.x, f.z)
+		body3d.position = Vector3(0.0, sprite.position.y if sprite.position.y > 0.1 else 0.0, 0.0)
 	else:
 		body3d.position.x = 0.0
 		body3d.position.z = 0.0
