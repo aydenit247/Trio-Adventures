@@ -18,7 +18,8 @@ var id := ""
 var model: Node3D
 var anim: AnimationPlayer
 var clips := {}             # role → clip present in this GLB
-var _mats: Array[StandardMaterial3D] = []
+var _mats: Array[ShaderMaterial] = []   # the graded look (shaders/char_grade.gdshader), one copy per body
+const GRADE := preload("res://shaders/char_grade.gdshader")
 var _fill := Color(-1, 0, 0)
 var _walk_ref := 1.5        # m/s the walk clip covers at speed 1 (scaled with the body)
 var _run_ref := 4.2
@@ -42,14 +43,17 @@ func setup(_id: String, height: float) -> void:
 	_run_ref *= s / 1.12
 	for m: MeshInstance3D in _meshes(model):
 		m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		# Own material copies so set_fill() tints this body only
+		# Swap Meshy's material for the graded one (same textures; darker, more contrast, rim light; Asar 11/25).
+		# Own copy per body so set_fill() tints this body only.
 		for i in m.mesh.get_surface_count():
 			var mat: Material = m.get_active_material(i)
 			if mat is StandardMaterial3D:
-				var mm: StandardMaterial3D = mat.duplicate()
-				mm.emission_enabled = true
-				mm.emission_texture = mm.albedo_texture
-				mm.emission = Color.BLACK
+				var mm := ShaderMaterial.new()
+				mm.shader = GRADE
+				mm.set_shader_parameter("albedo_tex", mat.albedo_texture)
+				mm.set_shader_parameter("normal_tex", mat.normal_texture)
+				mm.set_shader_parameter("has_normal", mat.normal_enabled and mat.normal_texture != null)
+				mm.set_shader_parameter("orm_tex", mat.roughness_texture)
 				m.set_surface_override_material(i, mm)
 				_mats.append(mm)
 	var sks := model.find_children("*", "Skeleton3D", true, false)
@@ -163,14 +167,14 @@ func _stand(t: float) -> void:
 # The billboards get lit by level.light_at() (campfire, moon, torches) instead of real lights, and night
 # scenes are tuned for that. Unit passes that colour in night areas as a soft glow of the model's own
 # texture so the 3D trio isn't a black shape away from the fire (Color.BLACK = off, used in daylight).
-const FILL := 0.18
+const FILL := 0.4   # (was 0.18 before the darker grade, Asar 11/25)
 func set_fill(c: Color) -> void:
 	if c.is_equal_approx(_fill):
 		return
 	_fill = c
 	var e := Color(c.r * FILL, c.g * FILL, c.b * FILL)
 	for mm in _mats:
-		mm.emission = e
+		mm.set_shader_parameter("fill", Vector3(e.r, e.g, e.b))
 
 func _loop(role: String, spd := 1.0) -> void:
 	if not clips.has(role):
