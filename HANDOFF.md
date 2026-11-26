@@ -42,7 +42,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    lines → head north. Walking out before sleeping: Lykor says "We leave at sunrise" and sends you back.
 1½. **Goblin Woods Trail (morning, Asar 11/22):** a long walk between Camp and the Village to earn gold before the shop:
    6 searchable loot spots (sparkles) and Asar's **Bridge Troll** by the creek: "Y'all had said i could get some
-   bussy?" → "It's good" (Xylo follows him into his hut, black screen while Asar's three "love and light" clips play,
+   bussy?" → "It's good" (Xylo follows him into his hut: Ebain's Gemini video `troll_hut_in.ogv` (troll waves him in, door
+   slams), then Asar's three "love and light" clips play over `troll_hut_love.ogv`, the hut shaking (Ebain's clip looped
+   with crossfades to 49 s + camera shake that follows the audio's loudness; black screen + separate clips if it's missing),
    Hold [E] to skip with a ring that fills while held and drains when let go, `trail.gd _love_and_light()`; bridge opens; then it's just Lykor and Skorn, exits blocked, until you
    knock on the hut and Xylo walks out: "Damn he was digging in me, folk"). On the doorstep, before Xylo goes in (Ebain
    11/26): Lykor "I always knew you were on that type timing", Xylo "Shut up Lykor" (`troll_walk` → lines → `troll_enter`).
