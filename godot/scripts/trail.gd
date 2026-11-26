@@ -193,7 +193,6 @@ func _begin() -> void:
 	busy = true
 	fade_in(1.2)
 	await wait(0.8)
-	await run_dialogue(TS.INTRO)
 	objective("Follow the trail to the goblin village.", Vector3(0, 0, END_Z + 2))
 
 func _level_interactables() -> Array:
@@ -254,17 +253,24 @@ func _on_action(n: String) -> void:
 		await wait(0.3)
 		return
 	match n:
-		"troll_good":
+		"troll_walk":   # the troll leads, Xylo follows him to the hut door; the troll goes in first (Asar 11/25)
 			var xylo := _member("xylo")
 			follow_enabled = false
 			if leader == xylo:   # you were playing Xylo: hand control to Lykor before he walks off
 				set_leader(_member("lykor"))
-			# the troll leads, Xylo follows him to the hut door, and they both go in (Asar 11/25)
 			var out := (HUT_DOOR - HUT).normalized()
-			walk_to(xylo, HUT_DOOR + out * 1.5, 1.0, 6.0)   # right behind him
+			var stand := HUT_DOOR + out * 1.5
+			walk_to(xylo, stand, 1.0, 6.0)   # right behind him
 			await walk_to(troll, HUT_DOOR, 0.8, 6.0)
 			play_sound("sfx_door", -6.0)
 			troll.visible = false   # in the door first
+			var tw := 0.0
+			while tw < 3.0 and xylo.global_position.distance_to(stand) > 0.6:   # let Xylo reach the doorstep
+				await get_tree().process_frame
+				tw += get_process_delta_time()
+			await wait(0.3)
+		"troll_enter":   # (after Lykor's line and Xylo's "Shut up Lykor", Ebain 11/26) Xylo goes in too
+			var xylo := _member("xylo")
 			await walk_to(xylo, HUT_DOOR, 0.7, 3.0)
 			play_sound("sfx_door", -6.0)
 			Game.set_flag("xyloInHut")

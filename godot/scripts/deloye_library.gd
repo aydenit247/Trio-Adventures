@@ -1001,9 +1001,14 @@ func _mattias_show(at: Vector3) -> void:
 	play_sound("sfx_pop", -3.0)
 	create_tween().tween_property(mattias_light, "light_energy", 2.0, 0.5)
 
-# He walks ahead to `p` and waits there (follow is paused); guide_target = null → back to following you
+# He walks ahead to `p` and waits there (follow is paused); guide_target = null → back to following you.
+# He walks the hallway waypoints (ROUTE) instead of a straight line, so he doesn't get stuck on a wall between two wings
+# (Ebain 11/26: asking him for help got him stuck on the way to the lighter).
+var _guide_path: Array = []
+var _guide_wait := 0.0
 func _guide(p) -> void:
 	guide_target = p
+	_guide_path = []
 	if mattias == null:
 		return
 	if p == null:
@@ -1011,9 +1016,61 @@ func _guide(p) -> void:
 		mattias.set_meta("follow", true)
 	else:
 		mattias.set_meta("follow", false)
-		mattias.set_meta("goal", p + Vector3(1.3, 0, 1.4))
+		_guide_path = _nav_path(mattias.global_position, p + Vector3(1.3, 0, 1.4))
+		mattias.set_meta("goal", _guide_path.pop_front())
 		mattias.set_meta("goal_speed", 1.0)
 	_walk_objective()
+
+# Shortest way along the ROUTE waypoints (each one connects to the next; the same spot listed twice is one node), then `b`.
+func _nav_path(a: Vector3, b: Vector3) -> Array:
+	var nodes: Array = []
+	var idx: Array = []   # ROUTE index → node
+	for r in ROUTE:
+		var q: Vector3 = r[1]
+		var found := -1
+		for n in nodes.size():
+			if nodes[n].distance_to(q) < 1.0:
+				found = n
+		if found < 0:
+			nodes.append(q)
+			found = nodes.size() - 1
+		idx.append(found)
+	var adj := {}
+	for i in idx.size() - 1:
+		adj[idx[i]] = adj.get(idx[i], []) + [idx[i + 1]]
+		adj[idx[i + 1]] = adj.get(idx[i + 1], []) + [idx[i]]
+	var near := func(p: Vector3) -> int:
+		var best := 0
+		for n in nodes.size():
+			if nodes[n].distance_to(p) < nodes[best].distance_to(p):
+				best = n
+		return best
+	var s: int = near.call(a)
+	var t: int = near.call(b)
+	var prev := { s: -1 }
+	var queue := [s]
+	while not queue.is_empty():
+		var c: int = queue.pop_front()
+		if c == t:
+			break
+		for nb in adj.get(c, []):
+			if not prev.has(nb):
+				prev[nb] = c
+				queue.append(nb)
+	var path: Array = []
+	var c := t
+	while c != -1 and prev.has(c):
+		path.push_front(nodes[c])
+		c = prev[c]
+	# skip waypoints that only lead backwards (already past the first one / the last one is beside the target)
+	if path.size() >= 2 and a.distance_to(path[1]) < path[0].distance_to(path[1]):
+		path.pop_front()
+	if path.size() >= 2 and b.distance_to(path[-2]) < path[-1].distance_to(path[-2]):
+		path.pop_back()
+	if path.size() == 1 and a.distance_to(b) < a.distance_to(path[0]) + 0.5 and a.distance_to(b) < 12.0:
+		path.clear()   # target is right here in the same room
+	path.append(b)
+	return path
 
 func _next_guide_spot():   # the next thing to show you: a missing piece, then Deloye's room
 	for k in PIECES:
@@ -1025,8 +1082,16 @@ func _mattias_process() -> void:
 	if mattias == null or not mattias.visible:
 		return
 	if mattias.has_meta("goal"):   # don't run off too far ahead: wait for the leader
+		var g: Vector3 = mattias.get_meta("goal")
+		if not _guide_path.is_empty() and Vector2(mattias.global_position.x - g.x, mattias.global_position.z - g.z).length() < 0.9:
+			mattias.set_meta("goal", _guide_path.pop_front())   # next waypoint
 		var ahead := mattias.global_position.distance_to(leader.global_position)
-		mattias.set_meta("goal_speed", 0.0 if ahead > 9.0 else 1.0)
+		var waiting := ahead > 9.0
+		mattias.set_meta("goal_speed", 0.0 if waiting else 1.0)
+		_guide_wait = _guide_wait + get_process_delta_time() if waiting else 0.0
+		if _guide_wait > 7.0 and not busy and not dialogue.active:   # so you know he's waiting for you, not stuck
+			_guide_wait = -6.0
+			_bubble("mattias", "Over here, my beloved three.")   # DRAFT
 
 # Walking banter (Ebain: "while walking these voicelines commence"): speech bubbles, the game keeps going
 func _walk_banter() -> void:
@@ -1351,8 +1416,44 @@ const ROUTE := [   # waypoints through every room, in the order a player would g
 	["corner", Vector3(21, 0, 48)], ["rock", Vector3(23, 0, 36)], ["stacks", Vector3(4, 0, 34)], ["stacks", Vector3(0, 0, 14)],
 ]
 var tour_pick := 0
+# LIB_GUIDE=1: ask Mattias to guide to each piece in turn while the leader walks after him; reports whether he arrives
+func _guide_test() -> void:
+	await _begin_quick()
+	Game.set_flag("libBanter")
+	Game.set_flag("libGuided1")
+	Game.set_flag("libGuideAll")
+	var follow_leader := OS.get_environment("LIB_GUIDE") != "far"   # "far": the player stays put at the start
+	var all_ok := true
+	for k in PIECES:
+		_guide(PIECES[k])
+		var goal: Vector3 = PIECES[k] + Vector3(1.3, 0, 1.4)   # the final stop (the meta goal is the next waypoint)
+		var t := 0.0
+		var arrived := false
+		while t < 90.0:
+			await wait(0.25)
+			t += 0.25
+			if follow_leader and leader.global_position.distance_to(mattias.global_position) > 4.0:
+				leader.set_meta("goal", mattias.global_position)
+				leader.set_meta("goal_speed", 1.6)
+			else:
+				leader.remove_meta("goal")
+			if Vector2(mattias.global_position.x - goal.x, mattias.global_position.z - goal.z).length() < 0.7:
+				arrived = true
+				break
+		print("LIB GUIDE ", k, " arrived=", arrived, " in ", t, "s, mattias at ", mattias.global_position, " goal ", goal, " leader at ", leader.global_position)
+		all_ok = all_ok and arrived
+		if not arrived and not follow_leader:
+			break
+		leader.remove_meta("goal")
+		Game.set_flag("libPiece_" + k)   # (counts as taken)
+	print("LIB GUIDE ", "ALL OK" if all_ok else "STUCK")
+	get_tree().quit()
+
 func _shot_tour() -> void:
 	tour_pick = int(OS.get_environment("LIB_CHOICE")) if OS.get_environment("LIB_CHOICE") != "" else 0
+	if OS.get_environment("LIB_GUIDE") != "":
+		await _guide_test()
+		return
 	await _begin_quick()
 	await shot("dl_01_atrium")
 	for k in 80:   # the walking banter (bubbles), then "Follow me." → he heads for the plant

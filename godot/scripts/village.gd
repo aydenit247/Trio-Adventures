@@ -31,6 +31,7 @@ var chug_rival := 0.0
 var chug_running := false
 var forehead: Label3D
 var king_label: Label3D
+var king_crown: Node3D   # the spoon crown (Ebain 11/26): on Lykor at the coronation, Skorn gets it when Lykor is dethroned
 # The secret Deloye Lore library (DELOYE_PLAN.md): with all 5 Lost Pages a flush handle shows up on the outhouse's
 # east side. Built here so the outhouse itself (village_buildings.gd) stays untouched.
 const FLUSH_POS := VB.OUTHOUSE_POS + Vector3(0.66, 0, 0)       # the handle on the outhouse's east wall
@@ -311,6 +312,7 @@ func _on_action(n: String) -> void:
 			await _to_throne()
 		"crown":
 			king_label = char_label(leader, "Lykor (King, Apparently)", -1.0, 2.3, Color("#ffdf4a"))
+			king_crown = _spoon_crown(leader)
 			ui_sfx.play()
 			await wait(0.4)
 		"beezy":
@@ -364,6 +366,7 @@ func _on_action(n: String) -> void:
 			if king_label:
 				king_label.text = "Lykor (Dethroned)"
 			var sk := _member("skorn")
+			_crown_to(sk)
 			char_label(sk, "Skorn (Respected now)", 3.0)
 			if mug:
 				mug.set_meta("owner", sk)
@@ -566,6 +569,12 @@ func _wake_outside() -> void:
 	chief.visible = false
 	if king_label:
 		king_label.queue_free()
+	if king_crown:
+		if king_crown.get_parent() is BoneAttachment3D:
+			king_crown.get_parent().queue_free()
+		else:
+			king_crown.queue_free()
+		king_crown = null
 	unknock(leader)
 	place_party(EXIT_POS + Vector3(-9, 0, 1.5), Vector3(1, 0, 0))
 	for u in party:
@@ -578,6 +587,61 @@ func _wake_outside() -> void:
 	forehead = char_label(leader, "METOCY MART, EAST. LOSER.", -1.0, 2.05, Color("#ff8a6a"))
 
 # ---- C: crown Skorn
+# A crown of Poly Haven wooden spoons on a rusty brass band, goblin-made: the bowls point up like jewels. It's attached to
+# the model's head-top bone (so it sits right when the body sits or walks), sized in the model's own units (~1.7 tall).
+# The spoon's long axis is +z with the bowl at the + end, so tipping it -90 degrees about x stands it up, bowl on top
+# (Ebain 11/26).
+func _spoon_crown(u: Unit) -> Node3D:
+	var crown := Node3D.new()
+	crown.name = "SpoonCrown"
+	var skel: Skeleton3D = u.body3d._skel if u.body3d else null
+	if skel and skel.find_bone("mixamorig_HeadTop_End") >= 0:
+		var ba := BoneAttachment3D.new()
+		ba.name = "CrownAnchor"
+		ba.bone_name = "mixamorig_HeadTop_End"
+		skel.add_child(ba)
+		ba.add_child(crown)
+		crown.position = Vector3(0, -0.075, 0)
+	else:   # no 3D body (2D fights): float it over the head
+		u.add_child(crown)
+		crown.position = Vector3(0, u.height_m - 0.1, 0)
+		crown.scale = Vector3.ONE * 1.1
+	var band := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.088
+	tm.outer_radius = 0.112
+	band.mesh = tm
+	var bm := StandardMaterial3D.new()
+	bm.albedo_color = Color(0.62, 0.45, 0.2)
+	bm.metallic = 0.7
+	bm.roughness = 0.5
+	band.material_override = bm
+	crown.add_child(band)
+	var scene: PackedScene = load("res://assets/models/wooden_spoon/wooden_spoon.gltf")
+	var n := 10
+	for i in n:
+		var a := TAU * float(i) / n
+		var pivot := Node3D.new()
+		pivot.position = Vector3(sin(a), 0, cos(a)) * 0.1
+		pivot.rotation.y = a
+		crown.add_child(pivot)
+		var sp: Node3D = scene.instantiate()
+		sp.rotation.x = -PI / 2.0 + 0.28   # stands up, leaning outward
+		sp.scale = Vector3.ONE * (0.95 if i % 2 == 0 else 0.68)   # tall and short points, like a crown
+		sp.position = Vector3(0, 0.07, 0)   # the bowls sit well above the band, handles tuck into the hair
+		pivot.add_child(sp)
+	return crown
+
+func _crown_to(u: Unit) -> void:
+	if king_crown == null or not is_instance_valid(king_crown):
+		return
+	var old := king_crown
+	king_crown = _spoon_crown(u)   # a fresh one on the new head
+	if old.get_parent() is BoneAttachment3D:
+		old.get_parent().queue_free()
+	else:
+		old.queue_free()
+
 func _crown_skorn() -> void:
 	Game.set_flag("skornKing")
 	Game.set_flag("skornAway")   # he's on the throne now (not in the party) until the Mart
@@ -594,6 +658,7 @@ func _crown_skorn() -> void:
 	sk.global_position = SEAT_POS
 	sk.set_view("front")
 	sk.set_meta("sitting", SIT_ON_THRONE)   # the Purple King sits (Char3D)
+	_crown_to(sk)   # the spoon crown goes to the new king
 	ui_sfx.play()
 	char_label(sk, "The Purple King (Downgrade)", 4.0)
 	if king_label:

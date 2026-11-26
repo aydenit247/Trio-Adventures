@@ -1,0 +1,184 @@
+[
+ {
+  "who": "skorn",
+  "line": "Man, it's about cold as a motherfucker. We could get the fire going, though.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Alright, where the fuck is some fire starter? I'm tryna get this bitch going.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Man, fuck this jit Lykor. He probably got some gas fire starter in his bag.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Yeah, I just used the paper that was in your bag. I don't know why you said I couldn't use your bag.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "What? What are you talking about, mud?",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Man, it's about cold as a mufug.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain (11/24 reword)",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "I'm not tired. I'm finna stay up and guard the fire.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "DRAFT (Ebain approved voicing 11/25)",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "From… other fires.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "DRAFT (Ebain approved voicing 11/25)",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Bet, my fault. I'm dumb as hell.",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Wizard jit? What are you doing here?",
+  "src": "godot/scripts/camp_script.gd",
+  "tag": "Ebain (11/25 reword)",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Are all of these books Deloye Lore scripture?",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Damn bro, you ain't gonna make it sad in de bih",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Y'all OD as hell for following us still.",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Bruh, it's a store, mud. You feel a store?",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "DRAFT reword of Ebain's line (11/24, he approved)",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Make way. Purple god of the goblins, coming through. No big deal.",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Balright. I ain't ever pop metocy and have a jit turn into a got damn demon. This some white people shit.",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "THEY HAD KICKED ME OUT.",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "I drank too much beezy and cracked on too many goblin biddies. They got pissed.",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Nah, this don't feel like metocy. This feel like some bullshit, on my dead orcs.",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Bet, let me peep ts.",
+  "src": "godot/scripts/mart_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "I'm a 7'2 Chad Orc (with a cosign from Clavicular) in metal armor, bro.",
+  "src": "godot/scripts/pass_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Aight, fuck allat. WAKE UP, CHUD!",
+  "src": "godot/scripts/pass_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Hell yup. And what?",
+  "src": "godot/scripts/pass_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Woahhh.. on God, I think we made it boys",
+  "src": "godot/scripts/summit_script.gd",
+  "tag": "DRAFT reword of Ebain's line (11/24, he approved)",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Bro literally chugs bogs and swamps. It's in his NAME, dumbass.",
+  "src": "godot/scripts/village_script.gd",
+  "tag": "Ebain's idea",
+  "already_has_voice": true
+ },
+ {
+  "who": "skorn",
+  "line": "Wait, dis bih tuff lowkey. I could fw this.",
+  "src": "godot/scripts/village_script.gd",
+  "tag": "Ebain",
+  "already_has_voice": true
+ }
+]

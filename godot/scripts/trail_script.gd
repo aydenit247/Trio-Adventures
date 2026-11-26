@@ -4,19 +4,18 @@ extends RefCounted
 
 const TROLL := "Bridge Troll"   # one-off speaker name (portrait: assets/portraits/troll.png)
 
-const INTRO := [
-	{ "who": "skorn", "mood": "confused", "line": "Who drew this map? Why is the village an inch away?" }, # DRAFT
-]
-
 const TROLL_MEET := [
-	{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "Y'all had said i could get some bussy?" }, # Asar
+	{ "who": "troll", "name": TROLL, "portrait": "troll", "line": "Y'all had said i could get some bussy?" }, # Asar
 	{ "choice": [
 		{ "text": "It's good", "outcome": "troll_good", "steps": [ # Asar
-			{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "Aight bet", "voice": "none" }, # Asar (not the giant's "Aight. Bet." take)
-			{ "do": "troll_good" },   # Xylo stays in the hut until you knock (Asar 11/25)
+			{ "who": "troll", "name": TROLL, "portrait": "troll", "line": "Aight bet", "voice": "none" }, # Asar (not the giant's "Aight. Bet." take)
+			{ "do": "troll_walk" },   # the troll goes in, Xylo waits on the doorstep...
+			{ "who": "lykor", "line": "I always knew you were on that type timing" }, # Ebain
+			{ "who": "xylo", "line": "Shut up Lykor" }, # Ebain
+			{ "do": "troll_enter" },   # ...then Xylo goes in and stays in the hut until you knock (Asar 11/25)
 		] },
 		{ "text": "Bad.", "outcome": "troll_bad", "steps": [ # Asar
-			{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "BAD?!" }, # DRAFT
+			{ "who": "troll", "name": TROLL, "portrait": "troll", "line": "BAD?!" }, # DRAFT
 			{ "do": "troll_fight" },
 		] },
 	] },

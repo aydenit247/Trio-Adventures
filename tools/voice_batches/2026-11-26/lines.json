@@ -1,0 +1,74 @@
+[
+ {
+  "who": "xylo",
+  "line": "On dulbmeethus",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "xylo",
+  "line": "Yes. The depth of this lore is too deep for one human to be able to learn or ingest it all",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "xylo",
+  "line": "Damn that was OD to get here, my wings hurt and I don't even use them.",
+  "src": "godot/scripts/summit_script.gd",
+  "tag": "Ebain + DRAFT ending"
+ },
+ {
+  "who": "troll",
+  "line": "Y'all had said i could get some bussy?",
+  "src": "godot/scripts/trail_script.gd",
+  "tag": "Asar"
+ },
+ {
+  "who": "lykor",
+  "line": "I always knew you were on that type timing",
+  "src": "godot/scripts/trail_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "xylo",
+  "line": "Shut up Lykor",
+  "src": "godot/scripts/trail_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "xylo",
+  "line": "Damn he was digging in me, folk",
+  "src": "godot/scripts/trail_script.gd",
+  "tag": "Asar"
+ },
+ {
+  "who": "deloye",
+  "line": "You had let's burn it? Pull up my trio.",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "deloye",
+  "line": "U could pass that shi?",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "deloye",
+  "line": "Thank you. Here you go, mud.",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "deloye",
+  "line": "Aight. Im not trippin i got da plug on the way",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain"
+ },
+ {
+  "who": "deloye",
+  "line": "Aight imma catch yall",
+  "src": "godot/scripts/deloye_script.gd",
+  "tag": "Ebain"
+ }
+]

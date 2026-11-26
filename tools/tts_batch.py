@@ -129,7 +129,11 @@ def cmd_find(a):
 # ---------------------------------------------------------------- refs
 VOICES = ROOT / "godot" / "assets" / "voices"
 REF_DIRS = {"skorn": ["skorn"], "dulbers": ["dulbers"], "mattias": ["mattias"],
-            "goblin": ["goblins_asar", "goblin"], "goblins": ["goblins_asar", "goblin"]}
+            "goblin": ["goblins_asar", "goblin"], "goblins": ["goblins_asar", "goblin"],
+            "troll": ["goblins_asar"]}
+# Characters with no takes of their own clone another speaker's takes (Ebain 11/26: the Bridge Troll is Chief
+# Bogdrinker's voice, then FX["troll"] lowers it): who → the speaker whose takes to use.
+REF_WHO = {"troll": "chief"}
 
 
 def words(s):
@@ -147,7 +151,9 @@ def script_lines():
             line = unq(m.group(1))
             mood = re.search(r'"mood"\s*:\s*"([^"]+)"', d)
             name = re.search(r'"name"\s*:\s*"?([A-Za-z_][^",}]*)', d)   # speaker (a constant like SLUDGE or a string)
+            who = re.search(r'"who"\s*:\s*"([^"]+)"', d)
             info.setdefault(key(line), {"line": line, "mood": mood.group(1) if mood else "",
+                                        "who": who.group(1) if who else "",
                                         "name": name.group(1).strip() if name else "",
                                         "thought": bool(re.search(r'"thought"\s*:\s*true', d))})
     return info
@@ -169,6 +175,8 @@ def takes_for(who, info):
         seen.add(f)
         i = info.get(k)
         if i and (i["thought"] or "*echo" in i["line"].lower()):   # echo/thought effects would get cloned too
+            continue
+        if who in REF_WHO and not (i and i.get("who") == REF_WHO[who]):   # e.g. troll: only the Chief's own lines
             continue
         res.append({"file": VOICES / f, "line": i["line"] if i else f, "mood": i["mood"] if i else "",
                     "name": i["name"] if i else ""})
@@ -196,7 +204,14 @@ def cmd_refs(a):
         who = x["who"]
         takes = cache.setdefault(who, takes_for(who, info))
         if not takes:
-            print(f"-- {who}: no existing takes, uses refs/{who}.wav")
+            # a reference recording kept in the repo (tools/voice_refs/<who>.wav|mp3, e.g. Ebain's Deloye voice, 11/26)
+            kept = next((ROOT / "tools" / "voice_refs" / f"{who}{ext}" for ext in (".wav", ".mp3")
+                         if (ROOT / "tools" / "voice_refs" / f"{who}{ext}").exists()), None)
+            if kept and not (outdir / f"{who}{kept.suffix}").exists():
+                outdir.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(kept, outdir / f"{who}{kept.suffix}")
+            print(f"-- {who}: no existing takes, uses refs/{who}{kept.suffix if kept else '.wav'}"
+                  + (f" (copied from tools/voice_refs)" if kept else ""))
             continue
         mood = info.get(key(x["line"]), {}).get("mood", "")
         name = info.get(key(x["line"]), {}).get("name", "")
@@ -238,6 +253,7 @@ PRONUNCIATIONS = {
     "metocy": "meh-toe-see", "midtocy": "mid-toe-see", "beezy": "bee-zee",
     "aight": "ite", "looksmaxxin": "looks-maxin", "deadahh": "dead-ahh", "allat": "all-at", "OD": "oh-dee",
     "ts": "this", "mf": "motherfucker", "ngl": "not gonna lie", "fw": "fuck with",
+    "shi": "shee", "Im": "I'm", "Dulbmeethus": "Dulb-mee-thus",   # Deloye's lines (Ebain 11/26)
 }
 
 
@@ -323,6 +339,7 @@ def cmd_gen(a):
 FX = {   # who → target median pitch (Hz) of their studio/real takes, studio monster amount
     "skorn": {"hz": 90, "monster": 0.15, "lo": -5},   # Ebain 11/24: -8 st was TOO low on the high takes
     "mattias": {"st": -3, "monster": 0},   # Ebain 11/24: clones good, just deeper (fixed shift, his takes are ~240 Hz)
+    "troll": {"st": -4, "monster": 0.1},   # Ebain 11/26: Chief Bogdrinker's voice, lowered. Fixed -4 st, tune here if he wants deeper
 }
 
 

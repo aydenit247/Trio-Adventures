@@ -24,6 +24,9 @@ const CHARS := {
 	# the secret Deloye Lore library (DELOYE_PLAN.md): chill, earbuds in. Voice is a placeholder robot until Ebain picks one
 	"deloye":   { "name": "Deloye", "color": Color("#c9b8ff"), "pitch": 0.9, "rate": 0.85 },
 	"narrator": { "name": "", "color": Color("#c9c0e8"), "pitch": 1.0, "rate": 1.0 },
+	# the Bridge Troll (Ebain 11/26): Chief Bogdrinker's voice, lowered ("voice_as" picks the Chief's robot voice; it's last
+	# in the table so it doesn't shift anyone else's robot voice)
+	"troll":    { "name": "Bridge Troll", "color": Color("#8a9a6a"), "pitch": 0.55, "rate": 0.9, "voice_as": "chief", "portrait": "troll" },
 }
 const GOLD := Color("#e8b923")
 
@@ -520,7 +523,7 @@ func _speak(who: String, line: String, thought: bool, use_rec := true) -> void:
 		var re := RegEx.create_from_string("(?i)" + pair[0])
 		clean = re.sub(clean, pair[1], true)
 	var c: Dictionary = CHARS.get(who, CHARS["narrator"])
-	var v := _voices[CHARS.keys().find(who) % _voices.size()]
+	var v := _voices[CHARS.keys().find(c.get("voice_as", who)) % _voices.size()]
 	var vol := int((45 if thought else 80) * Game.voice_vol)
 	for part in sentences(clean):
 		_tts_queue.append({ "text": part, "voice": v, "vol": vol, "pitch": c["pitch"], "rate": clampf(c["rate"] * Game.dlg_speed, 0.1, 10.0) })
