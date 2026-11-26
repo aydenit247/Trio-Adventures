@@ -1024,9 +1024,12 @@ func _mattias_show(at: Vector3) -> void:
 # (Ebain 11/26: asking him for help got him stuck on the way to the lighter).
 var _guide_path: Array = []
 var _guide_wait := 0.0
+var _coming_back := false   # walking back to you because you fell behind
+var _back_to := Vector3.ZERO
 func _guide(p) -> void:
 	guide_target = p
 	_guide_path = []
+	_coming_back = false
 	if mattias == null:
 		return
 	if p == null:
@@ -1103,13 +1106,27 @@ func _mattias_process() -> void:
 		var g: Vector3 = mattias.get_meta("goal")
 		if not _guide_path.is_empty() and Vector2(mattias.global_position.x - g.x, mattias.global_position.z - g.z).length() < 0.9:
 			mattias.set_meta("goal", _guide_path.pop_front())   # next waypoint
+		# You fell behind: instead of standing still (looked stuck, Asar 11/25) he walks back to you along the
+		# hallway waypoints, then leads on again from there.
 		var ahead := mattias.global_position.distance_to(leader.global_position)
-		var waiting := ahead > 9.0
-		mattias.set_meta("goal_speed", 0.0 if waiting else 1.0)
-		_guide_wait = _guide_wait + get_process_delta_time() if waiting else 0.0
-		if _guide_wait > 7.0 and not busy and not dialogue.active:   # so you know he's waiting for you, not stuck
-			_guide_wait = -6.0
-			_bubble("mattias", "Over here, my beloved three.")   # DRAFT
+		mattias.set_meta("goal_speed", 1.0)
+		_guide_wait += get_process_delta_time()
+		if guide_target != null and not _coming_back and ahead > 10.0:
+			_coming_back = true
+			_back_to = leader.global_position
+			_guide_path = _nav_path(mattias.global_position, _back_to)
+			mattias.set_meta("goal", _guide_path.pop_front())
+			if _guide_wait > 12.0 and not busy and not dialogue.active:   # so you know he's coming for you
+				_guide_wait = 0.0
+				_bubble("mattias", "Over here, my beloved three.")   # DRAFT
+		elif _coming_back and ahead < 4.0:
+			_coming_back = false
+			_guide_path = _nav_path(mattias.global_position, guide_target + Vector3(1.3, 0, 1.4))
+			mattias.set_meta("goal", _guide_path.pop_front())
+		elif _coming_back and leader.global_position.distance_to(_back_to) > 2.5:   # you moved: re-aim at you
+			_back_to = leader.global_position
+			_guide_path = _nav_path(mattias.global_position, _back_to)
+			mattias.set_meta("goal", _guide_path.pop_front())
 
 # Walking banter (Ebain: "while walking these voicelines commence"): speech bubbles, the game keeps going
 func _walk_banter() -> void:
