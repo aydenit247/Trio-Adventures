@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Cave: tall wall between the seals chamber and the colony, no door sign — files: godot/scripts/cave.gd — branch: asar/cave-wall — started 2026-11-25
 - [ebain] Narrator: chapter-close line, reads the Deloye library books + the Pass Lore Session aloud; clone all ruins Skorn lines — files: godot/scripts/summit.gd, summit_script.gd, ruins_script.gd (one Skorn line), book_ui.gd, pass.gd (Lore Session only), voice_lines.gd (one helper), voice_index.gd, tools/tts_batch.py, godot/assets/voices/ (new clone files), VOICE_LINES.md — branch: ebain/narrator-ruins — started 2026-11-25
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
