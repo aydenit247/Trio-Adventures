@@ -113,7 +113,8 @@ func _configure() -> void:
 	party_ids = ["lykor", "xylo"] if Game.flag("skornAway") else ["skorn", "lykor", "xylo"]
 	party_start = [START, START + Vector3(-1.2, 0, 1.2), START + Vector3(1.2, 0, 1.2)]
 	leader_id = "xylo"
-	cam_locked = true
+	cam_locked = false   # Ebain 11/26: right-drag / arrow keys turn the camera, but only so far (YAW_MAX): the walls are
+	                     # built low on the camera side for a north-facing view
 	zoom = 11.0
 	cam_height = 0.42
 	cam_look_h = 2.0
@@ -262,7 +263,10 @@ func _wall(p0: Vector2, p1: Vector2, h: float, face := Vector2.ZERO, both := fal
 	var mid := Vector3((p0.x + p1.x) / 2.0, 0, (p0.y + p1.y) / 2.0)
 	var rot := atan2(-dir.z, dir.x)
 	var n0 := Vector3(sin(rot), 0, cos(rot))   # the block's local +z
-	Models.block(self, mid + Vector3(0, h / 2.0, 0), Vector3(L + 0.1, h, 0.8), wood_m, rot)
+	var blk := Models.block(self, mid + Vector3(0, h / 2.0, 0), Vector3(L + 0.1, h, 0.8), wood_m, rot)
+	var hide_me: Array = [blk]
+	if h >= 3.0:   # tall walls hide while they stand between the camera and you (the camera can turn now)
+		_tall_walls.append({ "a": p0, "b": p1, "nodes": hide_me })
 	Util.static_box(self, mid + Vector3(0, 1.5, 0), Vector3(L + 0.1, 3.0, 0.9), rot)
 	if h < 3.0:   # a board on top of the low ones
 		Models.block(self, mid + Vector3(0, h + 0.04, 0), Vector3(L + 0.2, 0.08, 0.95), wood_m, rot)
@@ -276,6 +280,7 @@ func _wall(p0: Vector2, p1: Vector2, h: float, face := Vector2.ZERO, both := fal
 		qm.size = Vector2(L, h)
 		var q := Util.add_mesh(self, qm, m, mid + n0 * (0.41 * sd) + Vector3(0, h / 2.0, 0), Vector3(0, rot + (0.0 if sd > 0 else PI), 0))
 		q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		hide_me.append(q)
 
 # The Reading Room's door: two pillars, a sign, and a shimmering rune curtain (blocks you until the books are back)
 const CURTAIN_SHADER := """
@@ -870,7 +875,20 @@ func _after_build() -> void:
 		radio.play()
 
 # ================================================================ per frame
+const YAW_MAX := 0.6   # how far the camera may turn from north (radians, ~35 degrees)
+var _tall_walls: Array = []   # {a, b: Vector2 ends, nodes}: hidden while they cut the camera → leader line
+func _hide_walls() -> void:
+	if cam == null or leader == null:
+		return
+	var c := Vector2(cam.global_position.x, cam.global_position.z)
+	var l := Vector2(leader.global_position.x, leader.global_position.z)
+	for w in _tall_walls:
+		var cut = Geometry2D.segment_intersects_segment(c, l, w["a"], w["b"])
+		for n in w["nodes"]:
+			n.visible = cut == null
 func _level_process(delta: float) -> void:
+	target_yaw = clampf(target_yaw, -YAW_MAX, YAW_MAX)
+	_hide_walls()
 	# Deloye twirls; while he's talking to you he eases round to face front
 	if spin_speed > 0.0:
 		spin = fmod(spin + spin_speed * delta, TAU)
