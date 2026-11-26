@@ -10,7 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Ebain's SFX pack everywhere (footsteps per floor, ambience, story moments, jokes, UI) — files: godot/assets/sounds/, godot/scripts/level.gd (step + ui sounds), ambience.gd, ui_theme.gd, camp.gd, trail.gd, pass.gd, summit.gd, cave.gd, ruins.gd, village.gd, mart.gd, scrapbook_ui.gd, inventory_ui.gd, lost_pages.gd, combat/battle_view.gd, combat/battle.gd, village_buildings.gd, title.gd — branch: ebain/sfx-pack — started 2026-11-26
+- [ebain] Ebain's SFX pack everywhere (footsteps per floor, ambience, story moments, jokes, UI) — files: godot/assets/sounds/, godot/scripts/level.gd (step + ui sounds), ambience.gd, ui_theme.gd, camp.gd, trail.gd, pass.gd, summit.gd, cave.gd, ruins.gd, village.gd, mart.gd, scrapbook_ui.gd, deloye_library.gd, inventory_ui.gd, lost_pages.gd, combat/battle_view.gd, combat/battle.gd, village_buildings.gd, title.gd — branch: ebain/sfx-pack — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
