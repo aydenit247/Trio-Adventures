@@ -67,14 +67,20 @@ const PARTY := {
 # Metocin Mattias as a boss (the sucker punch at his castle). Ebain: "near-impossible", and losing is its own ending.
 # Every number for the fight is here so new items/levels can be balanced against it later (tools/sim_combat.gd runs it).
 const MATTIAS_BOSS := {
-	"hp": 1700, "spd": 19, "gold": 300, "xp": 200,
-	"bolt": 38,          # Metocy Bolt: one target
-	"rain": 22,          # Pill Rain: everyone, bricks specials
+	# 11/26 rebalance (Asar beat him item-less): was hp 1700, bolt 38, rain 22, heal 160. Normal difficulty also went up
+	# (×1.1 HP, ×1.15 damage), these are the base numbers before that
+	"hp": 2100, "spd": 19, "gold": 300, "xp": 200,
+	"bolt": 40,          # Metocy Bolt: one target
+	"rain": 24,          # Pill Rain: everyone, bricks specials
 	"shield": 70,        # Out-Mogs Lykor: an aura shield (needs Lykor standing)
-	"heal": 160,         # Takes A Metocy: once, under heal_below
+	"heal": 200,         # Takes A Metocy: once, under heal_below
 	"heal_below": 0.4,
 	"lock_turns": 3,     # Locks In: immune to charm/stun/lore-pill
 	"phase2_mult": 1.3,  # under half HP he stops holding back: every hit ×1.3
+	# "Out-Mogs your drip" (11/26): the fight scales with the party's gear score (per fighter: power + armor×0.03 +
+	# spd×0.03 + hp/150 + start meter/200; full top-shelf gear on all three ≈ 2.5): HP ×(1 + drip_hp×score), hits ×(1 + drip_dmg×score)
+	"drip_hp": 0.24,
+	"drip_dmg": 0.09,
 }
 
 # Team-ups. Each person in the combo spends `cost` meter. Partners' next turn gets pushed back a bit.
@@ -216,7 +222,7 @@ const FIGHTS := {
 		"talk": ["refund", "compliment_store"],
 	},
 	"mattias": {   # the sucker punch. Numbers: MATTIAS_BOSS
-		"title": "FINAL BOSS(?): Metocin Mattias", "party": ["skorn", "lykor", "xylo"], "xp": MATTIAS_BOSS["xp"], "story": true, "boss": true, "lvl": 5,
+		"title": "FINAL BOSS(?): Metocin Mattias", "party": ["skorn", "lykor", "xylo"], "xp": MATTIAS_BOSS["xp"], "story": true, "boss": true, "lvl": 5, "drip_scale": true,
 		"enemies": [{ "name": "Metocin Mattias", "tag": "(Got Sucker Punched) (Unbothered)", "gold": MATTIAS_BOSS["gold"], "hp": MATTIAS_BOSS["hp"], "spd": MATTIAS_BOSS["spd"], "tex": "mattias", "portrait": "mattias", "h": 2.2, "ai": "mattias", "boss": true }],
 		"talk": ["apologize_mattias"],
 	},
@@ -297,8 +303,8 @@ const TALK := {
 # Settings → Combat difficulty
 const DIFFICULTY := [
 	{ "name": "Chill", "label": "Chill (on some chill shi)", "dmg": 0.75, "hp": 0.9, "window": 1.45 },
-	{ "name": "Normal", "label": "Normal", "dmg": 1.0, "hp": 1.0, "window": 1.0 },
-	{ "name": "Crashout", "label": "Crashout (on some hard shi)", "dmg": 1.25, "hp": 1.1, "window": 0.75 },
+	{ "name": "Normal", "label": "Normal", "dmg": 1.15, "hp": 1.1, "window": 1.0 },   # 11/26: was 1.0 / 1.0 (fights were too easy)
+	{ "name": "Crashout", "label": "Crashout (on some hard shi)", "dmg": 1.45, "hp": 1.2, "window": 0.75 },   # was 1.25 / 1.1
 ]
 
 
@@ -306,6 +312,13 @@ const DIFFICULTY := [
 # A boss fight's "lvl" = the level you're expected to be at. Each level you're above it: +hp HP and +dmg damage,
 # up to `cap` levels. Under it: no change (it's already balanced for that).
 const BOSS_SCALE := { "hp": 0.12, "dmg": 0.06, "cap": 4 }
+
+# Gear balance (Ebain 11/26: Asar beat Mattias with no items; full gear won 100% in the sim).
+# Armor: each point cuts a hit by ARMOR_PCT, up to ARMOR_CAP (8 armor = 24%). Gear "power" bonuses stack with
+# falloff: total pw → pw / (1 + pw * POWER_FALLOFF), so +25% stays ~+21% but +65% becomes ~+44%.
+const ARMOR_PCT := 0.03
+const ARMOR_CAP := 0.30
+const POWER_FALLOFF := 0.75
 
 # XP needed to reach each level (index = level)
 const LEVELS := [0, 0, 50, 120, 220, 350, 520, 740, 1000, 1300, 1650]

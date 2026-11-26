@@ -30,20 +30,48 @@ func _init() -> void:
 		# the Deloye Lore Neuralink on Xylo (forecast + 15% dodge + 20 start meter): should help a little, not trivialize
 		["giant", { "party": ["skorn", "lykor", "xylo"], "level": 3, "inv": { "beer": 3, "bowl": 2 }, "mods": { "enraged": true }, "gear": { "xylo": "neuralink" } }],
 		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 4, "inv": { "beer": 3, "bowl": 2 }, "gear": { "xylo": "neuralink" } }],
+		# Ebain 11/26: Asar beat Mattias with no items. A real late-game party: top-shelf + rat gear, level 5-6, no items
+		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 5, "inv": {}, "gear": GEARED }],
+		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 6, "inv": {}, "gear": GEARED }],
+		["mattias", { "party": ["skorn", "lykor", "xylo"], "level": 6, "inv": { "beer": 3, "bowl": 2 }, "gear": GEARED }],
+		["giant", { "party": ["skorn", "lykor", "xylo"], "level": 4, "inv": {}, "mods": { "enraged": true }, "gear": GEARED }],
+		["dulbers_ambush", { "party": ["skorn", "lykor", "xylo"], "level": 4, "inv": {}, "gear": GEARED }],
 	]
 	if OS.get_environment("SIM_ONLY") != "":   # SIM_ONLY=mattias,dulbers_ambush: just those fights
 		var only := OS.get_environment("SIM_ONLY").split(",")
 		setups = setups.filter(func(x): return only.has(x[0]))
+	if OS.get_environment("SIM_GEARED") != "":   # just the fully geared setups (GEAR_DROP=power|armor|start|spd|hp|meter zeroes one stat)
+		setups = setups.filter(func(x): return x[1].get("gear", {}).get("skorn", "") is Dictionary)
 	for s in setups:
-		for skill in ["sloppy", "average", "good"]:
+		for skill in (["good", "pro"] if OS.get_environment("SIM_PRO") != "" else ["sloppy", "average", "good"]):
 			_run(s[0], s[1], skill, 300)
 	quit()
+
+# best gear a player can own at the end (combined like Game.gear_stats does)
+func _sum(ids: Array) -> Dictionary:
+	var out := { "hp": 0, "power": 0.0, "spd": 0, "start": 0, "meter": 1.0, "armor": 0 }
+	for g in ids:
+		var G: Dictionary = preload("res://scripts/combat/combat_data.gd").GEAR[g]
+		out["hp"] += G.get("hp", 0); out["power"] += G.get("power", 0.0); out["spd"] += G.get("spd", 0)
+		out["start"] = mini(100, out["start"] + G.get("start", 0)); out["meter"] *= G.get("meter", 1.0); out["armor"] += G.get("armor", 0)
+		if G.get("gouge_proof", false): out["gouge_proof"] = true
+	var drop := OS.get_environment("GEAR_DROP")
+	if drop != "":
+		out[drop] = 1.0 if drop == "meter" else (0.0 if drop == "power" else 0)
+	return out
+var GEARED: Dictionary:
+	get: return {
+		"skorn": _sum(["golden_ladle", "designer_mail", "king_helm", "air_forces", "gold_chain"]),
+		"lykor": _sum(["corncob_scepter", "bottlecap_mail", "bottlecap_crown", "jordan9s", "receipt"]),
+		"xylo": _sum(["toothpick_spear", "spoon_mail", "thimble_helm", "pot_lid", "goblin_tooth"]),
+	}
 
 func _timing(skill: String, rng: RandomNumberGenerator) -> String:
 	var r := rng.randf()
 	match skill:
 		"sloppy": return "perfect" if r < 0.1 else ("good" if r < 0.35 else "mid")
 		"average": return "perfect" if r < 0.25 else ("good" if r < 0.65 else "mid")
+		"pro": return "perfect" if r < 0.8 else ("good" if r < 0.97 else "mid")
 		_: return "perfect" if r < 0.55 else ("good" if r < 0.9 else "mid")
 
 func _block(skill: String, rng: RandomNumberGenerator) -> String:
@@ -51,6 +79,7 @@ func _block(skill: String, rng: RandomNumberGenerator) -> String:
 	match skill:
 		"sloppy": return "perfect" if r < 0.05 else ("good" if r < 0.25 else "")
 		"average": return "perfect" if r < 0.15 else ("good" if r < 0.5 else "")
+		"pro": return "perfect" if r < 0.65 else ("good" if r < 0.95 else "")
 		_: return "perfect" if r < 0.4 else ("good" if r < 0.8 else "")
 
 func _run(key: String, o: Dictionary, skill: String, n: int) -> void:

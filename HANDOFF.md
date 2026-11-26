@@ -44,7 +44,10 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    6 searchable loot spots (sparkles) and Asar's **Bridge Troll** by the creek: "Y'all had said i could get some
    bussy?" → "It's good" (Xylo follows him into his hut, black screen while Asar's three "love and light" clips play,
    Hold [E] to skip with a ring that fills while held and drains when let go, `trail.gd _love_and_light()`; bridge opens; then it's just Lykor and Skorn, exits blocked, until you
-   knock on the hut and Xylo walks out: "Damn he was digging in me, folk") or "Bad." (troll fight, lots of gold, then loot
+   knock on the hut and Xylo walks out: "Damn he was digging in me, folk"). On the doorstep, before Xylo goes in (Ebain
+   11/26): Lykor "I always knew you were on that type timing", Xylo "Shut up Lykor" (`troll_walk` → lines → `troll_enter`).
+   The troll talks as speaker `troll` (`dialogue.gd CHARS`): **Chief Bogdrinker's voice, lowered** (robot: the Chief's
+   voice via `voice_as`, pitch 0.55; clones: refs from the Chief's takes, `FX["troll"]` -4 semitones in `tts_batch.py`) or "Bad." (troll fight, lots of gold, then loot
    his hut and chest). Flags `trailStarted`, `trollMet`, `trollDone` ("good"/"bad"), `trollHut`, `trollChest`, `xyloInHut`,
    `trailLoot0..5`, `trailDone`.
 2. **Goblin Village (day, as Lykor):** ambush → kneel → the Chief → crowned at the spoon throne → choice: A royal
@@ -415,7 +418,10 @@ Fights happen right where you're standing: `await fight("giant", { enemies = [un
 FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T or the Esc menu), meters → ultimates
 (FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events (+ **Dulbmeethus' lightning**, 6.7% of fights (`BOLT_CHANCE` in battle.gd): "Y'all could hear me doe?" on the first enemy
 turn, then **Ebain's 10 s cutscene** (`assets/video/dulbmeethus_strike.ogv`, full-screen, music ducked, E/Esc skips after 0.6 s, `battle_view.gd _strike_cutscene()`; skipped in headless runs / env `NO_CUTSCENE`) that ends on a white-out which fades into a bolt on every enemy (Ebain's lightning art in `assets/vfx/`: additive bolt + impact burst + scorch on the ground, `battle_view.gd _bolt_art()`, plain `_bolt()` if the pictures are missing) with Ebain's attack clip (`assets/sounds/dulbmeethus_attack.ogg`), regular ones drop, bosses lose 40%; `battle.gd _dulbmeethus_bolt`, `BOLT=1` forces it), banter, XP +
-levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (flat cut per hit), permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
+levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (**a % cut per hit since 11/26**: 3% per point, max 30%, `D.ARMOR_PCT/ARMOR_CAP`; gear damage bonuses stack with falloff, `D.POWER_FALLOFF`), Normal difficulty ×1.1 enemy HP / ×1.15 damage (11/26), roaming fights scale harder with a full party,
+**Metocin Mattias** (11/26 rebalance, Asar beat him item-less): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
+"Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim
+targets (`tools/sim_combat.gd`, `SIM_GEARED=1 SIM_PRO=1`): full gear, no items: good player ~6%, near-perfect ~40%; with items ~20% / ~80%. permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
 roaming fights wake you at the area's `checkpoint`). **Roaming patrols** you beat or talk down stay gone for the run
 (flag `roamDone_<area>_<fight>_<n>`, `level.gd spawn_roamers`; Ebain 11/24: the goblin patrol came back). Running from

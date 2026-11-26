@@ -99,10 +99,18 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 		var over := clampi(level - int(def["lvl"]), 0, int(D.BOSS_SCALE["cap"]))
 		hp_mul *= 1.0 + D.BOSS_SCALE["hp"] * over
 		boss_dmg = 1.0 + D.BOSS_SCALE["dmg"] * over
+	if def.get("drip_scale", false):   # the final boss "out-mogs your drip": scales with the party's gear (Ebain 11/26)
+		var drip := 0.0
+		for p in party:
+			var g: Dictionary = p["gear"]
+			drip += g.get("power", 0.0) + g.get("armor", 0) * 0.03 + g.get("spd", 0) * 0.03 + g.get("hp", 0) / 150.0 + g.get("start", 0) / 200.0
+		hp_mul *= 1.0 + D.MATTIAS_BOSS["drip_hp"] * drip
+		boss_dmg *= 1.0 + D.MATTIAS_BOSS["drip_dmg"] * drip
 	if not def.get("story", false):
-		# roaming fights scale with how many of you there are
-		hp_mul *= 0.55 + 0.3 * ids.size()
-		dmg_scale = 0.8 + 0.2 * ids.size()
+		# roaming fights scale with how many of you there are (11/26: steeper for a full party, solo unchanged;
+		# a 3-person patrol used to end at ~90% HP)
+		hp_mul *= 0.85 + 0.38 * (ids.size() - 1)
+		dmg_scale = 1.0 + 0.35 * (ids.size() - 1)
 	for i in def["enemies"].size():
 		var E: Dictionary = def["enemies"][i]
 		var e := {
@@ -711,8 +719,9 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 	var timing: String = o.get("timing", "")
 	if not o.get("raw", false):
 		dmg *= lvl * (1.5 if hype > 0 else 1.0) * o.get("crit", 1.0)
-		if not m.is_empty():
-			dmg *= 1.0 + m["gear"].get("power", 0.0)
+		if not m.is_empty():   # gear damage bonuses stack with diminishing returns (Ebain 11/26: +65% gear trivialized Mattias)
+			var pw: float = m["gear"].get("power", 0.0)
+			dmg *= 1.0 + pw / (1.0 + pw * D.POWER_FALLOFF)
 		if timing != "":
 			dmg *= TIMING[timing]
 			label = { "perfect": "PERFECT!", "good": "GOOD", "mid": "MID" }[timing]
@@ -1077,8 +1086,9 @@ func hurt(p: Dictionary, dmg: int, block: String, aoe: bool) -> Array:
 	var ev := []
 	if dmg > 0 and faded_ids.has(p["id"]):
 		dmg = maxi(1, int(round(dmg * D.FADED["cut"])))
-	if dmg > 0 and p.get("armor", 0) > 0:   # armor: flat cut per hit (10 − 3 = 7), never below 1
-		dmg = maxi(1, dmg - p["armor"])
+	if dmg > 0 and p.get("armor", 0) > 0:   # armor: a % cut per hit (D.ARMOR_PCT each, capped), never below 1. It was a flat
+		# cut (10 − 3 = 7) until 11/26: stacked armor turned small hits into 1s and made Mattias easy (Ebain/Asar)
+		dmg = maxi(1, int(round(dmg * (1.0 - minf(D.ARMOR_CAP, p["armor"] * D.ARMOR_PCT)))))
 	p["hp"] = maxi(0, p["hp"] - dmg)
 	stats["dmg_taken"] += dmg
 	ev.append({ "t": "hurt", "u": p, "amt": dmg, "hp": p["hp"], "block": block, "quick": aoe })
