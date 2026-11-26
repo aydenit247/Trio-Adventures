@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Cut Deloye's 5 Reading Room draft lines — files: godot/scripts/deloye_script.gd — branch: ebain/cut-deloye-drafts — started 2026-11-25
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -78,6 +77,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-25 [ebain] Cut Deloye's 5 Reading Room draft lines (Ebain): `AGAIN` is now just Skorn's "Bro is NOT coming down." (with Skorn away, talking to Deloye again says nothing; he keeps spinning), and `BOOK` ends on Xylo's "...is mostly blank." Every Deloye line left is Ebain's and voiced.
 - 2026-11-26 [ebain] **Library song Save merged.** library_ui.gd: a **Save** button next to Lyrics on each unlocked song (K / controller X) copies the .ogg to Downloads/Trio Adventures Soundtrack/<Title>.ogg and opens the folder (`save_song(id)`; browser build uses `JavaScriptBridge.download_buffer`). menu_ui.gd: rows can have a second button `side2`. **export_presets.cfg**: `include_filter="assets/music/*.ogg"` on Web + Windows so the raw songs ship (~15 MB more, web build too). Songs only, no SFX (Ebain). Tested: test_ui ALL OK, save_song writes a playable 2.3 MB Mogging Elf, export-pack contains all 6 music .ogg files.
 - 2026-11-25 [ebain] Narrator + ruins voices: narrator clone (from Asar's takes) for the new chapter-close line (summit_script `CHAPTER_CLOSE`, played in summit.gd `_finale` before the end card, not on "Bad."), and the narrator now reads all 28 Deloye library book pages (book_ui.gd) and the 5 Lore Session pages (pass.gd `_lore_game`) via new `VoiceLines.read_aloud/stop_reading/plain`. 21 ruins Skorn lines cloned; ruins "Again? Bet." → "Bro.. no shot" (Ebain). tts_batch: long-text chunking, dead-air trim in pack, refs never use clones. Reword a book/lore page = its narration goes silent until regenerated.
 - 2026-11-25 [asar] cave.gd: the seals chamber's north wall (z -10.4, 2 m so it never blocks the camera in the colony) gets a tall cap up to 6 m, over the door too (`seal_cap`), shown while the leader is on the chamber side (z > -10.9) so you can't see the colony from the puzzle; hidden once you're through. The "NO HUMANS (ORCS, ELVES, DRAGONS ALSO NO)" door sign is gone (Asar). Tested: cave tours RUINS_CHOICE 0-4 (only errors: Ebain's new sfx not imported yet locally), puzzle render.
