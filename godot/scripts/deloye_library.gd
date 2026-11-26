@@ -1293,6 +1293,8 @@ func _on_action(n: String) -> void:
 			busy = true
 			play_sound("sfx_door" if n == "leave" else "flush", -4.0)
 			await fade_out(0.7)
+			if n == "leave_pipe" and not shots_mode:   # (Ebain's Gemini video 11/26) blasted back up out of the outhouse
+				await VideoCutscene.play(hud, PIPE_EXIT_VIDEO, Color.BLACK)
 			Game.travel("res://village.tscn", "library", leader.id)
 
 func char_label_at(p: Vector3, text: String, secs := 3.0, color := Color("#f3e3b0")) -> void:
@@ -1397,17 +1399,27 @@ func _teleport_out() -> void:
 	await fade_out(0.6)
 	Game.travel("res://village.tscn", "library", leader.id)
 
+const PIPE_EXIT_VIDEO := "res://assets/video/pipe_exit.ogv"
+const NEURALINK_VIDEO := "res://assets/video/neuralink.ogv"   # Deloye plugs it into Xylo (Ebain's Gemini video 11/26)
+
 func _gift() -> void:
 	if Game.flag("deloyeGift"):   # already got it this run (came back on a loaded save)
 		show_toast("Xylo already has the Deloye Lore Neuralink.", 2.0)
 		await wait(0.4)
 		return
 	Game.set_flag("deloyeGift")
-	Game.give_gear("neuralink", "xylo")
 	var x: Unit = null
 	for u in party:
 		if u.id == "xylo":
 			x = u
+	if x and not shots_mode:   # the install, as a video; ends on white and the library fades back in
+		var cover: ColorRect = await VideoCutscene.play(hud, NEURALINK_VIDEO, Color.WHITE)
+		if cover:
+			cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var ctw := create_tween()
+			ctw.tween_property(cover, "color:a", 0.0, 0.8).set_trans(Tween.TRANS_SINE)
+			ctw.tween_callback(cover.queue_free)
+	Game.give_gear("neuralink", "xylo")
 	if x:
 		var p := Fx.poof(Color(0.8, 0.7, 1.0))
 		add_child(p)
