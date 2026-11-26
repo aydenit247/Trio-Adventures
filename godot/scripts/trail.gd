@@ -275,13 +275,22 @@ func _on_action(n: String) -> void:
 			await wait(0.3)
 		"troll_enter":   # (after Lykor's line and Xylo's "Shut up Lykor", Ebain 11/26) Xylo goes in too
 			var xylo := _member("xylo")
-			await walk_to(xylo, HUT_DOOR, 0.7, 3.0)
-			play_sound("sfx_door", -6.0)
+			var cover: ColorRect = null
+			if not shots_mode and ResourceLoader.exists(TROLL_IN_VIDEO):
+				# Ebain's Gemini video (11/26): the troll waves Xylo in, he looks back, shrugs, door slams
+				await fade_out(0.4)
+				cover = await VideoCutscene.play(hud, TROLL_IN_VIDEO, Color.BLACK)
+			if cover == null:
+				await walk_to(xylo, HUT_DOOR, 0.7, 3.0)
+				play_sound("sfx_door", -6.0)
 			Game.set_flag("xyloInHut")
 			_xylo_into_hut()
-			await wait(0.6)
-			await fade_out(0.6)
-			await _love_and_light()   # (Asar) black screen + his three clips, Hold E to skip
+			if cover == null:
+				await wait(0.6)
+				await fade_out(0.6)
+			await _love_and_light()   # (Asar) his three clips, Hold E to skip; over the shaking hut video when it's there
+			if cover:
+				cover.queue_free()
 			Game.set_flag("trollDone", "good")
 			_apply_state()
 			follow_enabled = true
@@ -329,6 +338,11 @@ func _on_action(n: String) -> void:
 # The screen stays black while Asar's three clips play in order (assets/sounds/love_and_light_1..3.ogg).
 # "Hold [E] to skip": the ring fills while you hold E (or A) and slowly drains when you let go.
 const LOVE_CLIPS := ["love_and_light_1", "love_and_light_2", "love_and_light_3"]
+# (Ebain 11/26) the same three clips baked into a video of the hut shaking: his Gemini clip's shaking half, looped with
+# crossfades to the clips' 49 s, plus extra camera shake that follows how loud the audio is. Plays instead of the black
+# screen + separate clips when present (not on tours).
+const TROLL_IN_VIDEO := "res://assets/video/troll_hut_in.ogv"
+const LOVE_VIDEO := "res://assets/video/troll_hut_love.ogv"
 const SKIP_FILL_S := 1.2     # hold this long to skip
 const SKIP_DRAIN_S := 3.0    # a full ring drains in this long when you let go
 
@@ -349,6 +363,33 @@ func _love_and_light() -> void:
 	var player := AudioStreamPlayer.new()
 	add_child(player)
 	var skipped := false
+	if not shots_mode and ResourceLoader.exists(LOVE_VIDEO):
+		var frame := AspectRatioContainer.new()
+		frame.ratio = 16.0 / 9.0
+		frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.add_child(frame)
+		layer.move_child(ring, -1)   # the skip ring stays on top
+		var vp := VideoStreamPlayer.new()
+		vp.stream = load(LOVE_VIDEO)
+		vp.expand = true
+		vp.bus = &"SFX"
+		frame.add_child(vp)
+		vp.play()
+		var t0 := Time.get_ticks_msec()
+		while vp.is_playing() and not skipped and Time.get_ticks_msec() - t0 < 70000:
+			var dt := get_process_delta_time()
+			if Input.is_action_pressed("interact"):
+				ring.progress = minf(1.0, ring.progress + dt / SKIP_FILL_S)
+			else:
+				ring.progress = maxf(0.0, ring.progress - dt / SKIP_DRAIN_S)
+			ring.queue_redraw()
+			if ring.progress >= 1.0:
+				skipped = true
+			await get_tree().process_frame
+		vp.stop()
+		frame.queue_free()
+		skipped = true   # the clips were in the video
 	if shots_mode:   # tests: show it for a moment, then skip
 		await wait(1.0)
 		await shot("t_04b_love_and_light")
