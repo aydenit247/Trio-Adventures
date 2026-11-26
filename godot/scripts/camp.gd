@@ -336,9 +336,30 @@ func _grab_map() -> void:
 	await wait(0.3)
 	ui_sfx.pitch_scale = 1.0
 
+const MAP_VIDEO := "res://assets/video/map_burn.ogv"   # Ebain's Gemini video (11/26), cropped so Lykor doesn't see it
+
 func _burn_map() -> void:
 	Game.set_flag("hasMap", false)
 	var sk := party[0]
+	# the video version: Skorn pulls the map out of the bag and tosses it in → huge fire → fade to black.
+	# Back in the game the fire's already going and Lykor's line plays. Skippable; tours use the in-game toss below.
+	var cover: ColorRect = null
+	if not shots_mode:
+		cover = await VideoCutscene.play(hud, MAP_VIDEO, Color.BLACK)
+	if cover:
+		if paper:
+			paper.queue_free()
+			paper = null
+		_light_fire_now()
+		fire_base = 5.0
+		create_tween().tween_property(self, "fire_base", 3.0, 1.2)
+		objective("")
+		cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var ctw := create_tween()
+		ctw.tween_property(cover, "color:a", 0.0, 0.9).set_trans(Tween.TRANS_SINE)
+		ctw.tween_callback(cover.queue_free)
+		await wait(1.0)
+		return
 	var start_pos := paper.global_position
 	sk.remove_child(paper)
 	add_child(paper)
