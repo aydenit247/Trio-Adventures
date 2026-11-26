@@ -399,7 +399,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
   - **Footsteps:** `step_<grass|wood|hall>_1..8.ogg` cut from his recordings, one per footfall (`Level._on_step`, random
     pick + pitch). Each area says its floor with `floor_kind` or `floor_at(pos)`: grass outside, **wood** in village
     buildings, the Mart shop + Charis's house and on the trail bridge, **hall** (stone) in the cave, Mattias's tower and
-    the Deloye library (set from `level.gd` for now, move into deloye_library.gd later).
+    the Deloye library.
   - **Ambience:** `amb_campfire` (camp fire, replaces the synth crackle) + `amb_night` (Scene 1 at night, his "background
     of scene 1"), `amb_river` (trail creek, 3D), `amb_wind` (Giant's Pass, summit climb, light in the ruins), `amb_cave`
     (rat cave), `amb_aura` (hum at each Lost Page and the OG Metocy case), `amb_engine` (rises as the outhouse spins).
@@ -412,8 +412,8 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
     record rewind when you get away; rat squeaks when rats get hit; real dice roll; cloth rustle opening the bag and
     equipping; pen scratch on a new objective and when the Scrapbook opens; `ui_switch` for menu moves (UITheme "move")
     and switching characters.
-  - **Not used yet:** `sfx_lighter` (lighter flick + inhale): saved for Deloye's puff puff pass, along with a cough and
-    the engine hum on the Neuralink (deloye_library.gd, waiting on Asar's claim).
+  - **Deloye library:** a magic hum on each joint piece (stops when you take it), lighter flick when Deloye sparks it
+    (A) and at the start of puff puff pass (B, plus a cough), engine hum booting the Neuralink.
 - **Controller:** left stick/d-pad move, right stick or LB/RB camera, A talk/confirm, B run (hold) / back in menus,
   Y switch leader, Back = party, Start = menu. Number keys 1–9 pick dialogue choices.
 - **Dialogue controls** (`dialogue.gd`, Settings → Dialogue buffer / Go back / Speed mode): **E / Space / click** finishes the typing, and the next press has to wait out the **buffer** (Off/Short 0.2/Normal 0.4/Long 0.8 s) so lines can't be mashed through. **Backspace** replays the previous line (and its voice) but only if the step before it is also a plain line: it can't go back over an action (`do`) or a choice. **Dialogue speed** (Ebain 11/24: a slider at the bottom-left of the dialogue box, 0.5x–3x in 0.25 steps, no Yes/No; also Settings → Dialogue) speeds up **voices and text typing** together; the buffer is divided by it. Recorded lines play at `pitch_scale` = speed on a runtime `VoiceFast` bus whose pitch-shift is 1/speed, so they keep their pitch; the robot voice gets `rate` × speed. `Game.dlg_speed` is a float now (old ON/OFF saves load as 1.5 / 1.0). Settings are saved in `Game.dlg_buffer/dlg_back/dlg_speed`. Keyboard/mouse only: no controller button for back.

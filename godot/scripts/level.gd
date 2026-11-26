@@ -86,8 +86,6 @@ func _ready() -> void:
 	Game.gold_changed.connect(func(d: int): if is_inside_tree() and not Game.title_mode: play_sound("sfx_coins", -6.0 if d > 0 else -9.0, 1.0 if d > 0 else 0.85))
 	Game.quest_finished.connect(func(_id: String): if is_inside_tree() and not Game.title_mode: play_sound("sfx_reward", -3.0))
 	rng.seed = 7
-	if scene_file_path.ends_with("deloye_library.tscn"):
-		floor_kind = "hall"   # stone floors (TODO move into deloye_library.gd once Asar's claim on it is done)
 	_configure()
 	_setup_input()
 	_build_environment()
