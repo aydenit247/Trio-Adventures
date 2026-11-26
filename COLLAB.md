@@ -12,6 +12,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Library: Mattias walks back to you instead of standing still when you fall behind while he guides — files: godot/scripts/deloye_library.gd — branch: asar/mattias-guide — started 2026-11-25
 - [ebain] Import 7 cloned voice lines (troll, Lykor, Deloye) — files: godot/assets/voices/{troll,lykor,deloye}/, godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/voices-1126 — started 2026-11-26
+- [ebain] Ebain's SFX pack everywhere (footsteps per floor, ambience, story moments, jokes, UI) — files: godot/assets/sounds/, godot/scripts/level.gd (step + ui sounds), ambience.gd, ui_theme.gd, camp.gd, trail.gd, pass.gd, summit.gd, cave.gd, ruins.gd, village.gd, mart.gd, deloye_library.gd, scrapbook_ui.gd, inventory_ui.gd, lost_pages.gd, combat/battle_view.gd, combat/battle.gd — branch: ebain/sfx-pack — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
