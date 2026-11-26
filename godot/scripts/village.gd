@@ -124,7 +124,7 @@ func _build_forest() -> void:
 		var a := rng.randf() * TAU
 		var r := rng.randf_range(15.5, 48.0)
 		var p := Vector3(cos(a) * r, 0, sin(a) * r - 2.0)
-		if _on_path(p, 4.0):
+		if _on_path(p, 4.0) or p.distance_to(VB.STALL_POS) < 4.5:
 			continue
 		card("tree_%d" % (rng.randi() % 4 + 1), rng.randf_range(6.5, 10.0), p, rng.randf() < 0.5, true, 0.5 if r < 34.0 else 0.0)
 		placed += 1
@@ -132,7 +132,7 @@ func _build_forest() -> void:
 		var a := rng.randf() * TAU
 		var r := rng.randf_range(12.0, 40.0)
 		var p := Vector3(cos(a) * r, 0, sin(a) * r - 2.0)
-		if _on_path(p):
+		if _on_path(p) or p.distance_to(VB.STALL_POS) < 4.5:
 			continue
 		var big := rng.randf() < 0.25
 		card("bush_big" if big else "bush_%d" % (rng.randi() % 3 + 1), rng.randf_range(1.6, 2.3) if big else rng.randf_range(1.3, 2.2), p, rng.randf() < 0.5, true)
@@ -140,7 +140,7 @@ func _build_forest() -> void:
 		var a := rng.randf() * TAU
 		var r := rng.randf_range(13.0, 30.0)
 		var p := Vector3(cos(a) * r, 0, sin(a) * r - 2.0)
-		if _on_path(p):
+		if _on_path(p) or p.distance_to(VB.STALL_POS) < 4.5:
 			continue
 		card("rock_%d" % [1, 2, 4][rng.randi() % 3], rng.randf_range(1.2, 2.4), p, rng.randf() < 0.5, true, 0.45)
 
@@ -304,10 +304,9 @@ func _on_action(n: String) -> void:
 			var stand: Texture2D = load("res://assets/characters/goblin.png")
 			for i in goblins.size():
 				goblins[i].set_pose(stand, rng.randf_range(1.1, 1.3))
-				goblins[i].set_meta("goal", THRONE_POS + Vector3(-4.5 + i * 1.8, 0, 3.2 + (i % 2) * 0.8))
-				goblins[i].set_meta("goal_speed", 0.8)
-			chief.set_meta("goal", THRONE_POS + Vector3(1.9, 0, 1.0))
-			chief.set_meta("goal_speed", 0.9)
+				# spots in front of the throne, clear of the job board (one used to stand on it)
+				_route(goblins[i], THRONE_POS + Vector3(-4.2 + i * 1.3, 0, 3.4 + (i % 2) * 0.8), 0.8)
+			_route(chief, THRONE_POS + Vector3(1.9, 0, 1.0), 0.9)
 		"to_throne":
 			await _to_throne()
 		"crown":
@@ -411,6 +410,28 @@ func _goblins_appear() -> void:
 	for i in goblins.size():
 		char_label(goblins[i], "Goblin " + GOBLIN_TAGS[i], 3.0, 1.6)
 	await wait(0.4)
+
+# Walk to the throne without going through the campfire logs: units starting east of the logs' west end
+# go round them first (Asar 11/25: the chief and a goblin got stuck on a log). Gives up if the scene moves on.
+const ROUND_LOGS := Vector3(1.8, 0, 6.2)
+func _route(u: Unit, dest: Vector3, speed: float) -> void:
+	var pts: Array[Vector3] = []
+	if u.global_position.x > ROUND_LOGS.x and u.global_position.z > 3.0:
+		pts.append(ROUND_LOGS + Vector3(0, 0, randf_range(-0.6, 0.6)))
+	pts.append(dest)
+	for p in pts:
+		if stage != "ambushed" or not is_instance_valid(u):
+			return
+		u.set_meta("goal", p)
+		u.set_meta("goal_speed", speed)
+		var t := 0.0
+		while stage == "ambushed" and u.has_meta("goal") and t < 12.0:
+			var to := p - u.global_position
+			to.y = 0.0
+			if to.length() < 0.6:
+				break
+			await get_tree().process_frame
+			t += get_process_delta_time()
 
 func _to_throne() -> void:
 	stage = "throne"

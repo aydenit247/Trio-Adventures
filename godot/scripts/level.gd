@@ -247,13 +247,14 @@ func _pad_axis(action: String, axis: JoyAxis, dir: float) -> void:
 		InputMap.action_add_event(action, e)
 
 func _unhandled_input(ev: InputEvent) -> void:
-	if ev is InputEventMouseButton and ev.pressed:
+	if ev is InputEventMouseButton and ev.pressed and MenuUI.stack.is_empty():   # (no camera zoom behind menus/shops)
 		if ev.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom = clamp(zoom - 0.6, 5.0, 15.0)
 		elif ev.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			zoom = clamp(zoom + 0.6, 5.0, 15.0)
-	if ev is InputEventMouseMotion and (ev.button_mask & MOUSE_BUTTON_MASK_RIGHT) and not cam_locked:
+	if ev is InputEventMouseMotion and (ev.button_mask & MOUSE_BUTTON_MASK_RIGHT) and not busy:
 		target_yaw -= ev.relative.x * 0.006 * Game.cam_speed
+		_clamp_locked_yaw()
 
 # ---------------------------------------------------------------- graphics quality (Settings → Graphics)
 func apply_graphics() -> void:
@@ -1017,6 +1018,14 @@ func _keep_in_bounds(delta: float) -> void:
 				_bounds_toast_t = 6.0
 				show_toast(BOUNDS_LINES[randi() % BOUNDS_LINES.size()], 1.8)
 
+# Stage-set areas (cam_locked) still let arrow keys / right-drag turn the camera, but only a little either side
+# of the way the area faces, so the painted backdrops' edges stay out of view (Asar 11/25; like Ebain's library).
+const LOCKED_TURN := 0.5   # radians, ~30 degrees each way
+var cam_lock_yaw := 0.0    # the way a locked area faces (0 = north for every area so far)
+func _clamp_locked_yaw() -> void:
+	if cam_locked:
+		target_yaw = clampf(target_yaw, cam_lock_yaw - LOCKED_TURN, cam_lock_yaw + LOCKED_TURN)
+
 func _goal_dir(u: Unit) -> Vector3:
 	var to: Vector3 = u.get_meta("goal") - u.global_position
 	to.y = 0.0
@@ -1027,9 +1036,10 @@ func _goal_dir(u: Unit) -> Vector3:
 func _update_camera(delta: float) -> void:
 	if Game.title_mode:
 		target_yaw += delta * 0.06
-	elif not cam_locked and not busy:
+	elif not busy:
 		var turn := Input.get_action_strength("cam_left") - Input.get_action_strength("cam_right")
 		target_yaw += turn * delta * 1.8 * Game.cam_speed
+		_clamp_locked_yaw()
 	yaw = lerp_angle(yaw, target_yaw, clamp(delta * 6.0, 0.0, 1.0))
 	if cam == null:
 		cam = Camera3D.new()

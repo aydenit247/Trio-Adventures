@@ -293,6 +293,12 @@ func _input(ev: InputEvent) -> void:
 		return
 	if Engine.get_process_frames() - _opened_at < 2:
 		return
+	if ev is InputEventMouseButton and ev.pressed and ev.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		# the wheel scrolls the shop list (Asar 11/25: it used to zoom the camera behind the shop)
+		sel = (sel + (1 if ev.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1) + stock.size()) % stock.size()
+		_refresh(); UITheme.play("move")
+		get_viewport().set_input_as_handled()
+		return
 	if not ev.is_pressed() or ev.is_echo() or ev is InputEventMouse:
 		return
 	if ev.is_action_pressed("pause") or ev.is_action_pressed("ui_cancel") or ev.is_action_pressed("party_menu") \

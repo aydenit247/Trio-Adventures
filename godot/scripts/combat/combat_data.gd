@@ -124,7 +124,7 @@ const GEAR := {
 	"rock": { "slot": "trinket", "name": "A Rock (Pre-Owned)", "desc": "It's a rock. It does nothing. You paid for it." }, # DRAFT desc
 	# Haggle's top shelf (Ebain 11/24: "really expensive gear that makes you wanna go back"). Names/descs: # DRAFT
 	"gold_chain": { "slot": "trinket", "name": "Haggle's Gold Chain", "desc": "Real gold. Probably. +15% damage and +10 max HP.", "power": 0.15, "hp": 10 }, # DRAFT
-	"air_forces": { "slot": "shoes", "name": "Crispy Air Forces", "desc": "Never been creased. Never will be. +3 speed.", "spd": 3 }, # DRAFT
+	"air_forces": { "slot": "shoes", "name": "Crispy Jordan 9s", "desc": "Never been creased. Never will be. +3 speed.", "spd": 3 }, # DRAFT
 	"king_helm": { "slot": "helmet", "name": "Goblin King's Helm", "desc": "Spoons, but make them royal. +3 armor, start fights with 20 meter.", "armor": 3, "start": 20 }, # DRAFT
 	"designer_mail": { "slot": "armor", "name": "Designer Spoon Mail", "desc": "Same spoons, better logo. +5 armor and +20 max HP.", "armor": 5, "hp": 20 }, # DRAFT
 	"golden_ladle": { "slot": "weapon", "name": "The Golden Ladle", "desc": "Haggle's prized possession. He cried a little. +25% damage, +20% meter gain.", "power": 0.25, "meter": 1.2 }, # DRAFT
