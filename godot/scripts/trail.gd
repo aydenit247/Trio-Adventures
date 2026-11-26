@@ -285,12 +285,12 @@ func _on_action(n: String) -> void:
 				play_sound("sfx_door", -6.0)
 			Game.set_flag("xyloInHut")
 			_xylo_into_hut()
+			if cover:
+				cover.queue_free()   # the screen fade is already black under it; the love and light video goes next
 			if cover == null:
 				await wait(0.6)
 				await fade_out(0.6)
 			await _love_and_light()   # (Asar) his three clips, Hold E to skip; over the shaking hut video when it's there
-			if cover:
-				cover.queue_free()
 			Game.set_flag("trollDone", "good")
 			_apply_state()
 			follow_enabled = true
