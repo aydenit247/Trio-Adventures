@@ -16,6 +16,7 @@ const TUNNEL_OUT := Vector3(9.0, 0, -37.5)    # up to the ruins
 const SHORTCUT := Vector3(-10.0, 0, -37.5)    # "rats_lore": straight to the Mart road
 const KING_POS := Vector3(0, 0, -30.0)
 const STALL := Vector3(-8.0, 0, -26.0)
+var seal_cap: Node3D                           # the tall top of the chamber/colony wall (hidden from the colony side)
 const COLONY_Z := -13.5                       # walking past this (north of the door) starts the colony scene
 const LOOT := [   # [kind, position, gold, item, gear]
 	["crate", Vector3(-3.2, 0, 22.0), 15, "", "lucky_crumb"],
@@ -128,6 +129,14 @@ func _build_level() -> void:
 	_wall_z(-40.0, -13.0, 13.0)
 	_wall_z(-10.4, -13.0, -7.5, true)
 	_wall_z(-10.4, 7.5, 13.0, true)
+	# (Asar 11/25) from the chamber you could see the whole colony over that 2 m wall: a tall cap goes on top
+	# (up to 6 m, over the door too) while you're on the chamber side; it hides once you're through, so the
+	# low wall can't block the camera's view of you in the colony.
+	seal_cap = Node3D.new()
+	add_child(seal_cap)
+	Models.block(seal_cap, Vector3(0, 4.6, -10.4), Vector3(15.0, 2.8, 1.0), _rock)
+	Models.block(seal_cap, Vector3(-4.55, 2.6, -10.4), Vector3(5.9, 1.2, 1.0), _rock)
+	Models.block(seal_cap, Vector3(4.55, 2.6, -10.4), Vector3(5.9, 1.2, 1.0), _rock)
 	# side room (behind the crack) x 9..16, z -5..3
 	_wall_x(16.0, -5.0, 3.0)
 	_wall_z(-5.0, 7.5, 16.0)
@@ -382,14 +391,7 @@ func _build_puzzle() -> void:
 	door.position = DOOR
 	add_child(door)
 	Models.block(door, Vector3(0, 1.6, 0), Vector3(3.2, 3.2, 0.6), Models.mat("castle_brick_07", 1.2, Color(0.55, 0.5, 0.45)))
-	var dsign := Label3D.new()
-	dsign.text = "NO HUMANS\n(ORCS, ELVES, DRAGONS ALSO NO)"   # DRAFT
-	dsign.font_size = 40
-	dsign.pixel_size = 0.005
-	dsign.outline_size = 6
-	dsign.modulate = Color("#e9d7a8")
-	dsign.position = Vector3(0, 2.0, 0.32)
-	door.add_child(dsign)
+	# (no sign on the door any more: Asar 11/25)
 	door_body = StaticBody3D.new()
 	var dcs := CollisionShape3D.new()
 	var dbs := BoxShape3D.new()
@@ -696,6 +698,8 @@ func _level_interactables() -> Array:
 	return list
 
 func _level_process(delta: float) -> void:
+	if seal_cap and leader:
+		seal_cap.visible = leader.global_position.z > -10.9
 	for i in torches.size():
 		torches[i][0].light_energy = torches[i][1] * (0.85 + 0.1 * sin(t * 11.0 + i * 2.3) + 0.05 * sin(t * 23.0 + i))
 	var near_colony := leader != null and leader.global_position.z < -8.0   # colony name tags only once you're close
