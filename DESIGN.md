@@ -122,7 +122,7 @@ Each character has a **Main**, **Special** and **Bonus** move:
 
 | | Main | Special | Bonus |
 |---|---|---|---|
-| **Skorn** | **Diddy Slap** | **Crash Out** — intense rage | **Throw Anything** |
+| **Skorn** | **Diddy Slap** | **Crash Out** — intense rage | **Throw Sum Shi** |
 | **Lykor** | **Hair Flip** | **Mog** — giga chad face blinds enemies with his beauty + damage | **"on some type shi"** — screams it, buffs everyone |
 | **Xylo** | **Eldritch Blast** | **Deloye Lore** — pulls out a huge book and reads at length about a vast universe (there is little to no actual lore); the godly energy damages the enemy | **Chud Out** — gets really big and sits on the enemy |
 
@@ -136,9 +136,9 @@ Each turn: **Main / Special (cd) / Bonus (cd) / ★ Ultimate / Team-Up / Items /
 
 | | HP label | Main | Special (cd) | Bonus (cd) | Ultimate (100% meter) |
 |---|---|---|---|---|---|
-| **Skorn** 90 | HP (Hit Points) | Diddy Slap 14 | Crash Out: d6 (3) | Throw Anything 10, 40% Down Bad (2) | FULL CRASH OUT: 2 dice, 7 per pip, Humbled; 6+6 = double or the 6-7, 1+1 = hurts himself |
+| **Skorn** 90 | HP (Hit Points) | Diddy Slap 14 | Crash Out: d6 (3) | Throw Sum Shi 10, 40% Down Bad (2) | FULL CRASH OUT: 2 dice, 7 per pip, Humbled; 6+6 = double or the 6-7, 1+1 = hurts himself |
 | **Lykor** 70 | Aura | Hair Flip 10, 30% charm (+15% on PERFECT) | Mog 20 + Mogged (3) | "on some type shi": next 3 attacks ×1.5 (3) | MOG SUPREME: 36 to all + Mogged + Blinded |
-| **Xylo** 75 | Lore Points | Eldritch Blast 13 | Deloye Lore 24, 50% Lore-pilled (100% on PERFECT) (3) | Dragon Breath 10 + Cooked (2) | CHUD OUT: 45 + loses a turn (plays the video) |
+| **Xylo** 75 | Lore Points | Eldritch Blast 13 | Deloye Lore 24, 50% Lore-pilled (100% on PERFECT) (3) | Dragon Breath 15 + Cooked (2) | CHUD OUT: 45 + loses a turn (plays the video) |
 
 - **Timed hits:** a ring shrinks onto a gold circle, press SPACE. PERFECT ×1.5, GOOD ×1.2, MID ×0.9.
 - **Timed blocks:** same ring on enemy attacks. PERFECT ×0.35, BLOCKED ×0.7. AoE = "EVERYONE BRACE".

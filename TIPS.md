@@ -214,7 +214,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] **Walking between areas:** a new area that should be revisitable needs `can_resume_saved()` (its "finished"
   flag), `_resume(r)` (rebuild free roam, then `await super._resume(r)`), `back_exit()` and `arrival(from)`. Keep arrival
   spots out of exit triggers and away from roaming enemies (arriving next to the Goblin Patrol started a fight).
-- [asar] **Throw Anything** uses a real prop pile (`BattleView.PILES`, per `area_key()`), spawned beside the party when
+- [asar] **Throw Sum Shi** (was Throw Anything) uses a real prop pile (`BattleView.PILES`, per `area_key()`), spawned beside the party when
   Skorn fights. Add a new area's pile there. `Battle.throwables` holds the pile's names; empty falls back to D.THROWABLES.
 - [asar] **Moving the leader in a cutscene:** `walk_to(leader, …)` can leave him where he is (Lykor stayed on the throne
   under Skorn). Set `leader.global_position` after the walk to be sure, and clear a spot before someone else walks into it.

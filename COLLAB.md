@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Ability renames (Throw Sum Shi, Bussy Mist, Jean Paul Gaultier, Gust of Wind, METOCIN MADNESS), Dragon Breath 15, no Talk in fights — files: godot/scripts/combat/combat_data.gd, godot/scripts/combat/battle_view.gd — branch: asar/abilities — started 2026-11-25
 - [ebain] Import 7 cloned voice lines (troll, Lykor, Deloye) — files: godot/assets/voices/{troll,lykor,deloye}/, godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/voices-1126 — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -20,6 +19,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-25 [asar] Ability renames + Dragon Breath 15 + no Talk in fights
 - 2026-11-26 [ebain] **Deloye line fix**: "You could pass that shit?" and "Alright I'm gonna catch y'all later" in game; TTS says "bussy" like "pussy" with a b
 - 2026-11-26 [ebain] **Ebain's 11/26 batch**: "Who drew this map" line gone; troll talks in the Chief's voice, lowered, + Lykor/Xylo doorstep lines; spoon crown at the coronation; Deloye library camera turns + Mattias no longer gets stuck guiding; combat rebalance (armor %, gear falloff, Normal harder, Mattias scales with gear); voice batch (troll, Deloye's reference, Skorn lists)
 - 2026-11-25 [ebain] **Voice cloning: 6 Skorn lines** cloned with ChatterboxTTS + pitch fx, plus `tools/tts_batch.py`
@@ -69,8 +69,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/combat/combat_data.gd, godot/scripts/combat/battle_view.gd
-- [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
 - 2026-11-25 [asar] **Evening batch (Asar):** village.gd `follow_chief` now walks the chief + goblins with `_route()` (round the campfire logs via (1.8, 6.2) when they start east of them; gives up once the stage moves on), and the goblins' spots no longer land on the job board. combat_data: "Crispy Air Forces" → **"Crispy Jordan 9s"** (id still `air_forces`). shop_ui: mouse wheel moves the shop selection. **Hot spot level.gd:** no wheel zoom while a menu is open (`MenuUI.stack`), and `cam_locked` areas now let arrow keys/right-drag turn the camera `LOCKED_TURN` (0.5 rad) either side of `cam_lock_yaw` instead of not at all. village_buildings: **Haggle's Stall moved to the east road** (26.5, 1.7), facing the road; village.gd keeps trees/bushes/rocks 4.5 m clear of it (so the forest layout shifted a little). Tested: suite2 29/29, continuity 0 (no renders: Asar asked for no screenshots).
@@ -99,6 +97,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - 2026-11-24 [asar] 3D trio models trimmed to just Idle/Walking/Running (Asar: drop the unused combat clips); `tools/glb_keep_anims.py` does it for any GLB. No code changes. Tested: goblins fight, camp, village tours.
 - 2026-11-25 [asar] 3D trio stand still (Asar): at launch and when you stop they hold a still pose; the Idle clip only plays after 15 s without moving (`Char3D.IDLE_AFTER`). **Skorn falls over backward in 3D** at the camp tent nap (his GLB got its `dying_backwards` clip back; `Char3D.set_down`, Unit uses it for a knock outside fights when the model has that clip; fights still go 2D). Files: char3d.gd, unit.gd, skorn.glb. Tested: camp shots (lying by the fire in the morning), goblins fight, village, buildings, Mart.
 <!-- - YYYY-MM-DD [who] what changed · anything the other person should know -->
+- 2026-11-25 [asar] combat_data.gd + battle_view.gd (hot spots), Asar's renames: Throw Anything → **Throw Sum Shi**, Belly Bump → **Bussy Mist**, Conditioner Mist → **Jean Paul Gaultier** (his description), Citation Needed → **Gust of Wind** (now casts like Eldritch Blast, fx blast, so it no longer fizzles after Deloye's "Bad."), THE CRIB IS CLOSED → **METOCIN MADNESS**. Dragon Breath 10 → **15** (Cooked still 6/turn). **Talk removed from the fight menu** (`BattleView.TALK_IN_FIGHTS = false`; TALK data untouched). Bussy Mist / Gust of Wind descriptions are DRAFT. Sim + bouncer fight tour clean.
 - 2026-11-24 [ebain] **Combat settings merged.** Hot spots: **game.gd** `battle_speed` + `BATTLE_SPEED` (settings.cfg `[game] battle_speed`). **combat/battle_view.gd**: `speed` × battle speed; `_th()` now just returns the menu theme (Ebain: fights always follow it, no more forced dark on Parchment); new `_parch()`, `_ink(color)`, `_pl()` for text inside fight panels (party cards + chips, menu, status/loot tips, results). **menu_ui.gd**: Battle speed row on the Gameplay page. Not touched: battle.gd (claimed but not needed). **@asar:** new labels inside a fight panel → `_pl()`, new fight waits → `* speed` (TIPS). Tested: test_ui ALL OK; FIGHT goblins/giant/bouncer MENUS=1 on Parchment, Gold & Night and Wizard at Normal/Fast/Very fast, no script errors.
 - 2026-11-24 [asar] village_script.gd throne **speech ending** reordered (Asar's call): Chief's east directions → Xylo "They… sell it?" → Chief "For all yo metocy needs." → Chief "Here go some beezy…" → gift → Lykor "Y'all real for this." ("Real ones." cut; his recording never had it, so voice_lines.gd key updated) → Skorn "Why HE get the beezy?" → goodbye. The two Xylo/Chief lines moved out of `GOODBYE` into `SELL_IT`; chug-win and dethrone endings use `SELL_IT + GOODBYE`, so they're unchanged.
 - 2026-11-24 [asar] **Hot spot dialogue.gd:** a dialogue step can say `"voice": "none"` so it never borrows a recording

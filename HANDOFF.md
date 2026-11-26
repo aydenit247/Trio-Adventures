@@ -105,7 +105,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    the Neuralink · **B** "You had said puff puff pass?" → everyone smokes (placeholder smoke + haze; Ebain may make a real
    cutscene) → **Faded** for the next 3 fights + the Neuralink · **C** "Bad." → "Aight. Im not trippin i got da plug on the
    way", you keep the **Joint** (fight item: whole party Faded for that fight) and Deloye disapproves of Xylo: his Deloye
-   Lore moves (Deloye Lore, Citation Needed, Lore Slap) **fizzle 50%** for the rest of the run. Then "Aight imma catch
+   Lore moves (Deloye Lore, Lore Slap) **fizzle 50%** for the rest of the run. Then "Aight imma catch
    yall" → everyone poofs back to the goblin village. Coming back later: no Mattias, Deloye's room open.
    **Faded** (Ebain: "chill healing"): heal 4×level-scale every turn, take 10% less damage (`combat_data FADED`,
    `battle.gd faded_ids`). Flags (per run): `libEntered`, `libMattias`, `libBanter`, `libGuided1`, `libGuideAll`,
@@ -421,7 +421,7 @@ turn, then **Ebain's 10 s cutscene** (`assets/video/dulbmeethus_strike.ogv`, ful
 levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (**a % cut per hit since 11/26**: 3% per point, max 30%, `D.ARMOR_PCT/ARMOR_CAP`; gear damage bonuses stack with falloff, `D.POWER_FALLOFF`), Normal difficulty ×1.1 enemy HP / ×1.15 damage (11/26), roaming fights scale harder with a full party,
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim
-targets (`tools/sim_combat.gd`, `SIM_GEARED=1 SIM_PRO=1`): full gear, no items: good player ~6%, near-perfect ~40%; with items ~20% / ~80%. permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Talk + Run options, Chief Bogdrinker joins
+targets (`tools/sim_combat.gd`, `SIM_GEARED=1 SIM_PRO=1`): full gear, no items: good player ~6%, near-perfect ~40%; with items ~20% / ~80%. permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Run option (Talk is off in fights since 11/25: `BattleView.TALK_IN_FIGHTS`; the TALK data stays), Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,
 roaming fights wake you at the area's `checkpoint`). **Roaming patrols** you beat or talk down stay gone for the run
 (flag `roamDone_<area>_<fight>_<n>`, `level.gd spawn_roamers`; Ebain 11/24: the goblin patrol came back). Running from
