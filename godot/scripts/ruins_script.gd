@@ -28,7 +28,7 @@ const BIG_CHEST := [
 ]
 
 const HOLE := [
-	{ "who": "skorn", "line": "Again? Bet." }, # DRAFT
+	{ "who": "skorn", "line": "Bro.. no shot" }, # Ebain (11/25 reword)
 	{ "do": "jump_hole" },
 ]
 

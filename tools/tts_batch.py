@@ -172,6 +172,8 @@ def takes_for(who, info):
     for k, f in out:
         if f in seen or f.split("/")[0] not in dirs or not (VOICES / f).exists():
             continue
+        if "_clone_" in f:   # never clone from a clone: it drifts further from the real voice each time
+            continue
         seen.add(f)
         i = info.get(k)
         if i and (i["thought"] or "*echo" in i["line"].lower()):   # echo/thought effects would get cloned too
