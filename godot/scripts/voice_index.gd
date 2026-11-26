@@ -3,6 +3,11 @@
 class_name VoiceIndex
 
 const LINES := {
+	"aightimnottrippinigotdaplugontheway": "deloye/deloye_clone_aight_im_not_trippin_i_got_da_plug_on_the_way.ogg",  # Aight. Im not trippin i got da plug on the way
+	"alrightimgonnacatchyalllater": "deloye/deloye_clone_alright_i_m_gonna_catch_y_all_later.ogg",  # Alright I'm gonna catch y'all later
+	"thankyouhereyougomud": "deloye/deloye_clone_thank_you_here_you_go_mud.ogg",  # Thank you. Here you go, mud.
+	"youcouldpassthatshit": "deloye/deloye_clone_you_could_pass_that_shit.ogg",  # You could pass that shit?
+	"youhadletsburnitpullupmytrio": "deloye/deloye_clone_you_had_let_s_burn_it_pull_up_my_trio.ogg",  # You had let's burn it? Pull up my trio.
 	"butnobodygetspastthegiant": "dulbers_demon/dulbers_demon_but_nobody_gets_past_the_giant.ogg",  # …but nobody gets past the giant.
 	"nobodyleavesmetocymartnorefundsnoexchanges": "dulbers_demon/dulbers_demon_nobody_leaves_metocy_mart_no_refunds_no.ogg",  # NOBODY LEAVES METOCY MART. NO REFUNDS. NO EXCHANGES.
 	"ughfinetherealmetocyispastthemountainpass": "dulbers_demon/dulbers_demon_ugh_fine_the_real_metocy_is_past_the_mou.ogg",  # Ugh… fine… the REAL metocy… is past the mountain pass…
@@ -30,6 +35,7 @@ const LINES := {
 	"betherewegofolk": "lykor/lykor_clone_bet_here_we_go_folk.ogg",  # Bet. Here we go, folk
 	"deadahh": "lykor/lykor_clone_deadahh.ogg",  # Deadahh.
 	"dumbassskornburningouronlymaptothemetocyfuckyouskornyouonsomebullshitiputthatontheset": "lykor/lykor_clone_dumbass_skorn_burning_our_only_map_to_the_metocy.ogg",  # Dumbass Skorn burning our only map to the metocy, fuck you Skorn, you on some bullshit, I put that on the set.
+	"ialwaysknewyouwereonthattypetiming": "lykor/lykor_clone_i_always_knew_you_were_on_that_type_timing.ogg",  # I always knew you were on that type timing
 	"itsgoodfolkletstakealookaround": "lykor/lykor_clone_it_s_good_folk_let_s_take_a_look_around.ogg",  # It's good folk, let's take a look around.
 	"shlooksfolk": "lykor/lykor_clone_shlooks_folk.ogg",  # Shlooks folk.
 	"whatthefuckfolktsismassivelikethelowtaperfadememe": "lykor/lykor_clone_what_the_fuck_folk_t_s_is_massive_like_the_low_t.ogg",  # What the fuck folk? T S is massive like the low taper fade meme
@@ -121,4 +127,5 @@ const LINES := {
 	"yoyowhythefloorbreathing": "skorn/skorn_yo_yo_why_the_floor_breathing.ogg",  # Yo. YO. Why the floor breathing?
 	"youlaceduswithmidtocy": "skorn/skorn_you_laced_us_with_midtocy.ogg",  # YOU LACED US WITH MIDTOCY?!
 	"youthinktheygotsnacks": "skorn/skorn_you_think_they_got_snacks.ogg",  # You think they got snacks?
+	"yallhadsaidicouldgetsomebussy": "troll/troll_clone_y_all_had_said_i_could_get_some_bussy.ogg",  # Y'all had said i could get some bussy?
 }

@@ -53,6 +53,13 @@ replaces only that spoken line, **Metocin Mattias's name is unchanged everywhere
 feel a store?" · "Woahhh.. on God, I think we made it boys" · "Are all of these books Deloye lore scripture?" · "Damn bro,
 you ain't gonna make it, sad in de bih". Also cloned 11/25: "I'm not tired. I'm finna stay up and guard the fire." and "From… other fires." (camp; "From… other fires" was pitched -5 st by hand because pitch detection failed on it). **Lykor** has 6 clones (ChatterboxTTS, no pitch fx), including his reworded camp line "Dumbass Skorn burning our only map to the metocy, fuck you Skorn, you on some bullshit, I put that on the set." (it replaces Asar's "Why does that look like… nah" take). Redo one line: `python3 tools/tts_batch.py gen ... --only "line text"`.
 
+## Cloned troll, Lykor and Deloye lines (Ebain's PC, 2026-11-26)
+Same ChatterboxTTS settings. **Bridge Troll** "Y'all had said i could get some bussy?" cloned from Chief Bogdrinker's
+take, then -4 semitones (`FX["troll"]`, applied by `pack`); "bussy" is respelled "buh-see" for the TTS (like "pussy" with a b).
+**Lykor** "I always knew you were on that type timing". **Deloye** (Ebain's "eloy voice" reference, `tools/voice_refs/deloye.wav`):
+"You had let's burn it? Pull up my trio.", "You could pass that shit?", "Thank you. Here you go, mud.",
+"Aight. Im not trippin i got da plug on the way", "Alright I'm gonna catch y'all later".
+
 ## Skorn lines still on the robot voice (checked 2026-11-22, Asar)
 These have no generated file yet, so they fall back to TTS. Generate + approve them in the studio and re-import:
 - camp: "Man, it's about cold as a motherfucker." · "Good thing I got the fire going though." · "Bunch of squiggly ass lines." ·
