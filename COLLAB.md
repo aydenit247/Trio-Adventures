@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Library: Mattias walks back to you instead of standing still when you fall behind while he guides — files: godot/scripts/deloye_library.gd — branch: asar/mattias-guide — started 2026-11-25
 - [ebain] Import 7 cloned voice lines (troll, Lykor, Deloye) — files: godot/assets/voices/{troll,lykor,deloye}/, godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/voices-1126 — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
