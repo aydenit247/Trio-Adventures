@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] Library: Mattias walks back to you instead of standing still when you fall behind while he guides — files: godot/scripts/deloye_library.gd — branch: asar/mattias-guide — started 2026-11-25
-- [ebain] Import 7 cloned voice lines (troll, Lykor, Deloye) — files: godot/assets/voices/{troll,lykor,deloye}/, godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/voices-1126 — started 2026-11-26
 - [ebain] Ebain's SFX pack everywhere (footsteps per floor, ambience, story moments, jokes, UI) — files: godot/assets/sounds/, godot/scripts/level.gd (step + ui sounds), ambience.gd, ui_theme.gd, camp.gd, trail.gd, pass.gd, summit.gd, cave.gd, ruins.gd, village.gd, mart.gd, scrapbook_ui.gd, inventory_ui.gd, lost_pages.gd, combat/battle_view.gd, combat/battle.gd — branch: ebain/sfx-pack — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -21,6 +20,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-26 [ebain] **7 new cloned voices**: Bridge Troll ("bussy" said right), Lykor's "type timing" line, and Deloye's 5 lines in Ebain's eloy voice
 - 2026-11-25 [asar] Ability renames + Dragon Breath 15 + no Talk in fights
 - 2026-11-26 [ebain] **Deloye line fix**: "You could pass that shit?" and "Alright I'm gonna catch y'all later" in game; TTS says "bussy" like "pussy" with a b
 - 2026-11-26 [ebain] **Ebain's 11/26 batch**: "Who drew this map" line gone; troll talks in the Chief's voice, lowered, + Lykor/Xylo doorstep lines; spoon crown at the coronation; Deloye library camera turns + Mattias no longer gets stuck guiding; combat rebalance (armor %, gear falloff, Normal harder, Mattias scales with gear); voice batch (troll, Deloye's reference, Skorn lists)
@@ -73,6 +73,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-26 [ebain] **Voices merged.** 7 ChatterboxTTS clones in godot/assets/voices/{troll,lykor,deloye}/ + voice_index.gd (via tts_batch pack → import_voices.py; troll pitched -4 st). VOICE_LINES.md has a section for them. Tested: all 7 lines resolve through VoiceLines.stream_for, trail + library tours run with no script errors.
 - 2026-11-26 [ebain] **@asar request:** my SFX pack has a few hooks in deloye_library.gd (aura hum on the joint pieces, lighter + cough on puff puff pass, engine hum on the Neuralink, pen when Deloye writes). You have that file claimed, so I'm leaving it out for now and will add them after your mattias-guide branch merges. Took deloye_library.gd off my claim line (I had added it by mistake).
 - 2026-11-25 [asar] **Evening batch (Asar):** village.gd `follow_chief` now walks the chief + goblins with `_route()` (round the campfire logs via (1.8, 6.2) when they start east of them; gives up once the stage moves on), and the goblins' spots no longer land on the job board. combat_data: "Crispy Air Forces" → **"Crispy Jordan 9s"** (id still `air_forces`). shop_ui: mouse wheel moves the shop selection. **Hot spot level.gd:** no wheel zoom while a menu is open (`MenuUI.stack`), and `cam_locked` areas now let arrow keys/right-drag turn the camera `LOCKED_TURN` (0.5 rad) either side of `cam_lock_yaw` instead of not at all. village_buildings: **Haggle's Stall moved to the east road** (26.5, 1.7), facing the road; village.gd keeps trees/bushes/rocks 4.5 m clear of it (so the forest layout shifted a little). Tested: suite2 29/29, continuity 0 (no renders: Asar asked for no screenshots).
 - 2026-11-26 [ebain] **Deloye line fix.** deloye_script.gd `PASS`: "You could pass that shit?" and "Alright I'm gonna catch y'all later" (Ebain); comments in deloye_library.gd + scrapbook_ui.gd; HANDOFF line updated. tools/tts_batch.py: "bussy" respelled "buh-see". No hot spots. Not tested in Godot (no binary in this session); string-only change.
