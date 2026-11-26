@@ -68,6 +68,9 @@ var _menu_btns: Array = []
 var _menu_active := false
 signal _menu_done(value)
 
+# Asar 11/25: no "Talk" option in fights (the TALK options in combat_data stay, flip this to bring it back).
+const TALK_IN_FIGHTS := false
+
 func _init() -> void:
 	name = "BattleView"
 
@@ -936,7 +939,7 @@ func _choose(u: Dictionary) -> Dictionary:
 		var nj := b.item_count(u["id"], "joint")
 		opts.append({ "text": "Items  (Beezy %d · Bowl %d%s)" % [nb, nw, " · Joint %d" % nj if nj > 0 else ""], "desc": "Heal or revive someone with %s's own items." % u["name"], "v": "item", "off": nb + nw + nj == 0 })
 		opts.append({ "text": "Defend", "desc": "Half damage, enemies aim at you, cooldowns tick faster, +meter.", "v": "defend" })
-		if not b.talk_options(u).is_empty():
+		if TALK_IN_FIGHTS and not b.talk_options(u).is_empty():
 			opts.append({ "text": "Talk", "desc": "Try talking your way through this.", "v": "talk" })
 		if b.can_flee():
 			opts.append({ "text": "Run", "desc": "Roll a d6. 4+ and you get away (no XP).", "v": "flee" })
@@ -2081,7 +2084,7 @@ func _results(res: String) -> void:
 		line.call("LEVEL UP! The trio is now Level %d. (+10%% HP and damage, everyone fully healed)" % lvn, 20, GREEN)
 		lv.play_sound("sfx_reward", -2.0)
 		if lvn == 3:
-			line.call("New moves: Belly Bump · Conditioner Mist · Citation Needed", 18, Color("#fff07a"))
+			line.call("New moves: Bussy Mist · Jean Paul Gaultier · Gust of Wind", 18, Color("#fff07a"))
 	if not found.is_empty():   # Found: [icon] [icon]  (hover for details)
 		var row := _row()
 		row.add_child(_row_label("Found:", 22, Color("#8ad8ff")))

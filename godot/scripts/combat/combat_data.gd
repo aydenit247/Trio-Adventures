@@ -14,10 +14,10 @@ const PARTY := {
 		"moves": {
 			"main": { "name": "Diddy Slap", "desc": "A slap with intent. 14 damage.", "pose": "skorn_slap", "ph": 0.85, "kind": "hit", "power": 14, "fx": "slap", "timed": true },
 			"special": { "name": "Crash Out", "desc": "Intense rage. Rolls a d6 — on some dice shi. Cooldown 3.", "pose": "skorn_crashout", "ph": 1.0, "kind": "crashout", "cd": 3 },
-			"bonus": { "name": "Throw Anything", "desc": "Throws whatever is nearby. 10 damage, might make them Down Bad. Cooldown 2.", "pose": "skorn_throw", "ph": 1.05, "kind": "throw", "power": 10, "cd": 2, "timed": true, "downbad": 0.4 },
+			"bonus": { "name": "Throw Sum Shi", "desc": "Throws whatever is nearby. 10 damage, might make them Down Bad. Cooldown 2.", "pose": "skorn_throw", "ph": 1.05, "kind": "throw", "power": 10, "cd": 2, "timed": true, "downbad": 0.4 },
 			"ult": { "name": "FULL CRASH OUT", "desc": "Rolls TWO dice. 7 damage per pip and strips their buffs. Doubles do something extra.", "pose": "skorn_crashout", "ph": 1.0, "kind": "fullcrash" },
 		},
-		"learn": { 3: { "name": "Belly Bump", "desc": "Bumps them so hard their next turn comes later. 16 damage. Cooldown 2. (Learned at Level 3)", "pose": "skorn_slap", "ph": 0.85, "kind": "hit", "power": 16, "cd": 2, "fx": "slap", "timed": true, "delay": 0.6 } },
+		"learn": { 3: { "name": "Bussy Mist", "desc": "Hits them with the Bussy Mist. 16 damage, and they're so shook their next turn comes later. Cooldown 2. (Learned at Level 3)", "pose": "skorn_slap", "ph": 0.85, "kind": "hit", "power": 16, "cd": 2, "fx": "slap", "timed": true, "delay": 0.6 } },   # names: Asar 11/25 · desc DRAFT
 	},
 	"lykor": {
 		"name": "Lykor", "hp": 70, "spd": 12, "hp_label": "Aura", "meter_label": "Aura Farming",
@@ -27,17 +27,17 @@ const PARTY := {
 			"bonus": { "name": "\"on some type shi\"", "desc": "Screams it. The party hits 50% harder for the next 3 attacks. Cooldown 3.", "pose": "lykor_scream", "ph": 1.0, "kind": "buff", "cd": 3 },
 			"ult": { "name": "MOG SUPREME", "desc": "36 damage to EVERY enemy. Mogged + Blinded on all of them.", "pose": "lykor_mog", "ph": 1.0, "kind": "mogsupreme", "power": 36 },
 		},
-		"learn": { 3: { "name": "Conditioner Mist", "desc": "Sprays the good conditioner. Everyone heals 14 and loses their debuffs. Cooldown 4. (Learned at Level 3)", "pose": "lykor_hairflip", "ph": 1.0, "kind": "healall", "heal": 14, "cd": 4 } },
+		"learn": { 3: { "name": "Jean Paul Gaultier", "desc": "Sprays all his homies and himself with Jean Paul Gaultier, heals 14 and cleanse all debuffs. Cooldown 4. (Learned at Level 3)", "pose": "lykor_hairflip", "ph": 1.0, "kind": "healall", "heal": 14, "cd": 4 } },
 	},
 	"xylo": {
 		"name": "Xylo", "hp": 75, "spd": 10, "hp_label": "Lore Points", "meter_label": "Lore Buildup",
 		"moves": {
 			"main": { "name": "Eldritch Blast", "desc": "Classic. 13 damage.", "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 13, "fx": "blast", "timed": true },
 			"special": { "name": "Deloye Lore", "desc": "Reads from a universe with no lore. 24 damage, might make them Lore-pilled (drowsy). Cooldown 3.", "pose": "xylo_lore", "ph": 1.0, "kind": "hit", "power": 24, "cd": 3, "fx": "lore", "lorepill": 0.5, "timed": true },
-			"bonus": { "name": "Dragon Breath", "desc": "10 damage + Cooked (burns for 6 a turn, 3 turns). Cooldown 2.", "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 10, "cd": 2, "fx": "fire", "cooked": 3, "timed": true },
+			"bonus": { "name": "Dragon Breath", "desc": "15 damage + Cooked (burns for 6 a turn, 3 turns). Cooldown 2.", "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 15, "cd": 2, "fx": "fire", "cooked": 3, "timed": true },
 			"ult": { "name": "CHUD OUT", "desc": "Gets huge and sits on them. 45 damage and they lose their next turn.", "pose": "xylo_chudout", "ph": 1.6, "kind": "chudout", "power": 45 },
 		},
-		"learn": { 3: { "name": "Citation Needed", "desc": "Demands a source. 12 damage and strips their buffs. Cooldown 3. (Learned at Level 3)", "pose": "xylo_lore", "ph": 1.0, "kind": "hit", "power": 12, "cd": 3, "fx": "lore", "strip": true, "timed": true } },
+		"learn": { 3: { "name": "Gust of Wind", "desc": "Blasts them with a big gust of wind. 12 damage and blows away their buffs. Cooldown 3. (Learned at Level 3)", "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 12, "cd": 3, "fx": "blast", "strip": true, "timed": true } },   # names: Asar 11/25 · desc DRAFT
 	},
 	# Recruited ally: joins as a 4th fighter when the goblins are with you (goblinAllies).
 	"chief": {
@@ -59,7 +59,7 @@ const PARTY := {
 			"main": { "name": "Metocy Bolt", "desc": "A little blue bolt. 18 damage.", "kind": "hit", "power": 18, "fx": "blast", "timed": true },
 			"special": { "name": "Wizard Drip", "desc": "Too much drip to look at. 26 damage + Mogged. Cooldown 3.", "kind": "hit", "power": 26, "cd": 3, "fx": "lore", "mogged": 2, "timed": true },
 			"bonus": { "name": "Pill From The Sleeve", "desc": "Hands a teammate something blue. Heals 30 (revives at 30). Cooldown 3.", "kind": "healone", "heal": 30, "cd": 3, "say": "%s hands %s a little blue pill." },
-			"ult": { "name": "THE CRIB IS CLOSED", "desc": "A wall of blue light. 50 damage to every enemy and strips their buffs.", "kind": "beam", "power": 50 },
+			"ult": { "name": "METOCIN MADNESS", "desc": "A wall of blue light. 50 damage to every enemy and strips their buffs.", "kind": "beam", "power": 50 },
 		},
 	},
 }
