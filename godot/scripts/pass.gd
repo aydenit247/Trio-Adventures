@@ -29,6 +29,10 @@ var mini_pick := -1
 var mini_sel := 0
 var mini_opts: Array = []
 var mini_labels: Array = []
+var musical := false            # "The Tale of Diddy Chud" cutscene running (pass_musical.gd): snoring off
+var lava_lights: Array[OmniLight3D] = []   # pulse with the song in the cutscene
+var lava_mats: Array[ShaderMaterial] = []
+var volcanoes: Array = []        # ChudMusical.build_volcanoes: far behind the canyon, erupt in the cutscene
 
 func _configure() -> void:
 	if not Game.title_mode:
@@ -103,6 +107,7 @@ func _build_level() -> void:
 		l.omni_range = 8.0
 		l.position = p
 		add_child(l)
+		lava_lights.append(l)
 		add_glow(p, Color(1.0, 0.55, 0.3), 7.0, func(): return 1.0)
 	var rock_tint := Color(0.56, 0.4, 0.3)   # rock_07/09 textures are pale grey: tint them warm
 	for k in 16:
@@ -122,6 +127,7 @@ func _build_level() -> void:
 		Models.place(self, "dry_branches_medium_01", p, randf() * TAU, 1.1, false, burnt)
 	_ash()
 	_walls()
+	volcanoes = ChudMusical.build_volcanoes(self)   # (Asar's musical-cutscene idea, 11/25)
 	card("campfire", 1.0, REST_POS)   # the rest spot
 	var rest_light := OmniLight3D.new()
 	rest_light.light_color = Color(1.0, 0.6, 0.3)
@@ -193,6 +199,7 @@ func _canyon() -> void:
 		l.omni_range = 7.5
 		l.position = p
 		add_child(l)
+		lava_lights.append(l)
 		add_glow(p, Color(1.0, 0.5, 0.25), 6.0, func(): return 1.0)
 	# the sleeping giant, lying across the path (real 3D figure, not a painting)
 	snore = AudioStreamPlayer.new()
@@ -233,10 +240,12 @@ func _lava(c: Vector3, size: Vector2) -> void:
 	var pm := PlaneMesh.new()
 	pm.size = size
 	Util.add_mesh(self, pm, sm, c)
+	lava_mats.append(sm)
 
 const LAVA_SHADER := """
 shader_type spatial;
 render_mode unshaded;
+uniform float pulse = 0.0;   // the Diddy Chud cutscene pumps this on the beat (pass_musical.gd)
 varying vec3 wpos;
 void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -252,7 +261,7 @@ void fragment() {
 	col = mix(col, vec3(1.0, 0.85, 0.35), smoothstep(0.75, 0.95, hot * flow * 1.4));
 	vec2 e = abs(UV - 0.5) * 2.0;
 	float edge = smoothstep(0.75, 1.0, max(e.x, e.y) + (n2(wpos.xz * 1.3) - 0.5) * 0.3);
-	ALBEDO = mix(col * 1.4, vec3(0.08, 0.04, 0.03), edge);
+	ALBEDO = mix(col * 1.4 * max(0.2, 1.0 + pulse), vec3(0.08, 0.04, 0.03), edge);
 }
 """
 
@@ -328,7 +337,9 @@ func _update_snore(delta: float) -> void:
 		return
 	var asleep := not giant_awake and stage != "after" and stage != "end"
 	var target := -60.0
-	if asleep and snore_sneak:
+	if musical:
+		pass   # the song has its own snores
+	elif asleep and snore_sneak:
 		target = SNORE_MAX_DB + 4.0   # Snore Sneak: you're on top of him, a bit louder so you can hear the rhythm
 	elif asleep and leader:
 		var d := Vector2(leader.global_position.x - GIANT_HEAD.x, leader.global_position.z - GIANT_HEAD.z).length()
@@ -411,6 +422,11 @@ func _begin() -> void:
 	objective("Head up the pass.", Vector3(1.0, 0, -5.0))
 
 func _mattias() -> void:
+	if not Game.flag("chudMusical"):   # first time here: "The Tale of Diddy Chud" (Ebain's song, Asar's idea)
+		var m := ChudMusical.new()
+		add_child(m)
+		await m.run(self)
+		m.queue_free()
 	focus_override = leader.global_position + Vector3(0.8, 0, -1.0)
 	zoom = 7.5
 	cam_look_h = 1.2
