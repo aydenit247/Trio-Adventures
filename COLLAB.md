@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Video cutscenes 2 (new pipe ride, pipe exit, Neuralink, map burn) — files: godot/assets/video/, camp.gd, deloye_library.gd — branch: ebain/videos-2 — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -19,6 +18,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-26 [ebain] **3 more video cutscenes + a fixed pipe ride**: map burn (Scene 1), pipe exit (library → outhouse), Neuralink install
 - 2026-11-26 [ebain] **Pipe-ride cutscene**: Ebain's Gemini video of the trio sliding down the outhouse pipe into the library
 - 2026-11-26 [ebain] Library: Save button on each unlocked song (downloads the .ogg)
 - 2026-11-26 [ebain] **Trail softlock fixed** (explorer bot's red runs): a New Game froze everyone on entering the trail
@@ -79,6 +79,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-26 [ebain] **Video cutscenes 2 merged.** assets/video/: new pipe_ride.ogv (Ebain's redo; cut at 8.95 s with a zoom + white flash because Lykor and Skorn morph into each other at the end), pipe_exit.ogv, neuralink.ogv, map_burn.ogv (cropped to Skorn + Xylo so Lykor's "Damn, you started that up quick" still works). camp.gd `_burn_map`: video, then the fire is already lit and the black fades away (in-game toss kept for tours). deloye_library.gd: "leave_pipe" plays pipe_exit before traveling; `_gift` plays neuralink before giving it. No hot spots. Tested: all 4 videos play full length under xvfb, camp tour rc 0, library tour no script errors.
 - 2026-11-26 [ebain] **Pipe-ride video merged.** New `scripts/video_cutscene.gd` (VideoCutscene.play, reusable for any video cutscene). village.gd `_deloye_flush`: after the white flash plays `assets/video/pipe_ride.ogv` (10 s, ends on white), skipped in tours. No hot spots. Tested: video plays full length (10.08 s) under xvfb, VILLAGE_TOUR=flush runs outhouse → library → back with no script errors.
 - 2026-11-25 [ebain] Cut Deloye's 5 Reading Room draft lines (Ebain): `AGAIN` is now just Skorn's "Bro is NOT coming down." (with Skorn away, talking to Deloye again says nothing; he keeps spinning), and `BOOK` ends on Xylo's "...is mostly blank." Every Deloye line left is Ebain's and voiced.
 - 2026-11-26 [ebain] **Library song Save merged.** library_ui.gd: a **Save** button next to Lyrics on each unlocked song (K / controller X) copies the .ogg to Downloads/Trio Adventures Soundtrack/<Title>.ogg and opens the folder (`save_song(id)`; browser build uses `JavaScriptBridge.download_buffer`). menu_ui.gd: rows can have a second button `side2`. **export_presets.cfg**: `include_filter="assets/music/*.ogg"` on Web + Windows so the raw songs ship (~15 MB more, web build too). Songs only, no SFX (Ebain). Tested: test_ui ALL OK, save_song writes a playable 2.3 MB Mogging Elf, export-pack contains all 6 music .ogg files.
