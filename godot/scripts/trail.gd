@@ -194,6 +194,7 @@ func _begin() -> void:
 	busy = true
 	fade_in(1.2)
 	await wait(0.8)
+	busy = false   # (11/26) the intro dialogue used to clear this; without it the trail froze on a New Game
 	objective("Follow the trail to the goblin village.", Vector3(0, 0, END_Z + 2))
 
 func _level_interactables() -> Array:
