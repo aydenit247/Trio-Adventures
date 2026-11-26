@@ -88,6 +88,8 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 	var wins := 0
 	var turns := 0
 	var hp_left := 0.0
+	var kos := 0
+	var deaths := 0
 	for i in n:
 		var oo := o.duplicate(true)
 		oo["seed"] = rng.randi()
@@ -103,8 +105,16 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 				b.party_act(u, _choose(b, u, skill, rng), { "timing": _timing(skill, rng), "roll": rng.randi_range(1, 6), "rolls": [rng.randi_range(1, 6), rng.randi_range(1, 6)] })
 			else:
 				b.roll_chaos()
-				var it: Dictionary = b.enemy_plan(u)
-				b.enemy_resolve(u, it, _block(skill, rng) if it["kind"] == "hit" else "")
+				var acts: int = b.enemy_actions(u)   # 11/26: phase-2 bosses act twice, shapeshifts are free
+				var done := 0
+				var g2 := 0
+				while done < acts and b.result() == "" and u["hp"] > 0 and g2 < 6:
+					g2 += 1
+					b.begin_action(u, done)
+					var it: Dictionary = b.enemy_plan(u)
+					b.enemy_resolve(u, it, _block(skill, rng) if it["kind"] == "hit" else "")
+					if not it.get("free", false):
+						done += 1
 		if b.result() == "win":
 			wins += 1
 			var hp := 0.0
@@ -114,7 +124,9 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 				mx += p["max_hp"]
 			hp_left += hp / mx
 		turns += b.stats["party_turns"]
-	print("%-14s %-34s %-8s win %3d%%  turns %4.1f  hp left %3d%%" % [key, str(o.get("party")) + " L" + str(o["level"]) + " " + str(o.get("mods", {})), skill, 100 * wins / n, float(turns) / n, int(100 * hp_left / max(1, wins))])
+		kos += b.stats["kos"]
+		deaths += b.stats.get("deaths", 0)
+	print("%-14s %-34s %-8s win %3d%%  turns %4.1f  hp left %3d%%  downs %3.1f  deaths %3.1f" % [key, str(o.get("party")) + " L" + str(o["level"]) + " " + str(o.get("mods", {})), skill, 100 * wins / n, float(turns) / n, int(100 * hp_left / max(1, wins)), float(kos) / n, float(deaths) / n])
 
 func _choose(b, u: Dictionary, skill: String, rng: RandomNumberGenerator) -> Dictionary:
 	var foes: Array = b.alive(b.enemies)
@@ -122,18 +134,22 @@ func _choose(b, u: Dictionary, skill: String, rng: RandomNumberGenerator) -> Dic
 	for f in foes:
 		if f["hp"] < t["hp"]:
 			t = f
-	var hurtp: Array = b.party.filter(func(p): return p["hp"] < p["max_hp"] * 0.35)
+	var hurtp: Array = b.party.filter(func(p): return p["hp"] < p["max_hp"] * 0.35 and not p.get("dead", false))
 	var smart := skill != "sloppy" or rng.randf() < 0.5
 	if smart and not hurtp.is_empty():
 		var p: Dictionary = hurtp[0]
 		if b.item_count(u["id"], "bowl") > 0: return { "type": "item", "item": "bowl", "target": p }
 		if b.item_count(u["id"], "beer") > 0: return { "type": "item", "item": "beer", "target": p }
 		if u["id"] == "chief" and u["cds"]["special"] == 0: return { "type": "move", "slot": "special", "target": p }
+	var dn: Array = b.downed()   # 11/26: pick a Downed teammate up when there's no item for it
+	if smart and not dn.is_empty() and rng.randf() < 0.8:
+		return { "type": "help", "target": dn[0] }
 	if u["meter"] >= 100: return { "type": "move", "slot": "ult", "target": t }
 	var combos: Array = b.combos_for(u)
 	if smart and not combos.is_empty(): return { "type": "combo", "combo": combos.back(), "target": t }
+	var react: float = { "sloppy": 0.25, "average": 0.5, "good": 0.7, "pro": 0.85 }.get(skill, 0.5)   # answers a telegraph
 	for e in foes:
-		if e.get("sit_pending", false) and smart and rng.randf() < 0.5:
+		if (e.get("sit_pending", false) or e.get("sale_pending", false) or e.get("stampede_pending", false)) and rng.randf() < react:
 			return { "type": "defend" }
 	if u["cds"]["special"] == 0 and u["id"] != "chief": return { "type": "move", "slot": "special", "target": t }
 	if u["cds"]["bonus"] == 0:

@@ -109,7 +109,19 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   for giants.
 - [ebain] **Video: Godot only plays Ogg Theora (`.ogv`), not mp4/mov/h264.** Convert with `ffmpeg -i in.mov -c:v libtheora -q:v 10 -c:a libvorbis -q:a 8 out.ogv` (q:v 10 = best). Play it in a `VideoStreamPlayer` (`expand = true`, inside an `AspectRatioContainer` ratio 16/9 so other window shapes get black bars; set `bus = &"SFX"` yourself, the SFX auto-routing only catches `AudioStreamPlayer`). `stream.get_length()` is 0 for Theora, so don't wait on a length: poll `is_playing()` with a watchdog. Example: `battle_view.gd _strike_cutscene()` (Dulbmeethus' strike).
 
+- [ebain] **Combat: adds join in the middle of `enemy_resolve`**, so `b.enemies` grows before the view's "summon" event
+  plays. Anything in battle_view that loops `b.enemies` and reads `ebars`/`nodes`/`head_bars` must skip keys it doesn't
+  have yet (`_refresh` does).
+- [ebain] **Combat: enemy turns are a loop now** (`enemy_actions(e)` actions, intents with `"free"` don't count, call
+  `begin_action(e, i)` before each `enemy_plan`). Any new driver (view, sim, tests) must do the same or phase-2 bosses
+  lose their bonus action. Telegraphs count the enemy's TURNS (`turns_taken`), not actions, so a windup never lands on
+  the same turn's bonus action; `_ahead` makes the Neuralink forecast count the right turn.
+- [ebain] **Downed fighters have `hp == 0` but still take turns** (`units()` includes `downed()`), and `alive()` still
+  means hp > 0. Use `p.get("dead")` before reviving or offering someone as a heal target.
+
 ## Testing tricks
+- [ebain] The balance sim prints `downs` and `deaths` per fight now. `FIGHT=mattias AUTO_LOSE=1` loops forever (a story
+  fight retries); kill it, or test the Mattias loss through `SUMMIT_TOUR=finale AUTO_LOSE=1`.
 - [asar] **Windows crash dumps** are in `%LOCALAPPDATA%\CrashDumps\TrioAdventures.exe.*.dmp`. You can parse the minidump with plain Python `struct` (exception stream 6, module list 4, thread list 3, memory64 list 9). Asar's 4 crashes were all worker threads with GPU shader-compiler DLLs on the stack (Vulkan driver), not scripts or TTS.
 - [asar] **Crash/freeze reports:** the game writes them to `Crash Reports/` next to the exe (sandbox/editor: `~/.local/share/godot/app_userdata/Trio Adventures/Crash Reports`). A sandbox run killed by `timeout` makes a Crash report on the next run (expected). Put real ones in the repo's `Crash Reports/` folder and note the cause in its README. `CrashReporter.note("...")` adds your own breadcrumb.
 - [ebain] **Fast logic check:** `godot --headless --path godot res://<area>.tscn -- --shots` (+ the tour env vars). No

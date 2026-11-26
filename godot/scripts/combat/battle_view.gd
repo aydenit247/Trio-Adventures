@@ -433,29 +433,7 @@ func _build_ui() -> void:
 	enemy_box.add_theme_constant_override("separation", 6)
 	root.add_child(enemy_box)
 	for e in b.enemies:
-		var col := VBoxContainer.new()
-		col.add_theme_constant_override("separation", 1)
-		var head := HBoxContainer.new()   # name on the left, HP x/x on the right (Asar 11/23)
-		head.add_theme_constant_override("separation", 8)
-		var nm := lv._label("%s %s" % [e["name"], e["tag"]], Vector2.ZERO, 17, Color("#ffcf9a"), 5)
-		nm.add_theme_font_override("font", UITheme.row_font())
-		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		nm.clip_text = true
-		head.add_child(nm)
-		var hp_lbl := lv._label("", Vector2.ZERO, 15, Color(1, 1, 1, 0.9), 4)
-		hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		hp_lbl.size_flags_vertical = Control.SIZE_SHRINK_END
-		head.add_child(hp_lbl)
-		col.add_child(head)
-		var hp := _bar(RED, Vector2(300, 14))
-		hp.max_value = e["max_hp"]
-		hp.value = e["hp"]
-		col.add_child(hp)
-		var st := _status_row(14)
-		col.add_child(st)
-		enemy_box.add_child(col)
-		ebars[e["key"]] = { "hp": hp, "hp_lbl": hp_lbl, "st": st, "name": nm, "col": col }
+		_enemy_row(e)
 
 	party_box = HBoxContainer.new()
 	party_box.anchor_top = 1.0; party_box.anchor_bottom = 1.0
@@ -531,6 +509,54 @@ func _build_ui() -> void:
 	actor_marker = _marker(Color("#7dff8a"))
 	target_marker = _marker(GOLD)
 	_refresh()
+
+# One enemy's row in the top-right panel (name + HP x/x, red bar, status chips). Also used for adds that join mid-fight.
+func _enemy_row(e: Dictionary) -> void:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 1)
+	var head := HBoxContainer.new()   # name on the left, HP x/x on the right (Asar 11/23)
+	head.add_theme_constant_override("separation", 8)
+	var nm := lv._label("%s %s" % [e["name"], e["tag"]], Vector2.ZERO, 17, Color("#ffcf9a"), 5)
+	nm.add_theme_font_override("font", UITheme.row_font())
+	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	nm.clip_text = true
+	head.add_child(nm)
+	var hp_lbl := lv._label("", Vector2.ZERO, 15, Color(1, 1, 1, 0.9), 4)
+	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hp_lbl.size_flags_vertical = Control.SIZE_SHRINK_END
+	head.add_child(hp_lbl)
+	col.add_child(head)
+	var hp := _bar(RED, Vector2(300, 14))
+	hp.max_value = e["max_hp"]
+	hp.value = e["hp"]
+	col.add_child(hp)
+	var st := _status_row(14)
+	col.add_child(st)
+	enemy_box.add_child(col)
+	ebars[e["key"]] = { "hp": hp, "hp_lbl": hp_lbl, "st": st, "name": nm, "col": col }
+
+# Adds joining mid-fight (Dulbers' employees, 11/26): spawn them next to the boss, slide them in, give them bars
+func _add_enemy(e: Dictionary, j: int) -> void:
+	var boss_spot: Vector3 = spots[b.enemies[0]["key"]]
+	var spot: Vector3 = boss_spot - right * 1.6 + fwd * (1.6 if j % 2 == 0 else -1.4)
+	var E: Dictionary = e["E"]
+	var n: Unit = lv.spawn_npc("enemy_%s" % e["key"], E["name"], E["tex"], E["h"], spot + right * 6.0)
+	spawned.append(n)
+	nodes[e["key"]] = n
+	spots[e["key"]] = spot
+	base_tint[e["key"]] = Color.WHITE
+	saved_pose[n] = [n.views.duplicate(), n.height_m]
+	n.frozen = false
+	var tex := _tex(E["tex"])
+	if tex: n.set_pose(tex, E["h"])
+	n.set_view("front")
+	n.sprite.flip_h = true
+	n.set_meta("in_fight", true)
+	var tw := create_tween()
+	tw.tween_property(n, "global_position", spot, 0.5 * speed)
+	head_bars[e["key"]] = _head_bar(e)
+	_enemy_row(e)
 
 func _update_hint() -> void:
 	hint.text = "W/S choose · E select · Q back · T timed hits: %s" % ("AUTO" if Game.timed_auto else "MANUAL")
@@ -716,12 +742,17 @@ func _refresh() -> void:
 		pb["hp_lbl"].text = "%s %d/%d" % [p["P"]["hp_label"], p["hp"], p["max_hp"]]
 		create_tween().tween_property(pb["meter"], "value", p["meter"], 0.3)
 		pb["meter"].tooltip_text = p["P"]["meter_label"]
-		_set_status(pb["st"], _status_chips(p) if p["hp"] > 0 else [["KNOCKED OUT", "Out cold. A Beezy or a Chipotle Bowl from Items brings them back.", false]])
+		var down_chip := ["DOWNED  %d/3 passes · %d/3 fails" % [mini(3, p.get("saves", [0, 0])[0]), mini(3, p.get("saves", [0, 0])[1])], "Rolling death saves each turn (d20, 10+ passes). 3 passes = back up at 1 HP, nat 20 = up at half HP, 3 fails = dead for this fight. A Beezy, a Bowl or a teammate's Help Up brings them back now.", false]
+		if p.get("dead", false):
+			down_chip = ["DEAD", "Failed 3 death saves. Out for the rest of this fight (back up at 1 HP after).", false]
+		_set_status(pb["st"], _status_chips(p) if p["hp"] > 0 else [down_chip])
 		var fill: StyleBoxFlat = pb["meter"].get_theme_stylebox("fill")
 		fill.bg_color = Color("#fff07a") if p["meter"] >= 100 else Color("#ffb13a")
 		pb["card"].modulate = Color(1, 1, 1, 1) if p["hp"] > 0 else Color(0.6, 0.6, 0.6, 0.8)
 	_heartbeat(b.result() == "" and b.party.any(func(p): return p["hp"] > 0 and float(p["hp"]) <= float(p["max_hp"]) * 0.25))
 	for e in b.enemies:
+		if not ebars.has(e["key"]):   # an add the summon event hasn't shown yet
+			continue
 		var eb: Dictionary = ebars[e["key"]]
 		create_tween().tween_property(eb["hp"], "value", e["hp"], 0.35)
 		eb["hp_lbl"].text = "HP %d/%d" % [maxi(0, e["hp"]), e["max_hp"]]
@@ -729,6 +760,8 @@ func _refresh() -> void:
 		var chips := _status_chips(e)
 		if e.get("eat_pending", false): chips.push_front(["HOLDING A CHIPOTLE BOWL", "He's about to eat it and heal. Stun or charm him first and he drops it.", false])
 		if e.get("sit_pending", false): chips.push_front(["GETTING READY TO SIT", "He sits on someone next turn. Stun or charm him first and he sits on his own foot.", false])
+		if e.get("sale_pending", false): chips.push_front(["CLEARANCE SALE", "Next turn he hits everyone hard. Defend, block it, or stun/charm him first to cancel it.", false])
+		if e.get("stampede_pending", false): chips.push_front(["CALLING A STAMPEDE", "Next turn every rat runs over the party. Defend, block it, or stun/charm him first to cancel it.", false])
 		_set_status(eb["st"], chips)
 		eb["col"].modulate = Color(1, 1, 1, 1) if e["hp"] > 0 else Color(1, 1, 1, 0.35)
 	_timeline()
@@ -967,6 +1000,9 @@ func _choose(u: Dictionary) -> Dictionary:
 		var nw := b.item_count(u["id"], "bowl")
 		var nj := b.item_count(u["id"], "joint")
 		opts.append({ "text": "Items  (Beezy %d · Bowl %d%s)" % [nb, nw, " · Joint %d" % nj if nj > 0 else ""], "desc": "Heal or revive someone with %s's own items." % u["name"], "v": "item", "off": nb + nw + nj == 0 })
+		var dn := b.downed()
+		if not dn.is_empty():   # 11/26: pick a Downed teammate back up (costs your turn)
+			opts.append({ "text": "Help Up", "desc": "Spend your turn pulling a Downed teammate back up (%d%% of their HP)." % int(D.BALANCE["help_up"] * 100), "v": "help", "hot": true })
 		opts.append({ "text": "Defend", "desc": "Half damage, enemies aim at you, cooldowns tick faster, +meter.", "v": "defend" })
 		if TALK_IN_FIGHTS and not b.talk_options(u).is_empty():
 			opts.append({ "text": "Talk", "desc": "Try talking your way through this.", "v": "talk" })
@@ -980,7 +1016,7 @@ func _choose(u: Dictionary) -> Dictionary:
 				if move["kind"] in ["buff", "healall"] or (move["kind"] == "mogsupreme"):
 					act = { "type": "move", "slot": pick, "target": b.alive(b.enemies)[0] }
 				elif move["kind"] == "healone":
-					var t = await _pick_target(b.party, true)
+					var t = await _pick_target(_livable(), true)
 					if t != null: act = { "type": "move", "slot": pick, "target": t }
 				else:
 					var t = await _pick_target(b.alive(b.enemies), false)
@@ -1002,8 +1038,11 @@ func _choose(u: Dictionary) -> Dictionary:
 				if it == "joint":   # the whole party, no target
 					act = { "type": "item", "item": it, "target": u }
 				elif it != null:
-					var t = await _pick_target(b.party, true)
+					var t = await _pick_target(_livable(), true)
 					if t != null: act = { "type": "item", "item": it, "target": t }
+			"help":
+				var t = await _pick_target(b.downed(), true)
+				if t != null: act = { "type": "help", "target": t }
 			"defend":
 				act = { "type": "defend" }
 			"talk":
@@ -1019,15 +1058,21 @@ func _choose(u: Dictionary) -> Dictionary:
 			return act
 	return {}
 
+# teammates an item/heal can still reach (the dead are out for this fight)
+func _livable() -> Array:
+	return b.party.filter(func(p): return not p.get("dead", false))
+
 func _auto_action(u: Dictionary) -> Dictionary:
 	var foes := b.alive(b.enemies)
 	var t: Dictionary = foes[0]
 	for f in foes:
 		if f["hp"] < t["hp"]: t = f
 	for p in b.party:
-		if p["hp"] < p["max_hp"] * 0.3:
+		if p["hp"] < p["max_hp"] * 0.3 and not p.get("dead", false):
 			if b.item_count(u["id"], "bowl") > 0: return { "type": "item", "item": "bowl", "target": p }
 			if b.item_count(u["id"], "beer") > 0: return { "type": "item", "item": "beer", "target": p }
+	var dn := b.downed()
+	if not dn.is_empty(): return { "type": "help", "target": dn[0] }
 	if u["meter"] >= 100: return { "type": "move", "slot": "ult", "target": t }
 	var combos := b.combos_for(u)
 	if not combos.is_empty(): return { "type": "combo", "combo": combos.back(), "target": t }
@@ -1159,7 +1204,24 @@ func _enemy_turn(e: Dictionary) -> void:
 	await _play(b.roll_chaos())
 	if b.result() != "":
 		return
-	var it := b.enemy_plan(e)
+	# 11/26: phase-2 bosses get a free (lighter) second action; Dulbers' shapeshifts don't use one up
+	var acts := b.enemy_actions(e)
+	var done := 0
+	var guard := 0
+	while done < acts and guard < 6 and b.result() == "" and e["hp"] > 0:
+		guard += 1
+		if done > 0 and not b.alive(b.party).is_empty():
+			_float(n, "BONUS ACTION", Color("#ff9a3a"), 0.8, 0.5)
+			await lv.wait(0.35 * speed)
+		b.begin_action(e, done)
+		var it := b.enemy_plan(e)
+		await _enemy_act(e, it)
+		if not it.get("free", false):
+			done += 1
+	_point(actor_marker, null)
+
+func _enemy_act(e: Dictionary, it: Dictionary) -> void:
+	var n: Unit = nodes[e["key"]]
 	var block := ""
 	if it["kind"] == "hit":
 		_say(it["text"])
@@ -1177,6 +1239,9 @@ func _enemy_turn(e: Dictionary) -> void:
 		if it.get("tex", "") != "":
 			var tex := _tex(it["tex"])
 			if tex: n.set_pose(tex, e["E"]["h"] * 0.78)
+		if it.get("big", false):   # the telegraphed big hit landing (Clearance Sale, stampede)
+			lv.shake = 0.8
+			flash(0.35, Color(1, 0.5, 0.3))
 		block = await _timed(tn if not aoe else nodes[b.alive(b.party)[0]["key"]], "block")
 		await _play(b.enemy_resolve(e, it, block))
 		await lv.wait(0.15)
@@ -1186,7 +1251,6 @@ func _enemy_turn(e: Dictionary) -> void:
 	else:
 		lv.hop(n, 0.3)
 		await _play(b.enemy_resolve(e, it, ""))
-	_point(actor_marker, null)
 
 # ================================================================== events
 func _play(evs: Array) -> void:
@@ -1268,12 +1332,35 @@ func _event(ev: Dictionary) -> void:
 			sfx("heal")
 			lv.hop(n, 0.4)
 			await lv.wait(1.0 * speed)
-		"ko":
+		"ko":   # 11/26: Downed, not out (death saves)
 			sfx("low")
 			lv.knock(n, -80.0, 0.35)
 			flash_unit(n, Color(0.55, 0.55, 0.6), 99.0)
-			_say("%s is knocked out!" % ev["u"]["name"])
+			_say("%s is DOWN! (Death saves start on their turn.)" % ev["u"]["name"])
 			await lv.wait(0.9 * speed)
+		"save":
+			_say("%s rolls a death save… (d20, 10+ passes)" % ev["u"]["name"])
+			await _show_dice([ev["roll"]], 20)
+			_say(ev["text"])
+			_float(n, "PASS" if ev["roll"] >= 10 else ("NAT 1" if ev["roll"] == 1 else "FAIL"), GREEN if ev["roll"] >= 10 else RED, 0.9, 0.5)
+			await lv.wait(0.9 * speed)
+		"save_fail":
+			_say(ev["text"])
+			_float(n, "FAILED SAVE", RED, 0.8, 0.5)
+			sfx("hit", 0.6)
+			await lv.wait(0.8 * speed)
+		"dead":
+			sfx("low", 0.6)
+			flash_unit(n, Color(0.3, 0.3, 0.35), 99.0)
+			_float(n, "DEAD", RED, 1.1, 0.6)
+			_say(ev["text"])
+			await lv.wait(1.4 * speed)
+		"summon":
+			_say(ev["text"])
+			if sounds.has("gob_laugh"): sfx("gob_laugh", 1.1)
+			for j in ev["us"].size():
+				_add_enemy(ev["us"][j], j)
+			await lv.wait(1.4 * speed)
 		"meter_full":
 			sfx("ready")
 			_float(n, "ULT READY!", Color("#fff07a"), 0.9, 0.7)
@@ -1869,7 +1956,7 @@ func _roll_dice(u: Dictionary, count: int) -> Array:
 	await _show_dice(rolls)
 	return rolls
 
-func _show_dice(rolls: Array) -> void:
+func _show_dice(rolls: Array, sides := 6) -> void:   # sides 20 = a death save
 	var box := HBoxContainer.new()
 	box.anchor_left = 0.5; box.anchor_right = 0.5; box.anchor_top = 0.42
 	box.offset_left = -150; box.offset_right = 150
@@ -1893,11 +1980,11 @@ func _show_dice(rolls: Array) -> void:
 		if not sounds.has("dice_real"):
 			sfx("dice", 1.0 + k * 0.05)
 		for l in faces:
-			l.text = str(randi_range(1, 6))
+			l.text = str(randi_range(1, sides))
 		await lv.wait(0.07)
 	for i in rolls.size():
 		faces[i].text = str(rolls[i])
-		faces[i].add_theme_color_override("font_color", Color("#c0392b") if rolls[i] in [1, 6] else Color(0.1, 0.08, 0.1))
+		faces[i].add_theme_color_override("font_color", Color("#c0392b") if rolls[i] in [1, sides] else Color(0.1, 0.08, 0.1))
 	sfx("boing" if 1 in rolls and sounds.has("boing") else "bonk", 1.0 if 1 in rolls else 0.7)   # a 1: boing
 	await lv.wait(0.9)
 	box.queue_free()

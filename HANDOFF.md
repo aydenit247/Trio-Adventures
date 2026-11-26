@@ -169,6 +169,11 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 - **Deloye** smokes; the library's final room is about passing him a joint (A/B/C above). Telling him "Bad." makes him
   disapprove of Xylo for the rest of the run.
 
+- **Combat direction (Ebain 11/26):** keep the current turn-based system (he tried a BG3 grid test and an Expedition
+  33 dodge/parry test and passed on both) and make it harder with close calls: the balance pass in "Combat in one
+  paragraph". **Dying only lasts for that fight** (back up at 1 HP after); the Death waiting room idea is scrapped
+  because lasting deaths would break dialogue.
+
 **Big direction (Ebain):** these four are the MAIN EVENTS. Between them he wants lots of optional, open-world-ish
 stuff: places to walk into, joke NPCs, side quests, roaming enemies, gear to find. More chapters later; Dulbers is
 set up to come back as a villain.
@@ -450,7 +455,24 @@ FFX-style turn timeline, timed hits/blocks on a shrinking ring (Auto option: T o
 (FULL CRASH OUT, MOG SUPREME, CHUD OUT), team-ups, statuses both ways, boss phases, rare chaos events (+ **Dulbmeethus' lightning**, 6.7% of fights (`BOLT_CHANCE` in battle.gd): "Y'all could hear me doe?" on the first enemy
 turn, then **Ebain's 10 s cutscene** (`assets/video/dulbmeethus_strike.ogv`, full-screen, music ducked, E/Esc skips after 0.6 s, `battle_view.gd _strike_cutscene()`; skipped in headless runs / env `NO_CUTSCENE`) that ends on a white-out which fades into a bolt on every enemy (Ebain's lightning art in `assets/vfx/`: additive bolt + impact burst + scorch on the ground, `battle_view.gd _bolt_art()`, plain `_bolt()` if the pictures are missing) with Ebain's attack clip (`assets/sounds/dulbmeethus_attack.ogg`), regular ones drop, bosses lose 40%; `battle.gd _dulbmeethus_bolt`, `BOLT=1` forces it), banter, XP +
 levels (Level 3 teaches new moves), 7 gear slots per fighter (helmet/armor/shoes/shield/weapon/2 trinkets, summed by `Game.gear_stats()`), armor (**a % cut per hit since 11/26**: 3% per point, max 30%, `D.ARMOR_PCT/ARMOR_CAP`; gear damage bonuses stack with falloff, `D.POWER_FALLOFF`), Normal difficulty ×1.1 enemy HP / ×1.15 damage (11/26), roaming fights scale harder with a full party,
-**Metocin Mattias** (11/26 rebalance, Asar beat him item-less): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
+**Balance pass (Ebain 11/26)**, numbers in `CombatD.BALANCE` / `SALE` / `STAMPEDE`: **Downed, not out** (0 HP = Downed;
+on their turn they roll a d20 death save with the dice popup, 10+ passes: 3 passes = up at 1 HP, nat 20 = up at half HP
+and they act, nat 1 = two fails, 3 fails = **dead for the rest of that fight**; AoE hits on a Downed fighter = a failed
+save; Items/heals revive the Downed but not the dead; new menu option **Help Up** spends your turn to bring one back at
+20% HP; `battle.gd downed()`, `_death_save`, `help_up`; after the fight everyone is back at 1 HP as before, **no
+lasting death and no Death area: Ebain scrapped it, it would break dialogue**), **boss tempo** (phase-2 bosses get a
+free second action at 40% strength, `enemy_actions()` + `begin_action()`; the view and the sim loop on it; Mattias has
+`no_tempo`; the Giant's old phase-2 speed-up is gone), **Dulbers' shapeshifts are free** (`"free": true` intents),
+**big telegraphed hits** (`_telegraph()`: wind up on his 3rd turn then every 5th/4th, lands on his NEXT turn, never on
+the bonus action; Defend, a timed block or a stun/charm during the windup answers it: Dulbers' **CLEARANCE SALE →
+EVERYTHING MUST GO**, the Rat King's **stampede**, on top of the Giant's SIT), **adds** (a fight's `adds` list joins at
+the boss's phase 2, `_summon()`: two goblins in Metocy Mart vests at the Mart Dulbers fight, ai `employee`; they leave
+when the boss drops; `battle_view._add_enemy()` spawns them), **every boss scales with your gear** (milder than
+Mattias: `boss_drip_hp/dmg`), **comeback power** (under 25% HP the meter fills 2×), **no emergency Beezy in boss
+fights**. Dulbers (Mart) got hp 300 → 240, Price Gouge 34 → 30, Bootleg Slap 36 → 30, NO REFUNDS 21 → 18 to make room.
+Sim (Normal, Mart Dulbers): sloppy ~60% win, average ~90% with ~50% HP left and ~1 down, good ~99%.
+**Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
+bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim
 targets (`tools/sim_combat.gd`, `SIM_GEARED=1 SIM_PRO=1`): full gear, no items: good player ~6%, near-perfect ~40%; with items ~20% / ~80%. permanent BOOSTS items (`Game.use_boost`), gold drops (`gold` per enemy; Talk = half), Run option (Talk is off in fights since 11/25: `BattleView.TALK_IN_FIGHTS`; the TALK data stays), Chief Bogdrinker joins
 as a 4th fighter when the goblins are allies. Losing = "YOU GOT COOKED" + a funny penalty (story fights retry,

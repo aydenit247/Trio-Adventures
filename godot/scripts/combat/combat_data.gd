@@ -68,10 +68,11 @@ const PARTY := {
 # Every number for the fight is here so new items/levels can be balanced against it later (tools/sim_combat.gd runs it).
 const MATTIAS_BOSS := {
 	# 11/26 rebalance (Asar beat him item-less): was hp 1700, bolt 38, rain 22, heal 160. Normal difficulty also went up
-	# (×1.1 HP, ×1.15 damage), these are the base numbers before that
-	"hp": 2100, "spd": 19, "gold": 300, "xp": 200,
-	"bolt": 40,          # Metocy Bolt: one target
-	"rain": 24,          # Pill Rain: everyone, bricks specials
+	# (×1.1 HP, ×1.15 damage), these are the base numbers before that. Then the 11/26 balance pass (death saves, Help Up)
+	# made him ~2× easier, so: hp 2100 → 2400, bolt 40 → 50, rain 24 → 30 (sim back to the old win rates)
+	"hp": 2400, "spd": 19, "gold": 300, "xp": 200,
+	"bolt": 50,          # Metocy Bolt: one target
+	"rain": 30,          # Pill Rain: everyone, bricks specials
 	"shield": 70,        # Out-Mogs Lykor: an aura shield (needs Lykor standing)
 	"heal": 200,         # Takes A Metocy: once, under heal_below
 	"heal_below": 0.4,
@@ -82,6 +83,20 @@ const MATTIAS_BOSS := {
 	"drip_hp": 0.24,
 	"drip_dmg": 0.09,
 }
+
+# Balance pass (Ebain 11/26). Tune here; tools/sim_combat.gd runs every fight through the real rules.
+const BALANCE := {
+	"comeback_hp": 0.25,     # under 25% HP your meter fills…
+	"comeback_mult": 2.0,    # …twice as fast
+	"help_up": 0.2,          # Help Up brings a Downed teammate back at 20% of their max HP (DRAFT number)
+	"bonus_mult": 0.4,       # a phase-2 boss's free second action hits at 40% strength
+	"boss_drip_hp": 0.2,     # every boss but Mattias scales with your gear (a bit milder than his drip_hp/drip_dmg)
+	"boss_drip_dmg": 0.09,
+}
+# Big telegraphed hits (like the Giant's SIT): wind up on his `first` turn and every `every` turns after, land it on
+# everyone on his next turn. Defend, a timed block, or a stun/charm while he winds up all answer it.
+const SALE := { "power": 34, "first": 3, "every": 5 }       # Dulbers: "CLEARANCE SALE! EVERYTHING MUST GO!" (DRAFT)
+const STAMPEDE := { "power": 30, "first": 3, "every": 4 }   # the Rat King's stampede (DRAFT)
 
 # Team-ups. Each person in the combo spends `cost` meter. Partners' next turn gets pushed back a bit.
 const COMBOS := [
@@ -206,7 +221,13 @@ const FIGHTS := {
 	},
 	"dulbers": {
 		"title": "The Party vs. Dulbers Frint", "party": ["skorn", "lykor", "xylo"], "xp": 60, "story": true, "boss": true, "lvl": 2,
-		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "gold": 75, "hp": 300, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
+		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "gold": 75, "hp": 240, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
+		# 11/26: at half HP he calls in his employees (they leave when he drops). Names/text: DRAFT
+		"adds": [
+			{ "name": "Goblin", "tag": "(Mart Employee) (Finally Employed)", "hp": 16, "spd": 7, "tex": "goblin_fight", "h": 1.2, "ai": "employee" },
+			{ "name": "Goblin", "tag": "(Mart Employee) (First Day)", "hp": 16, "spd": 7, "tex": "goblin_fight", "h": 1.15, "ai": "employee" },
+		],
+		"adds_text": "Dulbers: \"CLEANUP ON AISLE 3!\" Two goblins in Metocy Mart vests clock in. They finally got jobs.",
 		"talk": ["refund", "compliment_store"],
 		"loot": "receipt",
 	},
@@ -223,6 +244,7 @@ const FIGHTS := {
 	},
 	"mattias": {   # the sucker punch. Numbers: MATTIAS_BOSS
 		"title": "FINAL BOSS(?): Metocin Mattias", "party": ["skorn", "lykor", "xylo"], "xp": MATTIAS_BOSS["xp"], "story": true, "boss": true, "lvl": 5, "drip_scale": true,
+		"no_tempo": true,   # (11/26) no free phase-2 action: he's already tuned to "near-impossible" (phase2_mult)
 		"enemies": [{ "name": "Metocin Mattias", "tag": "(Got Sucker Punched) (Unbothered)", "gold": MATTIAS_BOSS["gold"], "hp": MATTIAS_BOSS["hp"], "spd": MATTIAS_BOSS["spd"], "tex": "mattias", "portrait": "mattias", "h": 2.2, "ai": "mattias", "boss": true }],
 		"talk": ["apologize_mattias"],
 	},
@@ -266,7 +288,7 @@ const FIGHTS := {
 	"goblin_patrol": {
 		"title": "Goblin Patrol", "xp": 50,
 		"enemies": [
-			{ "name": "Goblin", "tag": "(Unpaid Internship)", "gold": 2, "hp": 24, "spd": 8, "tex": "goblin_fight", "h": 1.2, "ai": "goblin" },
+			{ "name": "Goblin", "tag": "(Unpaid Internship)", "gold": 2, "hp": 16, "spd": 7, "tex": "goblin_fight", "h": 1.2, "ai": "goblin" },
 			{ "name": "Goblin", "tag": "(Hall Monitor)", "gold": 6, "hp": 30, "spd": 7, "tex": "goblin_fight", "h": 1.32, "ai": "goblin" },
 			{ "name": "Goblin", "tag": "(Shift Manager)", "gold": 10, "hp": 36, "spd": 9, "tex": "goblin_fight", "h": 1.4, "ai": "goblin", "second_wind": true },
 		],
