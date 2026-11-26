@@ -43,8 +43,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 1½. **Goblin Woods Trail (morning, Asar 11/22):** a long walk between Camp and the Village to earn gold before the shop:
    6 searchable loot spots (sparkles) and Asar's **Bridge Troll** by the creek: "Y'all had said i could get some
    bussy?" → "It's good" (Xylo follows him into his hut, black screen while Asar's three "love and light" clips play,
-   Hold [E] to skip with a ring that fills while held and drains when let go, `trail.gd _love_and_light()`; bridge opens) or "Bad." (troll fight, lots of gold, then loot
-   his hut and chest). Flags `trailStarted`, `trollMet`, `trollDone` ("good"/"bad"), `trollHut`, `trollChest`,
+   Hold [E] to skip with a ring that fills while held and drains when let go, `trail.gd _love_and_light()`; bridge opens; then it's just Lykor and Skorn, exits blocked, until you
+   knock on the hut and Xylo walks out: "Damn he was digging in me, folk") or "Bad." (troll fight, lots of gold, then loot
+   his hut and chest). Flags `trailStarted`, `trollMet`, `trollDone` ("good"/"bad"), `trollHut`, `trollChest`, `xyloInHut`,
    `trailLoot0..5`, `trailDone`.
 2. **Goblin Village (day, as Lykor):** ambush → kneel → the Chief → crowned at the spoon throne → choice: A royal
    speech (+3 beezy) · B chug-off minigame · C crown Skorn (he stays behind, `skornKing`) · D sneak out for real,
@@ -119,7 +120,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    sleeps (Asar 11/22), so you can't get past until he's dealt with.
 5. **The Summit Path + the Wizard's Lair (night, Asar 11/22; finale built from Ebain's `SUMMIT_FINALE_PLAN.md` 11/24):
    the final event of Chapter 1.** Arriving: a slow camera dolly while Skorn/Xylo/Lykor catch their breath (Xylo's line
-   changes with how this run got past the giant/troll), then a toast "Don't walk yet if you want to hear the song." and
+   changes with how this run got past the giant/troll), then (no toast since 11/25, Asar)
    Ebain's "The Hymn of Metocin Mattias" starts (plays once; hearing it once counts for good: `hymnHeard` flag + progress
    id `hymn_heard`, it never restarts and Mattias is talkable from then on, `summit.gd _hymn_watch`). A long climb (3 clearings saved for future events:
    `EVENT_SPOTS` overlook / shrine / cart). **Halfway** (z < 8, by the shrine): Mattias's echo "Impressive, my beloved
@@ -430,7 +431,7 @@ small red bar over their heads (Asar 11/23, `battle_view.gd _head_bar/_place_hea
 ### 3D trio for walking (Asar 11/24)
 Skorn, Lykor and Xylo walk around as rigged 3D models (`assets/characters3d/<id>.glb`, made in Meshy from the
 arms-out references in `art_refs/3d/`, Mixamo skeleton). `Char3D` plays the GLB's `Idle` / `Walking` / `Running`
-clips matched to speed and turns toward movement. Standing still it holds a pose; after 15 s the idle clip plays once every 5 s (`IDLE_AFTER`, `IDLE_GAP`). **Fights and posed moments stay 2D** (Asar's call): `Unit._sync_body`
+clips matched to speed and turns toward movement. Standing still it holds a pose; after 15 s of free walking time (not during dialogue) the idle clip plays once every 5 s (`IDLE_AFTER`, `IDLE_GAP`). **Fights and posed moments stay 2D** (Asar's call): `Unit._sync_body`
 shows the billboard again when the unit has meta `in_fight` (battle_view sets it in `_intro`, clears it in `_outro`),
 when a pose picture is up (`views.front != base_tex`), or when knocked over. Everything else that pokes `u.sprite`
 still works: the sprite is just hidden while the 3D body shows; hops (`sprite.position.y`) and squash are mirrored.

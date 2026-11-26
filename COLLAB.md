@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Troll "It's good": Xylo stays in the hut until you knock; no idle during dialogue — files: godot/scripts/trail.gd, trail_script.gd, unit.gd, char3d.gd — branch: asar/troll-knock — started 2026-11-25
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -70,6 +69,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
+- 2026-11-25 [asar] **Troll "It's good" (Asar's idea):** the troll walks into his hut with Xylo right behind, door sound, both gone, then the black screen (love & light). After that Xylo is out of the party (`remove_from_party`, flag `xyloInHut`, kept in saves): no following, no switching to him, both exits blocked ("We can't leave without Xylo", DRAFT toast), objective "Knock on the troll's hut to get Xylo back" (DRAFT). "Knock on the troll's hut" (the chest waits until then, it's right by the door) → Xylo walks out: "Damn he was digging in me, folk" (# Asar, no recording yet) and rejoins. If you were playing Xylo, control goes to Lykor first. Trail tour TRAIL_CHOICE=0 now knocks too. **Idle:** char3d/unit: the 15 s idle timer only runs while the level isn't `busy` (no idle during dialogue); a play already going finishes first. Tested: suite2 29/29, continuity 0, trail knock render.
 - 2026-11-25 [ebain] More voice clones: 5 Lykor lines + his reworded camp line (replaces Asar's "Why does that look like… nah"), and Skorn's "I'm not tired…" / "From… other fires." in `voice_index.gd`. `camp_script.gd`: Lykor line text changed (Ebain's words); the two Skorn lines stay DRAFT-tagged but Ebain approved voicing them. Mattias/Dulbers/goblin clones still not imported.
 - 2026-11-25 [asar] char3d.gd idle: after 15 s standing still the idle clip plays once, then 5 s still, then again (`IDLE_GAP`). Tried making the throne sit more upright (holding only the upright start of the sit clip); Asar didn't like it, so the sit is back to the full clip, unchanged. Tested: suite2 29/29, continuity 0, idle timing probed (plays at 15, 24, 33 s).
 - 2026-11-25 [ebain] Voice cloning: added `tools/tts_batch.py` (find/refs/gen/pack, `--only "line"` to redo one) and 6 cloned Skorn lines (ChatterboxTTS 0.7/0.3 + pitch fx) in `voice_index.gd`. Reworded one Skorn line each in camp/pass/mart/summit scripts (cold "mufug", "Wizard jit?", store, Woahhh); "Metocin Mattias" name untouched elsewhere. Mattias/Dulbers/goblin clones NOT imported (not approved). Lykor clones pending. Details in VOICE_LINES.md and TIPS.md.
