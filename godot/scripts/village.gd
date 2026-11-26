@@ -816,6 +816,7 @@ func _build_flush_handle() -> void:
 	glow.position = Vector3(0.35, 1.2, 0)
 	flush_handle.add_child(glow)
 
+const PIPE_VIDEO := "res://assets/video/pipe_ride.ogv"
 func _deloye_flush() -> void:
 	busy = true
 	freeze_all(true)
@@ -858,6 +859,13 @@ func _deloye_flush() -> void:
 	var tw := create_tween()
 	tw.tween_property(fade, "color:a", 1.0, 0.35)
 	await tw.finished
+	# the pipe ride (Ebain's Gemini video, 11/26): down the toilet, through the pipe, splash into the library.
+	# Ends on white, so the library's white fade-in picks up from it. Skippable; skipped on tours (NO_CUTSCENE/headless).
+	if engine:
+		engine.stop()
+	shake = 0.0
+	if not shots_mode:
+		await VideoCutscene.play(hud, PIPE_VIDEO, Color.WHITE)
 	stage = "end"
 	Game.goto("res://deloye_library.tscn")
 
