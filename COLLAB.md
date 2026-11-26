@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Combat balance pass: death saves (Downed), boss tempo, telegraphed big hits, Dulbers' adds, gear scaling for all bosses, comeback meter, no emergency Beezy in boss fights — files: combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, tools/sim_combat.gd, unit.gd — branch: ebain/combat-balance — started 2026-11-26
 - [asar] Haggle's Stall to the north side of the east road — files: godot/scripts/village_buildings.gd — branch: asar/stall-north — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
