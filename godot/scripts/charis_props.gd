@@ -26,15 +26,26 @@ static func build_outside(lv: Node3D) -> void:
 	for s in [-1.0, 1.0]:
 		Models.block(lv, mid + Vector3(s * (DRIVE_W / 2.0 + 0.08), 0.06, 0), Vector3(0.16, 0.12, len), curb)
 	# the car, parked nose-out toward the street
-	var car := _model(lv, CAR, 4.6, CAR_POS, PI / 2.0)
+	var car := _model(lv, CAR, 4.6, CAR_POS, PI / 2.0)   # the GLB is long along X, nose at -X: turned so the nose points down the driveway (+Z)
 	if car:
 		Util.static_box(lv, CAR_POS + Vector3(0, 0.7, 0), Vector3(2.0, 1.4, 4.6))
 
 # ---------------------------------------------------------------- inside
 static func build_inside(lv: Node3D, house: Vector3) -> void:
-	_collector_shelf(lv, house + Vector3(4.75, 0, 1.0), -PI / 2.0 + 0.55)
-	# his cat, loafing on the rug where he can watch the fire
-	_model(lv, CAT, 0.42, house + Vector3(-0.4, 0.02, 1.3), 0.5, true)
+	_collector_shelf(lv, house + Vector3(-4.2, 0, -4.1), 0.0)   # back wall, left of the gaming desk (where the empty bookshelf was)
+	# his cat, loafing in front of the fire
+	var cat_at := house + Vector3(0.5, 0.02, -2.3)
+	if _model(lv, CAT, 0.42, cat_at, 0.6, true):
+		var tag := Label3D.new()   # same style as the Charis tag in mart.gd
+		tag.text = "Morgana (Bahgoots)"   # Asar 11/25
+		tag.font_size = 26
+		tag.pixel_size = 0.0055
+		tag.outline_size = 8
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.modulate = Color("#ffcf9a")
+		tag.no_depth_test = true
+		lv.add_child(tag)
+		tag.global_position = cat_at + Vector3(0, 0.75, 0)
 
 # A glass-front collector shelf: figures up top, the card in the middle with manga either side, more manga below.
 static func _collector_shelf(lv: Node3D, at: Vector3, yaw: float) -> void:
@@ -68,7 +79,7 @@ static func _collector_shelf(lv: Node3D, at: Vector3, yaw: float) -> void:
 	root.add_child(l)
 	Util.static_box(lv, at + Vector3(0, H / 2.0, 0), Vector3(W, H, D), yaw)
 	# top shelf: the figures (one Meshy model of four on a shared base)
-	var figs := _model(root, FIGURES, W - 0.25, Vector3(0, 1.24, 0.02), 0.0, false, true)
+	var figs := _model(root, FIGURES, 0.5, Vector3(0, 1.245, 0.02), 0.0, true, true)   # 0.5 m tall: fits under the top board
 	# middle shelf: the card on its stand, manga either side
 	_card(root, Vector3(0, 0.64, 0.03))
 	_manga_row(root, Vector3(-W / 2.0 + 0.06, 0.64, -0.02), 10, 1)
