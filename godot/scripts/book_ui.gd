@@ -150,7 +150,16 @@ func _turn(d: int) -> void:
 	_render()
 
 func close() -> void:
-	UITheme.play("back")
+	if ResourceLoader.exists("res://assets/sounds/sfx_book_close.ogg"):   # (Ebain's sfx pack) the book shuts
+		var a := AudioStreamPlayer.new()
+		a.stream = load("res://assets/sounds/sfx_book_close.ogg")
+		a.volume_db = -6.0
+		a.bus = &"SFX"
+		get_tree().root.add_child(a)   # outlives this screen
+		a.play()
+		a.finished.connect(a.queue_free)
+	else:
+		UITheme.play("back")
 	MenuUI.stack.erase(self)
 	closed.emit()
 	queue_free()

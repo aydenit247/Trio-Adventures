@@ -79,6 +79,7 @@ func add_xp(n: int) -> Array:
 		out.append(level)
 	if not out.is_empty():
 		heal_all()   # leveling up refills everyone
+		leveled_up.emit(out[-1])
 	return out
 
 func xp_to_next() -> int:
@@ -89,6 +90,7 @@ func give_gear(id: String, to := "") -> bool:
 		return false
 	gear_owned.append(id)
 	gear_owner[id] = to if to != "" else active_fighter
+	item_got.emit(id)
 	return true
 
 # ---- per-character items
@@ -110,6 +112,8 @@ func count(id: String, f := "") -> int:
 func add_item(id: String, n := 1, f := "") -> String:
 	var who := f if f != "" else active_fighter
 	bag(who)[id] = count(id, who) + n
+	if n > 0:
+		item_got.emit(id)
 	return who
 
 # Take items (f = "" → from anyone, the one you're controlling first). False if there aren't enough.
@@ -163,6 +167,8 @@ func gear_in_bag(f: String) -> Array:   # unequipped gear this fighter carries
 
 signal gold_changed(delta: int)       # (Asar) the level plays the coin sound
 signal quest_finished(id: String)     # (Asar) the level plays the reward sound
+signal item_got(id: String)           # (Ebain's sfx pack) the level plays the pickup sound
+signal leveled_up(lvl: int)           # (Ebain's sfx pack) the level plays the level-up jingle
 
 func add_gold(n: int) -> void:
 	var before := gold

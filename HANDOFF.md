@@ -413,6 +413,11 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
     record rewind when you get away; rat squeaks when rats get hit; real dice roll; cloth rustle opening the bag and
     equipping; pen scratch on a new objective and when the Scrapbook opens; `ui_switch` for menu moves (UITheme "move")
     and switching characters.
+  - **Pack 2 (11/26):** `sfx_page_flip` is UITheme "page" (book pages, menus that flip), `sfx_book_close` when a lore
+    book closes, `sfx_pages_rewind` (UITheme "rewind") on dialogue Backspace, `sfx_item_pickup` whenever anything lands
+    in a bag (`Game.item_got` from `add_item`/`give_gear`; a burst only plays once), `sfx_level_up` on any level up
+    (`Game.leveled_up` from `add_xp`), `sfx_giant_steps` when the Giant stands and walks off (and pitched up, quieter,
+    for the Bridge Troll walking to his hut).
   - **Deloye library:** a magic hum on each joint piece (stops when you take it), lighter flick when Deloye sparks it
     (A) and at the start of puff puff pass (B, plus a cough), engine hum booting the Neuralink.
 - **Controller:** left stick/d-pad move, right stick or LB/RB camera, A talk/confirm, B run (hold) / back in menus,

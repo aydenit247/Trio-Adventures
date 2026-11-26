@@ -488,6 +488,7 @@ func _on_action(n: String) -> void:
 		"giant_leaves":
 			giant.set_meta("goal", Vector3(-16, 0, -10))
 			giant.set_meta("goal_speed", 1.0)
+			play_sound_at("sfx_giant_steps", giant.global_position + Vector3(0, 1, 0), 0.0, 0.95, 8.0)
 			await wait(2.5)
 			giant.visible = false
 			giant.remove_meta("goal")
@@ -623,6 +624,7 @@ func _giant_wakes(angry: bool) -> void:
 	giant.sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	giant.set_meta("tint", Color.WHITE)
 	hop(giant, 0.8)
+	play_sound("sfx_giant_steps", -2.0, 0.9)   # (Ebain's sfx pack) the ground shakes
 	shake = 0.8 if angry else 0.2
 	if angry:
 		char_label(giant, "Diddy Chud Giant (Awake, Disturbed)", 3.5, 7.4, Color("#ff8a6a"))
