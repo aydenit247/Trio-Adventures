@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Charis's car + driveway, cat, collector shelf (figures, card, manga) — files: godot/scripts/charis_props.gd (new), godot/shaders/holo_card.gdshader (new), godot/assets/props/charis_*.glb + anime_figures.glb (new); needs 2 lines in mart.gd after Ebain's sfx claim — branch: asar/charis-props — started 2026-11-25
 - [ebain] Ebain's SFX pack everywhere (footsteps per floor, ambience, story moments, jokes, UI) — files: godot/assets/sounds/, godot/scripts/level.gd (step + ui sounds), ambience.gd, ui_theme.gd, camp.gd, trail.gd, pass.gd, summit.gd, cave.gd, ruins.gd, village.gd, mart.gd, scrapbook_ui.gd, deloye_library.gd, inventory_ui.gd, lost_pages.gd, combat/battle_view.gd, combat/battle.gd, village_buildings.gd, title.gd — branch: ebain/sfx-pack — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
