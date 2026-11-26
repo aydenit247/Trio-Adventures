@@ -11,6 +11,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [asar] 3D trio in fights while choosing (2D only during their move) — files: godot/scripts/combat/battle_view.gd (small), godot/scripts/unit.gd — branch: asar/fight-3d — started 2026-11-25
+- [ebain] Ebain's 11/26 batch: remove "Who drew this map" line, troll voice (Bogdrinker, lower pitch) + Lykor/Xylo lines after Xylo goes with the troll, Skorn voice-gen batch, spoon crown, Deloye library camera drag + Mattias stuck, combat balance (Mattias + all fights) — files: trail.gd, trail_script.gd, dialogue.gd (CHARS only), village.gd/village_script.gd (crown), deloye_library.gd, combat/combat_data.gd, combat/battle.gd, tools/tts_batch.py, tools/sim_combat.gd, VOICE_LINES.md, voice batch files (new) — branch: ebain/batch-1126 — started 2026-11-26
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
@@ -67,6 +68,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] trail.gd, trail_script.gd, dialogue.gd (CHARS), village.gd, village_script.gd, deloye_library.gd, combat/combat_data.gd, combat/battle.gd, tools/tts_batch.py, tools/sim_combat.gd, VOICE_LINES.md
 - [asar] godot/assets/items/goblin_tooth.png
 
 ## Log (newest first)
