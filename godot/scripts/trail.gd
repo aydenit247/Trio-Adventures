@@ -142,6 +142,7 @@ func _after_build() -> void:
 	env.fog_aerial_perspective = 0.35
 	sun_light.light_color = Color(1.0, 0.86, 0.68)
 	sun_light.light_energy = 1.3
+	amb_loop("amb_river", -4.0, BRIDGE + Vector3(0, 0.2, 0), 7.0, 38.0)   # the creek (Ebain's sfx pack)
 	_apply_state()
 
 func _sparkle(p: Vector3) -> Node3D:
@@ -263,6 +264,7 @@ func _on_action(n: String) -> void:
 			walk_to(xylo, stand, 1.0, 6.0)   # right behind him
 			await walk_to(troll, HUT_DOOR, 0.8, 6.0)
 			play_sound("sfx_door", -6.0)
+			play_sound("sfx_boing", -7.0, 0.75)   # big guy, small door
 			troll.visible = false   # in the door first
 			var tw := 0.0
 			while tw < 3.0 and xylo.global_position.distance_to(stand) > 0.6:   # let Xylo reach the doorstep
@@ -514,3 +516,7 @@ func _shot_tour() -> void:
 		await shot("t_06_looted")
 	print("TRAIL TOUR choice=", choice, " gold=", Game.gold, " trollDone=", Game.flags.get("trollDone", ""), " xp=", Game.xp)
 	get_tree().quit()
+
+# footsteps (Ebain's sfx pack): planks on the bridge, grass everywhere else
+func floor_at(p: Vector3) -> String:
+	return "wood" if absf(p.z - BRIDGE.z) < 2.6 and absf(p.x - BRIDGE.x) < 1.4 else "grass"

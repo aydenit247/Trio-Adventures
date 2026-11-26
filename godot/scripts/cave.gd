@@ -585,6 +585,7 @@ func _apply_colony_state() -> void:
 
 # ---------------------------------------------------------------- after build
 func _after_build() -> void:
+	amb_loop("amb_cave", -8.0)   # slow drips in the dark (Ebain's sfx pack)
 	var env: Environment = world_env.environment
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.0, 0.0, 0.0)
@@ -1283,3 +1284,7 @@ func _tour_use(id: String, lines: int) -> void:
 	start(its[0])
 	await advance(lines, 0.6)
 	await wait(0.8)
+
+# footsteps (Ebain's sfx pack): stone all the way through
+func floor_at(_p: Vector3) -> String:
+	return "hall"

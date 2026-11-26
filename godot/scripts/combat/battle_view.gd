@@ -112,6 +112,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	_build_ui()
 	await _intro()
 	var res := await _loop()
+	_heartbeat(false)
 	await _outro(res)
 	return res
 
@@ -351,10 +352,31 @@ func _make_sounds() -> void:
 		if st:
 			sounds[pair[0]].stream = st
 			sounds[pair[0]].volume_db = pair[2]
+	# Ebain's sfx pack (11/26): the boing on a fumble, record scratches, rat squeaks, real dice, the heartbeat
+	for pair in [["boing", "sfx_boing", -4.0], ["awkward", "sfx_vinyl_awkward", -5.0], ["rewind", "sfx_vinyl_rewind", -5.0],
+			["squeak", "sfx_rat_squeak", -6.0], ["squeak2", "sfx_rat_squeak2", -4.0], ["dice_real", "sfx_dice", -5.0],
+			["tiger", "sfx_tiger_roar", -3.0], ["gob_laugh", "sfx_goblin_evil_laugh", -4.0], ["heart", "sfx_heartbeat", -9.0]]:
+		var p2 := "res://assets/sounds/%s.ogg" % pair[1]
+		if ResourceLoader.exists(p2):
+			var st2: AudioStream = load(p2)
+			if pair[0] == "heart":
+				st2 = st2.duplicate()
+				st2.loop = true
+			sounds[pair[0]] = lv._sfx(st2, pair[2])
 	sounds["shi"] = lv._sfx(load("res://assets/voices/lykor/on_some_type_shit.mp3"), linear_to_db(maxf(Game.voice_vol, 0.01)))   # Asar's Lykor take (same file as his Mart line), at the Voice volume
 	var strike_st = load(STRIKE_SOUND) if ResourceLoader.exists(STRIKE_SOUND) else null
 	if strike_st:
 		sounds["strike"] = lv._sfx(strike_st, 0.0)   # Ebain's clip for the moment Dulbmeethus actually attacks (played plain, no pitch change)
+
+# (Ebain's sfx pack) heartbeat loop while anyone on our side is at 25% HP or less
+func _heartbeat(on: bool) -> void:
+	if not sounds.has("heart"):
+		return
+	var h: AudioStreamPlayer = sounds["heart"]
+	if on and not h.playing:
+		h.play()
+	elif not on and h.playing:
+		h.stop()
 
 func sfx(k: String, pitch := 1.0) -> void:
 	if sounds.has(k):
@@ -698,6 +720,7 @@ func _refresh() -> void:
 		var fill: StyleBoxFlat = pb["meter"].get_theme_stylebox("fill")
 		fill.bg_color = Color("#fff07a") if p["meter"] >= 100 else Color("#ffb13a")
 		pb["card"].modulate = Color(1, 1, 1, 1) if p["hp"] > 0 else Color(0.6, 0.6, 0.6, 0.8)
+	_heartbeat(b.result() == "" and b.party.any(func(p): return p["hp"] > 0 and float(p["hp"]) <= float(p["max_hp"]) * 0.25))
 	for e in b.enemies:
 		var eb: Dictionary = ebars[e["key"]]
 		create_tween().tween_property(eb["hp"], "value", e["hp"], 0.35)
@@ -837,7 +860,13 @@ func _intro() -> void:
 		lv.zoom = 6.8 + widest * 0.85
 		lv.cam_look_h = 1.15
 	var home_focus = lv.focus_override
-	sfx("roar", 0.8)
+	var ais: Array = b.enemies.map(func(e): return e.get("ai", ""))
+	if ("rat" in ais or "rat_king" in ais) and sounds.has("tiger"):
+		sfx("tiger", 1.0)   # (sfx pack) a tiny rat, a full tiger roar
+	elif "goblin" in ais and key != "goblins" and sounds.has("gob_laugh"):
+		sfx("gob_laugh", 1.0)   # (the throne fight already got its laugh in village.gd)
+	else:
+		sfx("roar", 0.8)
 	lv.shake = 0.35
 	if cinematic:
 		var boss: Unit = nodes[b.enemies[0]["key"]]
@@ -1181,6 +1210,8 @@ func _event(ev: Dictionary) -> void:
 		"dmg":
 			if ev["text"] != "": _say(ev["text"])
 			sfx(ev.get("sound", "hit"))
+			if str(ev["u"].get("ai", "")).begins_with("rat"):
+				sfx("squeak" if randf() < 0.5 else "squeak2", randf_range(0.95, 1.25))
 			flash_unit(n, Color(2.5, 2.5, 2.5), 0.12)
 			_kick(n)
 			_float(n, "-%d" % ev["amt"], Color("#ffd27a") if not q else Color("#ffe8b0"), 1.0 if not q else 0.8)
@@ -1381,7 +1412,7 @@ func _event(ev: Dictionary) -> void:
 		"fled":
 			Game.ach.bump("fled")   # Tactical retreat (5 fights)
 			_say(ev["text"])
-			sfx("throw", 1.4)
+			sfx("rewind" if sounds.has("rewind") else "throw", 1.0)   # (sfx pack) record rewind: we were never here
 			await _banner("GOT AWAY", Color("#8ad8ff"), 1.2)
 		"dice":
 			_say(ev["text"])
@@ -1856,15 +1887,18 @@ func _show_dice(rolls: Array) -> void:
 		pc.add_child(l)
 		box.add_child(pc)
 		faces.append(l)
+	if sounds.has("dice_real"):
+		sfx("dice_real", 1.0)
 	for k in 9:
-		sfx("dice", 1.0 + k * 0.05)
+		if not sounds.has("dice_real"):
+			sfx("dice", 1.0 + k * 0.05)
 		for l in faces:
 			l.text = str(randi_range(1, 6))
 		await lv.wait(0.07)
 	for i in rolls.size():
 		faces[i].text = str(rolls[i])
 		faces[i].add_theme_color_override("font_color", Color("#c0392b") if rolls[i] in [1, 6] else Color(0.1, 0.08, 0.1))
-	sfx("bonk", 0.7)
+	sfx("boing" if 1 in rolls and sounds.has("boing") else "bonk", 1.0 if 1 in rolls else 0.7)   # a 1: boing
 	await lv.wait(0.9)
 	box.queue_free()
 

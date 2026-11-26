@@ -72,7 +72,23 @@ static func open(parent: Node) -> ScrapbookUI:
 	var s := ScrapbookUI.new()
 	parent.add_child(s)
 	s._build()
+	s._pen()
 	return s
+
+# (Ebain's sfx pack) a second of pen on paper when the Scrapbook opens
+func _pen() -> void:
+	if DisplayServer.get_name() == "headless" or not ResourceLoader.exists("res://assets/sounds/sfx_pen.ogg"):
+		return
+	var a := AudioStreamPlayer.new()
+	a.stream = load("res://assets/sounds/sfx_pen.ogg")
+	a.volume_db = -14.0
+	a.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(a)
+	a.play()
+	var tw := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_interval(0.9)
+	tw.tween_property(a, "volume_db", -60.0, 0.4)
+	tw.tween_callback(a.queue_free)
 
 static func story_items() -> Array:
 	return ProgressData.ITEMS.filter(func(it): return it[3])

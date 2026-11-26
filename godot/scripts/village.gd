@@ -200,7 +200,9 @@ func _build_throne() -> void:
 	Util.static_box(self, THRONE_POS + Vector3(0, 0.6, -0.3), Vector3(1.4, 1.2, 1.0))
 
 # ---------------------------------------------------------------- per frame
+var _laugh_t := 18.0
 func _level_process(_delta: float) -> void:
+	_goblin_chatter(_delta)
 	fire_light.light_energy = 2.0 * (1.0 + noise.get_noise_1d(t * 9.0) * 0.3)
 	vb.process(_delta)
 	if flush_handle == null and LostPages.has_all():
@@ -312,7 +314,8 @@ func _on_action(n: String) -> void:
 		"crown":
 			king_label = char_label(leader, "Lykor (King, Apparently)", -1.0, 2.3, Color("#ffdf4a"))
 			king_crown = _spoon_crown(leader)
-			ui_sfx.play()
+			play_sound("sfx_bell", -6.0)          # (Ebain's sfx pack) the coronation bell…
+			play_sound("sfx_goblin_cheer", -9.0)  # …and the goblins lose it
 			await wait(0.4)
 		"beezy":
 			_give_mug(leader)
@@ -366,6 +369,7 @@ func _on_action(n: String) -> void:
 				king_label.text = "Lykor (Dethroned)"
 			var sk := _member("skorn")
 			_crown_to(sk)
+			play_sound("sfx_goblin_cheer", -11.0, 1.05)
 			char_label(sk, "Skorn (Respected now)", 3.0)
 			if mug:
 				mug.set_meta("owner", sk)
@@ -556,6 +560,7 @@ func _chug_game(rival := "Chief Bogdrinker (400-year champ)", rival_speed := 1.0
 	if chug_snd:
 		chug_snd.queue_free()
 	var won := chug_you >= 100.0 and chug_you >= chug_rival
+	play_sound("sfx_burp", -3.0, 1.05 if won else 0.8)   # (sfx pack) you, or the champ, lets one rip
 	hint.text = "LEGEND!" if won else "%s wins. %s is not okay." % [rival.get_slice(" (", 0), leader.display_name]
 	hint.add_theme_color_override("font_color", Color("#7dff8a") if won else Color("#ff8a6a"))
 	await wait(1.4)
@@ -680,7 +685,8 @@ func _crown_skorn() -> void:
 	sk.set_view("front")
 	sk.set_meta("sitting", SIT_ON_THRONE)   # the Purple King sits (Char3D)
 	_crown_to(sk)   # the spoon crown goes to the new king
-	ui_sfx.play()
+	play_sound("sfx_bell", -7.0, 0.8)   # a slightly sadder bell (it's a downgrade)
+	play_sound_at("sfx_goblin_laugh", goblins[0].global_position + Vector3(0, 1, 0), -6.0)
 	char_label(sk, "The Purple King (Downgrade)", 4.0)
 	if king_label:
 		king_label.text = "King (Former)"
@@ -749,6 +755,8 @@ func _skorn_slap() -> void:
 
 func _fight_goblins() -> void:
 	_off_throne(leader)
+	play_sound_at("sfx_goblin_evil_laugh", goblins[1].global_position + Vector3(0, 1, 0), -2.0)   # (sfx pack)
+	await wait(0.9)
 	# Skorn vs. 3 goblins, turn-based, right there in front of the throne
 	await fight("goblins", { "enemies": goblins.slice(0, 3) })
 	var kneel: Texture2D = load("res://assets/characters/goblin_kneel.png")
@@ -830,6 +838,11 @@ func _deloye_flush() -> void:
 			c.reparent(pivot, true)
 	flush_handle.reparent(pivot, true)
 	play_sound("sfx_chug_loop", -6.0, 0.45)   # the gurgle
+	var engine := play_sound("amb_engine", -18.0, 0.55, true)   # (sfx pack) something powers up under the toilet
+	if engine:
+		var etw := create_tween().set_parallel()
+		etw.tween_property(engine, "pitch_scale", 1.7, 3.2).set_ease(Tween.EASE_IN)
+		etw.tween_property(engine, "volume_db", -4.0, 3.2)
 	await wait(0.8)
 	play_sound("flush", -2.0)
 	var spin_t := 0.0
@@ -1083,3 +1096,22 @@ func _room_switch_tour() -> void:
 			await shot("roomswitch_03_back_out")
 	print("ROOMSWITCH RESULT: %s" % ("ALL OK" if bad == 0 else "%d BAD" % bad))
 	get_tree().quit()
+
+
+# (Ebain's sfx pack) now and then a goblin nearby giggles at nothing
+func _goblin_chatter(delta: float) -> void:
+	_laugh_t -= delta
+	if _laugh_t > 0.0:
+		return
+	_laugh_t = rng.randf_range(22.0, 45.0)
+	if busy or vb.room != "" or goblins.is_empty():
+		return
+	var near: Array = goblins.filter(func(g): return g.visible and g.global_position.distance_to(leader.global_position) < 16.0)
+	if near.is_empty():
+		return
+	var g: Unit = near[rng.randi() % near.size()]
+	play_sound_at("sfx_goblin_laugh", g.global_position + Vector3(0, 1.0, 0), -8.0, rng.randf_range(0.9, 1.2))
+
+# footsteps (Ebain's sfx pack): wood floors inside the buildings, grass outside
+func floor_at(_p: Vector3) -> String:
+	return "wood" if vb and vb.room != "" else "grass"

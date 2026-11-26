@@ -62,6 +62,8 @@ static func open(parent: Node, level: Node) -> InventoryUI:
 
 func _build() -> void:
 	_opened_at = Engine.get_process_frames()
+	if lv and lv.has_method("play_sound"):
+		lv.play_sound("sfx_cloth", -8.0)   # (Ebain's sfx pack) rummaging through the bag
 	MenuUI.stack.append(self)   # so no MenuUI underneath reacts to our keys
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -433,6 +435,7 @@ func _activate() -> void:
 			Game.unequip(fid, c["slot"])
 			note = "Took off %s." % CombatD.GEAR[g]["name"]
 			_click()
+			if lv and lv.has_method("play_sound"): lv.play_sound("sfx_cloth", -7.0, 0.9)
 	elif c["i"] < bag.size():
 		var it: Dictionary = bag[c["i"]]
 		if it["kind"] == "gear":
@@ -440,6 +443,7 @@ func _activate() -> void:
 			if s != "":
 				note = "%s equipped %s (%s)." % [fname, it["name"], Game.SLOT_NAMES[s]]
 				_click()
+				if lv and lv.has_method("play_sound"): lv.play_sound("sfx_cloth", -6.0, 1.1)
 		elif it["kind"] == "use" and int(CombatD.ITEMS.get(it["id"], {}).get("heal", 0)) > 0:
 			_heal_with(fid, it)
 		elif it["kind"] == "boost":
