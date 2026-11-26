@@ -440,6 +440,16 @@ def cmd_fx(a):
 
 
 # ---------------------------------------------------------------- pack
+def tidy(src, dst, keep=0.6):
+    """Chatterbox sometimes adds long dead air (seconds of silence mid-line or at the end; Ebain 11/25). Trim the start
+    and end, and shorten any pause longer than ~1 s to `keep` seconds. Returns how many seconds were cut."""
+    import subprocess
+    af = (f"silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,"
+          f"silenceremove=stop_periods=-1:stop_duration=1.0:stop_threshold=-45dB:stop_silence={keep}")
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(src), "-af", af, str(dst)], check=True)
+    return max(0.0, duration(src) - duration(dst))
+
+
 def cmd_pack(a):
     """Zip out/<who>/*.wav + manifest.json for import_voices.py. Characters in the FX table (Skorn) get their pitch
     drop + layer applied automatically here (--no-fx to skip), so it can't be forgotten. --who limits the characters."""
@@ -461,8 +471,12 @@ def cmd_pack(a):
                 src = pathlib.Path(tmp) / f"{m['who']}_{len(manifest)}.wav"
                 f0, st = apply_fx(wav, src, cfg.get("hz", 0), cfg["monster"], lo=cfg.get("lo", -8.0), fixed=cfg.get("st"))
                 print(f"  fx {m['who']}: {f0:.0f} Hz → {st:+.1f} st  {wav.stem}")
+            tidy_src = pathlib.Path(tmp) / f"tidy_{len(manifest)}.wav"
+            cut = tidy(src, tidy_src)
+            if cut >= 1.0:
+                print(f"  tidy: cut {cut:.1f}s of dead air  {wav.stem[:60]}")
             name = f"{m['who']}/{m['who']}_clone_{slug(m['line'])}.wav"   # in-game file: plain slug, no spaces/quotes
-            z.write(src, name)
+            z.write(tidy_src, name)
             manifest.append({"who": m["who"], "line": m["line"], "file": name, "effects": []})
         z.writestr("manifest.json", json.dumps(manifest, indent=1, ensure_ascii=False))
     print(f"{len(manifest)} lines → {a.o}. Next: python3 tools/import_voices.py {a.o}")
