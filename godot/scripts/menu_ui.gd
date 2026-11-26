@@ -9,6 +9,7 @@
 #            { "text": "Music", "value": func(): return "80%", "change": ... },          # or give the value directly
 #            { "text": "Load", "pick": ..., "enabled": func(): return has_save },
 #            { "text": "Song", "icon": func(): return "play", "side": { "text": "Lyrics", "pick": func(): ... } } ]  # side: L / Y
+#            optional second button "side2" (same shape): K / controller X
 #   row "arrows": false hides the ‹ › around the value even when the row has "change" (Library songs)
 #   opts: w, title, font (row size), dim, dim_alpha, panel_alpha, anchor_x/y, hint, footer (a Control under the rows), silent
 #   await m.closed            # emitted when the menu goes away (Esc/B or m.close())
@@ -30,7 +31,7 @@ var base_note := ""               # shown when the selected row has no note of i
 var _opened_at := 0
 var panel: PanelContainer
 var title_lbl: Label
-var _rows_ui: Array = []          # per row: { panel, name, val, la, ra, icon, side }
+var _rows_ui: Array = []          # per row: { panel, name, val, la, ra, icon, side, side2 }
 var _opts := {}
 var _font := 23.0
 var _shown := false
@@ -129,10 +130,15 @@ func _make_row(i: int) -> Control:
 		side = UITheme.button(str(rows[i]["side"].get("text", "More")), 15)
 		side.pressed.connect(func(): _side(i))
 		hb.add_child(side)
+	var side2: Button = null
+	if rows[i].has("side2"):
+		side2 = UITheme.button(str(rows[i]["side2"].get("text", "More")), 15)
+		side2.pressed.connect(func(): _side(i, "side2"))
+		hb.add_child(side2)
 	var idx := i
 	rp.gui_input.connect(func(ev): _row_click(idx, rp, ev))
 	labels.append(nl)
-	_rows_ui.append({ "panel": rp, "content": hb, "name": nl, "val": val, "la": la, "ra": ra, "icon": ic, "side": side })
+	_rows_ui.append({ "panel": rp, "content": hb, "name": nl, "val": val, "la": la, "ra": ra, "icon": ic, "side": side, "side2": side2 })
 	return rp
 
 func _restyle() -> void:
@@ -145,8 +151,9 @@ func _restyle() -> void:
 		UITheme.style_lbl(r["name"], _font, "text", UITheme.row_font())
 		UITheme.style_lbl(r["val"], _font * 0.92, "text", UITheme.row_font())
 		r["val"].custom_minimum_size.x = UITheme.fs(_font * 4.2)
-		if r["side"]:
-			UITheme.style_button(r["side"], _font * 0.66)
+		for k in ["side", "side2"]:
+			if r[k]:
+				UITheme.style_button(r[k], _font * 0.66)
 	UITheme.style_lbl(note_lbl, _note_size, _note_color)
 	UITheme.style_lbl(hint_lbl, 13, "faint")
 	_reserve_note()
@@ -208,9 +215,10 @@ func _render() -> void:
 			k = k.call() if k is Callable else k
 			r["icon"].visible = str(k) != ""
 			r["icon"].set_kind(str(k), c)
-		if r["side"]:
-			var se = rows[i]["side"].get("enabled", true)
-			r["side"].disabled = not (se.call() if se is Callable else bool(se))
+		for k in ["side", "side2"]:
+			if r[k]:
+				var se = rows[i][k].get("enabled", true)
+				r[k].disabled = not (se.call() if se is Callable else bool(se))
 		r["panel"].add_theme_stylebox_override("panel", UITheme.row(on))
 	if sel != _last_sel and sel < _rows_ui.size():
 		UITheme.bounce(_rows_ui[sel]["content"])   # the content hops, the row's mouse area stays put
@@ -294,10 +302,10 @@ func _change(d: int) -> void:
 			var ui: Dictionary = _rows_ui[sel]
 			UITheme.bounce(ui["val"], 0.12)
 
-func _side(i: int) -> void:
-	if not _on_top() or not rows[i].has("side"):
+func _side(i: int, key := "side") -> void:
+	if not _on_top() or not rows[i].has(key):
 		return
-	var s: Dictionary = rows[i]["side"]
+	var s: Dictionary = rows[i][key]
 	var se = s.get("enabled", true)
 	if not (se.call() if se is Callable else bool(se)):
 		return
@@ -351,6 +359,9 @@ func _input(ev: InputEvent) -> void:
 	elif rows.size() > 0 and rows[sel].has("side") and ((ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_L) \
 			or (ev is InputEventJoypadButton and ev.pressed and ev.button_index == JOY_BUTTON_Y)):
 		_side(sel)
+	elif rows.size() > 0 and rows[sel].has("side2") and ((ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_K) \
+			or (ev is InputEventJoypadButton and ev.pressed and ev.button_index == JOY_BUTTON_X)):
+		_side(sel, "side2")
 	else:
 		handled = false
 	if handled:
