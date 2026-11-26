@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Import 7 cloned voice lines (troll, Lykor, Deloye) — files: godot/assets/voices/{troll,lykor,deloye}/, godot/scripts/voice_index.gd, VOICE_LINES.md — branch: ebain/voices-1126 — started 2026-11-26
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
