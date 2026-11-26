@@ -2115,8 +2115,7 @@ func _results(res: String) -> void:
 		col.add_child(row)
 	line.call("+%d XP   ·   Level %d   (%s)" % [xp, Game.level, "%d to next" % Game.xp_to_next() if Game.xp_to_next() > 0 else "max"], 20, Color.WHITE)
 	for lvn in ups:
-		line.call("LEVEL UP! The trio is now Level %d. (+10%% HP and damage, everyone fully healed)" % lvn, 20, GREEN)
-		lv.play_sound("sfx_reward", -2.0)
+		line.call("LEVEL UP! The trio is now Level %d. (+10%% HP and damage, everyone fully healed)" % lvn, 20, GREEN)   # (the level-up jingle plays from Game.leveled_up)
 		if lvn == 3:
 			line.call("New moves: Bussy Mist · Jean Paul Gaultier · Gust of Wind", 18, Color("#fff07a"))
 	if not found.is_empty():   # Found: [icon] [icon]  (hover for details)

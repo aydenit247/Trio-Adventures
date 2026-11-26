@@ -4,7 +4,7 @@
 #   UITheme.panel()            the ornate panel style (chamfered corners, double gold frame, corner diamonds)
 #   UITheme.row(on)            a menu row's background (selected = glowing bar with a diamond)
 #   UITheme.lbl(text, 22)      a Label in the theme's font + colors; UITheme.fs(22) = size × Settings text size
-#   UITheme.play("pick")       menu sounds: move · pick · back · open · page (synth, on the SFX bus)
+#   UITheme.play("pick")       menu sounds: move · pick · back · open · page · rewind (synth or Ebain's recordings in FILES, SFX bus)
 #   UITheme.bounce(control)    the little hover bounce (off when Settings → Menu animations = Calm)
 # Game.ui_changed fires when the theme/sizes change, so open menus restyle themselves.
 class_name UITheme
@@ -165,7 +165,8 @@ static func pop_in(n: Control) -> void:    # a panel appearing
 # ---------------------------------------------------------------- sounds (made in code, cached)
 static var _players := {}
 # Real recordings that replace a synth sound (Ebain's sfx pack, 11/26). Others stay made in code.
-const FILES := { "move": "res://assets/sounds/ui_switch.ogg" }
+const FILES := { "move": "res://assets/sounds/ui_switch.ogg", "page": "res://assets/sounds/sfx_page_flip.ogg",
+	"rewind": "res://assets/sounds/sfx_pages_rewind.ogg" }   # rewind: dialogue Backspace (go back a line)
 static var _streams := {}
 
 static func play(kind: String, pitch := 1.0) -> void:
@@ -179,7 +180,7 @@ static func play(kind: String, pitch := 1.0) -> void:
 		p.bus = &"SFX"
 		p.max_polyphony = 3
 		p.process_mode = Node.PROCESS_MODE_ALWAYS
-		p.volume_db = { "move": -17.0, "pick": -11.0, "back": -12.0, "open": -13.0, "page": -10.0 }.get(kind, -12.0)
+		p.volume_db = { "move": -17.0, "pick": -11.0, "back": -12.0, "open": -13.0, "page": -9.0, "rewind": -11.0 }.get(kind, -12.0)
 		root.add_child.call_deferred(p)
 		_players[kind] = p
 		await p.ready

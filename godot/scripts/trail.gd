@@ -262,6 +262,7 @@ func _on_action(n: String) -> void:
 			var out := (HUT_DOOR - HUT).normalized()
 			var stand := HUT_DOOR + out * 1.5
 			walk_to(xylo, stand, 1.0, 6.0)   # right behind him
+			play_sound_at("sfx_giant_steps", troll.global_position + Vector3(0, 1, 0), -6.0, 1.25, 6.0)   # (sfx pack) heavy guy
 			await walk_to(troll, HUT_DOOR, 0.8, 6.0)
 			play_sound("sfx_door", -6.0)
 			play_sound("sfx_boing", -7.0, 0.75)   # big guy, small door

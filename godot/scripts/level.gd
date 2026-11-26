@@ -85,6 +85,8 @@ var sun_light: DirectionalLight3D
 func _ready() -> void:
 	Game.gold_changed.connect(func(d: int): if is_inside_tree() and not Game.title_mode: play_sound("sfx_coins", -6.0 if d > 0 else -9.0, 1.0 if d > 0 else 0.85))
 	Game.quest_finished.connect(func(_id: String): if is_inside_tree() and not Game.title_mode: play_sound("sfx_reward", -3.0))
+	Game.item_got.connect(_on_item_got)
+	Game.leveled_up.connect(func(_l: int): if is_inside_tree() and not Game.title_mode: play_sound("sfx_level_up", -2.0))
 	rng.seed = 7
 	_configure()
 	_setup_input()
@@ -823,6 +825,14 @@ func amb_loop(id: String, db: float, pos := Vector3.INF, unit := 6.0, max_dist :
 	add_child(a)
 	a.call("play", randf() * maxf(0.0, st.get_length() - 1.0))
 	return a
+
+# (Ebain's sfx pack) the pickup sound when anything lands in a bag; a burst of items only plays it once
+var _pickup_t := -10.0
+func _on_item_got(_id: String) -> void:
+	if not is_inside_tree() or Game.title_mode or t - _pickup_t < 0.4:
+		return
+	_pickup_t = t
+	play_sound("sfx_item_pickup", -6.0)
 
 func _sfx(stream: AudioStream, db: float) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()

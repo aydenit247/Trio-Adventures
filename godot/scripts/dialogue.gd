@@ -460,6 +460,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.keycode == KEY_BACKSPACE:
 		if Game.dlg_back and _back_ok and not _back_req:   # replay the previous line
 			_back_req = true
+			UITheme.play("rewind")   # (Ebain's sfx pack) pages flipping back
 			if _typing and _typing.is_running():
 				_typing.kill()
 			_next.emit()
