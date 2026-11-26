@@ -240,7 +240,7 @@ func _render() -> void:
 		page.add_child(q)
 
 func _first_deloye_line() -> String:
-	for st in load("res://scripts/deloye_script.gd").PASS:   # (Ebain's script 11/25: "U could pass that shi?")
+	for st in load("res://scripts/deloye_script.gd").PASS:   # (Ebain's script 11/25: "You could pass that shit?")
 		if st.get("who", "") == "deloye":
 			return st["line"]
 	return ""
