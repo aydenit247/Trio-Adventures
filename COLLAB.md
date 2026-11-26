@@ -11,7 +11,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
 - [ebain] Combat balance pass: death saves (Downed), boss tempo, telegraphed big hits, Dulbers' adds, gear scaling for all bosses, comeback meter, no emergency Beezy in boss fights — files: combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, tools/sim_combat.gd, unit.gd — branch: ebain/combat-balance — started 2026-11-26
-- [asar] Haggle's Stall to the north side of the east road — files: godot/scripts/village_buildings.gd — branch: asar/stall-north — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -82,6 +81,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-26 [asar] village_buildings.gd: Haggle's Stall moved across the east road to the north side (`STALL_POS` (26.5, -6.0), `STALL_YAW` -0.3): the counter now faces the road and the camera with Haggle behind it (before, the customer side faced away and Haggle stood on your side). Trees still keep 4.5 m clear of it. Tested: village tours v0-4 + buildings tours.
 - 2026-11-26 [ebain] **Fix: video cutscenes were a black screen** when they came right after a fade (troll hut, pipe ride, pipe exit): VideoCutscene was on the HUD (layer 5), under the screen fade (layer 20). It now makes its own CanvasLayer at 95. trail.gd frees the troll video's cover before the love and light video (layer 90). Tested: video visible under a full black layer-20 fade (brightness 0.36 vs 0), test_ui ALL OK.
 - 2026-11-26 [ebain] **Troll hut video merged.** trail.gd "troll_enter": plays `troll_hut_in.ogv` (7.3 s, cut at the door slam) instead of Xylo walking in; `_love_and_light()` plays `troll_hut_love.ogv` (Asar's 3 clips baked in, 49.5 s, the hut shaking) under the same Hold [E] skip ring, instead of the black screen + separate clips. Both fall back to the old way if the files are missing, and tours (`shots_mode`) use the old way. @asar your love and light clips are untouched, they're just mixed into the video now (hut ambience at -14 dB under them). Tested: both videos play full length under xvfb, trail tour rc 0.
 - 2026-11-26 [ebain] **Video cutscenes 2 merged.** assets/video/: new pipe_ride.ogv (Ebain's redo; cut at 8.95 s with a zoom + white flash because Lykor and Skorn morph into each other at the end), pipe_exit.ogv, neuralink.ogv, map_burn.ogv (cropped to Skorn + Xylo so Lykor's "Damn, you started that up quick" still works). camp.gd `_burn_map`: video, then the fire is already lit and the black fades away (in-game toss kept for tours). deloye_library.gd: "leave_pipe" plays pipe_exit before traveling; `_gift` plays neuralink before giving it. No hot spots. Tested: all 4 videos play full length under xvfb, camp tour rc 0, library tour no script errors.
