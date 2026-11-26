@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Diddy Chud musical cutscene (Asar's idea: camera + lava/volcanoes synced to Ebain's "The Tale of Diddy Chud", Hold E to skip) — files: godot/scripts/pass.gd, godot/scripts/pass_script.gd, godot/scripts/pass_musical.gd (new), godot/assets/music/the_tale_of_diddy_chud*.ogg (new), godot/scripts/library_ui.gd, godot/scripts/lyrics.gd — branch: ebain/chud-musical — started 2026-11-25
 - [asar] Charis's car + driveway, cat, collector shelf (figures, card, manga) — files: godot/scripts/charis_props.gd (new), godot/shaders/holo_card.gdshader (new), godot/assets/props/charis_*.glb + anime_figures.glb (new); needs 2 lines in mart.gd after Ebain's sfx claim — branch: asar/charis-props — started 2026-11-25
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
