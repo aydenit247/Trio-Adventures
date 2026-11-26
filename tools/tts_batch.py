@@ -302,6 +302,10 @@ def cmd_gen(a):
     done = 0
     for who, items in groups.items():
         ref = next((refs / f"{who}{ext}" for ext in (".mp3", ".wav") if (refs / f"{who}{ext}").exists()), None)
+        if not ref and not a.one_ref:   # no main sample is fine when every line has its own (refs/lines/)
+            items = [x for x in items if x.get("ref") and (refs / x["ref"]).exists()] or items
+            if all(x.get("ref") and (refs / x["ref"]).exists() for x in items):
+                ref = refs / items[0]["ref"]
         if not ref:
             print(f"-- {who}: no {refs}/{who}.mp3 or .wav, skipping {len(items)} line(s)")
             continue
