@@ -60,12 +60,33 @@ const LINES := {
 	"broreallyjustkickedusoutofastore": "skorn/skorn_bro_really_just_kicked_us_out_of_a_store.ogg",  # Bro really just kicked us out of a store.
 	"bunchofsquigglyasslinesyeahthatsfirestarter": "skorn/skorn_bunch_of_squiggly_ass_lines_yeah_that_s.ogg",  # Bunch of squiggly ass lines. Yeah, that's fire starter.
 	"cantstartafirewithnothingneedsomefirestarter": "skorn/skorn_can_t_start_a_fire_with_nothing_need_som.ogg",  # Can't start a fire with nothing. Need some fire starter.
+	"awholeboulderjustrolledoutthewall": "skorn/skorn_clone_a_whole_boulder_just_rolled_out_the_wall.ogg",  # A whole boulder just rolled out the wall!
 	"areallofthesebooksdeloyelorescripture": "skorn/skorn_clone_are_all_of_these_books_deloye_lore_scripture.ogg",  # Are all of these books Deloye Lore scripture?
+	"biggestshiniestchestieverseenmiddleofthefloornobodyguardingit": "skorn/skorn_clone_biggest_shiniest_chest_i_ever_seen_middle_of_the.ogg",  # Biggest, shiniest chest I ever seen. Middle of the floor. Nobody guarding it.
+	"bronoshot": "skorn/skorn_clone_bro_no_shot.ogg",  # Bro.. no shot
 	"bruhitsastoremudyoufeelastore": "skorn/skorn_clone_bruh_it_s_a_store_mud_you_feel_a_store.ogg",  # Bruh, it's a store, mud. You feel a store?
 	"damnbroyouaintgonnamakeitsadindebih": "skorn/skorn_clone_damn_bro_you_ain_t_gonna_make_it_sad_in_de_bih.ogg",  # Damn bro, you ain't gonna make it sad in de bih
+	"finebutitscallingmyname": "skorn/skorn_clone_fine_but_it_s_calling_my_name.ogg",  # Fine. But it's calling my name.
 	"fromotherfires": "skorn/skorn_clone_from_other_fires.ogg",  # From… other fires.
+	"iaintfittinintheremudimbigboned": "skorn/skorn_clone_i_ain_t_fittin_in_there_mud_i_m_big_boned.ogg",  # I ain't fittin' in there, mud. I'm big boned.
+	"iam": "skorn/skorn_clone_i_am.ogg",  # I am?
 	"imnottiredimfinnastayupandguardthefire": "skorn/skorn_clone_i_m_not_tired_i_m_finna_stay_up_and_guard_the_fi.ogg",  # I'm not tired. I'm finna stay up and guard the fire.
+	"ipushedthebigonesoididmostofit": "skorn/skorn_clone_i_pushed_the_big_one_so_i_did_most_of_it.ogg",  # I pushed the big one. So I did most of it.
+	"ififindaswordinhereimkeepingit": "skorn/skorn_clone_if_i_find_a_sword_in_here_i_m_keeping_it.ogg",  # If I find a sword in here, I'm keeping it.
+	"loot": "skorn/skorn_clone_loot.ogg",  # Loot.
 	"manitsaboutcoldasamufug": "skorn/skorn_clone_man_it_s_about_cold_as_a_mufug.ogg",  # Man, it's about cold as a mufug.
+	"mantheserocksdontstoptilltheyhitsomethinsomakeemhitsomethin": "skorn/skorn_clone_man_these_rocks_don_t_stop_till_they_hit_somethi.ogg",  # Man, these rocks don't stop till they hit somethin'. So… make 'em hit somethin'.
+	"moresquigglyasslinesanybodygotalighter": "skorn/skorn_clone_more_squiggly_ass_lines_anybody_got_a_lighter.ogg",  # More squiggly ass lines. Anybody got a lighter?
+	"nailedthelandingthattime": "skorn/skorn_clone_nailed_the_landing_that_time.ogg",  # Nailed the landing that time.
+	"oldruinsyouknowwhatthatmean": "skorn/skorn_clone_old_ruins_you_know_what_that_mean.ogg",  # Old ruins. You know what that mean.
+	"secondthronethisweekimonaroll": "skorn/skorn_clone_second_throne_this_week_i_m_on_a_roll.ogg",  # Second throne this week. I'm on a roll.
+	"shopsclosedguessbeatingupthelandlordwasbadforbusiness": "skorn/skorn_clone_shop_s_closed_guess_beating_up_the_landlord_was.ogg",  # Shop's closed. Guess beating up the landlord was bad for business.
+	"somebodygottareaditnotit": "skorn/skorn_clone_somebody_gotta_read_it_not_it.ogg",  # Somebody gotta READ it. Not it.
+	"thechestwasemptyanyway": "skorn/skorn_clone_the_chest_was_empty_anyway.ogg",  # The chest was empty anyway.
+	"thenwhyitssoshinymud": "skorn/skorn_clone_then_why_it_s_so_shiny_mud.ogg",  # Then why it's so shiny, mud?
+	"wedidthat": "skorn/skorn_clone_we_did_that.ogg",  # WE DID THAT.
+	"weexplainwithourhands": "skorn/skorn_clone_we_explain_with_our_hands.ogg",  # We explain with our hands.
+	"wefellinahole": "skorn/skorn_clone_we_fell_in_a_hole.ogg",  # We fell in a hole.
 	"wizardjitwhatareyoudoinghere": "skorn/skorn_clone_wizard_jit_what_are_you_doing_here.ogg",  # Wizard jit? What are you doing here?
 	"woahhhongodithinkwemadeitboys": "skorn/skorn_clone_woahhh_on_god_i_think_we_made_it_boys.ogg",  # Woahhh.. on God, I think we made it boys
 	"diddyslapsupremacy": "skorn/skorn_diddy_slap_supremacy.ogg",  # Diddy slap supremacy.
