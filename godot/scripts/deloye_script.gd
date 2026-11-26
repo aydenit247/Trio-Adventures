@@ -151,12 +151,9 @@ const SAVED_SEAT := [
 ]
 
 # ---------------------------------------------------------------- the Reading Room (rotunda, the end)
-# Talking to him again (one of these at random)
+# Talking to him again (Ebain 11/25 cut Deloye's draft lines here; he just keeps spinning)
 const AGAIN := [
-	[{ "who": "deloye", "line": "*nods to the music. Still spinning.*" }], # DRAFT
-	[{ "who": "deloye", "line": "Chapter ten thousand is just the word \"rock.\" I'm proud of it." }], # DRAFT
-	[{ "who": "deloye", "line": "You good? ...Cool." }], # DRAFT
-	[{ "who": "skorn", "line": "Bro is NOT coming down." }, { "who": "deloye", "line": "Nope." }], # DRAFT
+	[{ "who": "skorn", "line": "Bro is NOT coming down." }], # DRAFT
 ]
 
 # The giant book that floats above him
@@ -164,7 +161,6 @@ const BOOK := [
 	{ "do": "book_swell" },
 	{ "who": "xylo", "line": "The original Deloye Lore manuscript. Every page..." }, # DRAFT
 	{ "who": "xylo", "line": "...is mostly blank." }, # DRAFT
-	{ "who": "deloye", "line": "Still working on it." }, # DRAFT
 ]
 
 const SHELF := [
