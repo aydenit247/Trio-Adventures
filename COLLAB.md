@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [asar] Batch 11/25 eve: chief/goblin stuck on the campfire log, Crispy Jordan 9s, shop scroll zooms camera, arrow-key camera in locked areas, Haggle's stall to the east road — files: godot/scripts/village.gd, village_buildings.gd, combat/combat_data.gd (1 name), shop_ui.gd, level.gd (camera input) — branch: asar/batch-1125b — started 2026-11-25
 - [asar] Lucky Goblin Tooth picture: use the whole goblin grin — files: godot/assets/items/goblin_tooth.png — branch: asar/item-art — started 2026-11-23
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
