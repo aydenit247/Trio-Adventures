@@ -1,6 +1,7 @@
 # Area: Goblin Woods Trail (between Camp and the Goblin Village, Asar's idea). A long forest trail in the early morning:
 # searchable loot spots for gold, a creek with a bridge, and Asar's Bridge Troll by his hut.
-#   "It's good" → Xylo follows him into his hut, comes back, the bridge is open. His chest can still be opened.
+#   "It's good" → Xylo follows him into his hut (black screen); it's just Lykor and Skorn until you knock on the hut,
+#                 then Xylo walks out. The bridge is open. His chest can still be opened.
 #   "Bad."      → fight (lots of gold), then loot his hut and his chest for more.
 # Walk north to reach the village (first time: the village story starts). The south end leads back to camp.
 extends Level
@@ -173,6 +174,8 @@ func _apply_state() -> void:
 			blocker.queue_free()
 	if t == "good":
 		troll.visible = false
+		if Game.flag("xyloInHut"):
+			_xylo_into_hut()
 		if hut_sign == null:
 			hut_sign = wood_sign("sign_troll_hut", "DO NOT DISTURB", HUT_DOOR + Vector3(0, 2.0, 0.15) + (HUT_DOOR - HUT).normalized() * 0.1, atan2((HUT_DOOR - HUT).x, (HUT_DOOR - HUT).z), 1.1, 0.34)
 	elif t == "bad":
@@ -208,7 +211,9 @@ func _level_interactables() -> Array:
 	else:
 		if t == "bad" and not Game.flag("trollHut"):
 			list.append({ "id": "hut", "label": "the troll's hut", "verb": "Search", "pos": HUT_DOOR, "h": 2.2, "r": 2.0, "steps": TS.HUT_SEARCH })
-		if not Game.flag("trollChest"):   # Ebain 11/24: the chest opens on "It's good" too (the hut stays DO NOT DISTURB)
+		if Game.flag("xyloInHut"):
+			list.append({ "id": "knock", "label": "the troll's hut", "verb": "Knock on", "pos": HUT_DOOR, "h": 2.2, "r": 2.2, "major": true, "steps": TS.XYLO_OUT })
+		elif not Game.flag("trollChest"):   # (knock first: the chest is right by the door) Ebain 11/24: the chest opens on "It's good" too (the hut stays DO NOT DISTURB)
 			list.append({ "id": "chest", "label": "the troll's chest", "verb": "Open", "pos": CHEST_POS, "h": 1.0, "r": 1.6, "steps": TS.CHEST })
 	return list
 
@@ -218,6 +223,9 @@ func _level_process(_delta: float) -> void:
 	if not Game.flag("trollMet") and str(Game.flags.get("trollDone", "")) == "" and leader.global_position.z < TROLL_SPOT.z + 6.0:
 		Game.set_flag("trollMet")
 		_troll_scene()
+	elif leader.global_position.z < END_Z + 1.5 and Game.flag("xyloInHut"):   # not without Xylo
+		leader.global_position.z = END_Z + 2.5
+		show_toast("We can't leave without Xylo. Knock on the troll's hut.", 3.0)   # DRAFT
 	elif leader.global_position.z < END_Z:
 		stage = "end"
 		_to_village()
@@ -249,23 +257,37 @@ func _on_action(n: String) -> void:
 		"troll_good":
 			var xylo := _member("xylo")
 			follow_enabled = false
-			walk_to(troll, HUT_DOOR, 0.8, 4.0)
-			await walk_to(xylo, HUT_DOOR + Vector3(-0.6, 0, 0.8), 1.0, 4.0)
+			if leader == xylo:   # you were playing Xylo: hand control to Lykor before he walks off
+				set_leader(_member("lykor"))
+			# the troll leads, Xylo follows him to the hut door, and they both go in (Asar 11/25)
+			var out := (HUT_DOOR - HUT).normalized()
+			walk_to(xylo, HUT_DOOR + out * 1.5, 1.0, 6.0)   # right behind him
+			await walk_to(troll, HUT_DOOR, 0.8, 6.0)
+			play_sound("sfx_door", -6.0)
+			troll.visible = false   # in the door first
+			await walk_to(xylo, HUT_DOOR, 0.7, 3.0)
+			play_sound("sfx_door", -6.0)
+			Game.set_flag("xyloInHut")
+			_xylo_into_hut()
+			await wait(0.6)
 			await fade_out(0.6)
-			troll.visible = false
-			xylo.visible = false
 			await _love_and_light()   # (Asar) black screen + his three clips, Hold E to skip
 			Game.set_flag("trollDone", "good")
 			_apply_state()
+			follow_enabled = true
 			fade_in(0.6)
 			await wait(0.7)
-		"xylo_back":
-			var xylo := _member("xylo")
-			xylo.global_position = HUT_DOOR + (HUT_DOOR - HUT).normalized() * 0.8
-			xylo.visible = true
+			objective("Knock on the troll's hut to get Xylo back.", HUT_DOOR)   # DRAFT
+		"knock":
+			play_sound("sfx_door", -4.0)
+			await wait(0.5)
+			var xylo := _xylo_out()
 			hop(xylo, 0.3)
-			await walk_to(xylo, leader.global_position + Vector3(1.2, 0, 1.2), 1.0, 3.5)
+			await walk_to(xylo, HUT_DOOR + (HUT_DOOR - HUT).normalized() * 1.6, 0.8, 2.5)
+		"xylo_rejoin":
+			Game.flags.erase("xyloInHut")
 			follow_enabled = true
+			objective("Follow the trail to the goblin village.", Vector3(0, 0, END_Z + 2))
 		"troll_fight":
 			var res := await fight("troll", { "enemies": [troll] })
 			if res == "win" or res == "talked":
@@ -362,6 +384,26 @@ class SkipRing extends Control:
 		var w := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		draw_string(f, Vector2(c.x - r - 14.0 - w, c.y + fs * 0.35), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, 0.85))
 
+# Xylo in the troll's hut: out of the party (no following, no switching to him), hidden inside.
+func _xylo_into_hut() -> void:
+	var x := remove_from_party("xylo")
+	if x:
+		x.visible = false
+		x.global_position = HUT + Vector3(0, 0, 0)
+		x.set_meta("in_hut", true)
+
+func _xylo_out() -> Unit:
+	for u in npcs:
+		if u.id == "xylo" and u.has_meta("in_hut"):
+			u.remove_meta("in_hut")
+			npcs.erase(u)
+			party.append(u)
+			set_leader(leader)
+			u.global_position = HUT_DOOR + (HUT_DOOR - HUT).normalized() * 0.4
+			u.visible = true
+			return u
+	return _member("xylo")
+
 func _member(id: String) -> Unit:
 	for u in party:
 		if u.id == id:
@@ -388,11 +430,14 @@ func can_resume_saved() -> bool:
 func _resume(r: Dictionary) -> void:
 	stage = "walk"
 	_apply_state()
-	objective("Follow the trail to the goblin village.", Vector3(0, 0, END_Z + 2))
+	if Game.flag("xyloInHut"):
+		objective("Knock on the troll's hut to get Xylo back.", HUT_DOOR)   # DRAFT
+	else:
+		objective("Follow the trail to the goblin village.", Vector3(0, 0, END_Z + 2))
 	await super._resume(r)
 
 func back_exit() -> Dictionary:
-	if stage == "walk":
+	if stage == "walk" and not Game.flag("xyloInHut"):   # not without Xylo
 		return { "pos": Vector3(0, 0, 57.5), "r": 2.4, "scene": "res://main.tscn", "name": "The Camp" }
 	return {}
 
@@ -436,6 +481,21 @@ func _shot_tour() -> void:
 			break
 	await wait(2.0)
 	await shot("t_05_after")
+	if choice == 0:   # Xylo is in the hut: just Lykor and Skorn, then knock and he walks out
+		var n_before := party.size()
+		place_party(HUT_DOOR + (HUT_DOOR - HUT).normalized() * 1.8, -(HUT_DOOR - HUT).normalized())
+		await wait(1.0)
+		await shot("t_06_two_left")
+		var kn: Array = current_interactables().filter(func(i): return i["id"] == "knock")
+		if not kn.is_empty():
+			start(kn[0])
+			for k in 12:
+				await advance(1, 0.8)
+				if not dialogue.active and not busy:
+					break
+		await wait(1.5)
+		await shot("t_07_xylo_out")
+		print("TRAIL KNOCK party_before=", n_before, " party_after=", party.size(), " inHut=", Game.flag("xyloInHut"), " knock_offered=", not kn.is_empty())
 	if choice == 1:
 		place_party(CHEST_POS + Vector3(-1.3, 0, 0.6), Vector3(1, 0, 0))
 		await wait(1.0)

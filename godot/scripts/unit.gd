@@ -123,7 +123,8 @@ func drive(dir: Vector3, running: bool, cam_right: Vector3, delta: float) -> voi
 	var flat := Vector2(velocity.x, velocity.z).length()
 	moving = flat > 0.4
 	if body3d:
-		body3d.locomote(velocity, delta)
+		var sc := get_tree().current_scene
+		body3d.locomote(velocity, delta, not (sc and sc.get("busy") == true))   # no idle timer during dialogue
 
 	# Pick the view from the walking direction relative to the camera (with a little hysteresis)
 	var flat_v := Vector3(velocity.x, 0, velocity.z)

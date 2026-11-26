@@ -69,7 +69,7 @@ func setup(_id: String, height: float) -> void:
 		anim.speed_scale = 0.0
 
 # Every frame from Unit.drive(): turn toward the way we're going, pick idle / walk / run, match the pace.
-func locomote(vel: Vector3, delta: float) -> void:
+func locomote(vel: Vector3, delta: float, can_idle := true) -> void:
 	var flat := Vector3(vel.x, 0, vel.z)
 	var spd := flat.length()
 	if spd > 0.4:
@@ -84,6 +84,12 @@ func locomote(vel: Vector3, delta: float) -> void:
 		_loop("walk", clampf(spd / _walk_ref, 0.6, 2.2))
 	else:
 		_still += delta
+		if not can_idle and _still > BLEND:
+			# Dialogue / cutscene: hold still. A play already running finishes first, then the timer waits at the
+			# start, so the 15 s only counts while you can walk (Asar 11/25).
+			var length := anim.get_animation(clips["idle"]).length if clips.has("idle") else 0.0
+			if _still < IDLE_AFTER or fmod(_still - IDLE_AFTER, length + IDLE_GAP) >= length:
+				_still = BLEND + 0.01
 		_stand(_still)
 
 # Sitting (Lykor on the throne, Skorn as king): the GLB's "Chair_Sit_Idle_Male" clip when it has one;

@@ -13,8 +13,7 @@ const TROLL_MEET := [
 	{ "choice": [
 		{ "text": "It's good", "outcome": "troll_good", "steps": [ # Asar
 			{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "Aight bet", "voice": "none" }, # Asar (not the giant's "Aight. Bet." take)
-			{ "do": "troll_good" },
-			{ "do": "xylo_back" },
+			{ "do": "troll_good" },   # Xylo stays in the hut until you knock (Asar 11/25)
 		] },
 		{ "text": "Bad.", "outcome": "troll_bad", "steps": [ # Asar
 			{ "who": "goblin", "name": TROLL, "portrait": "troll", "line": "BAD?!" }, # DRAFT
@@ -26,6 +25,13 @@ const TROLL_MEET := [
 # talking to him again after you ran from the fight
 const TROLL_AGAIN := TROLL_MEET
 
+
+# knocking on the troll's hut after "It's good": Xylo comes back out (Asar 11/25)
+const XYLO_OUT := [
+	{ "do": "knock" },
+	{ "who": "xylo", "line": "Damn he was digging in me, folk" }, # Asar
+	{ "do": "xylo_rejoin" },
+]
 
 const HUT_SEARCH := [
 	{ "do": "hut_loot" },
