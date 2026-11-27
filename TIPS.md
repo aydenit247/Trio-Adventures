@@ -26,7 +26,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] Spoon Mail is called **Spoon Mail Armor** (Asar's call).
 - [ebain] Ebain added a **Grok** assistant (tag `grok`) for doc hygiene + light tasks. Its lane is in CLAUDE.md.
 - [asar] Asar's item calls: **armor** = flat cut per hit taken (min 1). Spoon Mail Armor +3, Beezy Mug Helmet (was Can Hat) +2, Spoon of Destiny is a trinket, Backup Conditioner (+15 HP) and Deloye Lore Vol. 9 (+15% meter, nerfed from 25) are permanent consumables used from the inventory, Metocy Map (firestarter) shows in the bag until it's burned.
-- [asar] Victory screen: no grades (Asar removed them), gold shown with the coin icon, found loot as icons with hover info. **(Ebain 11/26: wants grades back, with rewards for good play. Not decided with Asar yet.)**
+- [asar] Victory screen: no grades (Asar removed them), gold shown with the coin icon, found loot as icons with hover info. **(Ebain 11/26 overrode this: grades are back, with gold/XP rewards: `battle.gd grade()`.)**
 - [asar] Asar's calls on the inventory: **Tab = inventory, Q = switch character** (was Tab/I), 7 gear slots like his mockup, currency is **gold** (not spoons), no shop yet, window themed as a "Deloye Lore" page "signed xylo".
 - [asar] Asar wants **screenshots while working** on visual stuff, not just at the end.
 
@@ -118,6 +118,12 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   the same turn's bonus action; `_ahead` makes the Neuralink forecast count the right turn.
 - [ebain] **Downed fighters have `hp == 0` but still take turns** (`units()` includes `downed()`), and `alive()` still
   means hp > 0. Use `p.get("dead")` before reviving or offering someone as a heal target.
+
+- [ebain] **Combat damage types:** `damage_enemy` reads the attacker's type from `D.DTYPE[m.id]` (override with
+  `o.dtype`) and the target's `D.WEAKNESS[e.ai]`. A new fighter or enemy ai needs an entry there or it's neutral.
+  Party hits with `m = {}` (burns, the bolt) never fill the break bar or count as weak hits.
+- [ebain] **Overlays during a fight** (the tutorial, yes/no boxes) go on `MenuUI.stack`; battle_view's `_input` ignores
+  keys while the stack isn't empty, so new overlays should push themselves there too.
 
 ## Testing tricks
 - [ebain] The balance sim prints `downs` and `deaths` per fight now. `FIGHT=mattias AUTO_LOSE=1` loops forever (a story

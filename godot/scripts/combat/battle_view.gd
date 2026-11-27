@@ -111,6 +111,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 		_spawn_pile()   # real stuff for Skorn's Throw Anything (Asar: throw objects, not words)
 	_build_ui()
 	await _intro()
+	await CombatTutorial.offer_first(lv)   # 11/26: first fight of a save offers the tutorial (Esc menu / H replays it)
 	var res := await _loop()
 	_heartbeat(false)
 	await _outro(res)
@@ -531,10 +532,17 @@ func _enemy_row(e: Dictionary) -> void:
 	hp.max_value = e["max_hp"]
 	hp.value = e["hp"]
 	col.add_child(hp)
+	var brk: ProgressBar = null
+	if e.has("brk_max"):   # boss break bar (11/26): fills as you hit him, full = BROKEN
+		brk = _bar(Color("#ffc23a"), Vector2(300, 6))
+		brk.max_value = e["brk_max"]
+		brk.value = e["brk"]
+		brk.tooltip_text = "BREAK BAR: fills as you hit him (perfect hits, Distracted, HYPED and weak spots fill it faster). Full = BROKEN: he loses a turn and takes 50% more damage."
+		col.add_child(brk)
 	var st := _status_row(14)
 	col.add_child(st)
 	enemy_box.add_child(col)
-	ebars[e["key"]] = { "hp": hp, "hp_lbl": hp_lbl, "st": st, "name": nm, "col": col }
+	ebars[e["key"]] = { "hp": hp, "hp_lbl": hp_lbl, "st": st, "name": nm, "col": col, "brk": brk }
 
 # Adds joining mid-fight (Dulbers' employees, 11/26): spawn them next to the boss, slide them in, give them bars
 func _add_enemy(e: Dictionary, j: int) -> void:
@@ -559,7 +567,7 @@ func _add_enemy(e: Dictionary, j: int) -> void:
 	_enemy_row(e)
 
 func _update_hint() -> void:
-	hint.text = "W/S choose · E select · Q back · T timed hits: %s" % ("AUTO" if Game.timed_auto else "MANUAL")
+	hint.text = "W/S choose · E select · Q back · T timed hits: %s · H tutorial" % ("AUTO" if Game.timed_auto else "MANUAL")
 
 # Combat panels use UITheme and follow Settings → Menu theme, Parchment too (Ebain 11/24: "always follow menu theme").
 # Text INSIDE a panel goes through _pl()/_ink() so light fight colors turn into dark ink on Parchment. Text over the
@@ -756,8 +764,14 @@ func _refresh() -> void:
 		var eb: Dictionary = ebars[e["key"]]
 		create_tween().tween_property(eb["hp"], "value", e["hp"], 0.35)
 		eb["hp_lbl"].text = "HP %d/%d" % [maxi(0, e["hp"]), e["max_hp"]]
+		if eb.get("brk") != null:
+			eb["brk"].max_value = e["brk_max"]
+			create_tween().tween_property(eb["brk"], "value", e["brk"], 0.3)
 		_set_head_bar(e)
 		var chips := _status_chips(e)
+		var W: Dictionary = D.WEAKNESS.get(e.get("ai", ""), {})   # 11/26: weaknesses are shown, not guessed
+		if W.has("resist"): chips.push_front(["RESISTS: %s" % D.DTYPE_NAME[W["resist"]], "Takes 30%% less from %s moves (%s)." % [D.DTYPE_NAME[W["resist"]], _who_type(W["resist"])], false])
+		if W.has("weak"): chips.push_front(["WEAK: %s" % D.DTYPE_NAME[W["weak"]], "Takes 30%% more from %s moves (%s), and they fill the break bar faster." % [D.DTYPE_NAME[W["weak"]], _who_type(W["weak"])], true])
 		if e.get("eat_pending", false): chips.push_front(["HOLDING A CHIPOTLE BOWL", "He's about to eat it and heal. Stun or charm him first and he drops it.", false])
 		if e.get("sit_pending", false): chips.push_front(["GETTING READY TO SIT", "He sits on someone next turn. Stun or charm him first and he sits on his own foot.", false])
 		if e.get("sale_pending", false): chips.push_front(["CLEARANCE SALE", "Next turn he hits everyone hard. Defend, block it, or stun/charm him first to cancel it.", false])
@@ -767,14 +781,25 @@ func _refresh() -> void:
 	_timeline()
 
 # ---- status chips: each status is its own word you can hover to see what it does
+# who hits with a damage type ("lore" → "Xylo"), for the weakness chips
+func _who_type(t: String) -> String:
+	var who := []
+	for p in b.party:
+		if D.DTYPE.get(p["id"], "") == t:
+			who.append(p["name"])
+	return " / ".join(who) if not who.is_empty() else "nobody here"
+
 func _status_chips(u: Dictionary) -> Array:   # [[label, description, good], ...]
 	var out := []
 	for k in u["st"]:
 		if D.STATUS.has(k):
-			out.append([D.STATUS[k]["label"], D.STATUS[k]["desc"], D.STATUS[k]["good"]])
+			var lab: String = D.STATUS[k]["label"]
+			if k == "lore": lab = "LORE ×%d" % int(u["st"][k])
+			out.append([lab, D.STATUS[k]["desc"], D.STATUS[k]["good"]])
 	if u.get("defending", false): out.append(["DEFENDING", "Bracing. Takes half damage, but enemies usually go after them.", true])
 	if u.get("tripping", false): out.append(["TRIPPING", "Moves can misfire (22%), but sometimes land a Tweak Crit for double damage.", false])
-	if u["side"] == "party" and b.hype > 0: out.append(["HYPED ×%d" % b.hype, "The party's next %d attacks hit 50%% harder." % b.hype, true])
+	if u["side"] == "party" and b.hype > 0: out.append(["HYPED ×%d" % b.hype, "The party's next %d attacks do +25%% damage and double break damage." % b.hype, true])
+	if u["side"] == "party" and b.shi_discount and u["hp"] > 0: out.append(["TEAM-UP HALF PRICE", "\"on some type shi\": the next team-up costs half meter.", true])
 	return out
 
 func _status_row(size: int) -> HFlowContainer:
@@ -1024,7 +1049,7 @@ func _choose(u: Dictionary) -> Dictionary:
 			"combo":
 				var copts := []
 				for c in combos:
-					copts.append({ "text": "%s (%d meter each)" % [c["name"], c["cost"]], "desc": c["desc"], "v": c })
+					copts.append({ "text": "%s (%d meter each)" % [c["name"], b.combo_cost(c)], "desc": c["desc"], "v": c })
 				var c = await _menu("Team-Up", copts, true)
 				if c != null:
 					var t = b.alive(b.enemies)[0] if c.get("aoe", false) else await _pick_target(b.alive(b.enemies), false)
@@ -1281,6 +1306,8 @@ func _event(ev: Dictionary) -> void:
 			_float(n, "-%d" % ev["amt"], Color("#ffd27a") if not q else Color("#ffe8b0"), 1.0 if not q else 0.8)
 			if ev.get("label", "") != "":
 				_float(n, ev["label"], GREEN if ev["label"] == "PERFECT!" else Color.WHITE, 0.8, 0.6)
+			if ev.get("weak", "") == "weak": _float(n, "WEAK SPOT!", Color("#ffc23a"), 0.8, 0.45)
+			elif ev.get("weak", "") == "resist": _float(n, "RESISTED", Color(0.75, 0.75, 0.8), 0.7, 0.45)
 			if ev.get("shake", false): lv.shake = 0.5
 			await lv.wait((0.22 if q else 0.65) * speed)
 		"hurt":
@@ -1344,6 +1371,16 @@ func _event(ev: Dictionary) -> void:
 			_say(ev["text"])
 			_float(n, "PASS" if ev["roll"] >= 10 else ("NAT 1" if ev["roll"] == 1 else "FAIL"), GREEN if ev["roll"] >= 10 else RED, 0.9, 0.5)
 			await lv.wait(0.9 * speed)
+		"broken":   # break bar emptied (11/26)
+			sfx("crit", 0.8)
+			lv.shake = 0.6
+			flash(0.4, Color(1, 0.85, 0.3))
+			flash_unit(n, Color(1.8, 1.5, 0.6), 0.5)
+			_say(ev["text"])
+			await _banner("BROKEN!", Color("#ffc23a"), 1.1)
+		"dice":   # Throw Sum Shi's d6 (11/26)
+			_say(ev["text"])
+			await _show_dice(ev["rolls"])
 		"save_fail":
 			_say(ev["text"])
 			_float(n, "FAILED SAVE", RED, 0.8, 0.5)
@@ -1833,6 +1870,12 @@ func _input(ev: InputEvent) -> void:
 			_strike_skip = true   # (not in the first 0.6 s, so mashing E before it starts doesn't skip it)
 		get_viewport().set_input_as_handled()
 		return
+	if not MenuUI.stack.is_empty():   # the tutorial or a yes/no box is on top
+		return
+	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_H and _menu_active:   # replay the combat tutorial
+		get_viewport().set_input_as_handled()
+		await CombatTutorial.show_over(lv.hud).closed
+		return
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_T:
 		Game.timed_auto = not Game.timed_auto
 		_update_hint()
@@ -2161,10 +2204,11 @@ static func fight_gold(def: Dictionary, res: String) -> int:
 	return int(round(total * randf_range(0.8, 1.2))) if total > 0 else 0
 
 func _results(res: String) -> void:
-	var xp: int = int(round(fdef["xp"] * (1.0 if res == "win" else 0.5)))
+	var gr: Dictionary = b.grade() if res == "win" else {}   # victory grade (11/26): better grade, more gold and XP
+	var xp: int = int(round(fdef["xp"] * (1.0 if res == "win" else 0.5) * gr.get("xp", 1.0)))
 	var ups := Game.add_xp(xp)
 	if not ups.is_empty(): knocked_out.clear()   # level up refilled everyone
-	var gold := fight_gold(fdef, res)
+	var gold := int(round(fight_gold(fdef, res) * gr.get("gold", 1.0)))
 	Game.add_gold(gold)
 	var found: Array = []   # gear ids picked up this fight
 	if res == "win" and fdef.has("loot"):   # one gear id, or a list of them
@@ -2175,7 +2219,8 @@ func _results(res: String) -> void:
 	sfx("ready", 0.9)
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.5; panel.anchor_right = 0.5; panel.anchor_top = 0.5; panel.anchor_bottom = 0.5
-	panel.offset_left = -330; panel.offset_right = 330; panel.offset_top = -190; panel.offset_bottom = 190
+	var ph := 190 if gr.is_empty() else 240
+	panel.offset_left = -330; panel.offset_right = 330; panel.offset_top = -ph; panel.offset_bottom = ph
 	panel.add_theme_stylebox_override("panel", UITheme.panel(0.96, _th()))
 	root.add_child(panel)
 	var col := VBoxContainer.new()
@@ -2190,6 +2235,16 @@ func _results(res: String) -> void:
 		col.add_child(l)
 	if res == "win":
 		line.call("VICTORY!!!", 44, GOLD)
+		var grow := _row()   # GRADE  A   +25% gold · +10% XP
+		grow.add_child(_row_label("GRADE ", 24, Color.WHITE))
+		grow.add_child(_row_label(gr["letter"], 50, Color(gr["color"])))
+		var bonus := []
+		if gr["gold"] > 1.0: bonus.append("+%d%% gold" % int(round((gr["gold"] - 1.0) * 100)))
+		if gr["xp"] > 1.0: bonus.append("+%d%% XP" % int(round((gr["xp"] - 1.0) * 100)))
+		grow.add_child(_row_label("    " + (" · ".join(bonus) if not bonus.is_empty() else "(no bonus)"), 20, Color(gr["color"])))
+		col.add_child(grow)
+		var st: Dictionary = b.stats
+		line.call("HP left %d/40 · Timing %d/25 · No knockouts %d/15 · Style %d/20  (%d team-ups, %d breaks, %d combos, %d weak-spot hits)" % [gr["hp"], gr["timing"], gr["kos"], gr["style"], st["combos"], st["breaks"], st["payoffs"], st["weak_hits"]], 14, Color(1, 1, 1, 0.65))
 	else:
 		line.call("TALKED IT OUT", 40, GREEN)
 		line.call("(Half XP and gold for being reasonable)", 18, Color(1, 1, 1, 0.7))
@@ -2216,7 +2271,7 @@ func _results(res: String) -> void:
 	line.call("", 8, Color.WHITE)
 	line.call("Press E to continue", 16, Color(1, 1, 1, 0.6))
 	panel.scale = Vector2(0.8, 0.8)
-	panel.pivot_offset = Vector2(330, 190)
+	panel.pivot_offset = Vector2(330, ph)
 	create_tween().tween_property(panel, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	for p in b.alive(b.party):
 		lv.hop(nodes[p["key"]], 0.5)

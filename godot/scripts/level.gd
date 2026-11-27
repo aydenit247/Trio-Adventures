@@ -1735,6 +1735,8 @@ func open_pause_menu() -> void:
 		{ "text": "Load Game", "pick": func(): await _pause_sub(MenuUI.open_slots(hud, "load", self)),
 		  "enabled": func(): return Game.latest_slot() != "" },
 		{ "text": "Settings", "pick": func(): await _pause_sub(MenuUI.open_settings(hud)) },
+		{ "text": "Combat Tutorial", "pick": func(): await _pause_sub(CombatTutorial.show_over(hud)),
+		  "note": "How fights work: timed hits, blocking, combos, weak spots, the break bar, death saves, grades." },
 		{ "text": "Library", "pick": func(): await _pause_sub(LibraryUI.open(hud)),
 		  "note": "Soundtrack, Voice Lines and the Scrapbook (same as on the title screen)." },
 		{ "text": "Quit to Title", "pick": func():

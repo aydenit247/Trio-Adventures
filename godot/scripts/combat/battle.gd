@@ -39,7 +39,8 @@ var bolt_pending := false         # Dulbmeethus' lightning this fight (rolled on
 const BOLT_CHANCE := 0.067        # Ebain 11/25: 6.7% of fights (was 3%)
 const BOLT_BOSS := 0.4            # bosses aren't one-shot: they lose 40% of their max HP
 var emergency_given := false
-var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 0, "perfects": 0 }
+var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 0, "perfects": 0, "goods": 0, "combos": 0, "breaks": 0, "payoffs": 0, "weak_hits": 0 }
+var shi_discount := false   # "on some type shi": the next team-up costs half meter (11/26)
 var party: Array = []
 var enemies: Array = []
 var dmg_scale := 1.0
@@ -127,6 +128,9 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 			"st": {}, "turn": 0, "phase": 1, "second_wind": E.get("second_wind", false),
 		}
 		e["hp"] = e["max_hp"]
+		if e["boss"]:   # break bar (11/26)
+			e["brk"] = 0.0
+			e["brk_max"] = e["max_hp"] * D.BREAK["frac"]
 		if mods.get("enraged", false): e["tag"] = "(ENRAGED)"
 		if mods.get("enemy_tripping", false): e["tag"] = "(Tripping)"
 		enemies.append(e)
@@ -260,6 +264,10 @@ func next_actor() -> Dictionary:
 		var h := mini(8, u["max_hp"] - u["hp"])
 		u["hp"] += h
 		ev.append({ "t": "heal", "u": u, "amt": h, "hp": u["hp"], "text": "%s is on Copium. (+%d)" % [u["name"], h] })
+	if u["st"].has("broken"):   # break bar emptied: he loses this turn (even Locked In)
+		u["st"].erase("broken")
+		ev.append({ "t": "say", "text": "%s is still BROKEN and seeing stars. Loses the turn." % u["name"], "sound": "miss" }) # DRAFT
+		return _skip(u, ev)
 	# Telegraph counters: CC'd while winding up a sit or a snack
 	var cc := "stun" if u["st"].has("stun") else ("charm" if u["st"].has("charm") else "")
 	if cc != "" and (u.get("sit_pending", false) or u.get("eat_pending", false) or u.get("sale_pending", false) or u.get("stampede_pending", false)):
@@ -443,6 +451,10 @@ func strip_buffs(t: Dictionary) -> Array:
 	return [{ "t": "status", "u": t, "name": "humbled", "text": "%s is HUMBLED.%s" % [t["name"], " Their buffs are gone." if not gone.is_empty() else ""] }]
 
 # ------------------------------------------------------------------ party
+# what a team-up costs each member right now ("on some type shi" halves the next one)
+func combo_cost(c: Dictionary) -> int:
+	return int(ceil(c["cost"] * (0.5 if shi_discount else 1.0)))
+
 func combos_for(m: Dictionary) -> Array:
 	if party.size() < 2: return []
 	var out := []
@@ -452,7 +464,7 @@ func combos_for(m: Dictionary) -> Array:
 		var ok := true
 		for id in c["who"]:
 			var p := member(id)
-			if p.is_empty() or p["hp"] <= 0 or p["meter"] < c["cost"]:
+			if p.is_empty() or p["hp"] <= 0 or p["meter"] < combo_cost(c):
 				ok = false
 		if ok:
 			out.append(c)
@@ -536,12 +548,14 @@ func party_act(m: Dictionary, a: Dictionary, o: Dictionary = {}) -> Array:
 	if timing != "":
 		stats["timed"] += 1
 		if timing == "perfect": stats["perfects"] += 1
+		if timing == "good": stats["goods"] += 1
 	var h := { "attacker": m, "timing": timing, "crit": crit }
 
 	if a["type"] == "combo":
 		if lore_nerf and a["combo"]["id"] == "loreslap" and rnd() < D.LORE_FIZZLE:
 			for id in a["combo"]["who"]:
-				member(id)["meter"] -= a["combo"]["cost"]
+				member(id)["meter"] -= combo_cost(a["combo"])
+			shi_discount = false
 			return ev + [{ "t": "misfire", "u": m, "text": "Deloye left Xylo on read. Skorn slaps nothing.", "sound": "miss", "ms": 1500 }] # DRAFT
 		ev += do_combo(m, a["combo"], a["target"], h)
 	else:
@@ -567,13 +581,39 @@ func do_move(m: Dictionary, move: Dictionary, t: Dictionary, h: Dictionary, o: D
 	var timing: String = h.get("timing", "")
 	match move["kind"]:
 		"hit":
-			ev += damage_enemy(m, t, move["power"], h.merged({ "text": "%s uses %s on %s!" % [m["name"], move["name"], t["name"]], "sound": move.get("fx", "hit") }))
+			var power: float = move["power"]
+			var hm: Dictionary = h.merged({ "text": "%s uses %s on %s!" % [m["name"], move["name"], t["name"]], "sound": move.get("fx", "hit"), "brk": move.get("brk", 1.0) })
+			# 11/26 setups and payoffs
+			var pay: bool = move.get("payoff", false) and (t["st"].has("mogged") or t["st"].has("distracted") or t["st"].has("charm"))
+			var stacks: int = t["st"].get("lore", 0) if move.get("lore_cash", false) else 0
+			var was_cooked: bool = move.has("explode") and t["st"].has("cooked")
+			if stacks > 0:
+				power *= 1.0 + 0.25 * stacks
+				t["st"].erase("lore")
+				stats["payoffs"] += 1
+				hm["text"] = "%s cashes in %d Lore Stack%s on %s!" % [m["name"], stacks, "" if stacks == 1 else "s", t["name"]] # DRAFT
+			ev += damage_enemy(m, t, power, hm)
+			if pay and t["hp"] > 0:
+				stats["payoffs"] += 1
+				ev.append({ "t": "say", "text": "%s slaps TWICE!" % m["name"], "sound": "slap", "ms": 500 }) # DRAFT
+				ev += damage_enemy(m, t, move["power"], h.merged({ "text": "Second slap!", "sound": "slap", "brk": move.get("brk", 1.0) }))
+			if was_cooked and t["hp"] > 0:
+				stats["payoffs"] += 1
+				ev += damage_enemy(m, t, move["explode"], { "text": "%s was already Cooked. %s EXPLODES!" % [t["name"], t["name"]], "sound": "fire", "shake": true }) # DRAFT
 			if t["hp"] <= 0: return ev
+			if move.get("distract", false):
+				t["st"]["distracted"] = 1
+				ev.append({ "t": "status", "u": t, "name": "distracted", "text": "%s is DISTRACTED. The next hit does +50%%." % t["name"] }) # DRAFT
+			if move.get("lore_stack", false):
+				t["st"]["lore"] = mini(3, t["st"].get("lore", 0) + 1)
+				ev.append({ "t": "status", "u": t, "name": "lore", "text": "LORE STACK ×%d on %s." % [t["st"]["lore"], t["name"]], "ms": 700 }) # DRAFT
+			if stacks > 0 and move.has("lorepill"):
+				ev += apply_cc(t, "lorepill", 2)
 			if move.has("charm") and rnd() < move["charm"] + (0.15 if timing == "perfect" else 0.0):
 				ev += apply_cc(t, "charm")
 			if move.has("mogged"):
 				ev += apply_status(t, "mogged", move["mogged"], "%s is MOGGED. Insecure now. Takes 25%% more damage." % t["name"])
-			if move.has("lorepill") and (timing == "perfect" or rnd() < move["lorepill"]):
+			if move.has("lorepill") and stacks == 0 and (timing == "perfect" or rnd() < move["lorepill"]):
 				ev += apply_cc(t, "lorepill", 2)
 			if move.has("cooked"):
 				ev += apply_status(t, "cooked", move["cooked"], "%s is COOKED. On fire for a few turns." % t["name"])
@@ -582,12 +622,24 @@ func do_move(m: Dictionary, move: Dictionary, t: Dictionary, h: Dictionary, o: D
 				ev.append({ "t": "say", "text": "%s gets bumped to the back of the line." % t["name"], "ms": 900 })
 			if move.get("strip", false):
 				ev += strip_buffs(t)
-		"throw":
-			var thing: String = pick(throwables if not throwables.is_empty() else D.THROWABLES)
+		"throw":   # 11/26: a d6 decides what he throws (D.THROW_TABLE)
+			var r: int = o.get("throw_roll", rng.randi_range(1, 6))
+			var T: Dictionary = D.THROW_TABLE[r]
+			var thing: String = T["thing"]
+			ev.append({ "t": "dice", "rolls": [r], "text": "%s rolls to see what he grabs…" % m["name"] }) # DRAFT
+			if T.has("self"):
+				var d := mini(T["self"], m["hp"] - 1)
+				m["hp"] -= d
+				ev.append({ "t": "self_hit", "u": m, "amt": d, "hp": m["hp"], "text": T["text"] % d })
+				return ev
 			ev.append({ "t": "throw_thing", "u": m, "target": t, "thing": thing })
-			ev += damage_enemy(m, t, move["power"], h.merged({ "text": "%s throws %s at %s!" % [m["name"], thing, t["name"]] }))
-			if t["hp"] > 0 and rnd() < move["downbad"]:
+			ev += damage_enemy(m, t, T["power"], h.merged({ "text": "%s throws %s at %s! (rolled a %d)" % [m["name"], thing, t["name"], r], "brk": T.get("brk", 1.0), "shake": r == 6 }))
+			if t["hp"] > 0 and T.get("downbad", false):
 				ev += apply_status(t, "downbad", 2, "%s is DOWN BAD. Getting hit with %s was humbling. Deals half damage." % [t["name"], thing])
+			if t["hp"] > 0 and T.has("cooked"):
+				ev += apply_status(t, "cooked", T["cooked"], "%s is COOKED. On fire for a few turns." % t["name"])
+			if t["hp"] > 0 and T.get("stun", false):
+				ev += apply_cc(t, "stun")
 		"crashout":
 			var r: int = o.get("roll", 3)
 			if r == 7:
@@ -601,11 +653,12 @@ func do_move(m: Dictionary, move: Dictionary, t: Dictionary, h: Dictionary, o: D
 				m["hp"] -= d
 				ev.append({ "t": "self_hit", "u": m, "amt": d, "hp": m["hp"], "text": "A 1. %s crashes out on HIMSELF. (-%d)" % [m["name"], d] })
 				return ev
-			var power: int = { 2: 18, 3: 18, 4: 30, 5: 30, 6: 40 }[r]
-			ev += damage_enemy(m, t, power, h.merged({ "text": "%s crashes out on %s! (rolled a %d)" % [m["name"], t["name"], r], "sound": "slap", "shake": r == 6 }))
+			var cpow: int = { 2: 18, 3: 18, 4: 30, 5: 30, 6: 40 }[r]
+			ev += damage_enemy(m, t, cpow, h.merged({ "brk": move.get("brk", 1.0), "text": "%s crashes out on %s! (rolled a %d)" % [m["name"], t["name"], r], "sound": "slap", "shake": r == 6 }))
 		"buff":
 			hype = 3
-			ev.append({ "t": "hype", "u": m, "text": "%s screams \"on some type shi\"! The party is HYPED (next 3 attacks hit 50%% harder)." % m["name"] })
+			shi_discount = true
+			ev.append({ "t": "hype", "u": m, "text": "%s screams \"on some type shi\"! The party is HYPED: next 3 attacks +25%% and double break damage, next team-up half price." % m["name"] })
 			ev += add_meter(m, 15)
 		"fullcrash":
 			var rolls: Array = o.get("rolls", [3, 4])
@@ -708,10 +761,13 @@ func _heal_member(_m: Dictionary, t: Dictionary, amt: int, text: String) -> Arra
 func do_combo(m: Dictionary, c: Dictionary, t: Dictionary, h: Dictionary) -> Array:
 	var ev := []
 	var members := []
+	var cost := combo_cost(c)
+	shi_discount = false
+	stats["combos"] += 1
 	for id in c["who"]:
 		var p := member(id)
 		members.append(p)
-		p["meter"] -= c["cost"]
+		p["meter"] -= cost
 		if not is_same(p, m):
 			p["next"] += delay(p) * 0.5
 	ev.append({ "t": "combo", "combo": c, "members": members, "target": t })
@@ -814,8 +870,23 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 	var dmg := base
 	var label := ""
 	var timing: String = o.get("timing", "")
+	var weak := ""     # "weak" / "resist" (11/26 damage types)
+	var dist := false  # this hit cashed in a Distracted
 	if not o.get("raw", false):
-		dmg *= lvl * (1.5 if hype > 0 else 1.0) * o.get("crit", 1.0)
+		dmg *= lvl * (1.25 if hype > 0 else 1.0) * o.get("crit", 1.0)   # (HYPED was ×1.5 before 11/26; it doubles break damage now)
+		var dtype: String = "" if m.is_empty() else o.get("dtype", D.DTYPE.get(m.get("id", ""), ""))
+		var W: Dictionary = D.WEAKNESS.get(e.get("ai", ""), {})
+		if dtype != "" and W.get("weak", "") == dtype:
+			dmg *= D.WEAK_MULT
+			weak = "weak"
+			stats["weak_hits"] += 1
+		elif dtype != "" and W.get("resist", "") == dtype:
+			dmg *= D.RESIST_MULT
+			weak = "resist"
+		if not m.is_empty() and e["st"].has("distracted"):
+			e["st"].erase("distracted")
+			dmg *= 1.5
+			dist = true
 		if not m.is_empty():   # gear damage bonuses stack with diminishing returns (Ebain 11/26: +65% gear trivialized Mattias)
 			var pw: float = m["gear"].get("power", 0.0)
 			dmg *= 1.0 + pw / (1.0 + pw * D.POWER_FALLOFF)
@@ -826,6 +897,8 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 		dmg *= 1.25
 	if e["st"].has("braced"):
 		dmg *= 0.7
+	if e["st"].has("broken"):
+		dmg *= D.BREAK["dmg_mult"]
 	var d := maxi(1, int(round(dmg)))
 	var ev := []
 	if e["st"].has("shield"):
@@ -837,7 +910,12 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 		ev.append({ "t": "say", "text": "The Aura Shield absorbs %d.%s" % [ab, "" if e["st"].has("shield") else " It shatters!"], "sound": "sparkle", "ms": 800 })
 	e["hp"] = maxi(0, e["hp"] - d)
 	var text: String = o.get("text", "")
-	ev.append({ "t": "dmg", "u": e, "amt": d, "hp": e["hp"], "text": "%s (-%d)" % [text, d] if text != "" else "", "sound": o.get("sound", "hit"), "label": label, "shake": o.get("shake", false), "quick": o.get("quick", false) })
+	ev.append({ "t": "dmg", "u": e, "amt": d, "hp": e["hp"], "text": "%s (-%d)" % [text, d] if text != "" else "", "sound": o.get("sound", "hit"), "label": label, "shake": o.get("shake", false), "quick": o.get("quick", false), "weak": weak })
+	if e.get("boss", false) and not m.is_empty() and e["hp"] > 0 and not e["st"].has("broken"):   # fill the break bar
+		var B: Dictionary = D.BREAK
+		e["brk"] += d * B["mult"] * o.get("brk", 1.0) * (B["perfect"] if timing == "perfect" else 1.0) * (B["distracted"] if dist else 1.0) * (B["hyped"] if hype > 0 else 1.0) * (B["weak"] if weak == "weak" else 1.0)
+		if e["brk"] >= e["brk_max"]:
+			ev += _break(e)
 	if not m.is_empty():
 		ev += add_meter(m, minf(15.0, d / 3.0) + (8.0 if timing == "perfect" else (4.0 if timing == "good" else 0.0)))
 	if e["st"].has("copium") and d >= 25:
@@ -865,6 +943,44 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 	elif e["phase"] == 1 and e["boss"] and e["hp"] <= e["max_hp"] * 0.5:
 		e["phase_pending"] = true
 	return ev
+
+# The break bar is full: he's BROKEN (loses his next turn, takes extra damage till then, cancels any wind-up)
+func _break(e: Dictionary) -> Array:
+	stats["breaks"] += 1
+	e["brk"] = 0.0
+	e["brk_max"] *= D.BREAK["grow"]
+	e["st"]["broken"] = 1
+	for k in ["sit_pending", "eat_pending", "sale_pending", "stampede_pending"]:
+		e[k] = false
+	_drop_plan(e)
+	var ev := [{ "t": "broken", "u": e, "text": "%s is BROKEN! He loses his next turn and takes %d%% more damage till then. Everyone gets +%d meter." % [e["name"], int(round((D.BREAK["dmg_mult"] - 1.0) * 100)), D.BREAK["meter"]] }] # DRAFT
+	for p in alive(party):
+		ev += add_meter(p, D.BREAK["meter"])
+	return ev
+
+# Victory grade (Ebain 11/26: grades are back, with rewards). Score out of 100:
+#   HP left (40) · timing: perfect = 1, good = 1/2 of every timed hit/block (25) · no knockouts (15, -5 each)
+#   · style: team-ups, breaks, payoffs (5 each) + weakness hits (1 each), max 20
+func grade() -> Dictionary:
+	var hp := 0.0
+	var mx := 0.0
+	for p in party:
+		hp += maxi(0, p["hp"])
+		mx += p["max_hp"]
+	var hp_pts := 40.0 * hp / maxf(1.0, mx)
+	var t_pts := 12.0
+	if stats["timed"] > 0:
+		t_pts = 25.0 * (stats["perfects"] + 0.5 * stats["goods"]) / float(stats["timed"])
+	var ko_pts := maxf(0.0, 15.0 - 5.0 * stats["kos"])
+	var style_pts := minf(20.0, 5.0 * (stats["combos"] + stats["breaks"] + stats["payoffs"]) + stats["weak_hits"])
+	var score := hp_pts + t_pts + ko_pts + style_pts
+	var g: Dictionary = D.GRADES[D.GRADES.size() - 1]
+	for G in D.GRADES:
+		if score >= G["min"]:
+			g = G
+			break
+	return { "letter": g["letter"], "score": int(round(score)), "gold": g["gold"], "xp": g["xp"], "color": g["color"],
+		"hp": int(round(hp_pts)), "timing": int(round(t_pts)), "kos": int(round(ko_pts)), "style": int(round(style_pts)) }
 
 # ------------------------------------------------------------------ chaos (very rare)
 func roll_chaos() -> Array:
@@ -1184,6 +1300,7 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 	if block != "":
 		stats["timed"] += 1
 		if block == "perfect": stats["perfects"] += 1
+		if block == "good": stats["goods"] += 1
 	ev.append({ "t": "attack", "u": e, "text": it["text"], "sound": it.get("sound", "hit"), "sit": it.get("sit", false), "block": block })
 	if it.get("tex", "") != "":
 		ev.append({ "t": "tex", "u": e, "tex": e["E"]["tex"] })   # back to standing after the sit

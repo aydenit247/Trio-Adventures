@@ -173,12 +173,12 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
   33 dodge/parry test and passed on both) and make it harder with close calls: the balance pass in "Combat in one
   paragraph". **Dying only lasts for that fight** (back up at 1 HP after); the Death waiting room idea is scrapped
   because lasting deaths would break dialogue.
-- **Strategy direction (Ebain 11/26, not built yet):** setup-and-payoff combos between all three (one fighter's status
+- **Strategy direction (Ebain 11/26, built the same day, see "Combat in one paragraph"):** setup-and-payoff combos between all three (one fighter's status
   powers up another's move), a **break bar** for bosses (break it = stunned window + extra damage), **enemy
   weaknesses/resistances that the game tells you** (shown on the enemy), **enemy intents only through Xylo's
   Neuralink** (not always on), **Skorn stays pure dice chaos** (no rerolls or HP scaling), **no meter choices** (no
-  EX specials, meter is for ults/team-ups), and **bring back victory grades with rewards** for good play (Asar
-  removed grades on 11/25: talk it over with him first).
+  EX specials, meter is for ults/team-ups), and **victory grades are back with rewards** for good play (Ebain's call
+  over Asar's 11/25 removal). Plus a replayable combat tutorial.
 
 **Big direction (Ebain):** these four are the MAIN EVENTS. Between them he wants lots of optional, open-world-ish
 stuff: places to walk into, joke NPCs, side quests, roaming enemies, gear to find. More chapters later; Dulbers is
@@ -476,7 +476,21 @@ the boss's phase 2, `_summon()`: two goblins in Metocy Mart vests at the Mart Du
 when the boss drops; `battle_view._add_enemy()` spawns them), **every boss scales with your gear** (milder than
 Mattias: `boss_drip_hp/dmg`), **comeback power** (under 25% HP the meter fills 2×), **no emergency Beezy in boss
 fights**. Dulbers (Mart) got hp 300 → 240, Price Gouge 34 → 30, Bootleg Slap 36 → 30, NO REFUNDS 21 → 18 to make room.
-Sim (Normal, Mart Dulbers): sloppy ~60% win, average ~90% with ~50% HP left and ~1 down, good ~99%.
+**Strategy pass (Ebain 11/26)**: **setups & payoffs** (Hair Flip → DISTRACTED: next hit from anyone +50%;
+Diddy Slap slaps twice on Mogged/Distracted/Charmed; Eldritch Blast adds LORE STACKS (max 3) that Deloye Lore cashes in
+for +25% each + a sure Lore-pill; Dragon Breath on an already Cooked target explodes for 20; "on some type shi" HYPED is
+now +25% damage + double break damage + the next team-up at half meter (`b.shi_discount`, `combo_cost()`)), **Throw
+Sum Shi is a d6** (`D.THROW_TABLE`: boot hits Skorn, rock, conditioner/Down Bad, Beezy keg/Cooked, goblin/big break,
+shopping cart/stun), **damage types + shown weaknesses** (`D.DTYPE` Skorn physical / Lykor aura / Xylo lore,
+`D.WEAKNESS` by enemy ai, ×1.3 / ×0.7, WEAK/RESISTS chips on the enemy panel, "WEAK SPOT!" floats), **boss break bar**
+(`D.BREAK`, gold bar under boss HP: full = BROKEN, loses the next turn even Locked In, cancels wind-ups, ×1.25
+damage taken till then, +15 meter to everyone, each break needs ×1.5 more; `battle.gd _break()`), **victory grades are
+back** (`battle.gd grade()`, `D.GRADES`: HP left 40 + timing 25 + no knockouts 15 + style 20 (team-ups, breaks,
+payoffs, weak hits) → S +50% gold/+25% XP, A +25%/+10%, B +10% gold), and a **Combat Tutorial**
+(`combat/combat_tutorial.gd`, 11 one-idea pages; offered before the first fight of a save via flag
+`combatTutorialSeen`, replay from the Esc menu → Combat Tutorial or **H** in a fight). Bosses got more HP to make room
+(Mart Dulbers 280, Giant 600, summit Dulbers 560, Rat King 520, Mattias 2700 with no weak spot). Sim (Normal, Mart
+Dulbers): sloppy ~67% win, average ~94% with ~60% HP left, good ~100%.
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
 bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim
