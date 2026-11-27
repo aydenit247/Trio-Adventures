@@ -368,6 +368,16 @@ func _make_sounds() -> void:
 				st2 = st2.duplicate()
 				st2.loop = true
 			sounds[pair[0]] = lv._sfx(st2, pair[2])
+	# 11/26 AAA pass: layered combat sounds (assets/sounds/cmb_*.ogg, mixed from CC0 packs: Kenney, rubberduck, starninjas)
+	for c in ["cmb_hit_phys_1", "cmb_hit_phys_2", "cmb_hit_phys_3", "cmb_hit_aura_1", "cmb_hit_aura_2", "cmb_hit_lore_1", "cmb_hit_lore_2",
+			"cmb_hit_big", "cmb_perfect", "cmb_whoosh_1", "cmb_whoosh_2", "cmb_whoosh_3", "cmb_block", "cmb_block_perfect", "cmb_break",
+			"cmb_weak", "cmb_downed", "cmb_revive", "cmb_grade_slam", "cmb_meter_full", "cmb_explode", "cmb_ui_move", "cmb_ui_select", "cmb_ui_back"]:
+		var cp := "res://assets/sounds/%s.ogg" % c
+		if ResourceLoader.exists(cp):
+			sounds[c] = lv._sfx(load(cp), -3.0)
+	if sounds.has("cmb_ui_move"): sounds["move"] = sounds["cmb_ui_move"]
+	if sounds.has("cmb_ui_select"): sounds["select"] = sounds["cmb_ui_select"]
+	if sounds.has("cmb_explode"): sounds["explode"] = sounds["cmb_explode"]
 	sounds["shi"] = lv._sfx(load("res://assets/voices/lykor/on_some_type_shit.mp3"), linear_to_db(maxf(Game.voice_vol, 0.01)))   # Asar's Lykor take (same file as his Mart line), at the Voice volume
 	var strike_st = load(STRIKE_SOUND) if ResourceLoader.exists(STRIKE_SOUND) else null
 	if strike_st:
@@ -468,7 +478,7 @@ func _build_ui() -> void:
 		col.add_child(pn)
 		var hp_lbl := _pl("", 12, Color(1, 1, 1, 0.85), 3)
 		col.add_child(hp_lbl)
-		var hp := _bar(GREEN, Vector2(120, 10))
+		var hp := _bar(GREEN, Vector2(120, 10), true)
 		hp.max_value = p["max_hp"]
 		col.add_child(hp)
 		var meter := _bar(Color("#ffb13a"), Vector2(120, 7))
@@ -532,7 +542,7 @@ func _enemy_row(e: Dictionary) -> void:
 	hp_lbl.size_flags_vertical = Control.SIZE_SHRINK_END
 	head.add_child(hp_lbl)
 	col.add_child(head)
-	var hp := _bar(RED, Vector2(300, 14))
+	var hp := _bar(RED, Vector2(300, 14), true)
 	hp.max_value = e["max_hp"]
 	hp.value = e["hp"]
 	col.add_child(hp)
@@ -624,7 +634,7 @@ func _box(bg: Color, border: Color, bw: int) -> StyleBoxFlat:
 	sb.content_margin_left = 12; sb.content_margin_right = 12; sb.content_margin_top = 8; sb.content_margin_bottom = 8
 	return sb
 
-func _bar(color: Color, sz: Vector2) -> ProgressBar:
+func _bar(color: Color, sz: Vector2, ghost := false) -> ProgressBar:
 	var pb := ProgressBar.new()
 	pb.custom_minimum_size = sz
 	pb.show_percentage = false
@@ -635,8 +645,40 @@ func _bar(color: Color, sz: Vector2) -> ProgressBar:
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0, 0, 0, 0.55)
 	bg.set_corner_radius_all(4)
-	pb.add_theme_stylebox_override("background", bg)
+	if ghost:   # 11/26: a pale "ghost" bar behind it that drains a moment later, so you see how much a hit took
+		var g := ProgressBar.new()
+		g.show_percentage = false
+		g.show_behind_parent = true
+		g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		g.set_anchors_preset(Control.PRESET_FULL_RECT)
+		var gf := StyleBoxFlat.new()
+		gf.bg_color = Color(1, 0.95, 0.8, 0.75)
+		gf.set_corner_radius_all(4)
+		g.add_theme_stylebox_override("fill", gf)
+		g.add_theme_stylebox_override("background", bg)
+		pb.add_child(g)
+		pb.set_meta("ghost", g)
+		pb.add_theme_stylebox_override("background", StyleBoxEmpty.new())
+	else:
+		pb.add_theme_stylebox_override("background", bg)
 	return pb
+
+# HP bars: the bar snaps down fast, its ghost catches up after a beat (healing just fills both)
+func _drain(bar: ProgressBar, v: float) -> void:
+	var g: ProgressBar = bar.get_meta("ghost") if bar.has_meta("ghost") else null
+	if bar.has_meta("to") and is_equal_approx(float(bar.get_meta("to")), v):
+		return
+	bar.set_meta("to", v)
+	create_tween().tween_property(bar, "value", v, 0.15 if v < bar.value else 0.3)
+	if g == null:
+		return
+	g.max_value = bar.max_value
+	if v < g.value:
+		var t := create_tween()
+		t.tween_interval(0.45)
+		t.tween_property(g, "value", v, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	else:
+		g.value = v
 
 func _marker(color: Color) -> MeshInstance3D:
 	var m := MeshInstance3D.new()
@@ -750,7 +792,7 @@ func _point(mk: MeshInstance3D, u) -> void:
 func _refresh() -> void:
 	for p in b.party:
 		var pb: Dictionary = pbars[p["key"]]
-		create_tween().tween_property(pb["hp"], "value", p["hp"], 0.3)
+		_drain(pb["hp"], p["hp"])
 		pb["hp_lbl"].text = "%s %d/%d" % [p["P"]["hp_label"], p["hp"], p["max_hp"]]
 		create_tween().tween_property(pb["meter"], "value", p["meter"], 0.3)
 		pb["meter"].tooltip_text = p["P"]["meter_label"]
@@ -766,7 +808,7 @@ func _refresh() -> void:
 		if not ebars.has(e["key"]):   # an add the summon event hasn't shown yet
 			continue
 		var eb: Dictionary = ebars[e["key"]]
-		create_tween().tween_property(eb["hp"], "value", e["hp"], 0.35)
+		_drain(eb["hp"], e["hp"])
 		eb["hp_lbl"].text = "HP %d/%d" % [maxi(0, e["hp"]), e["max_hp"]]
 		if eb.get("brk") != null:
 			eb["brk"].max_value = e["brk_max"]
@@ -872,10 +914,15 @@ func _portrait_tex(u: Dictionary) -> Texture2D:
 	return load("res://assets/portraits/%s.png" % n)
 
 var _tl_shown := {}
+var _tl_first := ""
 func _timeline(tl := {}) -> void:
 	for c in timeline.get_children():
 		c.queue_free()
 	var pv := b.preview_with(8, tl.get("bumps", {}), tl.get("skips", {})) if not tl.is_empty() else b.preview(8)
+	# 11/26: when the turn moves on, the bar slides in (portraits fade in one after another, the new first one pops)
+	var first_key: String = pv[0]["u"]["key"] if not pv.is_empty() else ""
+	var slide := tl.is_empty() and first_key != _tl_first and not auto_play
+	_tl_first = first_key
 	for i in pv.size():
 		var u: Dictionary = pv[i]["u"]
 		var pc := PanelContainer.new()
@@ -897,6 +944,15 @@ func _timeline(tl := {}) -> void:
 		pc.add_child(tr)
 		pc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		timeline.add_child(pc)
+		if slide:
+			pc.modulate.a = 0.0
+			var tw := pc.create_tween()
+			tw.tween_interval(0.03 * i)
+			tw.tween_property(pc, "modulate:a", 1.0, 0.18)
+			if i == 0:
+				pc.pivot_offset = Vector2(30, 30)
+				pc.scale = Vector2(1.25, 1.25)
+				tw.parallel().tween_property(pc, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 # ================================================================== flow
 func _intro() -> void:
@@ -988,6 +1044,7 @@ func _party_turn(u: Dictionary) -> void:
 				o["rolls"] = rolls
 				if rolls[0] == 6 and rolls[1] == 6 and not b.used67:
 					o["accept67"] = await _ask_67()
+			_lean(nodes[u["key"]])
 			await _windup(u, move, a.get("target", {}))
 			var shi: bool = u["id"] == "lykor" and move["kind"] == "buff"   # "on some type shi"
 			var mog: bool = move.get("fx", "") == "mog" or move["kind"] == "mogsupreme" or shi
@@ -1004,6 +1061,7 @@ func _party_turn(u: Dictionary) -> void:
 			o["roll"] = randi_range(1, 6)
 	var evs := b.party_act(u, a, o)
 	await _play(evs)
+	_unlean()
 	await _recover(u)
 
 func _choose(u: Dictionary) -> Dictionary:
@@ -1180,6 +1238,111 @@ func _squash(n: Unit) -> void:   # bosses have no hurt art: a quick squash-and-s
 	tw.tween_property(n.sprite, "scale", Vector3(s0.x * 1.1, s0.y * 0.88, s0.z), 0.06)
 	tw.tween_property(n.sprite, "scale", s0, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
+# ---- 11/26 AAA pass helpers
+# Layered hit sound by the attacker's damage type, + a heavy layer on big hits and a bright one on PERFECT
+func _impact(ev: Dictionary) -> void:
+	var snd: String = ev.get("sound", "hit")
+	var t: String = D.DTYPE.get(ev.get("by", ""), "physical")
+	var key := "cmb_hit_phys_%d" % randi_range(1, 3)
+	if t == "aura": key = "cmb_hit_aura_%d" % randi_range(1, 2)
+	elif t == "lore": key = "cmb_hit_lore_%d" % randi_range(1, 2)
+	sfx(key)
+	if not snd in ["hit", "slap", "blast", "lore", "bonk", "mog"]:
+		sfx(snd)   # keep special sounds (fire, roar, the explosion) on top
+	if ev["amt"] >= 30 or ev.get("shake", false): sfx("cmb_hit_big")
+	if ev.get("label", "") == "PERFECT!": sfx("cmb_perfect")
+
+# A burst of particles on a hit: dust (Physical), sparkles (Aura), runes (Lore), sparks (block), shards (break)
+func _burst(n: Unit, kind: String, big := false) -> void:
+	if n == null or auto_play or lv.shots_mode: return
+	var col: Color = { "physical": Color("#d9b38c"), "aura": Color("#ff8ad8"), "lore": Color("#6ff5d0"), "block": Color("#bfe3ff"), "break": Color("#ffc23a") }.get(kind, Color("#ffe9c4"))
+	var ps := CPUParticles3D.new()
+	ps.one_shot = true
+	ps.explosiveness = 0.95
+	ps.amount = (36 if big else 18) * (2 if kind == "break" else 1)
+	ps.lifetime = 0.7 if kind != "lore" else 1.0
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.09, 0.09) * (1.6 if kind == "break" else 1.0)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.vertex_color_use_as_albedo = true
+	qm.material = mat
+	ps.mesh = qm
+	ps.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	ps.emission_sphere_radius = 0.25
+	ps.direction = Vector3(0, 1, 0)
+	ps.spread = 70.0 if kind != "physical" else 50.0
+	ps.initial_velocity_min = 2.0 if kind != "lore" else 0.6
+	ps.initial_velocity_max = (5.5 if big else 3.5) if kind != "lore" else 1.6
+	ps.gravity = Vector3(0, -9.0, 0) if kind in ["physical", "break", "block"] else Vector3(0, 0.6, 0)
+	ps.scale_amount_min = 0.6
+	ps.scale_amount_max = 1.4
+	var grad := Gradient.new()
+	grad.set_color(0, col)
+	grad.set_color(1, Color(col.r, col.g, col.b, 0.0))
+	ps.color_ramp = grad
+	lv.add_child(ps)
+	ps.global_position = n.global_position + Vector3(0, n.height_m * 0.55, 0)
+	ps.emitting = true
+	get_tree().create_timer(ps.lifetime + 0.3).timeout.connect(ps.queue_free)
+
+# BROKEN: cracked-glass lines across the screen for a moment
+func _crack_screen() -> void:
+	if auto_play or lv.shots_mode: return
+	var c := Control.new()
+	c.set_anchors_preset(Control.PRESET_FULL_RECT)
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(c)
+	var vp := get_viewport().get_visible_rect().size
+	var ctr := vp * Vector2(0.62, 0.42)
+	for i in 9:
+		var l := Line2D.new()
+		l.width = randf_range(1.5, 3.5)
+		l.default_color = Color(1, 1, 1, 0.85)
+		var pt := ctr
+		var ang := TAU * i / 9.0 + randf_range(-0.2, 0.2)
+		l.add_point(pt)
+		for k in 4:
+			ang += randf_range(-0.35, 0.35)
+			pt += Vector2(cos(ang), sin(ang)) * randf_range(60, 140)
+			l.add_point(pt)
+		c.add_child(l)
+	var t := c.create_tween()
+	t.tween_interval(0.35)
+	t.tween_property(c, "modulate:a", 0.0, 0.5)
+	t.tween_callback(c.queue_free)
+
+# The camera leans a little toward whoever is acting, then settles back
+var _lean_base = null
+var _leaning := false
+func _lean(n: Unit) -> void:
+	if n == null or auto_play or lv.shots_mode: return
+	if not _leaning:
+		_lean_base = lv.focus_override
+		_leaning = true
+	lv.focus_override = center.lerp(n.global_position, 0.22)
+
+func _unlean() -> void:
+	if not _leaning: return
+	_leaning = false
+	lv.focus_override = _lean_base
+
+# The grade letter slams onto the results panel
+func _slam_in(c: Control) -> void:
+	c.pivot_offset = c.size / 2.0
+	c.scale = Vector2(3.2, 3.2)
+	c.modulate.a = 0.0
+	var t := create_tween()
+	t.tween_interval(0.35)
+	t.tween_callback(func(): c.pivot_offset = c.size / 2.0)
+	t.tween_property(c, "modulate:a", 1.0, 0.06)
+	t.parallel().tween_property(c, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_callback(func():
+		sfx("cmb_grade_slam")
+		lv.shake = 0.5)
+
 # teammates an item/heal can still reach (the dead are out for this fight)
 func _livable() -> Array:
 	return b.party.filter(func(p): return not p.get("dead", false))
@@ -1344,6 +1507,7 @@ func _enemy_turn(e: Dictionary) -> void:
 
 func _enemy_act(e: Dictionary, it: Dictionary) -> void:
 	var n: Unit = nodes[e["key"]]
+	_lean(n)
 	var block := ""
 	if it["kind"] == "hit":
 		_say(it["text"])
@@ -1373,6 +1537,7 @@ func _enemy_act(e: Dictionary, it: Dictionary) -> void:
 	else:
 		lv.hop(n, 0.3)
 		await _play(b.enemy_resolve(e, it, ""))
+	_unlean()
 
 # ================================================================== events
 func _play(evs: Array) -> void:
@@ -1395,7 +1560,9 @@ func _event(ev: Dictionary) -> void:
 			await lv.wait(ev.get("ms", 1100) / 1000.0 * speed)
 		"dmg":
 			if ev["text"] != "": _say(ev["text"])
-			sfx(ev.get("sound", "hit"))
+			_impact(ev)
+			_burst(n, D.DTYPE.get(ev.get("by", ""), ""), ev["amt"] >= 30 or ev.get("label", "") == "PERFECT!")
+			lv.shake = maxf(lv.shake, clampf(ev["amt"] / 90.0, 0.06, 0.55))
 			if str(ev["u"].get("ai", "")).begins_with("rat"):
 				sfx("squeak" if randf() < 0.5 else "squeak2", randf_range(0.95, 1.25))
 			flash_unit(n, Color(2.5, 2.5, 2.5), 0.12)
@@ -1406,12 +1573,26 @@ func _event(ev: Dictionary) -> void:
 			if perfect or ev["amt"] >= 30 or ev.get("shake", false): _hitstop(0.07 if ev["amt"] >= 30 else 0.05)
 			if ev.get("label", "") != "":
 				_float(n, ev["label"], GREEN if ev["label"] == "PERFECT!" else Color.WHITE, 0.8, 0.6)
-			if ev.get("weak", "") == "weak": _float(n, "WEAK SPOT!", Color("#ffc23a"), 0.8, 0.45)
+			if ev.get("weak", "") == "weak":
+				_float(n, "WEAK SPOT!", Color("#ffc23a"), 0.8, 0.45)
+				sfx("cmb_weak")
+				flash(0.12, Color(1, 0.85, 0.3))
 			elif ev.get("weak", "") == "resist": _float(n, "RESISTED", Color(0.75, 0.75, 0.8), 0.7, 0.45)
 			if ev.get("shake", false): lv.shake = 0.5
 			await lv.wait((0.22 if q else 0.65) * speed)
 		"hurt":
-			sfx("hit", 0.8)
+			var blk0: String = ev.get("block", "")
+			if blk0 == "perfect":
+				sfx("cmb_block_perfect")
+				_burst(n, "block", true)
+			elif blk0 == "good":
+				sfx("cmb_block")
+				_burst(n, "block", false)
+			else:
+				sfx("cmb_hit_phys_%d" % randi_range(1, 3), 0.85)
+				if ev["amt"] >= 30: sfx("cmb_hit_big", 0.9)
+				_burst(n, "physical", ev["amt"] >= 30)
+			lv.shake = maxf(lv.shake, clampf(ev["amt"] / 70.0, 0.08, 0.6) * (0.4 if blk0 == "perfect" else 1.0))
 			flash_unit(n, Color(2.2, 0.6, 0.6), 0.18)
 			_kick(n, -1.0)
 			_float(n, "-%d" % ev["amt"], RED)
@@ -1456,11 +1637,12 @@ func _event(ev: Dictionary) -> void:
 			_restore_tint(ev["u"])
 			_stand(n)
 			_say(ev["text"])
-			sfx("heal")
+			sfx("cmb_revive")
+			_burst(n, "aura", true)
 			lv.hop(n, 0.4)
 			await lv.wait(1.0 * speed)
 		"ko":   # 11/26: Downed, not out (death saves)
-			sfx("low")
+			sfx("cmb_downed")
 			lv.knock(n, -80.0, 0.35)
 			flash_unit(n, Color(0.55, 0.55, 0.6), 99.0)
 			_say("%s is DOWN! (Death saves start on their turn.)" % ev["u"]["name"])
@@ -1474,7 +1656,9 @@ func _event(ev: Dictionary) -> void:
 			await lv.wait(0.9 * speed)
 		"broken":   # break bar emptied (11/26)
 			_punch(n, 0.7, 0.6)
-			sfx("crit", 0.8)
+			sfx("cmb_break")
+			_crack_screen()
+			_burst(n, "break", true)
 			lv.shake = 0.6
 			flash(0.4, Color(1, 0.85, 0.3))
 			flash_unit(n, Color(1.8, 1.5, 0.6), 0.5)
@@ -1498,7 +1682,12 @@ func _event(ev: Dictionary) -> void:
 				_add_enemy(ev["us"][j], j)
 			await lv.wait(1.4 * speed)
 		"meter_full":
-			sfx("ready")
+			sfx("cmb_meter_full")
+			if pbars.has(ev["u"]["key"]):   # the meter bar flashes
+				var mb: ProgressBar = pbars[ev["u"]["key"]]["meter"]
+				var mt := create_tween()
+				mt.tween_property(mb, "modulate", Color(2.2, 2.2, 1.4), 0.08)
+				mt.tween_property(mb, "modulate", Color.WHITE, 0.4)
 			_float(n, "ULT READY!", Color("#fff07a"), 0.9, 0.7)
 			if ev.has("text"): _say(ev["text"])
 			await lv.wait(0.35 * speed)
@@ -2063,6 +2252,11 @@ class Ring extends Control:
 		draw_arc(Vector2.ZERO, r, 0, TAU, 64, col, 4.0, true)
 
 func _timed(n: Unit, kind: String) -> String:
+	var r := await _timed_inner(n, kind)
+	sfx("cmb_whoosh_%d" % randi_range(1, 3), 1.1 if kind == "attack" else 0.9)
+	return r
+
+func _timed_inner(n: Unit, kind: String) -> String:
 	var ring := Ring.new()
 	ring.col = GOLD if kind == "attack" else Color("#ff8a5a")
 	root.add_child(ring)
@@ -2348,7 +2542,9 @@ func _results(res: String) -> void:
 		line.call("VICTORY!!!", 44, GOLD)
 		var grow := _row()   # GRADE  A   +25% gold · +10% XP
 		grow.add_child(_row_label("GRADE ", 24, Color.WHITE))
-		grow.add_child(_row_label(gr["letter"], 50, Color(gr["color"])))
+		var glet := _row_label(gr["letter"], 50, Color(gr["color"]))
+		grow.add_child(glet)
+		_slam_in(glet)
 		var bonus := []
 		if gr["gold"] > 1.0: bonus.append("+%d%% gold" % int(round((gr["gold"] - 1.0) * 100)))
 		if gr["xp"] > 1.0: bonus.append("+%d%% XP" % int(round((gr["xp"] - 1.0) * 100)))
