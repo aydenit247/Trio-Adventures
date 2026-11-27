@@ -1289,6 +1289,6 @@ func _tour_use(id: String, lines: int) -> void:
 	await advance(lines, 0.6)
 	await wait(0.8)
 
-# footsteps (Ebain's sfx pack): stone all the way through
+# footsteps: rough cave stone all the way through (11/26: step_stone_*, was Ebain's "hall" pack, which stays for the library)
 func floor_at(_p: Vector3) -> String:
-	return "hall"
+	return "stone"

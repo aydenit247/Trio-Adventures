@@ -23,6 +23,10 @@ var chest_sparkle: Node3D
 var hole: Node3D
 var loot_nodes := []
 
+# footsteps: the rat cave is stone (11/26, step_stone_*; it was falling back to grass)
+func floor_at(_p: Vector3) -> String:
+	return "stone"
+
 func _configure() -> void:
 	night = false
 	light_dir = Vector3(-0.5, 0.45, -0.7)

@@ -564,7 +564,7 @@ func set_leader(u: Unit) -> void:
 # (assets/sounds/step_<kind>_N.ogg, picked at random). An area sets floor_kind, or overrides floor_at() when the
 # floor changes inside it (a hut, a hall). Anything else falls back to the old synth tick.
 var floor_kind := "grass"
-const STEP_DB := { "grass": -15.0, "wood": -14.0, "hall": -16.0 }
+const STEP_DB := { "grass": -15.0, "wood": -14.0, "hall": -16.0, "stone": -15.0, "water": -14.0 }   # stone/water: 11/26 CC0 mixes
 var _step_streams := {}
 func floor_at(_p: Vector3) -> String:
 	return floor_kind
