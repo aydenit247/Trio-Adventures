@@ -173,6 +173,12 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
   33 dodge/parry test and passed on both) and make it harder with close calls: the balance pass in "Combat in one
   paragraph". **Dying only lasts for that fight** (back up at 1 HP after); the Death waiting room idea is scrapped
   because lasting deaths would break dialogue.
+- **Strategy direction (Ebain 11/26, not built yet):** setup-and-payoff combos between all three (one fighter's status
+  powers up another's move), a **break bar** for bosses (break it = stunned window + extra damage), **enemy
+  weaknesses/resistances that the game tells you** (shown on the enemy), **enemy intents only through Xylo's
+  Neuralink** (not always on), **Skorn stays pure dice chaos** (no rerolls or HP scaling), **no meter choices** (no
+  EX specials, meter is for ults/team-ups), and **bring back victory grades with rewards** for good play (Asar
+  removed grades on 11/25: talk it over with him first).
 
 **Big direction (Ebain):** these four are the MAIN EVENTS. Between them he wants lots of optional, open-world-ish
 stuff: places to walk into, joke NPCs, side quests, roaming enemies, gear to find. More chapters later; Dulbers is

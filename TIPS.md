@@ -26,7 +26,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [asar] Spoon Mail is called **Spoon Mail Armor** (Asar's call).
 - [ebain] Ebain added a **Grok** assistant (tag `grok`) for doc hygiene + light tasks. Its lane is in CLAUDE.md.
 - [asar] Asar's item calls: **armor** = flat cut per hit taken (min 1). Spoon Mail Armor +3, Beezy Mug Helmet (was Can Hat) +2, Spoon of Destiny is a trinket, Backup Conditioner (+15 HP) and Deloye Lore Vol. 9 (+15% meter, nerfed from 25) are permanent consumables used from the inventory, Metocy Map (firestarter) shows in the bag until it's burned.
-- [asar] Victory screen: no grades (Asar removed them), gold shown with the coin icon, found loot as icons with hover info.
+- [asar] Victory screen: no grades (Asar removed them), gold shown with the coin icon, found loot as icons with hover info. **(Ebain 11/26: wants grades back, with rewards for good play. Not decided with Asar yet.)**
 - [asar] Asar's calls on the inventory: **Tab = inventory, Q = switch character** (was Tab/I), 7 gear slots like his mockup, currency is **gold** (not spoons), no shop yet, window themed as a "Deloye Lore" page "signed xylo".
 - [asar] Asar wants **screenshots while working** on visual stuff, not just at the end.
 
