@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Strategy pass + combat tutorial: move reworks (Hair Flip/Diddy Slap/Eldritch Blast/Deloye Lore/Dragon Breath/Throw Sum Shi/"on some type shi"), boss break bar, weaknesses, victory grades with rewards, replayable combat tutorial — files: combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, combat/combat_tutorial.gd (new), tools/sim_combat.gd, level.gd (pause menu row only) — branch: ebain/strategy-pass — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
