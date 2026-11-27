@@ -576,6 +576,17 @@ func _make_buses() -> void:
 			var i := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(i, n)
 			AudioServer.set_bus_send(i, &"Master")
+	# 11/27 sound batch 4: a limiter on Master so lots of layered sounds at once don't clip/crackle
+	var m := AudioServer.get_bus_index(&"Master")
+	var has_lim := false
+	for k in AudioServer.get_bus_effect_count(m):
+		if AudioServer.get_bus_effect(m, k) is AudioEffectHardLimiter:
+			has_lim = true
+	if not has_lim:
+		var lim := AudioEffectHardLimiter.new()
+		lim.ceiling_db = -0.5
+		lim.pre_gain_db = 0.0
+		AudioServer.add_bus_effect(m, lim)
 	get_tree().node_added.connect(_route_audio)
 
 func _route_audio(n: Node) -> void:

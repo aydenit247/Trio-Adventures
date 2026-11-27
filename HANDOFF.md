@@ -387,6 +387,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/combat/battle.gd` | pure combat rules (turn timeline, meters, ultimates, team-ups, statuses, boss AI, talk/flee) |
 | `scripts/combat/battle_view.gd` | in-world fight presentation (line-up, menus, timed ring, dice, events, results, hoverable status words, Lykor's Mog close-up `_mog_cam`) |
 | `scripts/models.gd` | **Models**: `place(parent, id, pos, rot_y, scale, collide, recolor)`, `mat(texture, tile, tint)` (triplanar PBR for any box/cylinder), `block`, `cylinder`, `patch` (soft-edged ground decal), `tint` |
+| `scripts/area_sfx.gd` | AreaSfx: per-area random one-shots (birds/owl/drips/gusts), bush rustles, the new-area sting (see the sound notes) |
 | `scripts/fx.gd`, `util.gd`, `ambience.gd` | particles (flames, poof), mesh/material/sound helpers, camp fire loop + crickets + Scene 1 night bed |
 | `assets/characters/`, `portraits/`, `props/`, `backdrops/`, `items/` | Ebain's art (cutouts; backdrops are reference only now) |
 | `assets/models/<id>/`, `assets/textures/<id>/` | Poly Haven models (glTF) and textures (albedo/normal/rough.jpg) |
@@ -529,6 +530,17 @@ latch, swing, thud), `sfx_coins`, `sfx_level_up`, `sfx_item_pickup`** (his/Asar'
 old loudness with a soft limiter), and two new footstep floors: **`stone`** (`step_stone_1-6`, now used in the cave and
 the rat-cave ruins, which fell back to grass before; the Deloye Library keeps Ebain's `hall` steps) and **`water`**
 (`step_water_1-6`, ready for any wading spot: return "water" from an area's `floor_at`).
+**Sound batch 4 (11/27, Ebain approved from a preview)**: `scripts/area_sfx.gd` (**AreaSfx**, added to every area by
+`Level._ready`): random quiet 3D one-shots around the leader every ~9-30 s (day outdoors = `amb_bird_1/2/4` + `amb_woodpecker`,
+night outdoors = `amb_owl`, cave = `amb_drip_1-3`, summit = `amb_gust_1-2`, Pass/library = nothing; paused while a BattleView
+is up) and **bush rustles** (`bush_rustle_1-5` when the leader walks through any `bush_*` card; `Level.card()` fills
+`Level.bush_spots`). **Stings**: `sting_area` (first visit to an area, from AreaSfx), `sting_quest` (quest done, replaced
+`sfx_reward`), `sting_achievement` (achievement popup), `sting_boss` (boss fight intro, `BattleView._sting`), `sting_s_grade`
+(S grade on the results screen). **Interactions**: `ui_chaching` (buying at Haggle's / any ShopUI), `ui_bag_open` (zip on
+opening the inventory; Ebain's `sfx_cloth` still plays for taking gear off), `ui_equip_metal` / `ui_equip_cloth`
+(`InventoryUI._metal(id)` by words in the gear id). **Master bus limiter** (AudioEffectHardLimiter, ceiling -0.5 dB, added in
+`Game._make_buses`) so stacked sounds don't crackle. Mixed with numpy from CC0 packs (isaiah658/syncopika birds, qubodup
+rustles, the OGA zipper, Kenney RPG, the "RPG Sound Pack"); owl, woodpecker, drips, gusts and all stings are synthesized.
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
 bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim

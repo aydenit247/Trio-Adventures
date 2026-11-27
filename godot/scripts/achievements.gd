@@ -67,7 +67,10 @@ func _ready() -> void:
 		for k in cf.get_section_keys("counts"):
 			counts[k] = int(cf.get_value("counts", k, 0))
 	_sfx = AudioStreamPlayer.new()
-	if ResourceLoader.exists("res://assets/sounds/sfx_reward.ogg"):
+	_sfx.volume_db = -5.0
+	if ResourceLoader.exists("res://assets/sounds/sting_achievement.ogg"):   # 11/27 sound batch 4 (was sfx_reward)
+		_sfx.stream = load("res://assets/sounds/sting_achievement.ogg")
+	elif ResourceLoader.exists("res://assets/sounds/sfx_reward.ogg"):
 		_sfx.stream = load("res://assets/sounds/sfx_reward.ogg")
 	add_child(_sfx)
 

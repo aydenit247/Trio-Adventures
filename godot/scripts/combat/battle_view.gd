@@ -376,7 +376,7 @@ func _make_sounds() -> void:
 	# 11/26 AAA pass: layered combat sounds (assets/sounds/cmb_*.ogg, mixed from CC0 packs: Kenney, rubberduck, starninjas)
 	for c in ["cmb_hit_phys_1", "cmb_hit_phys_2", "cmb_hit_phys_3", "cmb_hit_aura_1", "cmb_hit_aura_2", "cmb_hit_lore_1", "cmb_hit_lore_2",
 			"cmb_hit_big", "cmb_perfect", "cmb_whoosh_1", "cmb_whoosh_2", "cmb_whoosh_3", "cmb_block", "cmb_block_perfect", "cmb_break",
-			"cmb_weak", "cmb_downed", "cmb_revive", "cmb_grade_slam", "cmb_meter_full", "cmb_explode", "cmb_ui_move", "cmb_ui_select", "cmb_ui_back"]:
+			"cmb_weak", "cmb_downed", "cmb_revive", "cmb_grade_slam", "cmb_meter_full", "cmb_explode", "cmb_ui_move", "cmb_ui_select", "cmb_ui_back", "sting_boss", "sting_s_grade"]:
 		var cp := "res://assets/sounds/%s.ogg" % c
 		if ResourceLoader.exists(cp):
 			sounds[c] = lv._sfx(load(cp), -3.0)
@@ -397,6 +397,12 @@ func _heartbeat(on: bool) -> void:
 		h.play()
 	elif not on and h.playing:
 		h.stop()
+
+# music stings play at their real pitch (sfx() wobbles the pitch)
+func _sting(k: String) -> void:
+	if sounds.has(k) and is_instance_valid(sounds[k]):
+		sounds[k].pitch_scale = 1.0
+		sounds[k].play()
 
 func sfx(k: String, pitch := 1.0) -> void:
 	if sounds.has(k):
@@ -994,6 +1000,7 @@ func _intro() -> void:
 		sfx("roar", 0.8)
 	lv.shake = 0.35
 	if cinematic:
+		_sting("sting_boss")   # 11/27 sound batch 4: boss intro hit
 		var boss: Unit = nodes[b.enemies[0]["key"]]
 		var keep := lv.zoom
 		lv.focus_override = boss.global_position
@@ -2551,6 +2558,8 @@ func _results(res: String) -> void:
 		var glet := _row_label(gr["letter"], 50, Color(gr["color"]))
 		grow.add_child(glet)
 		_slam_in(glet)
+		if gr["letter"] == "S":   # 11/27 sound batch 4: the S-grade fanfare
+			get_tree().create_timer(0.45).timeout.connect(func(): _sting("sting_s_grade"))
 		var bonus := []
 		if gr["gold"] > 1.0: bonus.append("+%d%% gold" % int(round((gr["gold"] - 1.0) * 100)))
 		if gr["xp"] > 1.0: bonus.append("+%d%% XP" % int(round((gr["xp"] - 1.0) * 100)))
