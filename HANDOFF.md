@@ -491,6 +491,20 @@ payoffs, weak hits) → S +50% gold/+25% XP, A +25%/+10%, B +10% gold), and a **
 `combatTutorialSeen`, replay from the Esc menu → Combat Tutorial or **H** in a fight). Bosses got more HP to make room
 (Mart Dulbers 280, Giant 600, summit Dulbers 560, Rat King 520, Mattias 2700 with no weak spot). Sim (Normal, Mart
 Dulbers): sloppy ~67% win, average ~94% with ~60% HP left, good ~100%.
+**Polish pass (Ebain 11/26)**: **damage preview** in the target picker (`battle.gd estimate()` → `_est_text`: "~18-30
+damage · WEAK SPOT · slaps TWICE · +12 break (40 to BREAK)"), **turn-order preview** (hovering a move re-draws the
+turn bar with its effect on the likely target: delays, Chud Out stun, a break; changed portraits get a gold border;
+`preview_with()`, `_tl_for()`), **battle log** (L or the log line: every line of the fight, `_log_lines`), **enemy
+roles** (ai `shaman` heals, `shield` GUARDS a buddy for half damage, `bomber` lights a fuse that hits everyone next
+turn (`D.BOMB`), `plague_rat` poisons (4/turn, never knocks out); goblin patrols, rat patrols and the rat colony use
+them; role tints via the enemy's `tint`), **smarter enemies** (lean harder on the hurt; regular enemies kick a Downed
+fighter 20% of the time = 2 failed saves; `D.ROLES`), **impact** (`_hitstop` on perfect/30+ hits, `_punch` camera
+on breaks and nat 20s, `_squash` on boss hits, bigger gold PERFECT numbers), **roaming fights scale with level and
+party size harder** (`D.ROAMING`), **Mattias is shorter** (hp 2200 / bolt 60 / rain 36, same odds), **new fight items**
+at Haggle's Stall (`D.FIGHT_ITEMS`: Gas Station Energy Drink +50 meter, Mouthwash cleanse + 10, Bubble Wrap soaks 30;
+need icons in assets/items/, the shop shows a placeholder), **S-rank trinkets** (first S on Mart Dulbers / Giant /
+Rat Colony / summit Dulbers: `D.S_RANK_LOOT`, flag `srank_<fight>`), and a **sim move report** (`SIM_MOVES=1`: uses,
+share of damage and damage per use for every move, plus breaks per fight).
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
 bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim

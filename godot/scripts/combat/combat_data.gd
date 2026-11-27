@@ -70,10 +70,10 @@ const MATTIAS_BOSS := {
 	# 11/26 rebalance (Asar beat him item-less): was hp 1700, bolt 38, rain 22, heal 160. Normal difficulty also went up
 	# (×1.1 HP, ×1.15 damage), these are the base numbers before that. Then the 11/26 balance pass (death saves, Help Up)
 	# made him ~2× easier, so: hp 2100 → 2400, bolt 40 → 50, rain 24 → 30; then the strategy pass (break bar, combos)
-	# → hp 2700 and no weak spot (sim back to the old win rates)
-	"hp": 2700, "spd": 19, "gold": 300, "xp": 200,
-	"bolt": 50,          # Metocy Bolt: one target
-	"rain": 30,          # Pill Rain: everyone, bricks specials
+	# → hp 2700 and no weak spot; then pacing (fights ran ~60 turns) → hp 2200, bolt 60, rain 36 (same win rates, ~15% shorter)
+	"hp": 2200, "spd": 19, "gold": 300, "xp": 200,
+	"bolt": 60,          # Metocy Bolt: one target
+	"rain": 36,          # Pill Rain: everyone, bricks specials
 	"shield": 70,        # Out-Mogs Lykor: an aura shield (needs Lykor standing)
 	"heal": 200,         # Takes A Metocy: once, under heal_below
 	"heal_below": 0.4,
@@ -102,6 +102,10 @@ const WEAK_MULT := 1.3
 const RESIST_MULT := 0.7
 const WEAKNESS := {   # by enemy ai. Which is which: DRAFT (Ebain picks)
 	"goblin": { "weak": "aura" },                       # can't resist good hair
+	"shaman": { "weak": "physical" },
+	"shield": { "weak": "lore", "resist": "physical" },
+	"bomber": { "weak": "aura" },
+	"plague_rat": { "weak": "physical", "resist": "lore" },
 	"employee": { "weak": "aura" },
 	"rat": { "weak": "physical", "resist": "lore" },    # rats don't read
 	"rat_king": { "weak": "physical", "resist": "aura" },
@@ -132,6 +136,14 @@ const GRADES := [
 	{ "letter": "D", "min": 0, "gold": 1.0, "xp": 1.0, "color": "#c9a0a0" },
 ]
 
+# Enemy roles (11/26): shaman (heals), shield (guards: half damage), bomber (fuse → hits everyone), plague rat
+const ROLES := { "shaman_heal": 14, "poison": 4, "kick_downed": 0.2 }
+const ROAMING := { "hp_per": 0.5, "dmg_per": 0.55, "hp_lvl": 0.12, "dmg_lvl": 0.1 }   # roaming fight scaling per extra fighter / per level over the fight's lvl (11/26, was 0.38/0.35, no level)
+const BOMB := { "power": 26, "first": 2, "every": 3 }
+const FIGHT_ITEMS := ["beer", "bowl", "energy", "mouthwash", "bubble", "joint"]   # what a fight bag holds
+
+const S_RANK_LOOT := { "dulbers": "clearance_tag", "giant": "giant_crumb", "rat_colony": "crown_shard", "dulbers_ambush": "manager_badge" }
+
 # Big telegraphed hits (like the Giant's SIT): wind up on his `first` turn and every `every` turns after, land it on
 # everyone on his next turn. Defend, a timed block, or a stun/charm while he winds up all answer it.
 const SALE := { "power": 34, "first": 3, "every": 5 }       # Dulbers: "CLEARANCE SALE! EVERYTHING MUST GO!" (DRAFT)
@@ -153,6 +165,10 @@ const ITEMS := {
 	"beer": { "name": "Beezy", "heal": 30, "desc": "Heals 30 (or revives at 30). Makes you Buzzed for a turn." },
 	"bowl": { "name": "Chipotle Bowl", "heal": 60, "desc": "Heals 60 (or revives at 60)." },
 	# the Deloye library (Ebain 11/25): you keep it if you tell Deloye "Bad." Smoking it = Faded for that fight
+	# 11/26 fight items (Haggle's Stall). Names/descs: DRAFT
+	"energy": { "name": "Gas Station Energy Drink", "heal": 0, "meter": 50, "desc": "+50 meter for one fighter. Tastes like a battery." },
+	"mouthwash": { "name": "Mouthwash", "heal": 10, "cleanse": true, "desc": "Clears Price Gouged, Bricked, Buzzed, Flattened and Poisoned, heals 10." },
+	"bubble": { "name": "Bubble Wrap", "heal": 0, "wrap": 30, "desc": "Wraps one fighter: soaks the next 30 damage. Popping it is half the fun." },
 	"joint": { "name": "Joint", "heal": 0, "faded": true, "desc": "From the Deloye library. Spark it mid-fight: the whole party is Faded for the rest of the fight." }, # DRAFT (desc)
 }
 # Faded (Ebain 11/25, "chill healing"): puff puff pass with Deloye = the next 3 fights, or the joint item = one fight
@@ -174,6 +190,11 @@ const GEAR := {
 	# sold at Haggle's stall in the village (ShopUI, Asar's list)
 	"pot_lid": { "slot": "shield", "name": "Pot Lid Shield", "desc": "Somebody's pot is missing a lid. +2 armor.", "armor": 2 }, # DRAFT desc
 	"jordan9s": { "slot": "shoes", "name": "Jordan 9's", "desc": "Fresh out the box. Don't step in anything. +1 speed.", "spd": 1 }, # DRAFT desc
+	# S-rank trinkets (11/26): the first S grade on each boss. Names/descs: DRAFT
+	"clearance_tag": { "slot": "trinket", "name": "Clearance Tag", "desc": "Pulled off Dulbers mid-fight. EVERYTHING MUST GO. +8% damage, +5 armor.", "power": 0.08, "armor": 5 },
+	"giant_crumb": { "slot": "trinket", "name": "Giant's Chipotle Crumb", "desc": "A crumb the size of your head. +20 max HP.", "hp": 20 },
+	"crown_shard": { "slot": "trinket", "name": "Rat Crown Shard", "desc": "Musty, but royal. +2 speed, +5% damage.", "spd": 2, "power": 0.05 },
+	"manager_badge": { "slot": "trinket", "name": "Dulbers' Manager Badge", "desc": "He pinned it on for a reason. +10% damage, +10 starting meter.", "power": 0.1, "start": 10 },
 	"goblin_tooth": { "slot": "trinket", "name": "Lucky Goblin Tooth", "desc": "The goblin wasn't using it anymore. +5% damage.", "power": 0.05 }, # DRAFT desc
 	"rock": { "slot": "trinket", "name": "A Rock (Pre-Owned)", "desc": "It's a rock. It does nothing. You paid for it." }, # DRAFT desc
 	# Haggle's top shelf (Ebain 11/24: "really expensive gear that makes you wanna go back"). Names/descs: # DRAFT
@@ -210,6 +231,9 @@ const STATUS := {
 	"downbad": { "label": "DOWN BAD", "good": false, "desc": "Deals half damage." },
 	"distracted": { "label": "DISTRACTED", "good": false, "desc": "The next hit from anyone does +50% and double break damage. Diddy Slap hits twice." },
 	"lore": { "label": "LORE STACKS", "good": false, "desc": "Stacked by Eldritch Blast (up to 3). Deloye Lore cashes them in: +25% damage each and a sure Lore-pill." },
+	"poisoned": { "label": "POISONED", "good": false, "desc": "Loses 4 HP each turn (never knocks you out). Mouthwash clears it." },
+	"guarded": { "label": "GUARDED", "good": true, "desc": "A shield buddy is covering them: takes half damage." },
+	"wrapped": { "label": "BUBBLE WRAPPED", "good": true, "desc": "Soaks damage until it pops." },
 	"broken": { "label": "BROKEN", "good": false, "desc": "Break bar emptied: loses the next turn and takes 50% more damage until then." },
 	"cooked": { "label": "COOKED", "good": false, "desc": "Burns for 6 every turn." },
 	"blind": { "label": "BLINDED", "good": false, "desc": "Next attack has a 60% chance to miss." },
@@ -310,7 +334,7 @@ const FIGHTS := {
 		"title": "Rat Patrol", "xp": 45,
 		"enemies": [
 			{ "name": "Rat", "tag": "(Thimble Infantry)", "gold": 4, "hp": 26, "spd": 10, "tex": "rat", "roam_tex": "rat", "h": 0.95, "ai": "rat" },
-			{ "name": "Rat", "tag": "(Big Back)", "gold": 7, "hp": 40, "spd": 6, "tex": "rat_fat", "roam_tex": "rat_fat", "h": 1.05, "ai": "rat" },
+			{ "name": "Plague Rat", "tag": "(Big Back)", "gold": 7, "hp": 40, "spd": 6, "tex": "rat_fat", "roam_tex": "rat_fat", "h": 1.05, "ai": "plague_rat", "tint": "#c8ff9a" },
 			{ "name": "Rat", "tag": "(Small) (Scared)", "gold": 2, "hp": 16, "spd": 13, "tex": "rat_tiny", "roam_tex": "rat_tiny", "h": 0.62, "ai": "rat" },
 		],
 		"talk": ["cheese_bribe", "roast"],
@@ -320,8 +344,8 @@ const FIGHTS := {
 		"title": "The Rat Colony vs. Everybody", "party": ["skorn", "lykor", "xylo"], "xp": 90, "story": true, "boss": true, "lvl": 3,
 		"enemies": [
 			{ "name": "King Nibbsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 520, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.45, "ai": "rat_king", "boss": true },
-			{ "name": "Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 34, "spd": 10, "tex": "rat", "h": 0.95, "ai": "rat" },
-			{ "name": "Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 46, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "rat" },
+			{ "name": "Shield Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 34, "spd": 10, "tex": "rat", "h": 0.95, "ai": "shield", "tint": "#a8c8ff" },
+			{ "name": "Plague Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 46, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "plague_rat", "tint": "#c8ff9a" },
 		],
 		"talk": ["cheese_bribe"],
 		"loot": "corncob_scepter",
@@ -330,9 +354,10 @@ const FIGHTS := {
 	"goblin_patrol": {
 		"title": "Goblin Patrol", "xp": 50,
 		"enemies": [
-			{ "name": "Goblin", "tag": "(Unpaid Internship)", "gold": 2, "hp": 16, "spd": 7, "tex": "goblin_fight", "h": 1.2, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Hall Monitor)", "gold": 6, "hp": 30, "spd": 7, "tex": "goblin_fight", "h": 1.32, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Shift Manager)", "gold": 10, "hp": 36, "spd": 9, "tex": "goblin_fight", "h": 1.4, "ai": "goblin", "second_wind": true },
+			# 11/26 roles (names DRAFT, tags kept): the intern got the fireworks, the hall monitor got a shield, the manager heals
+			{ "name": "Goblin Bomber", "tag": "(Unpaid Internship)", "gold": 4, "hp": 18, "spd": 7, "tex": "goblin_fight", "h": 1.2, "ai": "bomber", "tint": "#ffb08a" },
+			{ "name": "Shield Goblin", "tag": "(Hall Monitor)", "gold": 6, "hp": 32, "spd": 7, "tex": "goblin_fight", "h": 1.32, "ai": "shield", "tint": "#a8c8ff" },
+			{ "name": "Goblin Shaman", "tag": "(Shift Manager)", "gold": 10, "hp": 36, "spd": 9, "tex": "goblin_fight", "h": 1.4, "ai": "shaman", "second_wind": true, "tint": "#b8ffb0" },
 		],
 		"talk": ["bribe_goblin", "job_offer", "roast"],
 		"loot": ["can_hat", "spoon_mail"],   # Spoon Mail moved here when the Spoonsmithy was removed (Asar)

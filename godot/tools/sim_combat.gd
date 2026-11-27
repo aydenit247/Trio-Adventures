@@ -90,6 +90,8 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 	var hp_left := 0.0
 	var kos := 0
 	var deaths := 0
+	var moves := {}   # SIM_MOVES=1: move name → { n, dmg } over every run (11/26: find moves nobody needs)
+	var breaks := 0
 	for i in n:
 		var oo := o.duplicate(true)
 		oo["seed"] = rng.randi()
@@ -126,7 +128,22 @@ func _run(key: String, o: Dictionary, skill: String, n: int) -> void:
 		turns += b.stats["party_turns"]
 		kos += b.stats["kos"]
 		deaths += b.stats.get("deaths", 0)
+		breaks += b.stats.get("breaks", 0)
+		for mname in b.stats.get("moves", {}):
+			var ms: Dictionary = moves.get(mname, { "n": 0, "dmg": 0 })
+			ms["n"] += b.stats["moves"][mname]["n"]
+			ms["dmg"] += b.stats["moves"][mname]["dmg"]
+			moves[mname] = ms
 	print("%-14s %-34s %-8s win %3d%%  turns %4.1f  hp left %3d%%  downs %3.1f  deaths %3.1f" % [key, str(o.get("party")) + " L" + str(o["level"]) + " " + str(o.get("mods", {})), skill, 100 * wins / n, float(turns) / n, int(100 * hp_left / max(1, wins)), float(kos) / n, float(deaths) / n])
+	if OS.get_environment("SIM_MOVES") != "" and skill == "average":
+		var total := 0
+		for mname in moves: total += moves[mname]["dmg"]
+		var names := moves.keys()
+		names.sort_custom(func(a, c): return moves[a]["dmg"] > moves[c]["dmg"])
+		print("    breaks/fight %.1f · move report (uses per fight, share of damage, avg per use):" % (float(breaks) / n))
+		for mname in names:
+			var ms: Dictionary = moves[mname]
+			print("      %-28s %5.1f uses  %3d%%  %5.1f per use" % [mname, float(ms["n"]) / n, int(100.0 * ms["dmg"] / maxf(1.0, total)), float(ms["dmg"]) / maxf(1.0, ms["n"])])
 
 func _choose(b, u: Dictionary, skill: String, rng: RandomNumberGenerator) -> Dictionary:
 	var foes: Array = b.alive(b.enemies)

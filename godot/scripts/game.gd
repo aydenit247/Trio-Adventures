@@ -155,7 +155,9 @@ func owner_of_key(id: String) -> String:
 func fight_bags(ids: Array) -> Dictionary:
 	var out := {}
 	for f in ids:
-		out[f] = { "beer": count("beer", f), "bowl": count("bowl", f), "joint": count("joint", f) }
+		out[f] = {}
+		for k in CombatD.FIGHT_ITEMS:   # (11/26: energy drink, mouthwash, bubble wrap joined Beezy/Bowl/Joint)
+			out[f][k] = count(k, f)
 	return out
 
 func gear_in_bag(f: String) -> Array:   # unequipped gear this fighter carries

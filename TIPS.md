@@ -125,7 +125,14 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] **Overlays during a fight** (the tutorial, yes/no boxes) go on `MenuUI.stack`; battle_view's `_input` ignores
   keys while the stack isn't empty, so new overlays should push themselves there too.
 
+- [ebain] **Fight items live in `D.FIGHT_ITEMS`** (bags, the Items menu, carrying them back out after a fight all loop
+  it). A new consumable = an ITEMS entry + that list + `use_item` + shop/inventory rows.
+- [ebain] **`_hitstop` sets `Engine.time_scale`** for a few frames (its timer ignores time scale). Don't await anything
+  scaled while it runs, and keep it out of auto-play (it already skips there).
+
 ## Testing tricks
+- [ebain] `SIM_MOVES=1` adds a move report to the balance sim (average skill only). The sim bot always picks specials
+  first, so main attacks look rarer than they are for players: compare damage *per use*, not just use counts.
 - [ebain] The explorer bot plays fights through BattleView's auto-play and **ignores MenuUI boxes while a fight is up**,
   so anything that waits on a yes/no inside a fight must skip in headless runs (CombatTutorial.offer_first does).
 - [ebain] The balance sim prints `downs` and `deaths` per fight now. `FIGHT=mattias AUTO_LOSE=1` loops forever (a story

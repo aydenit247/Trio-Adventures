@@ -184,6 +184,10 @@ func _place(party_units: Array, enemy_units: Array, c) -> void:
 	for k in nodes:
 		var u: Unit = nodes[k]
 		base_tint[k] = u.get_meta("tint") if u.has_meta("tint") else Color.WHITE
+		var eu := _unit_by_key(k)   # enemy roles get a tint (11/26: shaman green, shield blue, bomber orange)
+		if eu.get("side", "") == "enemy" and eu["E"].has("tint"):
+			base_tint[k] = Color(eu["E"]["tint"])
+			u.set_meta("tint", base_tint[k])
 		saved_pose[u] = [u.views.duplicate(), u.height_m]
 		u.frozen = false
 		u.remove_meta("follow")
@@ -567,7 +571,7 @@ func _add_enemy(e: Dictionary, j: int) -> void:
 	_enemy_row(e)
 
 func _update_hint() -> void:
-	hint.text = "W/S choose · E select · Q back · T timed hits: %s · H tutorial" % ("AUTO" if Game.timed_auto else "MANUAL")
+	hint.text = "W/S choose · E select · Q back · T timed hits: %s · H tutorial · L log" % ("AUTO" if Game.timed_auto else "MANUAL")
 
 # Combat panels use UITheme and follow Settings → Menu theme, Parchment too (Ebain 11/24: "always follow menu theme").
 # Text INSIDE a panel goes through _pl()/_ink() so light fight colors turn into dark ink on Parchment. Text over the
@@ -867,10 +871,11 @@ func _portrait_tex(u: Dictionary) -> Texture2D:
 		n = u["disguise"]
 	return load("res://assets/portraits/%s.png" % n)
 
-func _timeline() -> void:
+var _tl_shown := {}
+func _timeline(tl := {}) -> void:
 	for c in timeline.get_children():
 		c.queue_free()
-	var pv := b.preview(8)
+	var pv := b.preview_with(8, tl.get("bumps", {}), tl.get("skips", {})) if not tl.is_empty() else b.preview(8)
 	for i in pv.size():
 		var u: Dictionary = pv[i]["u"]
 		var pc := PanelContainer.new()
@@ -878,6 +883,7 @@ func _timeline() -> void:
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color(UITheme.c("bg2", _th()), 0.75)
 		sb.border_color = UITheme.c("edge", _th()) if u["side"] == "party" else RED
+		if pv[i].get("moved", false): sb.border_color = Color("#ffd84a")   # changed by the hovered move
 		sb.set_border_width_all(3 if i == 0 else 2)
 		sb.set_corner_radius_all(6)
 		pc.add_theme_stylebox_override("panel", sb)
@@ -1007,15 +1013,15 @@ func _choose(u: Dictionary) -> Dictionary:
 	while true:
 		var opts := []
 		var mv: Dictionary = u["moves"]
-		opts.append({ "text": "Attack: " + mv["main"]["name"], "desc": mv["main"]["desc"], "v": "main" })
+		opts.append({ "text": "Attack: " + mv["main"]["name"], "desc": mv["main"]["desc"], "v": "main", "tl": _tl_for(u, mv["main"]) })
 		for slot in ["special", "bonus", "extra"]:
 			if not mv.has(slot):
 				continue
 			var cd: int = u["cds"].get(slot, 0)
 			var label: String = { "special": "Special", "bonus": "Bonus", "extra": "New" }[slot]
-			opts.append({ "text": "%s: %s%s" % [label, mv[slot]["name"], "  (ready in %d)" % cd if cd > 0 else ""], "desc": mv[slot]["desc"], "v": slot, "off": cd > 0 })
+			opts.append({ "text": "%s: %s%s" % [label, mv[slot]["name"], "  (ready in %d)" % cd if cd > 0 else ""], "desc": mv[slot]["desc"], "v": slot, "off": cd > 0, "tl": _tl_for(u, mv[slot]) })
 		if u["meter"] >= 100:
-			opts.append({ "text": "ULTIMATE: " + mv["ult"]["name"], "desc": mv["ult"]["desc"], "v": "ult", "hot": true })
+			opts.append({ "text": "ULTIMATE: " + mv["ult"]["name"], "desc": mv["ult"]["desc"], "v": "ult", "hot": true, "tl": _tl_for(u, mv["ult"]) })
 		else:
 			opts.append({ "text": "Ultimate: %s  (%d%%)" % [mv["ult"]["name"], u["meter"]], "desc": "Fill %s to 100 by dealing damage, landing timed hits and taking hits. " % u["P"]["meter_label"] + mv["ult"]["desc"], "v": "ult", "off": true })
 		var combos := b.combos_for(u)
@@ -1023,8 +1029,11 @@ func _choose(u: Dictionary) -> Dictionary:
 			opts.append({ "text": "Team-Up!", "desc": "Spend meter with a friend for a combo move.", "v": "combo", "hot": true })
 		var nb := b.item_count(u["id"], "beer")
 		var nw := b.item_count(u["id"], "bowl")
-		var nj := b.item_count(u["id"], "joint")
-		opts.append({ "text": "Items  (Beezy %d · Bowl %d%s)" % [nb, nw, " · Joint %d" % nj if nj > 0 else ""], "desc": "Heal or revive someone with %s's own items." % u["name"], "v": "item", "off": nb + nw + nj == 0 })
+		var ntot := 0
+		for k in D.FIGHT_ITEMS:
+			ntot += b.item_count(u["id"], k)
+		var nother := ntot - nb - nw
+		opts.append({ "text": "Items  (Beezy %d · Bowl %d%s)" % [nb, nw, " · +%d more" % nother if nother > 0 else ""], "desc": "Heal, revive, cleanse or power up someone with %s's own items." % u["name"], "v": "item", "off": ntot == 0 })
 		var dn := b.downed()
 		if not dn.is_empty():   # 11/26: pick a Downed teammate back up (costs your turn)
 			opts.append({ "text": "Help Up", "desc": "Spend your turn pulling a Downed teammate back up (%d%% of their HP)." % int(D.BALANCE["help_up"] * 100), "v": "help", "hot": true })
@@ -1044,7 +1053,7 @@ func _choose(u: Dictionary) -> Dictionary:
 					var t = await _pick_target(_livable(), true)
 					if t != null: act = { "type": "move", "slot": pick, "target": t }
 				else:
-					var t = await _pick_target(b.alive(b.enemies), false)
+					var t = await _pick_target(b.alive(b.enemies), false, func(x): return _est_text(u, move, x))
 					if t != null: act = { "type": "move", "slot": pick, "target": t }
 			"combo":
 				var copts := []
@@ -1052,11 +1061,11 @@ func _choose(u: Dictionary) -> Dictionary:
 					copts.append({ "text": "%s (%d meter each)" % [c["name"], b.combo_cost(c)], "desc": c["desc"], "v": c })
 				var c = await _menu("Team-Up", copts, true)
 				if c != null:
-					var t = b.alive(b.enemies)[0] if c.get("aoe", false) else await _pick_target(b.alive(b.enemies), false)
+					var t = b.alive(b.enemies)[0] if c.get("aoe", false) else await _pick_target(b.alive(b.enemies), false, func(x): return _est_text(u, c.merged({ "kind": "combo" }), x))
 					if t != null: act = { "type": "combo", "combo": c, "target": t }
 			"item":
 				var iopts := []
-				for k in ["beer", "bowl", "joint"]:
+				for k in D.FIGHT_ITEMS:
 					if b.item_count(u["id"], k) > 0:
 						iopts.append({ "text": "%s ×%d" % [D.ITEMS[k]["name"], b.item_count(u["id"], k)], "desc": D.ITEMS[k]["desc"], "v": k })
 				var it = await _menu("Items", iopts, true)
@@ -1082,6 +1091,94 @@ func _choose(u: Dictionary) -> Dictionary:
 			sfx("select")
 			return act
 	return {}
+
+# Damage preview line for the target picker (11/26): "~18-30 damage · WEAK SPOT · +12 break (40 to BREAK)"
+func _est_text(u: Dictionary, move: Dictionary, t: Dictionary) -> String:
+	var es := b.estimate(u, move, t)
+	if not es.get("ok", false):
+		return "Damage: " + (", ".join(es["notes"]) if not es.get("notes", []).is_empty() else "—")
+	var bits := ["~%d-%d damage" % [es["lo"], es["hi"]] if es["lo"] != es["hi"] else "~%d damage" % es["lo"]]
+	if es["kills"]: bits.append("FINISHES THEM")
+	if es["weak"] == "weak": bits.append("WEAK SPOT")
+	elif es["weak"] == "resist": bits.append("they RESIST this")
+	bits += es["notes"]
+	if es["brk"] > 0:
+		bits.append("+%d break%s" % [es["brk"], " → BREAK!" if es["brk"] >= es["brk_left"] else " (%d to BREAK)" % es["brk_left"]])
+	return " · ".join(bits)
+
+# Turn-order preview data for a move (11/26): who gets pushed back / skipped if you use it (on the likely target)
+func _tl_for(u: Dictionary, move: Dictionary) -> Dictionary:
+	var foes := b.alive(b.enemies)
+	if foes.is_empty():
+		return {}
+	var t: Dictionary = foes[0]
+	for f in foes:
+		if f.get("boss", false): t = f
+	var bumps := {}
+	var skips := {}
+	if move.has("delay"):
+		bumps[t["key"]] = b.delay(t) * move["delay"]
+	if move.get("kind", "") == "chudout" and b.can_cc(t):
+		skips[t["key"]] = 1
+	var es := b.estimate(u, move, t)
+	if es.get("ok", false) and es["brk"] > 0 and es["brk"] >= es["brk_left"]:
+		skips[t["key"]] = int(skips.get(t["key"], 0)) + 1
+	if bumps.is_empty() and skips.is_empty():
+		return {}
+	return { "bumps": bumps, "skips": skips }
+
+# ---- battle log (11/26): every line said this fight, L or a click on the log toggles the history
+var _log_lines: Array = []
+var _log_panel: PanelContainer = null
+func _toggle_log() -> void:
+	if _log_panel != null:
+		_log_panel.queue_free()
+		_log_panel = null
+		return
+	_log_panel = PanelContainer.new()
+	_log_panel.add_theme_stylebox_override("panel", UITheme.panel(0.94, _th()))
+	_log_panel.anchor_left = 0.5; _log_panel.anchor_right = 0.5
+	_log_panel.offset_left = -480; _log_panel.offset_right = 480; _log_panel.offset_top = 110; _log_panel.offset_bottom = 470
+	_log_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_log_panel.add_child(sc)
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
+	v.add_child(_pl("BATTLE LOG  (L to close)", 16, UITheme.c("accent", _th()), 3))
+	for line in _log_lines:
+		var l := _pl(line, 15, Color.WHITE, 3)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(900, 0)
+		v.add_child(l)
+	root.add_child(_log_panel)
+	await get_tree().process_frame
+	if is_instance_valid(sc): sc.scroll_vertical = int(sc.get_v_scroll_bar().max_value)
+
+# ---- impact (11/26): a tiny freeze on big hits, a camera punch-in on big moments
+func _hitstop(secs := 0.06) -> void:
+	if auto_play: return
+	Engine.time_scale = 0.05
+	await get_tree().create_timer(secs, true, false, true).timeout
+	Engine.time_scale = 1.0
+
+func _punch(n: Unit, amt := 0.78, secs := 0.45) -> void:
+	if n == null or auto_play: return
+	var keep := lv.zoom
+	var kf = lv.focus_override
+	lv.focus_override = n.global_position.lerp(center, 0.4)
+	lv.zoom = keep * amt
+	await lv.wait(secs)
+	lv.zoom = keep
+	lv.focus_override = kf
+
+func _squash(n: Unit) -> void:   # bosses have no hurt art: a quick squash-and-stretch instead
+	if n == null or n.sprite == null: return
+	var s0: Vector3 = n.sprite.scale
+	var tw := create_tween()
+	tw.tween_property(n.sprite, "scale", Vector3(s0.x * 1.1, s0.y * 0.88, s0.z), 0.06)
+	tw.tween_property(n.sprite, "scale", s0, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 # teammates an item/heal can still reach (the dead are out for this fight)
 func _livable() -> Array:
@@ -1303,7 +1400,10 @@ func _event(ev: Dictionary) -> void:
 				sfx("squeak" if randf() < 0.5 else "squeak2", randf_range(0.95, 1.25))
 			flash_unit(n, Color(2.5, 2.5, 2.5), 0.12)
 			_kick(n)
-			_float(n, "-%d" % ev["amt"], Color("#ffd27a") if not q else Color("#ffe8b0"), 1.0 if not q else 0.8)
+			var perfect: bool = ev.get("label", "") == "PERFECT!"
+			_float(n, "-%d" % ev["amt"], Color("#ffe14a") if perfect else (Color("#ffd27a") if not q else Color("#ffe8b0")), 1.35 if perfect else (1.0 if not q else 0.8))
+			if ev["u"].get("boss", false): _squash(n)
+			if perfect or ev["amt"] >= 30 or ev.get("shake", false): _hitstop(0.07 if ev["amt"] >= 30 else 0.05)
 			if ev.get("label", "") != "":
 				_float(n, ev["label"], GREEN if ev["label"] == "PERFECT!" else Color.WHITE, 0.8, 0.6)
 			if ev.get("weak", "") == "weak": _float(n, "WEAK SPOT!", Color("#ffc23a"), 0.8, 0.45)
@@ -1368,19 +1468,18 @@ func _event(ev: Dictionary) -> void:
 		"save":
 			_say("%s rolls a death save… (d20, 10+ passes)" % ev["u"]["name"])
 			await _show_dice([ev["roll"]], 20)
+			if ev["roll"] == 20: _punch(n, 0.75, 0.6)
 			_say(ev["text"])
 			_float(n, "PASS" if ev["roll"] >= 10 else ("NAT 1" if ev["roll"] == 1 else "FAIL"), GREEN if ev["roll"] >= 10 else RED, 0.9, 0.5)
 			await lv.wait(0.9 * speed)
 		"broken":   # break bar emptied (11/26)
+			_punch(n, 0.7, 0.6)
 			sfx("crit", 0.8)
 			lv.shake = 0.6
 			flash(0.4, Color(1, 0.85, 0.3))
 			flash_unit(n, Color(1.8, 1.5, 0.6), 0.5)
 			_say(ev["text"])
 			await _banner("BROKEN!", Color("#ffc23a"), 1.1)
-		"dice":   # Throw Sum Shi's d6 (11/26)
-			_say(ev["text"])
-			await _show_dice(ev["rolls"])
 		"save_fail":
 			_say(ev["text"])
 			_float(n, "FAILED SAVE", RED, 0.8, 0.5)
@@ -1545,6 +1644,9 @@ func _event(ev: Dictionary) -> void:
 # ------------------------------------------------------------------ little effects
 func _say(text: String) -> void:
 	log_lbl.text = text
+	if text != "" and (_log_lines.is_empty() or _log_lines[-1] != text):
+		_log_lines.append(text)
+		if _log_lines.size() > 80: _log_lines.pop_front()
 
 func flash(secs: float, c: Color) -> void:
 	flash_rect.color = Color(c.r, c.g, c.b, 0.55)
@@ -1791,6 +1893,10 @@ func _render_menu() -> void:
 	_last_menu_sel = _menu_sel
 	menu_desc.text = _menu_opts[_menu_sel].get("desc", "") if not _menu_opts.is_empty() else ""
 	menu_desc.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	var tl: Dictionary = _menu_opts[_menu_sel].get("tl", {}) if not _menu_opts.is_empty() else {}
+	if tl != _tl_shown:   # 11/26: the turn bar shows what this move would do to the turn order
+		_tl_shown = tl
+		_timeline(tl)
 
 func _confirm_menu() -> void:
 	var o: Dictionary = _menu_opts[_menu_sel]
@@ -1876,6 +1982,10 @@ func _input(ev: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		await CombatTutorial.show_over(lv.hud).closed
 		return
+	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_L:   # battle log history
+		get_viewport().set_input_as_handled()
+		_toggle_log()
+		return
 	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode == KEY_T:
 		Game.timed_auto = not Game.timed_auto
 		_update_hint()
@@ -1903,7 +2013,7 @@ func _is_back(ev: InputEvent) -> bool:
 	return ev is InputEventKey and ev.pressed and ev.physical_keycode in [KEY_Q, KEY_ESCAPE, KEY_BACKSPACE]
 
 # Pick a unit with A/D (or W/S), E to confirm, Q to go back. Returns the battle unit or null.
-func _pick_target(list: Array, allies: bool):
+func _pick_target(list: Array, allies: bool, pv: Callable = Callable()):   # pv(target) -> damage preview text
 	var opts := list.filter(func(u): return allies or u["hp"] > 0)
 	if opts.is_empty():
 		return null
@@ -1925,6 +2035,8 @@ func _pick_target(list: Array, allies: bool):
 		var u: Dictionary = opts[i]
 		_point(target_marker, nodes[u["key"]])
 		menu_title.text = "%s:  %s  (%d/%d)" % ["Teammate" if allies else "Target", u["name"], u["hp"], u["max_hp"]]
+		var pt: String = pv.call(u) if pv.is_valid() else ""
+		menu_desc.text = (pt + "\n" if pt != "" else "") + "A/D to switch · E to confirm · Q to go back"
 		await get_tree().process_frame
 		if Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("move_forward") or Input.is_action_just_pressed("ui_left") or Input.is_action_just_pressed("ui_up"):
 			i = (i + opts.size() - 1) % opts.size(); sfx("move")
@@ -2059,9 +2171,8 @@ func _outro(res: String) -> void:
 			if Game.hurt[p["id"]] <= 0: Game.hurt.erase(p["id"])
 	# carry items back out
 	for id in b.bags:   # what's left in each fighter's bag
-		Game.set_count(id, "beer", b.bags[id]["beer"])
-		Game.set_count(id, "bowl", b.bags[id]["bowl"])
-		Game.set_count(id, "joint", b.bags[id].get("joint", 0))
+		for k in D.FIGHT_ITEMS:
+			if b.bags[id].has(k): Game.set_count(id, k, b.bags[id][k])
 	Game.used67 = b.used67
 	if int(Game.flags.get("fadedFights", 0)) > 0:   # puff puff pass with Deloye: 3 fights of Faded
 		Game.flags["fadedFights"] = int(Game.flags["fadedFights"]) - 1
@@ -2244,6 +2355,11 @@ func _results(res: String) -> void:
 		grow.add_child(_row_label("    " + (" · ".join(bonus) if not bonus.is_empty() else "(no bonus)"), 20, Color(gr["color"])))
 		col.add_child(grow)
 		var st: Dictionary = b.stats
+		var srank: String = D.S_RANK_LOOT.get(key, "")   # 11/26: first S on a boss gives its trinket
+		if gr["letter"] == "S" and srank != "" and not Game.flag("srank_" + key):
+			Game.set_flag("srank_" + key)
+			if Game.give_gear(srank):
+				line.call("S-RANK REWARD: %s (check your inventory)" % D.GEAR[srank]["name"], 20, Color("#ffd84a"))
 		line.call("HP left %d/40 · Timing %d/25 · No knockouts %d/15 · Style %d/20  (%d team-ups, %d breaks, %d combos, %d weak-spot hits)" % [gr["hp"], gr["timing"], gr["kos"], gr["style"], st["combos"], st["breaks"], st["payoffs"], st["weak_hits"]], 14, Color(1, 1, 1, 0.65))
 	else:
 		line.call("TALKED IT OUT", 40, GREEN)
