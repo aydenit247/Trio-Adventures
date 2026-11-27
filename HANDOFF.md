@@ -524,7 +524,11 @@ mixing script is in TIPS (re-run it to tweak a sound). **Satisfying sounds (11/2
 swuing's grass via congusbongus' "Footsteps on different surfaces" (CC-BY 3.0, credited) + Fantozzi sand + kdd leaves
 (CC0), high-passed, presence boost, soft-compressed, matched to the wood steps' loudness), menu sounds `ui_pick` /
 `ui_back` / `ui_open` (UITheme.FILES; Kenney Interface Sounds + a soft wooden "thock"), and `sfx_grab` (it was played
-in 3 places but the file didn't exist).
+in 3 places but the file didn't exist). Then (11/27, Ebain approved from a preview) **remixed `sfx_pop`, `sfx_door` (trimmed 4 s → under 1 s:
+latch, swing, thud), `sfx_coins`, `sfx_level_up`, `sfx_item_pickup`** (his/Asar's originals + CC0 layers, matched to the
+old loudness with a soft limiter), and two new footstep floors: **`stone`** (`step_stone_1-6`, now used in the cave and
+the rat-cave ruins, which fell back to grass before; the Deloye Library keeps Ebain's `hall` steps) and **`water`**
+(`step_water_1-6`, ready for any wading spot: return "water" from an area's `floor_at`).
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
 bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim
