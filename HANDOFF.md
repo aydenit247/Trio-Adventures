@@ -520,7 +520,11 @@ OpenGameArt: Kenney RPG + Interface Sounds, rubberduck's "75 breaking/falling/hi
 per damage type: dust / sparkles / runes, sparks on blocks, gold shards on a break; `_crack_screen()` on BROKEN; a
 gold flash on weak spots), **UI** (HP bars drain with a pale ghost bar, `_drain()` + `_bar(..., ghost)`; the meter
 bar flashes when full; the turn bar slides in when the turn moves on; the grade letter slams in, `_slam_in()`). The
-mixing script is in TIPS (re-run it to tweak a sound).
+mixing script is in TIPS (re-run it to tweak a sound). **Satisfying sounds (11/26)**: new grass footsteps `step_grass_1-8.ogg` (close-mic ASMR style:
+swuing's grass via congusbongus' "Footsteps on different surfaces" (CC-BY 3.0, credited) + Fantozzi sand + kdd leaves
+(CC0), high-passed, presence boost, soft-compressed, matched to the wood steps' loudness), menu sounds `ui_pick` /
+`ui_back` / `ui_open` (UITheme.FILES; Kenney Interface Sounds + a soft wooden "thock"), and `sfx_grab` (it was played
+in 3 places but the file didn't exist).
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
 bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim
