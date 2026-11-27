@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Sound batch 4: area one-shots (birds/woodpecker/owl/drips/gusts/bush rustle), music stings, shop/equip/bag sounds, master limiter — files: scripts/area_sfx.gd (new), level.gd, game.gd, combat/battle_view.gd, achievements.gd, shop_ui.gd, inventory_ui.gd, credits.gd, assets/sounds/ — branch: ebain/sound-batch4 — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -19,6 +18,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-27 [ebain] **Sound batch 4**: birds/woodpecker by day, owl at night, cave drips, summit gusts, bush rustles; stings for new area, quest done, achievement, boss intro, S grade; cha-ching at the shop, metal/cloth equip, bag zip; master limiter
 - 2026-11-27 [ebain] **Fight music**: Ebain's General Combat (every fight) + Diddy Chud and Metocin Mattias boss themes with phase 2 at the last stand; all 5 in the Library
 - 2026-11-26 [ebain] **Combat AAA polish**: layered combat sounds, camera lean/shake, hit particles, break crack, ghost HP bars, sliding turn bar, grade slam
 - 2026-11-26 [ebain] **End credits**: same AAA-style roll after every ending, opening with this run's recap (your choices + their voice lines, what else happened, stats)
@@ -87,6 +87,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-27 [ebain] **Sound batch 4** (Ebain approved from a preview). New `scripts/area_sfx.gd` (AreaSfx) is added to every area by Level._ready. Hot spots: **level.gd** (AreaSfx spawn after the visited check, `bush_spots` filled in `card()`, quest sound is now `sting_quest`), **game.gd** (hard limiter on Master in `_make_buses`), **combat/battle_view.gd** (`_sting()`, boss intro sting, S-grade fanfare). Also achievements.gd (popup sound), shop_ui.gd (cha-ching), inventory_ui.gd (bag zip, metal/cloth equip via `_metal(id)`), credits.gd. 24 new oggs in assets/sounds. Tested: dulbers fight tour, cave + trail tours, test_ui, test_achievements.
 - 2026-11-27 [ebain] **Sound remix merged** (Ebain approved the preview): replaced `assets/sounds/sfx_pop`, `sfx_door` (now under 1 s), `sfx_coins`, `sfx_level_up`, `sfx_item_pickup` (same loudness as before); new `step_stone_1-6` + `step_water_1-6`. **level.gd**: `STEP_DB` gained stone/water. **cave.gd** `floor_at` → "stone" (was "hall"). **ruins.gd**: new `floor_at` → "stone" (it was falling back to grass). Tested: cave + ruins scenes headless, no errors.
 - 2026-11-26 [ebain] **Satisfying sounds merged**: replaced `assets/sounds/step_grass_1-8.ogg` (close-mic style, same loudness as the wood steps), new `ui_pick`/`ui_back`/`ui_open` wired through **ui_theme.gd** `FILES` (were synthesized beeps), new `sfx_grab.ogg` (3 `play_sound("sfx_grab")` calls had no file). **credits.gd**: one line (swuing/congusbongus CC-BY 3.0, Fantozzi, kdd). Tested: test_ui ALL OK.
 - 2026-11-27 [ebain] **Fight music merged.** New `scripts/battle_music.gd` (BattleMusic). Hot spot **combat/battle_view.gd**: 4 small lines only (`var music`, `music.start(key)` in `run()`, `music.watch(b)` after each actor's events in `_loop()`, `music.stop()` after the loop). Every fight = `battle_general`; `BOSS` = giant → `boss_diddy_chud_1/2`, mattias → `boss_mattias_1/2`; phase 2 crossfades in on the boss's HYPED last stand (`e["last_stand"]`). Dulbers / Rat King / bouncer use General Combat until Ebain makes their themes (add to `BOSS`). Library: +5 songs (full versions). Tested headless: FIGHT=goblins, giant (phase 2 fired), mattias (phase 2 fired, music restarts on retry), test_ui ALL OK. Loop seams not heard by ear (no sound card here).
