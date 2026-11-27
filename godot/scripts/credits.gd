@@ -119,6 +119,7 @@ const ROLL := [
 	["note", "godotengine.org · MIT license"],
 	["gap", 24],
 	["role", "Models & textures", "Poly Haven (CC0)"],
+	["role", "Combat sound packs", "Kenney, rubberduck, StarNinjas (OpenGameArt, CC0)"],
 	["role", "Fonts", "Cinzel, Pinyon Script (SIL OFL)"],
 	["role", "3D models", "Meshy"],
 	["role", "Pictures & video", "Gemini"],

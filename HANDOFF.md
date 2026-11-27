@@ -508,6 +508,17 @@ Rat Colony / summit Dulbers: `D.S_RANK_LOOT`, flag `srank_<fight>`), and a **sim
 share of damage and damage per use for every move, plus breaks per fight). Then (11/26) a tune: roaming patrols ×0.8 HP / ×0.7 damage per extra
 fighter (`D.ROAMING`), the shaman heals every other turn at most, the Rat Colony is tougher (King 640, guards 48/60,
 stampede 38), and the first fight is kinder (the three goblins 26 → 22 HP; sim: sloppy Skorn wins 85%, was 70%).
+**AAA polish (Ebain 11/26)**: **layered combat sounds** `assets/sounds/cmb_*.ogg` (mixed with numpy from CC0 packs on
+OpenGameArt: Kenney RPG + Interface Sounds, rubberduck's "75 breaking/falling/hit" + "100 SFX" + "25 bangs", StarNinjas'
+"10 impact/shield blocks"; each hit = sub thump + transient + body: `cmb_hit_phys_1-3` / `cmb_hit_aura_1-2` /
+`cmb_hit_lore_1-2` picked by the attacker's damage type (`dmg` events carry `by`), `cmb_hit_big` on 30+, `cmb_perfect`,
+`cmb_weak`, `cmb_whoosh_1-3` on every swing, `cmb_block`/`cmb_block_perfect`, `cmb_break`, `cmb_explode`, `cmb_downed`,
+`cmb_revive`, `cmb_meter_full`, `cmb_grade_slam`, `cmb_ui_move/select/back` for the fight menu; `_impact()`),
+**camera** (leans toward whoever acts, `_lean`/`_unlean`; shake scales with damage), **effects** (`_burst()` particles
+per damage type: dust / sparkles / runes, sparks on blocks, gold shards on a break; `_crack_screen()` on BROKEN; a
+gold flash on weak spots), **UI** (HP bars drain with a pale ghost bar, `_drain()` + `_bar(..., ghost)`; the meter
+bar flashes when full; the turn bar slides in when the turn moves on; the grade letter slams in, `_slam_in()`). The
+mixing script is in TIPS (re-run it to tweak a sound).
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
 bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim

@@ -615,7 +615,7 @@ func do_move(m: Dictionary, move: Dictionary, t: Dictionary, h: Dictionary, o: D
 				ev += damage_enemy(m, t, move["power"], h.merged({ "text": "Second slap!", "sound": "slap", "brk": move.get("brk", 1.0) }))
 			if was_cooked and t["hp"] > 0:
 				stats["payoffs"] += 1
-				ev += damage_enemy(m, t, move["explode"], { "text": "%s was already Cooked. %s EXPLODES!" % [t["name"], t["name"]], "sound": "fire", "shake": true }) # DRAFT
+				ev += damage_enemy(m, t, move["explode"], { "text": "%s was already Cooked. %s EXPLODES!" % [t["name"], t["name"]], "sound": "explode", "shake": true }) # DRAFT
 			if t["hp"] <= 0: return ev
 			if move.get("distract", false):
 				t["st"]["distracted"] = 1
@@ -950,7 +950,7 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 	if not m.is_empty() and _cur_move != "" and stats["moves"].has(_cur_move):
 		stats["moves"][_cur_move]["dmg"] += d
 	var text: String = o.get("text", "")
-	ev.append({ "t": "dmg", "u": e, "amt": d, "hp": e["hp"], "text": "%s (-%d)" % [text, d] if text != "" else "", "sound": o.get("sound", "hit"), "label": label, "shake": o.get("shake", false), "quick": o.get("quick", false), "weak": weak })
+	ev.append({ "t": "dmg", "u": e, "amt": d, "hp": e["hp"], "text": "%s (-%d)" % [text, d] if text != "" else "", "sound": o.get("sound", "hit"), "label": label, "shake": o.get("shake", false), "quick": o.get("quick", false), "weak": weak, "by": m.get("id", "") })
 	if e.get("boss", false) and not m.is_empty() and e["hp"] > 0 and not e["st"].has("broken"):   # fill the break bar
 		var B: Dictionary = D.BREAK
 		e["brk"] += d * B["mult"] * o.get("brk", 1.0) * (B["perfect"] if timing == "perfect" else 1.0) * (B["distracted"] if dist else 1.0) * (B["hyped"] if hype > 0 else 1.0) * (B["weak"] if weak == "weak" else 1.0)

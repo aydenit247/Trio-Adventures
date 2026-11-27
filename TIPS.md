@@ -130,6 +130,13 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] **`_hitstop` sets `Engine.time_scale`** for a few frames (its timer ignores time scale). Don't await anything
   scaled while it runs, and keep it out of auto-play (it already skips there).
 
+- [ebain] **Combat sounds are mixed, not just copied**: the CC0 packs (OpenGameArt zips) were layered with a numpy
+  script (sub-bass thump + noise crack + recorded body, peak -1 dB, ogg q5) into `assets/sounds/cmb_*.ogg`. To make a
+  new one, decode with ffmpeg to f32 mono 44.1k, add layers with small offsets, normalize, encode. OpenGameArt is
+  reachable from the Claude workspace; kenney.nl, freesound and pixabay are not.
+- [ebain] **New battle effects skip themselves in tours** (`auto_play` / `shots_mode`): particles, camera lean,
+  hitstop, screen crack. To test them headless, drop those guards temporarily and run a `FIGHT=` tour.
+
 ## Testing tricks
 - [ebain] `SIM_MOVES=1` adds a move report to the balance sim (average skill only). The sim bot always picks specials
   first, so main attacks look rarer than they are for players: compare damage *per use*, not just use counts.
