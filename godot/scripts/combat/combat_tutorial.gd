@@ -60,6 +60,8 @@ static func offer_first(level: Node) -> void:
 	if Game.flag("combatTutorialSeen"):
 		return
 	Game.set_flag("combatTutorialSeen")
+	if DisplayServer.get_name() == "headless" and not level.shots_mode:   # the explorer bot can't answer a yes/no mid-fight
+		return
 	if level.shots_mode:   # automated tours: show the first page and move on
 		var t := show_over(level.hud)
 		await level.wait(0.6)

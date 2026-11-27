@@ -126,6 +126,8 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   keys while the stack isn't empty, so new overlays should push themselves there too.
 
 ## Testing tricks
+- [ebain] The explorer bot plays fights through BattleView's auto-play and **ignores MenuUI boxes while a fight is up**,
+  so anything that waits on a yes/no inside a fight must skip in headless runs (CombatTutorial.offer_first does).
 - [ebain] The balance sim prints `downs` and `deaths` per fight now. `FIGHT=mattias AUTO_LOSE=1` loops forever (a story
   fight retries); kill it, or test the Mattias loss through `SUMMIT_TOUR=finale AUTO_LOSE=1`.
 - [asar] **Windows crash dumps** are in `%LOCALAPPDATA%\CrashDumps\TrioAdventures.exe.*.dmp`. You can parse the minidump with plain Python `struct` (exception stream 6, module list 4, thread list 3, memory64 list 9). Asar's 4 crashes were all worker threads with GPU shader-compiler DLLs on the stack (Vulkan driver), not scripts or TTS.
