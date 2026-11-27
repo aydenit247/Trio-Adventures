@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Battle music: Ebain's General Combat theme + Diddy Chud & Mattias boss themes (phase 2 at the HYPED last stand) — files: godot/scripts/combat/battle_view.gd (hot spot, small), godot/scripts/battle_music.gd (new), godot/scripts/library_ui.gd, godot/assets/music/battle_*.ogg + boss_*.ogg (new) — branch: ebain/battle-music — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
