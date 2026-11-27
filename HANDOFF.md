@@ -173,6 +173,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
   33 dodge/parry test and passed on both) and make it harder with close calls: the balance pass in "Combat in one
   paragraph". **Dying only lasts for that fight** (back up at 1 HP after); the Death waiting room idea is scrapped
   because lasting deaths would break dialogue.
+- **Summit Dulbers with Mattias helping stays easy on purpose (Ebain 11/26: "it's funny").** Don't rebalance it.
 - **Strategy direction (Ebain 11/26, built the same day, see "Combat in one paragraph"):** setup-and-payoff combos between all three (one fighter's status
   powers up another's move), a **break bar** for bosses (break it = stunned window + extra damage), **enemy
   weaknesses/resistances that the game tells you** (shown on the enemy), **enemy intents only through Xylo's
