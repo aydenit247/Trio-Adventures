@@ -19,7 +19,7 @@ const D = preload("res://scripts/combat/combat_data.gd")
 const BASE := 100.0
 const TIMING := { "perfect": 1.5, "good": 1.2, "mid": 0.9 }
 const BLOCK := { "perfect": 0.35, "good": 0.7, "mid": 1.0 }
-const DURATION := ["mogged", "lorepill", "downbad", "cooked", "gouged", "locked", "copium", "itis", "braced"]
+const DURATION := ["mogged", "lorepill", "downbad", "cooked", "gouged", "locked", "copium", "itis", "braced", "poisoned", "guarded"]
 
 var key := ""
 var def: Dictionary
@@ -39,7 +39,8 @@ var bolt_pending := false         # Dulbmeethus' lightning this fight (rolled on
 const BOLT_CHANCE := 0.067        # Ebain 11/25: 6.7% of fights (was 3%)
 const BOLT_BOSS := 0.4            # bosses aren't one-shot: they lose 40% of their max HP
 var emergency_given := false
-var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 0, "perfects": 0, "goods": 0, "combos": 0, "breaks": 0, "payoffs": 0, "weak_hits": 0 }
+var stats := { "party_turns": 0, "dmg_taken": 0, "kos": 0, "items": 0, "timed": 0, "perfects": 0, "goods": 0, "combos": 0, "breaks": 0, "payoffs": 0, "weak_hits": 0, "moves": {} }
+var _cur_move := ""   # move being resolved, for stats["moves"] (the sim's move report)
 var shi_discount := false   # "on some type shi": the next team-up costs half meter (11/26)
 var party: Array = []
 var enemies: Array = []
@@ -117,8 +118,12 @@ func _init(fight: String, o: Dictionary = {}) -> void:
 	if not def.get("story", false):
 		# roaming fights scale with how many of you there are (11/26: steeper for a full party, solo unchanged;
 		# a 3-person patrol used to end at ~90% HP)
-		hp_mul *= 0.85 + 0.38 * (ids.size() - 1)
-		dmg_scale = 1.0 + 0.35 * (ids.size() - 1)
+		hp_mul *= 0.85 + D.ROAMING["hp_per"] * (ids.size() - 1)
+		dmg_scale = 1.0 + D.ROAMING["dmg_per"] * (ids.size() - 1)
+		# 11/26: they keep up with your level too (patrols were 100% wins at ~90% HP even after enemy roles)
+		var rover: int = maxi(0, level - int(def.get("lvl", 1)))
+		hp_mul *= 1.0 + D.ROAMING["hp_lvl"] * rover
+		dmg_scale *= 1.0 + D.ROAMING["dmg_lvl"] * rover
 	enemy_hp_mul = hp_mul
 	for i in def["enemies"].size():
 		var E: Dictionary = def["enemies"][i]
@@ -241,6 +246,10 @@ func next_actor() -> Dictionary:
 	if u["side"] == "party":
 		stats["party_turns"] += 1
 		u["defending"] = false
+		if had.has("poisoned") and u["hp"] > 1:   # a plague rat's bite (11/26): ticks, never knocks you out
+			var pd := mini(D.ROLES["poison"], u["hp"] - 1)
+			u["hp"] -= pd
+			ev.append({ "t": "self_hit", "u": u, "amt": pd, "hp": u["hp"], "text": "%s is Poisoned. (-%d)" % [u["name"], pd] }) # DRAFT
 		if faded_ids.has(u["id"]) and u["hp"] > 0:
 			u["st"]["faded"] = 1   # (a KO or a cleanse clears statuses: Faded comes back)
 			var fh := mini(int(round(D.FADED["heal"] * lvl)), u["max_hp"] - u["hp"])
@@ -413,6 +422,8 @@ func _intent_text(e: Dictionary, it: Dictionary) -> String:   # DRAFT wording
 		"buff": return "%s is about to buff up (%s)." % [who, String(it.get("status", "")).to_upper()]
 		"hype": return "%s is about to hype up %s." % [who, it["other"]["name"]]
 		"phase": return "%s is about to switch it up." % who
+		"heal_ally": return "%s is about to heal %s." % [who, it["target"]["name"]]
+		"guard": return "%s is about to guard %s." % [who, it["target"]["name"]]
 	return "%s is about to do... nothing useful." % who
 
 # Bosses get Locked In after losing a turn, so you can't chain charm/stun forever
@@ -551,6 +562,11 @@ func party_act(m: Dictionary, a: Dictionary, o: Dictionary = {}) -> Array:
 		if timing == "good": stats["goods"] += 1
 	var h := { "attacker": m, "timing": timing, "crit": crit }
 
+	_cur_move = a["combo"]["name"] if a["type"] == "combo" else (m["moves"][a["slot"]]["name"] if a["type"] == "move" else "")
+	if _cur_move != "":
+		var ms: Dictionary = stats["moves"].get(_cur_move, { "n": 0, "dmg": 0 })
+		ms["n"] += 1
+		stats["moves"][_cur_move] = ms
 	if a["type"] == "combo":
 		if lore_nerf and a["combo"]["id"] == "loreslap" and rnd() < D.LORE_FIZZLE:
 			for id in a["combo"]["who"]:
@@ -807,6 +823,26 @@ func use_item(m: Dictionary, k: String, t: Dictionary) -> Array:
 			_make_faded(p)
 			ev.append({ "t": "status", "u": p, "name": "faded", "text": "%s is FADED." % p["name"], "quiet": true })
 		return ev
+	if it.has("meter"):   # 11/26 fight items: energy drink (meter), mouthwash (cleanse), bubble wrap (absorb)
+		if t["hp"] <= 0:
+			return ev + [{ "t": "say", "text": "%s is Downed. That won't help right now." % t["name"], "ms": 900 }] # DRAFT
+		ev.append({ "t": "say", "text": "%s chugs a %s. Eyes wide open." % [t["name"], it["name"]], "sound": "gulp", "ms": 900 }) # DRAFT
+		return ev + add_meter(t, it["meter"])
+	if it.get("cleanse", false):
+		if t["hp"] <= 0:
+			return ev + [{ "t": "say", "text": "%s is Downed. That won't help right now." % t["name"], "ms": 900 }]
+		for c in ["gouged", "bricked", "buzzed", "flattened", "poisoned"]:
+			t["st"].erase(c)
+		var ch := heal_amt(t, it["heal"])
+		t["hp"] += ch
+		ev.append({ "t": "heal", "u": t, "amt": ch, "hp": t["hp"], "text": "%s gargles the %s. Debuffs gone. (+%d)" % [t["name"], it["name"], ch] }) # DRAFT
+		return ev
+	if it.has("wrap"):
+		if t["hp"] <= 0:
+			return ev + [{ "t": "say", "text": "%s is Downed. That won't help right now." % t["name"], "ms": 900 }]
+		t["st"]["wrapped"] = it["wrap"]
+		ev.append({ "t": "status", "u": t, "name": "wrapped", "text": "%s is wrapped in Bubble Wrap. Soaks the next %d damage." % [t["name"], it["wrap"]] }) # DRAFT
+		return ev
 	ev += _heal_member(m, t, it["heal"], "%s has a %s." % [t["name"], it["name"]])
 	if k == "beer" and t["hp"] > 0:
 		t["st"]["buzzed"] = 1
@@ -899,6 +935,8 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 		dmg *= 0.7
 	if e["st"].has("broken"):
 		dmg *= D.BREAK["dmg_mult"]
+	if e["st"].has("guarded"):   # a shield buddy is covering them (11/26)
+		dmg *= 0.5
 	var d := maxi(1, int(round(dmg)))
 	var ev := []
 	if e["st"].has("shield"):
@@ -909,6 +947,8 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 			e["st"].erase("shield")
 		ev.append({ "t": "say", "text": "The Aura Shield absorbs %d.%s" % [ab, "" if e["st"].has("shield") else " It shatters!"], "sound": "sparkle", "ms": 800 })
 	e["hp"] = maxi(0, e["hp"] - d)
+	if not m.is_empty() and _cur_move != "" and stats["moves"].has(_cur_move):
+		stats["moves"][_cur_move]["dmg"] += d
 	var text: String = o.get("text", "")
 	ev.append({ "t": "dmg", "u": e, "amt": d, "hp": e["hp"], "text": "%s (-%d)" % [text, d] if text != "" else "", "sound": o.get("sound", "hit"), "label": label, "shake": o.get("shake", false), "quick": o.get("quick", false), "weak": weak })
 	if e.get("boss", false) and not m.is_empty() and e["hp"] > 0 and not e["st"].has("broken"):   # fill the break bar
@@ -943,6 +983,76 @@ func damage_enemy(m: Dictionary, e: Dictionary, base: float, o: Dictionary = {})
 	elif e["phase"] == 1 and e["boss"] and e["hp"] <= e["max_hp"] * 0.5:
 		e["phase_pending"] = true
 	return ev
+
+# Damage preview (11/26): roughly what a move/team-up does to t, MID..PERFECT. { lo, hi, weak, brk, notes, ok }
+# ok = false: nothing to show (dice moves, heals). Mirrors damage_enemy without rolling anything.
+func estimate(m: Dictionary, move: Dictionary, t: Dictionary) -> Dictionary:
+	var kind: String = move.get("kind", "hit")
+	var power: float = move.get("power", 0.0)
+	var notes := []
+	if kind in ["crashout", "fullcrash", "throw"]:
+		return { "ok": false, "notes": ["dice roll"] }
+	if not kind in ["hit", "mogsupreme", "chudout", "beam", "combo"] or power <= 0.0:
+		return { "ok": false, "notes": [] }
+	if kind == "chudout" and not can_cc(t): power += 15
+	var stacks: int = t["st"].get("lore", 0) if move.get("lore_cash", false) else 0
+	if stacks > 0:
+		power *= 1.0 + 0.25 * stacks
+		notes.append("cashes in %d Lore Stack%s" % [stacks, "" if stacks == 1 else "s"])
+	var mult := lvl * (1.25 if hype > 0 else 1.0)
+	var pw: float = m["gear"].get("power", 0.0)
+	mult *= 1.0 + pw / (1.0 + pw * D.POWER_FALLOFF)
+	var W: Dictionary = D.WEAKNESS.get(t.get("ai", ""), {})
+	var dtype: String = D.DTYPE.get(m.get("id", ""), "")
+	var weak := ""
+	if dtype != "" and W.get("weak", "") == dtype:
+		mult *= D.WEAK_MULT
+		weak = "weak"
+	elif dtype != "" and W.get("resist", "") == dtype:
+		mult *= D.RESIST_MULT
+		weak = "resist"
+	var dist: bool = t["st"].has("distracted")
+	if dist: mult *= 1.5
+	if t["st"].has("mogged"): mult *= 1.25
+	if t["st"].has("braced"): mult *= 0.7
+	if t["st"].has("broken"): mult *= D.BREAK["dmg_mult"]
+	if t["st"].has("guarded"): mult *= 0.5
+	var hits := 1.0
+	if move.get("payoff", false) and (t["st"].has("mogged") or dist or t["st"].has("charm")):
+		hits = 2.0
+		notes.append("slaps TWICE")
+	if kind == "combo" and move.get("hits", 1) > 1:
+		hits = move["hits"]
+	var extra := 0.0
+	if move.has("explode") and t["st"].has("cooked"):
+		extra = move["explode"] * mult
+		notes.append("EXPLODES (+%d)" % int(extra))
+	var timed: bool = move.get("timed", kind in ["hit", "combo"])
+	var lo := power * mult * hits * (0.9 if timed else 1.0) + extra
+	var hi := power * mult * hits * (1.5 if timed else 1.0) + extra
+	var brk := 0.0
+	if t.get("boss", false) and t.has("brk_max") and not t["st"].has("broken"):
+		var B: Dictionary = D.BREAK
+		brk = lo * B["mult"] * move.get("brk", 1.0) * (B["distracted"] if dist else 1.0) * (B["hyped"] if hype > 0 else 1.0) * (B["weak"] if weak == "weak" else 1.0)
+	if move.get("distract", false): notes.append("leaves them Distracted")
+	if move.get("lore_stack", false): notes.append("+1 Lore Stack")
+	return { "ok": true, "lo": int(round(lo)), "hi": int(round(hi)), "weak": weak, "brk": int(round(brk)), "brk_left": int(ceil(t.get("brk_max", 0.0) - t.get("brk", 0.0))), "notes": notes, "kills": lo >= t["hp"] }
+
+# Turn-order preview (11/26): the timeline if `bumps` (unit key → extra delay) and `skips` (unit key → turns lost)
+# happened. The view feeds it the hovered move's effects.
+func preview_with(n: int, bumps: Dictionary, skips: Dictionary) -> Array:
+	var sim := []
+	for u in units():
+		var sk := (1 if u["st"].has("stun") else 0) + (1 if u["st"].has("charm") else 0) + (1 if u["st"].has("flattened") else 0) + int(skips.get(u["key"], 0))
+		sim.append({ "u": u, "next": u["next"] + float(bumps.get(u["key"], 0.0)), "order": u["order"], "skips": sk })
+	var out := []
+	while out.size() < n and not sim.is_empty():
+		sim.sort_custom(_sort)
+		var s2: Dictionary = sim[0]
+		out.append({ "u": s2["u"], "skip": s2["skips"] > 0, "moved": bumps.has(s2["u"]["key"]) or skips.has(s2["u"]["key"]) })
+		if s2["skips"] > 0: s2["skips"] -= 1
+		s2["next"] += delay(s2["u"])
+	return out
 
 # The break bar is full: he's BROKEN (loses his next turn, takes extra damage till then, cancels any wind-up)
 func _break(e: Dictionary) -> Array:
@@ -1040,10 +1150,14 @@ func target(_e: Dictionary, mode := "weak") -> Dictionary:
 		return list[0]
 	if mode == "random":
 		return pick(list)
+	# 11/26 smarter: regular enemies sometimes kick a Downed fighter (2 failed saves), everyone leans harder on the hurt
+	if not _e.get("boss", false) and not downed().is_empty() and rnd() < D.ROLES["kick_downed"]:
+		return pick(downed())
 	var w := []
 	var total := 0.0
 	for p in list:
-		var x: float = 1.0 + 2.0 * (1.0 - float(p["hp"]) / p["max_hp"])
+		var frac: float = float(p["hp"]) / p["max_hp"]
+		var x: float = 1.0 + 3.0 * (1.0 - frac) + (2.0 if frac < 0.25 else 0.0)
 		w.append(x)
 		total += x
 	var r := rnd() * total
@@ -1112,6 +1226,32 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 		var t := target(e)
 		return { "kind": "hit", "name": "Spoon Bonk", "power": 9, "targets": [t], "text": "%s bonks %s with a spoon!" % [e["name"], t["name"]], "sound": "bonk" }
 
+	# Enemy roles (11/26). Texts: # DRAFT
+	if e["ai"] == "shaman":   # heals whoever's hurt, otherwise zaps
+		var hurt_foes := alive(enemies).filter(func(x): return x["hp"] < x["max_hp"] * 0.7 and not is_same(x, e))
+		if hurt_foes.is_empty() and e["hp"] < e["max_hp"] * 0.5: hurt_foes = [e]
+		if not hurt_foes.is_empty():
+			hurt_foes.sort_custom(func(a, b): return float(a["hp"]) / a["max_hp"] < float(b["hp"]) / b["max_hp"])
+			var who_h: String = "himself" if is_same(hurt_foes[0], e) else hurt_foes[0]["name"]
+			return { "kind": "heal_ally", "target": hurt_foes[0], "amt": D.ROLES["shaman_heal"], "text": "%s waves a stick over %s. Somehow that heals." % [e["name"], who_h] }
+		var t0 := target(e)
+		return { "kind": "hit", "name": "Stick Zap", "power": 10, "targets": [t0], "text": "%s zaps %s with a stick." % [e["name"], t0["name"]], "sound": "zap" }
+	if e["ai"] == "shield":   # covers the most hurt buddy (half damage), otherwise bonks
+		var others := alive(enemies).filter(func(x): return not is_same(x, e) and not x["st"].has("guarded"))
+		if not others.is_empty() and rnd() < 0.4:
+			others.sort_custom(func(a, b): return float(a["hp"]) / a["max_hp"] < float(b["hp"]) / b["max_hp"])
+			return { "kind": "guard", "target": others[0], "text": "%s jumps in front of %s. GUARDED: half damage for 2 turns." % [e["name"], others[0]["name"]] }
+		var t1 := target(e)
+		return { "kind": "hit", "name": "Shield Bash", "power": 11, "targets": [t1], "text": "%s shield-bashes %s." % [e["name"], t1["name"]], "sound": "bonk" }
+	if e["ai"] == "bomber":   # lights a fuse, next turn it goes off on everyone
+		var bomb := _telegraph(e, "bomb", D.BOMB, all, "%s lights a fuse… (Next turn it blows up on everyone. Defend, block it, or stun/charm him first.)" % e["name"], "BOOM! %s's bomb goes off!" % e["name"])
+		if not bomb.is_empty():
+			return bomb
+		var t2 := target(e)
+		return { "kind": "hit", "name": "Firecracker", "power": 10, "targets": [t2], "text": "%s flicks a firecracker at %s." % [e["name"], t2["name"]], "sound": "fire" }
+	if e["ai"] == "plague_rat":   # bite + poison
+		var t3 := target(e)
+		return { "kind": "hit", "name": "Plague Bite", "power": 9, "targets": [t3], "poison": 3, "text": "%s bites %s. That's not clean." % [e["name"], t3["name"]], "sound": "bonk" }
 	if e["ai"] == "employee":   # Dulbers' adds at the Mart (11/26). Texts: # DRAFT
 		var t := target(e, "random")
 		return { "kind": "hit", "name": "Mop Swing", "power": 6, "targets": [t], "text": "%s swings a mop at %s! \"Cleanup on aisle YOU.\"" % [e["name"], t["name"]], "sound": "bonk" }
@@ -1258,6 +1398,20 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 		"telegraph":
 			ev.append({ "t": "telegraph", "u": e, "text": it["text"], "tex": it.get("tex", ""), "status": it["status"] })
 			return ev
+		"heal_ally":   # goblin shaman (11/26)
+			var ht: Dictionary = it["target"]
+			if ht["hp"] <= 0:
+				return ev + [{ "t": "say", "text": "%s waves the stick at nothing. Too late." % e["name"], "ms": 900 }] # DRAFT
+			var ha := mini(int(round(it["amt"] * enemy_hp_mul)), ht["max_hp"] - ht["hp"])
+			ht["hp"] += ha
+			ev.append({ "t": "heal", "u": ht, "amt": ha, "hp": ht["hp"], "text": "%s (+%d)" % [it["text"], ha], "sound": "sparkle" })
+			return ev
+		"guard":   # shield goblin (11/26)
+			var gt: Dictionary = it["target"]
+			if gt["hp"] > 0:
+				gt["st"]["guarded"] = 2
+				ev.append({ "t": "status", "u": gt, "name": "guarded", "text": it["text"] })
+			return ev
 		"eat":
 			var amt := mini(it["amt"], e["max_hp"] - e["hp"])
 			e["hp"] += amt
@@ -1307,6 +1461,10 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 	var was_down := downed()   # (only those already Downed before this hit take a failed save)
 	for p in it["targets"]:
 		if p["hp"] <= 0:
+			if not it.get("aoe", false) and p.get("down", false) and not p.get("dead", false) and was_down.has(p):
+				ev.append({ "t": "say", "text": "%s kicks %s while they're down. Rude." % [e["name"], p["name"]], "sound": "hit", "ms": 900 }) # DRAFT
+				p["saves"][1] += 1   # (a melee hit on the Downed = 2 fails, like BG3)
+				ev += _downed_hit(p)
 			continue
 		if p["gear"].get("dodge", 0.0) > 0.0 and block != "perfect" and rnd() < p["gear"]["dodge"]:   # Neuralink
 			ev.append({ "t": "say", "text": "%s saw that coming. Dodged!" % p["name"], "sound": "miss", "ms": 900 }) # DRAFT
@@ -1322,6 +1480,8 @@ func enemy_resolve(e: Dictionary, it: Dictionary, block: String) -> Array:
 			ev += party_status(p, "gouged", 2, "%s is PRICE GOUGED. Healing is halved for a bit." % p["name"])
 		if it.get("sit", false) and not soft:
 			ev += party_status(p, "flattened", 1, "%s is FLATTENED. Loses their next turn." % p["name"])
+		if it.has("poison") and block != "perfect":
+			ev += party_status(p, "poisoned", it["poison"], "%s is POISONED. Loses a bit of HP each turn." % p["name"]) # DRAFT
 		if it.has("flatten") and not soft and rnd() < it["flatten"]:
 			ev += party_status(p, "flattened", 1, "%s is too charmed by the knockoff hair. Loses their next turn." % p["name"])
 	if it.get("aoe", false):   # the shockwave reaches the Downed too (11/26)
@@ -1364,6 +1524,13 @@ func hurt(p: Dictionary, dmg: int, block: String, aoe: bool) -> Array:
 	if dmg > 0 and p.get("armor", 0) > 0:   # armor: a % cut per hit (D.ARMOR_PCT each, capped), never below 1. It was a flat
 		# cut (10 − 3 = 7) until 11/26: stacked armor turned small hits into 1s and made Mattias easy (Ebain/Asar)
 		dmg = maxi(1, int(round(dmg * (1.0 - minf(D.ARMOR_CAP, p["armor"] * D.ARMOR_PCT)))))
+	if dmg > 0 and p["st"].has("wrapped"):   # Bubble Wrap soaks hits until it pops (11/26)
+		var ab := mini(int(p["st"]["wrapped"]), dmg)
+		p["st"]["wrapped"] -= ab
+		dmg -= ab
+		if p["st"]["wrapped"] <= 0:
+			p["st"].erase("wrapped")
+		ev.append({ "t": "say", "text": "The Bubble Wrap soaks %d.%s" % [ab, "" if p["st"].has("wrapped") else " *pop pop pop*"], "sound": "sparkle", "ms": 700 }) # DRAFT
 	p["hp"] = maxi(0, p["hp"] - dmg)
 	stats["dmg_taken"] += dmg
 	ev.append({ "t": "hurt", "u": p, "amt": dmg, "hp": p["hp"], "block": block, "quick": aoe })

@@ -353,7 +353,7 @@ func _slot_box(r: Rect2, gear_id: String, style: int, item := {}) -> Panel:
 func _bag_items() -> Array:   # what the fighter on screen carries (everyone has their own bag)
 	var fid: String = fighters[who]
 	var out := []
-	for k in ["beer", "bowl"]:
+	for k in ["beer", "bowl", "mouthwash", "bubble", "energy"]:
 		if Game.count(k, fid) > 0:
 			out.append({ "id": k, "kind": "use", "name": CombatD.ITEMS[k]["name"], "desc": CombatD.ITEMS[k]["desc"], "count": Game.count(k, fid) })
 	for k in CombatD.BOOSTS:

@@ -16,6 +16,7 @@ const INK := Color("#f3e3b0")
 # id, kind (item = goes in a bag, gear = one of a kind), price in gold
 const STOCK := [
 	["beer", "item", 8], ["bowl", "item", 15],
+	["mouthwash", "item", 12], ["bubble", "item", 18], ["energy", "item", 22],   # 11/26 fight items (prices DRAFT)
 	["pot_lid", "gear", 25], ["jordan9s", "gear", 30], ["goblin_tooth", "gear", 45], ["rock", "gear", 3],
 	# the top shelf (Ebain 11/24: really expensive, worth coming back for)
 	["air_forces", "gear", 220], ["gold_chain", "gear", 280], ["king_helm", "gear", 320], ["designer_mail", "gear", 400], ["golden_ladle", "gear", 650],
