@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Sound batch 4: area one-shots (birds/woodpecker/owl/drips/gusts/bush rustle), music stings, shop/equip/bag sounds, master limiter — files: scripts/area_sfx.gd (new), level.gd, game.gd, combat/battle_view.gd, achievements.gd, shop_ui.gd, inventory_ui.gd, credits.gd, assets/sounds/ — branch: ebain/sound-batch4 — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
