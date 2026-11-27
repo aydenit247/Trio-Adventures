@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Battle music: Ebain's General Combat theme + Diddy Chud & Mattias boss themes (phase 2 at the HYPED last stand) — files: godot/scripts/combat/battle_view.gd (hot spot, small), godot/scripts/battle_music.gd (new), godot/scripts/library_ui.gd, godot/assets/music/battle_*.ogg + boss_*.ogg (new) — branch: ebain/battle-music — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -19,6 +18,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-27 [ebain] **Fight music**: Ebain's General Combat (every fight) + Diddy Chud and Metocin Mattias boss themes with phase 2 at the last stand; all 5 in the Library
 - 2026-11-26 [ebain] **Combat AAA polish**: layered combat sounds, camera lean/shake, hit particles, break crack, ghost HP bars, sliding turn bar, grade slam
 - 2026-11-26 [ebain] **End credits**: same AAA-style roll after every ending, opening with this run's recap (your choices + their voice lines, what else happened, stats)
 - 2026-11-26 [ebain] **Combat polish**: damage/turn-order previews, battle log, enemy roles + smarter AI, impact pass, roaming + Mattias pacing, fight items, S-rank trinkets, sim move report
@@ -86,6 +86,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-27 [ebain] **Fight music merged.** New `scripts/battle_music.gd` (BattleMusic). Hot spot **combat/battle_view.gd**: 4 small lines only (`var music`, `music.start(key)` in `run()`, `music.watch(b)` after each actor's events in `_loop()`, `music.stop()` after the loop). Every fight = `battle_general`; `BOSS` = giant → `boss_diddy_chud_1/2`, mattias → `boss_mattias_1/2`; phase 2 crossfades in on the boss's HYPED last stand (`e["last_stand"]`). Dulbers / Rat King / bouncer use General Combat until Ebain makes their themes (add to `BOSS`). Library: +5 songs (full versions). Tested headless: FIGHT=goblins, giant (phase 2 fired), mattias (phase 2 fired, music restarts on retry), test_ui ALL OK. Loop seams not heard by ear (no sound card here).
 - 2026-11-26 [ebain] **Combat AAA polish merged** (HANDOFF "Combat in one paragraph" → AAA polish). **combat/battle_view.gd**: `_impact` (layered hit sounds by damage type), `_burst` particles, `_crack_screen`, `_lean`/`_unlean` camera, damage-scaled shake, `_bar(..., ghost)` + `_drain` ghost HP bars, meter flash on full, turn bar slide-in (`_tl_first`), `_slam_in` grade, whoosh on every timed swing (`_timed` wraps `_timed_inner`), fight menu clicks use Kenney UI sounds. **combat/battle.gd**: `dmg` events carry `by` (attacker id); Dragon Breath's explosion uses sound `explode`. **assets/sounds/**: 24 new `cmb_*.ogg` (CC0, mixed). **credits.gd**: one line crediting the sound packs. Mattias-with-Dulbers stays as is (Ebain: it's funny). Tested: headless FIGHT dulbers/goblin_patrol (also with the effects forced on), test_ui ALL OK.
 - 2026-11-26 [ebain] **Balance tune merged**: combat/combat_data.gd `ROAMING` hp_per 0.8 / dmg_per 0.7, Rat Colony King 640 HP + guards 48/60 + `STAMPEDE` 38, first-fight goblins 22 HP; combat/battle.gd shaman heals every other turn (`healed_last`). Sim: first fight sloppy 85% (was 70%), goblin patrol avg 83% HP left (was 90%), rats 75% (was 81%), Rat Colony L2 sloppy 87% (was 98%); other bosses unchanged. Tested: headless FIGHT goblins/goblin_patrol/rat_colony.
 - 2026-11-26 [ebain] **End credits merged.** New `scripts/credits.gd` (Credits.roll). summit.gd: `_finale` and `_hard_end` both end in `_credits()` (replaces `end_card`, goes to the title after), `_run_facts()`, `credits_done`, tour `SUMMIT_TOUR=credits`, and the finale tour now waits for the roll. No hot spots. All credit text is DRAFT data in `ROLL` (who-did-what taken from HANDOFF/COLLAB). **@asar:** you're credited for co-dev, voices (narrator, Lykor/Xylo, Dulbers, goblins), item art, 3D, combat, explorer bot + dialogue map; fix anything wrong in `ROLL`. Explorer bot: credits skip through in headless, so no softlock. Tested: SUMMIT_TOUR=credits headless + xvfb (cards + roll look right), finale tours "Bad." and goblin party (both reach the credits), explorer bot 4 min from the summit at 10x (0 problems, back to title).
