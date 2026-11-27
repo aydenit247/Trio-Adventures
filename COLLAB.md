@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Satisfying sounds: new grass footsteps, menu confirm/back/open, sfx_grab (was missing) — files: assets/sounds/step_grass_*.ogg, ui_pick/ui_back/ui_open/sfx_grab.ogg, ui_theme.gd (FILES only), credits.gd (one line) — branch: ebain/sounds — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
