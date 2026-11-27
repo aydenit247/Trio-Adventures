@@ -1135,7 +1135,30 @@ func _finale() -> void:
 			await _goblin_party()
 	await run_dialogue(SS.CHAPTER_CLOSE)
 	busy = true
-	end_card(_end_lines(), "res://title.tscn")
+	await _credits()
+
+# (Ebain 11/26) Every ending finishes with the same credits roll (credits.gd), which opens with this run's recap.
+func _credits() -> void:
+	dialogue.stop_voice()
+	await Credits.roll(self, { "ending": ending, "facts": _run_facts() })
+	credits_done = true
+	if shots_mode:
+		return
+	Game.title_mode = true
+	Game.goto("res://title.tscn")
+
+# What else happened this run, for the credits' "Also, this run" card (the story choices get their own cards).
+func _run_facts() -> Array:
+	var so := story_so_far()
+	if Game.flag("dulbersDead"):
+		so.erase("Dulbers Frint got away. (He'll be back.)")
+	if ending == "cooked":
+		so.append("Metocin Mattias cooked the trio.")
+	elif Game.flag("mattiasBeaten"):
+		so.append("The trio beat Metocin Mattias. Somehow.")
+	if ending == "party":
+		so.append("Every goblin got metocy.")
+	return so
 
 func _end_lines() -> Array:
 	var lines := ["END OF CHAPTER 1", "", "Trio Adventures — by Ebain", ""]
@@ -1594,12 +1617,11 @@ func _hard_end() -> void:
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	await wait(1.2)
-	if shots_mode:
-		return
-	while not Input.is_action_just_pressed("interact"):
-		await get_tree().process_frame
-	Game.title_mode = true
-	Game.goto("res://title.tscn")
+	if not shots_mode:
+		while not Input.is_action_just_pressed("interact"):
+			await get_tree().process_frame
+	l.queue_free()
+	await _credits()   # the silence was the joke; the credits still roll (Ebain 11/26)
 
 # Yes to metocy for every goblin: cut to the goblin village dancing (a little set built off to the side), then credits.
 func _goblin_party() -> void:
@@ -1844,6 +1866,17 @@ func _shot_tour() -> void:
 	if OS.get_environment("SUMMIT_TOUR") == "finale":
 		await _finale_tour()
 		return
+	if OS.get_environment("SUMMIT_TOUR") == "credits":   # just the credits roll, with a made-up run (Ebain 11/26)
+		fade.color.a = 0.0
+		for kv in ["village=skorn_king", "troll=good", "mart=refuse", "pass=lore", "castle=bet"]:
+			Game.set_flag("way_" + kv.get_slice("=", 0), kv.get_slice("=", 1))
+		Game.set_flag("skornKing")
+		Game.set_flag("dulbersEscaped")
+		ending = "party"
+		await _credits()
+		print("CREDITS DONE")
+		get_tree().quit()
+		return
 	if OS.get_environment("SUMMIT_TOUR") == "og":   # just the OG Metocy close-up (Ebain 11/24)
 		fade.color.a = 0.0
 		busy = false
@@ -1920,6 +1953,7 @@ func _shot_tour() -> void:
 #   SUMMIT_PICKS="3,0,0"  choice indexes in order (ambush, castle, after; 0 = first option)   AUTO_LOSE=1: lose the boss
 var _tour_on := false
 var shot_trip := false
+var credits_done := false
 func _finale_tour() -> void:
 	for f in OS.get_environment("SUMMIT_FLAGS").split(",", false):
 		if "=" in f:
@@ -1972,6 +2006,11 @@ func _finale_tour() -> void:
 	print("SUMMIT TOUR ending=", ending, " ch1=", Game.flag("chapter1Done"), " way_castle=", Game.flags.get("way_castle", ""), " beaten=", Game.flag("mattiasBeaten"), " took=", Game.flag("tookMetocy"))
 	for l in _end_lines():
 		print("  CARD ", l)
+	spins = 0
+	while not credits_done and spins < 240:   # every ending ends in the credits roll
+		await wait(0.25)
+		spins += 1
+	print("SUMMIT TOUR credits_done=", credits_done)
 	_tour_on = false
 	get_tree().quit()
 
