@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] End credits roll (same for every ending, run recap first) — files: new scripts/credits.gd, summit.gd — branch: ebain/credits — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -80,6 +81,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] godot/scripts/credits.gd (new), godot/scripts/summit.gd
 
 ## Log (newest first)
 - 2026-11-26 [ebain] **Strategy pass + combat tutorial merged** (full rules in HANDOFF "Combat in one paragraph"). Hot spots: **combat/battle.gd** `damage_enemy` (damage types/weaknesses, Distracted, break bar fill, BROKEN ×dmg, HYPED now ×1.25), `_break()`, `grade()`, `combo_cost()` + `shi_discount`, `do_move` "hit" payoffs (Diddy Slap twice, Lore Stacks, Dragon Breath explode, Distract), "throw" is a d6 (`D.THROW_TABLE`, new event `dice`), next_actor skips a BROKEN enemy, stats got goods/combos/breaks/payoffs/weak_hits. **combat/battle_view.gd** break bar in boss rows, WEAK/RESISTS chips (`_who_type`), events `broken`/`dice`, WEAK SPOT floats, grade on the victory screen (gold/XP multiplied), team-up costs from `b.combo_cost`, `_input` ignores keys while `MenuUI.stack` has something, **H** opens the tutorial, `CombatTutorial.offer_first` before the first fight. **combat/combat_data.gd** `DTYPE`, `WEAKNESS`, `BREAK`, `THROW_TABLE`, `GRADES`, new STATUS entries (distracted/lore/broken), move descs + flags, boss HP up (Dulbers 280, Giant 600, summit Dulbers 560, Rat King 520, Mattias 2700, no weak spot). New **combat/combat_tutorial.gd**. **level.gd**: one pause-menu row (Combat Tutorial). **@asar:** Ebain brought **victory grades back** (with gold/XP rewards) over your 11/25 removal, his call; the results panel is a bit taller now. All new texts/weakness picks are DRAFT. Tested: full sim + `SIM_GEARED=1` (Mattias back near old rates), headless FIGHT dulbers/giant (breaks, d6 throws, payoffs, tutorial shots), test_ui ALL OK, test_achievements ALL OK.
