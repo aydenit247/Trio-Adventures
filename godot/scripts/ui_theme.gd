@@ -166,6 +166,7 @@ static func pop_in(n: Control) -> void:    # a panel appearing
 static var _players := {}
 # Real recordings that replace a synth sound (Ebain's sfx pack, 11/26). Others stay made in code.
 const FILES := { "move": "res://assets/sounds/ui_switch.ogg", "page": "res://assets/sounds/sfx_page_flip.ogg",
+	"pick": "res://assets/sounds/ui_pick.ogg", "back": "res://assets/sounds/ui_back.ogg", "open": "res://assets/sounds/ui_open.ogg",   # 11/26: mixed from Kenney's CC0 Interface Sounds
 	"rewind": "res://assets/sounds/sfx_pages_rewind.ogg" }   # rewind: dialogue Backspace (go back a line)
 static var _streams := {}
 
