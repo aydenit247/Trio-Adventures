@@ -18,6 +18,11 @@ const SONGS := [
 	{ "id": "the_hymn_of_metocin_mattias", "title": "The Hymn of Metocin Mattias", "by": "Ebain", "where": "the Summit Path" },
 	{ "id": "deloye_lore", "title": "Deloye Lore", "by": "Ebain", "where": "the Deloye library radio" },
 	{ "id": "the_tale_of_diddy_chud", "title": "The Tale of Diddy Chud", "by": "Ebain", "where": "the Pass (the giant's music video)" },
+	{ "id": "battle_general", "title": "General Combat", "by": "Ebain", "where": "any fight" },
+	{ "id": "boss_diddy_chud_1", "title": "Diddy Chud (Boss, Phase 1)", "by": "Ebain", "where": "the Diddy Chud fight" },
+	{ "id": "boss_diddy_chud_2", "title": "Diddy Chud (Boss, Phase 2)", "by": "Ebain", "where": "Diddy Chud's last stand" },
+	{ "id": "boss_mattias_1", "title": "Metocin Mattias (Boss, Phase 1)", "by": "Ebain", "where": "the Mattias fight" },
+	{ "id": "boss_mattias_2", "title": "Metocin Mattias (Boss, Phase 2)", "by": "Ebain", "where": "Mattias's last stand" },
 ]
 const CFG := "user://library.cfg"
 

@@ -19,6 +19,7 @@ const PURPLE := Color("#c79bff")
 
 var lv: Level
 var b: Battle
+var music: BattleMusic   # Ebain's fight/boss themes (battle_music.gd)
 var key := ""
 var fdef: Dictionary
 var nodes := {}          # battle unit key -> Unit
@@ -105,6 +106,9 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 		b.emergency_given = true
 		b.used67 = true
 	_make_sounds()
+	music = BattleMusic.new()
+	add_child(music)
+	music.start(key)
 	_save_state()
 	_place(party_units, o.get("enemies", []), o.get("center", null))
 	if "skorn" in ids:
@@ -113,6 +117,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 	await _intro()
 	await CombatTutorial.offer_first(lv)   # 11/26: first fight of a save offers the tutorial (Esc menu / H replays it)
 	var res := await _loop()
+	music.stop()
 	_heartbeat(false)
 	await _outro(res)
 	return res
@@ -1008,6 +1013,7 @@ func _loop() -> String:
 		var r: Dictionary = b.next_actor()
 		var u: Dictionary = r["u"]
 		await _play(r["events"])
+		music.watch(b)
 		if b.result() != "":
 			break
 		if r["skip"]:
