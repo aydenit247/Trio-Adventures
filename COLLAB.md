@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Remixed sounds (pop/door/coins/level up/item pickup) + stone/water footsteps — files: assets/sounds/sfx_pop|sfx_door|sfx_coins|sfx_level_up|sfx_item_pickup.ogg, step_stone_*/step_water_*.ogg, level.gd (STEP_DB line), cave.gd + ruins.gd (floor only) — branch: ebain/sound-remix — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
