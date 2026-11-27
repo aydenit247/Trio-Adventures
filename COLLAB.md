@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Combat AAA polish: camera, layered sound effects (CC0 packs), hit particles/effects, UI (ghost HP bars, meter fills, turn bar slide, grade slam) — files: combat/battle_view.gd, combat/battle.gd (sound names only), assets/sounds/ (new cmb_* files), CREDITS/credits text if needed — branch: ebain/combat-aaa — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
