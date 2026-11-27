@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Combat polish: damage/turn previews, battle log, enemy roles + smarter AI, impact pass, Mattias pacing, new fight items, sim move report, S-rank trinkets — files: combat/battle.gd, combat/battle_view.gd, combat/combat_data.gd, tools/sim_combat.gd, game.gd (item defs only), shop_ui.gd/inventory_ui.gd (if items need it) — branch: ebain/combat-polish — started 2026-11-26
 - [ebain] End credits roll (same for every ending, run recap first) — files: new scripts/credits.gd, summit.gd — branch: ebain/credits — started 2026-11-26
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
