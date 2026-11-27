@@ -12,9 +12,9 @@ const PARTY := {
 	"skorn": {
 		"name": "Skorn", "hp": 90, "spd": 9, "hp_label": "HP (Hit Points)", "meter_label": "Crash Out Juice",
 		"moves": {
-			"main": { "name": "Diddy Slap", "desc": "A slap with intent. 14 damage.", "pose": "skorn_slap", "ph": 0.85, "kind": "hit", "power": 14, "fx": "slap", "timed": true },
-			"special": { "name": "Crash Out", "desc": "Intense rage. Rolls a d6 — on some dice shi. Cooldown 3.", "pose": "skorn_crashout", "ph": 1.0, "kind": "crashout", "cd": 3 },
-			"bonus": { "name": "Throw Sum Shi", "desc": "Throws whatever is nearby. 10 damage, might make them Down Bad. Cooldown 2.", "pose": "skorn_throw", "ph": 1.05, "kind": "throw", "power": 10, "cd": 2, "timed": true, "downbad": 0.4 },
+			"main": { "name": "Diddy Slap", "desc": "A slap with intent. 14 damage. Slaps TWICE if they're Mogged, Distracted or Charmed. Big break damage.", "payoff": true, "brk": 2.0, "pose": "skorn_slap", "ph": 0.85, "kind": "hit", "power": 14, "fx": "slap", "timed": true },
+			"special": { "name": "Crash Out", "desc": "Intense rage. Rolls a d6 — on some dice shi. Cooldown 3.", "pose": "skorn_crashout", "ph": 1.0, "kind": "crashout", "cd": 3, "brk": 1.5 },
+			"bonus": { "name": "Throw Sum Shi", "desc": "Rolls a d6 for what he throws: 1 his own boot (ow), 2 a rock, 3 Lykor's conditioner (Down Bad), 4 a Beezy keg (Cooked), 5 a goblin (big break damage), 6 a shopping cart (stuns). Cooldown 2.", "pose": "skorn_throw", "ph": 1.05, "kind": "throw", "power": 10, "cd": 2, "timed": true, "downbad": 0.4 },
 			"ult": { "name": "FULL CRASH OUT", "desc": "Rolls TWO dice. 7 damage per pip and strips their buffs. Doubles do something extra.", "pose": "skorn_crashout", "ph": 1.0, "kind": "fullcrash" },
 		},
 		"learn": { 3: { "name": "Bussy Mist", "desc": "Hits them with the Bussy Mist. 16 damage, and they're so shook their next turn comes later. Cooldown 2. (Learned at Level 3)", "pose": "skorn_slap", "ph": 0.85, "kind": "hit", "power": 16, "cd": 2, "fx": "slap", "timed": true, "delay": 0.6 } },   # names: Asar 11/25 · desc DRAFT
@@ -22,9 +22,9 @@ const PARTY := {
 	"lykor": {
 		"name": "Lykor", "hp": 70, "spd": 12, "hp_label": "Aura", "meter_label": "Aura Farming",
 		"moves": {
-			"main": { "name": "Hair Flip", "desc": "10 damage. Might charm them (they skip a turn).", "pose": "lykor_hairflip", "ph": 1.0, "kind": "hit", "power": 10, "fx": "sparkle", "charm": 0.3, "timed": true },
-			"special": { "name": "Mog", "desc": "Giga chad face. 20 damage + Mogged (they take 25% more damage). Cooldown 3.", "pose": "lykor_mog", "ph": 1.0, "kind": "hit", "power": 20, "cd": 3, "fx": "mog", "mogged": 2, "timed": true },
-			"bonus": { "name": "\"on some type shi\"", "desc": "Screams it. The party hits 50% harder for the next 3 attacks. Cooldown 3.", "pose": "lykor_scream", "ph": 1.0, "kind": "buff", "cd": 3 },
+			"main": { "name": "Hair Flip", "desc": "10 damage. Leaves them DISTRACTED (the next hit from anyone does +50% and double break damage). Might charm them (they skip a turn).", "distract": true, "pose": "lykor_hairflip", "ph": 1.0, "kind": "hit", "power": 10, "fx": "sparkle", "charm": 0.3, "timed": true },
+			"special": { "name": "Mog", "desc": "Giga chad face. 20 damage + Mogged (they take 25% more damage). Good break damage. Cooldown 3.", "brk": 1.5, "pose": "lykor_mog", "ph": 1.0, "kind": "hit", "power": 20, "cd": 3, "fx": "mog", "mogged": 2, "timed": true },
+			"bonus": { "name": "\"on some type shi\"", "desc": "Screams it. The party is HYPED for the next 3 attacks: +25% damage and DOUBLE break damage, and the next team-up costs half meter. Cooldown 3.", "pose": "lykor_scream", "ph": 1.0, "kind": "buff", "cd": 3 },
 			"ult": { "name": "MOG SUPREME", "desc": "36 damage to EVERY enemy. Mogged + Blinded on all of them.", "pose": "lykor_mog", "ph": 1.0, "kind": "mogsupreme", "power": 36 },
 		},
 		"learn": { 3: { "name": "Jean Paul Gaultier", "desc": "Sprays all his homies and himself with Jean Paul Gaultier, heals 14 and cleanse all debuffs. Cooldown 4. (Learned at Level 3)", "pose": "lykor_hairflip", "ph": 1.0, "kind": "healall", "heal": 14, "cd": 4 } },
@@ -32,9 +32,9 @@ const PARTY := {
 	"xylo": {
 		"name": "Xylo", "hp": 75, "spd": 10, "hp_label": "Lore Points", "meter_label": "Lore Buildup",
 		"moves": {
-			"main": { "name": "Eldritch Blast", "desc": "Classic. 13 damage.", "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 13, "fx": "blast", "timed": true },
-			"special": { "name": "Deloye Lore", "desc": "Reads from a universe with no lore. 24 damage, might make them Lore-pilled (drowsy). Cooldown 3.", "pose": "xylo_lore", "ph": 1.0, "kind": "hit", "power": 24, "cd": 3, "fx": "lore", "lorepill": 0.5, "timed": true },
-			"bonus": { "name": "Dragon Breath", "desc": "15 damage + Cooked (burns for 6 a turn, 3 turns). Cooldown 2.", "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 15, "cd": 2, "fx": "fire", "cooked": 3, "timed": true },
+			"main": { "name": "Eldritch Blast", "desc": "Classic. 13 damage + a LORE STACK (up to 3). Deloye Lore cashes the stacks in.", "lore_stack": true, "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 13, "fx": "blast", "timed": true },
+			"special": { "name": "Deloye Lore", "desc": "Reads from a universe with no lore. 24 damage, might make them Lore-pilled (drowsy). Cashes in Lore Stacks: +25% damage each, and any stack makes the Lore-pill a sure thing. Cooldown 3.", "lore_cash": true, "pose": "xylo_lore", "ph": 1.0, "kind": "hit", "power": 24, "cd": 3, "fx": "lore", "lorepill": 0.5, "timed": true },
+			"bonus": { "name": "Dragon Breath", "desc": "15 damage + Cooked (burns for 6 a turn, 3 turns). If they're ALREADY Cooked, they explode for 20 more. Cooldown 2.", "explode": 20, "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 15, "cd": 2, "fx": "fire", "cooked": 3, "timed": true },
 			"ult": { "name": "CHUD OUT", "desc": "Gets huge and sits on them. 45 damage and they lose their next turn.", "pose": "xylo_chudout", "ph": 1.6, "kind": "chudout", "power": 45 },
 		},
 		"learn": { 3: { "name": "Gust of Wind", "desc": "Blasts them with a big gust of wind. 12 damage and blows away their buffs. Cooldown 3. (Learned at Level 3)", "pose": "xylo_blast", "ph": 0.95, "flip": true, "kind": "hit", "power": 12, "cd": 3, "fx": "blast", "strip": true, "timed": true } },   # names: Asar 11/25 · desc DRAFT
@@ -69,8 +69,9 @@ const PARTY := {
 const MATTIAS_BOSS := {
 	# 11/26 rebalance (Asar beat him item-less): was hp 1700, bolt 38, rain 22, heal 160. Normal difficulty also went up
 	# (×1.1 HP, ×1.15 damage), these are the base numbers before that. Then the 11/26 balance pass (death saves, Help Up)
-	# made him ~2× easier, so: hp 2100 → 2400, bolt 40 → 50, rain 24 → 30 (sim back to the old win rates)
-	"hp": 2400, "spd": 19, "gold": 300, "xp": 200,
+	# made him ~2× easier, so: hp 2100 → 2400, bolt 40 → 50, rain 24 → 30; then the strategy pass (break bar, combos)
+	# → hp 2700 and no weak spot (sim back to the old win rates)
+	"hp": 2700, "spd": 19, "gold": 300, "xp": 200,
 	"bolt": 50,          # Metocy Bolt: one target
 	"rain": 30,          # Pill Rain: everyone, bricks specials
 	"shield": 70,        # Out-Mogs Lykor: an aura shield (needs Lykor standing)
@@ -93,6 +94,44 @@ const BALANCE := {
 	"boss_drip_hp": 0.2,     # every boss but Mattias scales with your gear (a bit milder than his drip_hp/drip_dmg)
 	"boss_drip_dmg": 0.09,
 }
+# Strategy pass (Ebain 11/26, mechanics: DRAFT numbers). Damage types: every fighter's moves are one type, enemies can
+# be WEAK (×1.3) or RESIST (×0.7) to a type, and the enemy panel says so.
+const DTYPE := { "skorn": "physical", "chief": "physical", "lykor": "aura", "xylo": "lore", "mattias": "lore" }
+const DTYPE_NAME := { "physical": "Physical", "aura": "Aura", "lore": "Lore" }
+const WEAK_MULT := 1.3
+const RESIST_MULT := 0.7
+const WEAKNESS := {   # by enemy ai. Which is which: DRAFT (Ebain picks)
+	"goblin": { "weak": "aura" },                       # can't resist good hair
+	"employee": { "weak": "aura" },
+	"rat": { "weak": "physical", "resist": "lore" },    # rats don't read
+	"rat_king": { "weak": "physical", "resist": "aura" },
+	"dulbers": { "weak": "lore", "resist": "aura" },    # he steals aura for a living
+	"giant": { "weak": "lore", "resist": "physical" },  # too thicc to slap, falls asleep to lore
+	"mattias": { "resist": "aura" },  # out-mogs your drip (no weak spot: he's the final boss)
+}
+# Boss break bar: party hits fill it (damage × mult × the move's "brk" × the bonuses below). Full = BROKEN: he loses
+# his next turn (even Locked In, and it cancels a wind-up), takes ×dmg_mult while broken, and every fighter gets +meter.
+# Each break makes the next one take ×grow more.
+const BREAK := { "frac": 0.5, "mult": 0.4, "perfect": 1.5, "distracted": 2.0, "hyped": 2.0, "weak": 1.5, "dmg_mult": 1.25, "meter": 15, "grow": 1.5 }
+# Skorn's Throw Sum Shi is a d6 now (pure dice chaos, Ebain 11/26). Texts: DRAFT
+const THROW_TABLE := {
+	1: { "thing": "his own boot", "self": 6, "text": "Skorn throws his own boot. It comes back. (-%d)" },
+	2: { "thing": "a rock that looked at him funny", "power": 10 },
+	3: { "thing": "Lykor's conditioner", "power": 10, "downbad": true },
+	4: { "thing": "a Beezy keg", "power": 12, "cooked": 3 },
+	5: { "thing": "a goblin", "power": 14, "brk": 3.0 },
+	6: { "thing": "a shopping cart", "power": 20, "stun": true, "brk": 2.0 },
+}
+
+# Victory grades (11/26, back with rewards): battle.gd grade() scores the fight out of 100
+const GRADES := [
+	{ "letter": "S", "min": 85, "gold": 1.5, "xp": 1.25, "color": "#ffd84a" },
+	{ "letter": "A", "min": 70, "gold": 1.25, "xp": 1.1, "color": "#7dff8a" },
+	{ "letter": "B", "min": 55, "gold": 1.1, "xp": 1.0, "color": "#8ad8ff" },
+	{ "letter": "C", "min": 40, "gold": 1.0, "xp": 1.0, "color": "#e8d9b5" },
+	{ "letter": "D", "min": 0, "gold": 1.0, "xp": 1.0, "color": "#c9a0a0" },
+]
+
 # Big telegraphed hits (like the Giant's SIT): wind up on his `first` turn and every `every` turns after, land it on
 # everyone on his next turn. Defend, a timed block, or a stun/charm while he winds up all answer it.
 const SALE := { "power": 34, "first": 3, "every": 5 }       # Dulbers: "CLEARANCE SALE! EVERYTHING MUST GO!" (DRAFT)
@@ -169,6 +208,9 @@ const STATUS := {
 	"mogged": { "label": "MOGGED", "good": false, "desc": "Insecure. Takes 25% more damage." },
 	"lorepill": { "label": "LORE-PILLED", "good": false, "desc": "Drowsy. 50% chance to skip each turn." },
 	"downbad": { "label": "DOWN BAD", "good": false, "desc": "Deals half damage." },
+	"distracted": { "label": "DISTRACTED", "good": false, "desc": "The next hit from anyone does +50% and double break damage. Diddy Slap hits twice." },
+	"lore": { "label": "LORE STACKS", "good": false, "desc": "Stacked by Eldritch Blast (up to 3). Deloye Lore cashes them in: +25% damage each and a sure Lore-pill." },
+	"broken": { "label": "BROKEN", "good": false, "desc": "Break bar emptied: loses the next turn and takes 50% more damage until then." },
 	"cooked": { "label": "COOKED", "good": false, "desc": "Burns for 6 every turn." },
 	"blind": { "label": "BLINDED", "good": false, "desc": "Next attack has a 60% chance to miss." },
 	"charm": { "label": "CHARMED", "good": false, "desc": "Too busy staring at Lykor to act." },
@@ -221,7 +263,7 @@ const FIGHTS := {
 	},
 	"dulbers": {
 		"title": "The Party vs. Dulbers Frint", "party": ["skorn", "lykor", "xylo"], "xp": 60, "story": true, "boss": true, "lvl": 2,
-		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "gold": 75, "hp": 240, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
+		"enemies": [{ "name": "Dulbers Frint", "tag": "(Not Trustworthy)", "gold": 75, "hp": 280, "spd": 16, "tex": "dulbers_demon", "h": 2.7, "ai": "dulbers", "boss": true }],
 		# 11/26: at half HP he calls in his employees (they leave when he drops). Names/text: DRAFT
 		"adds": [
 			{ "name": "Goblin", "tag": "(Mart Employee) (Finally Employed)", "hp": 16, "spd": 7, "tex": "goblin_fight", "h": 1.2, "ai": "employee" },
@@ -233,13 +275,13 @@ const FIGHTS := {
 	},
 	"giant": {
 		"title": "BOSS: Diddy Chud Giant", "party": ["skorn", "lykor", "xylo"], "xp": 100, "story": true, "boss": true, "lvl": 3,
-		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "gold": 150, "hp": 520, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
+		"enemies": [{ "name": "Diddy Chud Giant", "tag": "(Awake, Disturbed)", "gold": 150, "hp": 600, "spd": 14, "tex": "giant_angry", "sit_tex": "giant_sit", "h": 7.0, "ai": "giant", "boss": true }],
 		"talk": ["feed_giant", "lullaby"],
 	},
 	# ---- the Summit Path (Ebain's summit plan 11/24)
 	"dulbers_ambush": {   # regular-size Dulbers (not the demon) catches up on the climb; Mattias can join as a 4th fighter
 		"title": "Dulbers Frint (Regular Size) Wants Smoke", "party": ["skorn", "lykor", "xylo"], "xp": 70, "story": true, "boss": true, "lvl": 4,
-		"enemies": [{ "name": "Dulbers Frint", "tag": "(Regular Size) (Still Mad)", "gold": 60, "hp": 480, "spd": 16, "tex": "dulbers", "portrait": "dulbers", "h": 1.3, "ai": "dulbers", "boss": true }],
+		"enemies": [{ "name": "Dulbers Frint", "tag": "(Regular Size) (Still Mad)", "gold": 60, "hp": 560, "spd": 16, "tex": "dulbers", "portrait": "dulbers", "h": 1.3, "ai": "dulbers", "boss": true }],
 		"talk": ["refund", "compliment_store"],
 	},
 	"mattias": {   # the sucker punch. Numbers: MATTIAS_BOSS
@@ -277,7 +319,7 @@ const FIGHTS := {
 	"rat_colony": {   # "rats_fight": the whole colony + the Rat King
 		"title": "The Rat Colony vs. Everybody", "party": ["skorn", "lykor", "xylo"], "xp": 90, "story": true, "boss": true, "lvl": 3,
 		"enemies": [
-			{ "name": "King Nibbsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 460, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.45, "ai": "rat_king", "boss": true },
+			{ "name": "King Nibbsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 520, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.45, "ai": "rat_king", "boss": true },
 			{ "name": "Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 34, "spd": 10, "tex": "rat", "h": 0.95, "ai": "rat" },
 			{ "name": "Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 46, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "rat" },
 		],
