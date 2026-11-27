@@ -121,6 +121,7 @@ const ROLL := [
 	["role", "Models & textures", "Poly Haven (CC0)"],
 	["role", "Combat sound packs", "Kenney, rubberduck, StarNinjas (OpenGameArt, CC0)"],
 	["role", "Grass footsteps", "swuing via congusbongus (CC-BY 3.0) + Fantozzi, kdd (CC0)"],
+	["role", "Birds, rustles, zipper, gear sounds", "isaiah658, syncopika, qubodup, Kenney + the RPG Sound Pack (OpenGameArt, CC0)"],
 	["role", "Fonts", "Cinzel, Pinyon Script (SIL OFL)"],
 	["role", "3D models", "Meshy"],
 	["role", "Pictures & video", "Gemini"],

@@ -63,7 +63,7 @@ static func open(parent: Node, level: Node) -> InventoryUI:
 func _build() -> void:
 	_opened_at = Engine.get_process_frames()
 	if lv and lv.has_method("play_sound"):
-		lv.play_sound("sfx_cloth", -8.0)   # (Ebain's sfx pack) rummaging through the bag
+		lv.play_sound("ui_bag_open", -8.0)   # 11/27 sound batch 4: bag zip (was Ebain's sfx_cloth rummage, still used for taking gear off)
 	MenuUI.stack.append(self)   # so no MenuUI underneath reacts to our keys
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -443,7 +443,7 @@ func _activate() -> void:
 			if s != "":
 				note = "%s equipped %s (%s)." % [fname, it["name"], Game.SLOT_NAMES[s]]
 				_click()
-				if lv and lv.has_method("play_sound"): lv.play_sound("sfx_cloth", -6.0, 1.1)
+				if lv and lv.has_method("play_sound"): lv.play_sound("ui_equip_metal" if _metal(it["id"]) else "ui_equip_cloth", -6.0)   # 11/27: clink vs cloth
 		elif it["kind"] == "use" and int(CombatD.ITEMS.get(it["id"], {}).get("heal", 0)) > 0:
 			_heal_with(fid, it)
 		elif it["kind"] == "boost":
@@ -858,3 +858,11 @@ void fragment() {
 	COLOR = vec4(col, 1.0);
 }
 """
+
+# 11/27 sound batch 4: does equipping this gear clink (metal) or rustle (cloth)?
+const METAL_WORDS := ["mail", "helm", "lid", "can_", "ladle", "spoon", "chain", "crown", "bottlecap", "thimble", "badge", "neuralink", "scepter"]
+static func _metal(id: String) -> bool:
+	for w in METAL_WORDS:
+		if w in id:
+			return true
+	return false

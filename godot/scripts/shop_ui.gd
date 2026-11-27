@@ -285,7 +285,8 @@ func _buy() -> void:
 	else:
 		Game.give_gear(id, who)
 		note_lbl.text = "%s got: %s (equip it from Tab)" % [nm, _name(sel)]
-	lv.ui_sfx.play()
+	if lv.play_sound("ui_chaching", -5.0) == null:   # 11/27 sound batch 4: cha-ching (old click if the file's missing)
+		lv.ui_sfx.play()
 	_refresh()
 
 # ---- input

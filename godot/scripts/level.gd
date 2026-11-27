@@ -84,7 +84,7 @@ var sun_light: DirectionalLight3D
 
 func _ready() -> void:
 	Game.gold_changed.connect(func(d: int): if is_inside_tree() and not Game.title_mode: play_sound("sfx_coins", -6.0 if d > 0 else -9.0, 1.0 if d > 0 else 0.85))
-	Game.quest_finished.connect(func(_id: String): if is_inside_tree() and not Game.title_mode: play_sound("sfx_reward", -3.0))
+	Game.quest_finished.connect(func(_id: String): if is_inside_tree() and not Game.title_mode: play_sound("sting_quest", -4.0))   # 11/27 sound batch 4: quest-done sting (was sfx_reward)
 	Game.item_got.connect(_on_item_got)
 	Game.leveled_up.connect(func(_l: int): if is_inside_tree() and not Game.title_mode: play_sound("sfx_level_up", -2.0))
 	rng.seed = 7
@@ -100,8 +100,12 @@ func _ready() -> void:
 	LostPages.spawn(self)   # secret Deloye Lore library: this area's Lost Page, if not found yet
 	apply_graphics()
 	_show_forehead()
-	if not Game.title_mode and not Game.visited.has(area_key()):
+	var first_visit := not Game.title_mode and not Game.visited.has(area_key())
+	if first_visit:
 		Game.visited.append(area_key())
+	var asfx := AreaSfx.new()   # 11/27: random birds/owl/drips/gusts, bush rustles, "new area" sting (area_sfx.gd)
+	add_child(asfx)
+	asfx.setup(self, first_visit)
 	cam_target = leader.global_position
 	_update_camera(1.0)
 	var args := OS.get_cmdline_user_args()
@@ -385,7 +389,10 @@ func _build_ground() -> void:
 
 # ---------------------------------------------------------------- props & lighting
 # A cutout card of Ebain's art standing in the world (billboard, like the characters).
+var bush_spots: Array = []   # [pos, radius] of every "bush_*" card: walking through one rustles it (area_sfx.gd)
 func card(name: String, height: float, pos: Vector3, flip := false, fade_near := false, collide_r := 0.0, folder := "props", tint := Color.WHITE) -> StandardMaterial3D:
+	if name.begins_with("bush"):
+		bush_spots.append([pos, maxf(0.6, height * 0.45)])
 	var key := folder + "/" + name
 	if not _tex_cache.has(key):
 		_tex_cache[key] = load("res://assets/%s/%s.png" % [folder, name])
