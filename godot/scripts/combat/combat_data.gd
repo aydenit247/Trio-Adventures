@@ -138,7 +138,7 @@ const GRADES := [
 
 # Enemy roles (11/26): shaman (heals), shield (guards: half damage), bomber (fuse → hits everyone), plague rat
 const ROLES := { "shaman_heal": 14, "poison": 4, "kick_downed": 0.2 }
-const ROAMING := { "hp_per": 0.5, "dmg_per": 0.55, "hp_lvl": 0.12, "dmg_lvl": 0.1 }   # roaming fight scaling per extra fighter / per level over the fight's lvl (11/26, was 0.38/0.35, no level)
+const ROAMING := { "hp_per": 0.8, "dmg_per": 0.7, "hp_lvl": 0.12, "dmg_lvl": 0.1 }   # roaming fight scaling per extra fighter / per level over the fight's lvl (11/26, was 0.38/0.35, no level)
 const BOMB := { "power": 26, "first": 2, "every": 3 }
 const FIGHT_ITEMS := ["beer", "bowl", "energy", "mouthwash", "bubble", "joint"]   # what a fight bag holds
 
@@ -147,7 +147,7 @@ const S_RANK_LOOT := { "dulbers": "clearance_tag", "giant": "giant_crumb", "rat_
 # Big telegraphed hits (like the Giant's SIT): wind up on his `first` turn and every `every` turns after, land it on
 # everyone on his next turn. Defend, a timed block, or a stun/charm while he winds up all answer it.
 const SALE := { "power": 34, "first": 3, "every": 5 }       # Dulbers: "CLEARANCE SALE! EVERYTHING MUST GO!" (DRAFT)
-const STAMPEDE := { "power": 30, "first": 3, "every": 4 }   # the Rat King's stampede (DRAFT)
+const STAMPEDE := { "power": 38, "first": 3, "every": 4 }   # the Rat King's stampede (DRAFT)
 
 # Team-ups. Each person in the combo spends `cost` meter. Partners' next turn gets pushed back a bit.
 const COMBOS := [
@@ -278,9 +278,9 @@ const FIGHTS := {
 	"goblins": {
 		"title": "Skorn vs. The Goblins", "party": ["skorn"], "xp": 30, "story": true,
 		"enemies": [
-			{ "name": "Goblin", "tag": "(Unemployed)", "gold": 4, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.25, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Also Unemployed)", "gold": 3, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.18, "ai": "goblin" },
-			{ "name": "Goblin", "tag": "(Between Jobs)", "gold": 5, "hp": 26, "spd": 7, "tex": "goblin_fight", "h": 1.3, "ai": "goblin", "second_wind": true },
+			{ "name": "Goblin", "tag": "(Unemployed)", "gold": 4, "hp": 22, "spd": 7, "tex": "goblin_fight", "h": 1.25, "ai": "goblin" },
+			{ "name": "Goblin", "tag": "(Also Unemployed)", "gold": 3, "hp": 22, "spd": 7, "tex": "goblin_fight", "h": 1.18, "ai": "goblin" },
+			{ "name": "Goblin", "tag": "(Between Jobs)", "gold": 5, "hp": 22, "spd": 7, "tex": "goblin_fight", "h": 1.3, "ai": "goblin", "second_wind": true },
 		],
 		"talk": ["bribe_goblin", "job_offer", "roast"],
 		"loot": "spoon",
@@ -343,9 +343,9 @@ const FIGHTS := {
 	"rat_colony": {   # "rats_fight": the whole colony + the Rat King
 		"title": "The Rat Colony vs. Everybody", "party": ["skorn", "lykor", "xylo"], "xp": 90, "story": true, "boss": true, "lvl": 3,
 		"enemies": [
-			{ "name": "King Nibbsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 520, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.45, "ai": "rat_king", "boss": true },
-			{ "name": "Shield Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 34, "spd": 10, "tex": "rat", "h": 0.95, "ai": "shield", "tint": "#a8c8ff" },
-			{ "name": "Plague Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 46, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "plague_rat", "tint": "#c8ff9a" },
+			{ "name": "King Nibbsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 640, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.45, "ai": "rat_king", "boss": true },
+			{ "name": "Shield Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 48, "spd": 10, "tex": "rat", "h": 0.95, "ai": "shield", "tint": "#a8c8ff" },
+			{ "name": "Plague Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 60, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "plague_rat", "tint": "#c8ff9a" },
 		],
 		"talk": ["cheese_bribe"],
 		"loot": "corncob_scepter",

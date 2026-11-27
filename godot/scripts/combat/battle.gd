@@ -1230,10 +1230,12 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 	if e["ai"] == "shaman":   # heals whoever's hurt, otherwise zaps
 		var hurt_foes := alive(enemies).filter(func(x): return x["hp"] < x["max_hp"] * 0.7 and not is_same(x, e))
 		if hurt_foes.is_empty() and e["hp"] < e["max_hp"] * 0.5: hurt_foes = [e]
-		if not hurt_foes.is_empty():
+		if not hurt_foes.is_empty() and not e.get("healed_last", false):   # heals every other turn at most
+			e["healed_last"] = true
 			hurt_foes.sort_custom(func(a, b): return float(a["hp"]) / a["max_hp"] < float(b["hp"]) / b["max_hp"])
 			var who_h: String = "himself" if is_same(hurt_foes[0], e) else hurt_foes[0]["name"]
 			return { "kind": "heal_ally", "target": hurt_foes[0], "amt": D.ROLES["shaman_heal"], "text": "%s waves a stick over %s. Somehow that heals." % [e["name"], who_h] }
+		e["healed_last"] = false
 		var t0 := target(e)
 		return { "kind": "hit", "name": "Stick Zap", "power": 10, "targets": [t0], "text": "%s zaps %s with a stick." % [e["name"], t0["name"]], "sound": "zap" }
 	if e["ai"] == "shield":   # covers the most hurt buddy (half damage), otherwise bonks

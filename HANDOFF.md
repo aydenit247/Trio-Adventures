@@ -505,7 +505,9 @@ party size harder** (`D.ROAMING`), **Mattias is shorter** (hp 2200 / bolt 60 / r
 at Haggle's Stall (`D.FIGHT_ITEMS`: Gas Station Energy Drink +50 meter, Mouthwash cleanse + 10, Bubble Wrap soaks 30;
 need icons in assets/items/, the shop shows a placeholder), **S-rank trinkets** (first S on Mart Dulbers / Giant /
 Rat Colony / summit Dulbers: `D.S_RANK_LOOT`, flag `srank_<fight>`), and a **sim move report** (`SIM_MOVES=1`: uses,
-share of damage and damage per use for every move, plus breaks per fight).
+share of damage and damage per use for every move, plus breaks per fight). Then (11/26) a tune: roaming patrols ×0.8 HP / ×0.7 damage per extra
+fighter (`D.ROAMING`), the shaman heals every other turn at most, the Rat Colony is tougher (King 640, guards 48/60,
+stampede 38), and the first fight is kinder (the three goblins 26 → 22 HP; sim: sloppy Skorn wins 85%, was 70%).
 **Metocin Mattias** (11/26 rebalance, Asar beat him item-less; the balance pass made him ~2× easier, so now hp 2400 /
 bolt 50 / rain 30, back to the old win rates): `MATTIAS_BOSS` hp 2100 / bolt 40 / rain 24 / heal 200 and
 "Out-Mogs your drip" (`drip_scale` on the fight: HP and hits grow with the party's gear score, `drip_hp`/`drip_dmg`). Sim
