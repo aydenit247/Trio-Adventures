@@ -343,12 +343,21 @@ const FIGHTS := {
 	"rat_colony": {   # "rats_fight": the whole colony + the Rat King
 		"title": "The Rat Colony vs. Everybody", "party": ["skorn", "lykor", "xylo"], "xp": 90, "story": true, "boss": true, "lvl": 3,
 		"enemies": [
-			{ "name": "King Nibbsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 640, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.45, "ai": "rat_king", "boss": true },
+			{ "name": "King Nibsworth III", "tag": "(Rat King) (Musty)", "gold": 70, "hp": 640, "spd": 10, "tex": "rat_king", "portrait": "rat_king", "h": 1.65, "ai": "rat_king", "boss": true },
 			{ "name": "Shield Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 48, "spd": 10, "tex": "rat", "h": 0.95, "ai": "shield", "tint": "#a8c8ff" },
 			{ "name": "Plague Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 60, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "plague_rat", "tint": "#c8ff9a" },
 		],
 		"talk": ["cheese_bribe"],
 		"loot": "corncob_scepter",
+	},
+	"rat_cracker": {   # "rats_cracker": Skorn steals the Cracker Rat's cracker, casino security jumps in (Asar 11/27)
+		"title": "The Great Cracker Heist", "party": ["skorn", "lykor", "xylo"], "xp": 80, "story": true, "lvl": 3,   # DRAFT title
+		"enemies": [
+			{ "name": "Bouncer Rat", "tag": "(Security) (No Outside Cheese)", "gold": 30, "hp": 220, "spd": 8, "tex": "casino_staff_bouncer", "portrait": "casino_staff_bouncer", "h": 1.3, "ai": "shield" },   # DRAFT tag
+			{ "name": "Shield Rat", "tag": "(Royal Guard)", "gold": 6, "hp": 48, "spd": 10, "tex": "rat", "h": 0.95, "ai": "shield", "tint": "#a8c8ff" },
+			{ "name": "Plague Rat", "tag": "(Royal Snack Taster)", "gold": 8, "hp": 60, "spd": 6, "tex": "rat_fat", "h": 1.05, "ai": "plague_rat", "tint": "#c8ff9a" },
+		],
+		"talk": ["cheese_bribe"],
 	},
 	# ---- roaming (optional) fights
 	"goblin_patrol": {

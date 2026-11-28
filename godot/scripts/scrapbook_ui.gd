@@ -13,7 +13,7 @@ const SECTIONS := [
 	["The Goblin Throne", "village_", ""],
 	["The Bridge Troll", "troll_", ""],
 	["Metocy Mart", "mart_", ""],
-	["The Rat Colony", "rats_", "A side path: the Old Ruins, off the road by the Metocy Mart."],
+	["The Grand Cheese Casino", "rats_", "A side path: the Old Ruins, off the road by the Metocy Mart."],
 	["The Mountain Pass", "pass_", ""],
 	["Dulbers' Ambush", "ambush_", "Only happens on runs where Dulbers got away from the Mart."],
 	["The Wizard's Lair", "castle_", ""],
@@ -33,7 +33,7 @@ const HINTS := {
 	"mart_xylo": "Xylo has read about this. Xylo has read about everything.",
 	"mart_goblins": "Goblins will eat anything.",
 	"rats_fight": "The rats look tough. They are not.",
-	"rats_king": "The colony needs a new king. Skorn is available.",
+	"rats_cracker": "That rat has a cracker. Skorn has hands.",   # DRAFT
 	"rats_trade": "Rats love a business deal.",
 	"rats_lore": "The Rat King thinks he knows lore. Xylo knows more lore.",
 	"rats_mog": "Rats have eyes. Lykor has a jawline.",

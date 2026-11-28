@@ -21,9 +21,9 @@ const ITEMS := [
 	["mart_refuse", "Refused it", 2, true],
 	["mart_xylo", "Had Xylo inspect it", 2, true],
 	["mart_goblins", "Let the goblins taste-test it", 2, true],
-	# --- the Rat Colony (side path: Old Ruins → cave, RUINS_PLAN.md)
-	["rats_fight", "Fought the whole rat colony", 2, true],
-	["rats_king", "Got Skorn crowned Rat King", 2, true],
+	# --- the Grand Cheese Casino (side path: Old Ruins → cave, RUINS_PLAN.md; was the rat colony)
+	["rats_fight", "Fought the whole casino", 2, true],
+	["rats_cracker", "Stole the Cracker Rat's cracker", 2, true],
 	["rats_trade", "Did business with the rats", 2, true],
 	["rats_lore", "Out-lored the Rat King", 2, true],
 	["rats_mog", "Lykor mogged the colony", 2, true],

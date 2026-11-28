@@ -26,8 +26,9 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
 - **Chief Bogdrinker:** goblin chief, gives out beezy (beer). The goblins are all unemployed.
 - **Diddy Chud Giant:** the boss blocking the Pass. Wakes up with "Aight. Bet."
 - **Dulbmeethus:** god behind the smoke. "Y'all could hear me doe?" Sometimes pulls up mid-fight and lightning-strikes the whole enemy side (Ebain 11/24; 6.7% of fights since 11/25).
-- **King Nibbsworth III** (Rat King), **Scrounge** (rat trader), **Lil Nibbs** (pet rat): the Rat Cave. All three names
-  are Claude DRAFTs (Ebain said "you draft names"), so he may rename them.
+- **King Nibsworth III** (Rat King; one b, everyone says "the Third" in dialogue; Asar 11/27), **Scrounge** (rat trader,
+  "I got a wife and kidz I need to feed"), **Lil Nibbs** (pet rat): the Rat Cave / Grand Cheese Casino. The King runs the
+  casino from his VIP balcony; new art 11/27 (gold chains, thimble crown).
 - **Deloye:** wrote Deloye Lore. Floats and twirls in the middle of the secret library, earbuds in, chill, surprised
   anyone actually read it (Ebain 11/24; his art = Ebain's pictures: grey hoodie, wired earbuds). Gives Xylo the
   **Deloye Lore Neuralink**.
@@ -59,28 +60,40 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
    when you try the shop door** (Ebain 11/24, `MS.ARRIVE` → `MS.DULBERS_OUT`). Dulbers offers the midtocy → A everyone trips / B Skorn trips → boss fight vs
    demon Dulbers · C refuse → kicked out · D Xylo inspects it (Deloye Lore ch. 8,784 sec. B12) · E goblins handle it
    (if allies). Skorn pockets the midtocy in most paths (`hasMidtocy`).
-3½. **Side path: Old Ruins → Rat Cave → Rat Colony (RUINS_PLAN.md, built 11/24).** Optional, never blocks the story. A
+3½. **Side path: Old Ruins → Rat Cave → Grand Cheese Casino (RUINS_PLAN.md, built 11/24; casino step 1 11/27).** Optional, never blocks the story. A
    path WEST off the Metocy Mart street (sign "OLD RUINS", open before and after the Mart scene) leads to `ruins.tscn`
    (day): 3 loot spots and THE BIG SHINY CHEST on a dais. Opening it: the floor gives way → `cave.tscn` (dark, torches,
    light around the leader). The cave: landing chamber (rope out of reach) → tunnel (2 loot spots, 2 roaming "Rat
    Patrol" groups) → **The Three Seals** puzzle → the colony. **Puzzle:** a 7×6 grid; boulders slide until they hit a
-   pillar/wall/boulder; each boulder (spoon / book / bowl) must stop on the plate with its symbol. Only **Skorn** can push the
-   big spoon boulder, only **Lykor** fits through the crack into the side room (lever → the rubble drops and the bowl
-   boulder rolls out of its alcove), only **Xylo** can read the wall carving, which makes the plates' symbols glow, and
+   pillar/wall/boulder; each boulder (BIG / book / lotion bottle) must stop on its own plate. Each can only be pushed by
+   one of the trio (Asar 11/27): **Skorn** the BIG one, **Xylo** the book one, **Lykor** the lotion one (code keys stay
+   `spoon` = BIG and `bowl` = lotion for old saves; `OWNER`/`B_NAME` in cave.gd). Only **Lykor** fits through the crack
+   into the side room (lever → the rubble drops and the lotion boulder rolls out of its alcove), only **Xylo** can read
+   the painting (wall carving), which makes the plates' symbols glow, and
    the door won't open until it's been read. A rope resets the boulders. **Help (Ebain 11/24, he
    couldn't figure it out):** Xylo explains the carving in plain words; a blue "stops here" ring shows where the boulder
    you're next to would slide; a hint every 30 s stuck (first the general one, then an exact next move from a solver,
    `cave.gd solve_next()`, or "pull the reset rope" when the boulders are in a dead end: ~35% of states are); after
    3 min a **skip** is offered (and stays on the reset rope); the other two wait by the entrance while you're in the
    chamber (`_followers_wait`). Solution
-   (7 pushes): book W, S · spoon W, N · bowl N, E, N. **The colony:** King Nibbsworth III on a junk pile, Scrounge's stall,
-   12 joke-labelled rats → 5-way choice: fight (boss fight `rat_colony`, Corncob Scepter drop, no trader) · Skorn
-   crowned Rat King (Bottle-Cap Crown, trader half price) · business (trader's "good shelf": Lucky Crumb + Corncob
-   Scepter) · Xylo out-lores the King (+40 gold, secret tunnel straight to the Mart street) · Lykor mogs them (**Lil
-   Nibbs**, a tiny rat, follows the party in every area: `ratPet`, `Level.spawn_pet()`). Then a tunnel up to the ruins
-   (and back down). Flags: `ruinsStarted`, `ruinsLoot0..2`, `ruinsFell`, `caveEntered`, `caveLoot0..1`, `sealsRead`,
-   `sealsLever`, `sealsSolved`, `ratsDone` (string: fight/king/trade/lore/mog), `ratPet`, `charisMet`. All lines DRAFT
-   in `ruins_script.gd`.
+   (7 pushes): book W, S · BIG W, N · lotion N, E, N. **The Grand Cheese Casino** (Asar's, Ebain approved; plan + script in
+   Asar's doc "Rat Casino: Script & Plan"; build steps in COLLAB Up next). Step 1 (11/27) = the room: marble floor, red
+   carpet from the door to **the Cage** (cash-out window, right under the King's **VIP balcony** at the back, with the
+   Royal Cheese Vault door inside), **Scrounge's stall** next to the Cage, the Cracker Rat by the King, chandeliers,
+   gold trim; set dressing for later steps: Squeakjack / Brie-carat / Rat-oulette tables (west), Cheddar Slots + the
+   Cheese Wheel of Fortune (east wall), Rat Race track, Fight Club ring, the Crumb Bar, the TV lounge and the podcast
+   booth. Staff (casino_* art, one DRAFT line each in `RS.STAFF`): bouncer, cashier, dealer, croupier, high roller,
+   cocktail waiter, Lost It All, wheel host, announcer, podcast rat, two royal guards, and the **Wheel Rat**, who runs
+   the power: every 90–150 s in the casino (and when you talk to him) the lights go out, "My bad.", lights back on
+   (`_blackout`, `_set_lights`). The casino warms the ambient light while you're in it (`_casino_air`). 5-way choice:
+   fight (boss fight `rat_colony`, the King comes down off the balcony) · **steal the Cracker Rat's cracker** (fight
+   `rat_cracker`: Bouncer Rat + 2 guards) · business (Scrounge's "good shelf") · Xylo out-lores the King (Neuralink Nugs;
+   +40 gold, secret tunnel to the Mart street) · Lykor mogs them (**Lil Nibbs** follows the party: `ratPet`,
+   `Level.spawn_pet()`). After ANY choice the casino stays open (Scrounge too). The old "Skorn crowned" choice is gone
+   (old saves with `ratsDone` "king" still load). Then a tunnel up to the ruins (west, by the entrance). Flags:
+   `ruinsStarted`, `ruinsLoot0..2`, `ruinsFell`, `caveEntered`, `caveLoot0..1`, `sealsRead`, `sealsLever`,
+   `sealsSolved`, `ratsDone` (string: fight/cracker/trade/lore/mog, old: king), `ratPet`, `charisMet`. Lines in
+   `ruins_script.gd`: Asar's ruins/cave/casino script is verbatim (# Asar), the rest DRAFT.
    **Charis's house:** the house right of the Mart (yard behind a gap in the back wall) can be entered **before and after**
    the Mart scene (Ebain 11/24), no sign over the door. Inside: her **gaming setup** (desk, two glowing monitors, RGB
    tower, pink gaming chair; `_gaming_setup`, "Look at" → `RS.CHARIS_PC`, DRAFT). Interior built off to the side at x 340 (`mart.gd _charis_house`). Talking to Charis: `charisMet`. His stuff is `charis_props.gd` (Asar 11/25): driveway + red car out front, Morgana (Bahgoots) the cat, collector shelf on the back wall (figures, holo card, manga).
@@ -258,7 +271,7 @@ opengl3 --resolution 1280x720 res://<area>.tscn -- --shots` runs that area's `_s
 - `VILLAGE_TOUR=buildings TOUR_PART=1|2` — walks every village building and quest
 - `VILLAGE_TOUR=roomswitch` — enters the bar, shaman tent and Chief's hut, switches to every character, walks into every wall; prints ALL OK if nobody leaves the room
 - `VILLAGE_TOUR=band` — the goblin band: arrives, follows, waits at the bar door, keeps playing, then gets sent away
-- `RUINS_CHOICE=0..4` (cave tour: solves the puzzle with scripted pushes, then picks the rat choice; run `cave.tscn`, or
+- `RUINS_CHOICE=0..4` (cave tour: solves the puzzle with scripted pushes, then picks the casino choice 0 fight / 1 cracker / 2 business / 3 lore / 4 mog; run `cave.tscn`, or
   `ruins.tscn` with `SHOTS_CHAIN=1` to fall in from the ruins first) · the Mart tour ends with Charis's house
 - `FIGHT=goblins|dulbers|giant|goblin_patrol|bouncer` (+ `LEVEL=2`, `ALLIES=1`, `AUTO_LOSE=1`, `MENUS=1`) — runs one fight
 - `LOOK="x,z,yaw;..."` (camp) — close-up screenshots of spots with the fire lit
@@ -373,8 +386,8 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/camp.gd` + `camp_script.gd` | Scene 1 (`main.tscn`) |
 | `scripts/trail.gd` + `trail_script.gd` | Scene 1.5 (`trail.tscn`): forest trail z +58 (camp end) → −58 (village end), creek + bridge at z 0, troll hut, loot spots (`LOOT`), `_apply_state()` rebuilds troll/hut/loot from flags |
 | `scripts/shop_ui.gd` | **ShopUI**: Haggle's Stall (village, north side of the east road to the Metocy Mart). `STOCK` = [id, "item"/"gear", price]; buys go to the active fighter. Other shops pass `open_shop(lv, { stock, title, broke, discount })` (Scrounge in the cave). "item" ids can be heal items or BOOSTS |
-| `scripts/ruins.gd` + `ruins_script.gd` | Side path (`ruins.tscn`): the Old Ruins, loot (`LOOT`), the trap chest (`_trap`), the hole, the tunnel to the colony. `ruins_script.gd` holds ALL the side path's lines (ruins, cave, puzzle, colony, Charis), every one # DRAFT |
-| `scripts/cave.gd` | Side path (`cave.tscn`): the Rat Cave. Own `light_at()` (dark + torches + leader light). Puzzle: `PZ`/`CELL` grid, `PILLARS`, `PLATES`, `B_START`, `slide_target()`/`push()`, `_apply_puzzle_state()` rebuilds it from flags. Colony: `_build_colony`, `_colony_scene` (RS.COLONY), `_open_shop()` (Scrounge's stock). Walls on the camera side are low lips with full-height collision |
+| `scripts/ruins.gd` + `ruins_script.gd` | Side path (`ruins.tscn`): the Old Ruins, loot (`LOOT`), the trap chest (`_trap`), the hole, the tunnel to the colony. `ruins_script.gd` holds ALL the side path's lines (ruins, cave, puzzle, casino + `STAFF`, Charis): Asar's script # Asar, the rest # DRAFT. Several are dicts by who's leading (`ROPE_UP`, `DOOR_LOOK`, `RESET`, `CARVING`, `CRACK_NO` with `xylo_troll` when `trollDone` is "good") |
+| `scripts/cave.gd` | Side path (`cave.tscn`): the Rat Cave. Own `light_at()` (dark + torches + leader light). Puzzle: `PZ`/`CELL` grid, `PILLARS`, `PLATES`, `B_START`, `slide_target()`/`push()`, `_apply_puzzle_state()` rebuilds it from flags. Casino: `_build_casino` (`_prop(id, pos, yaw, height)` scales a Poly Haven model to a height and sits it on pos.y; `_clight` = a casino light that the blackout turns off + a sprite glow), `_colony_scene` (RS.COLONY), `_colony_fight`/`_cracker_fight` (fighters come down to `KING_FLOOR`, go back to their posts after), `_blackout`, `_casino_air`, `_open_shop()` (Scrounge's stock). `CASINO_VIEW=1` tour = 7 pictures of the casino, no puzzle. Walls on the camera side are low lips with full-height collision |
 | `scripts/village.gd` + `village_script.gd` | Scene 2 story (`village.tscn`); `_chug_game(rival, speed)` |
 | `scripts/village_buildings.gd` + `village_rooms_script.gd` | the explorable village: huts, doors, rooms at x = 400/440/480/520, NPCs, 5 quests |
 | `scripts/mart.gd` + `mart_script.gd` | Scene 3 (`mart.tscn`): modelled shop exterior (`_shop_exterior`, street houses) + stocked interior at x = 300 (`_shop_interior`); the trip recolors `room_lights`/`glow_jars` |
@@ -391,7 +404,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `scripts/pass_musical.gd` | **ChudMusical**: the Diddy Chud music video. Everything runs off the song's clock (`t` = playback position, capped to real time): `_build_shots()` = camera shots (a new shot = a cut; `_cuts()` makes the fast drop cuts from `_drop_set()` on beat multiples), `_build_events()` = timed hits (drops, bass-cut returns), `_on_beat()` = per-section beat stuff (lava pulse, shake, geysers, lava bombs). `BEATS` = librosa beat times of the song; re-run the beat track if the song is re-rendered. `build_volcanoes()` makes the 3 background volcanoes for the whole Pass. The giant is a flat Sprite3D: keep cameras in front of him (z > -10). Test: `CHUD_SHOTS="27.8,88,125"` on a Pass `--shots` run under xvfb (screenshots at those song times, then quits) |
 | `scripts/pass.gd` + `pass_script.gd` | Scene 4 (`pass.tscn`): rock-face canyon + animated lava (`_canyon`, `_lava`), giant lying across the path (`giant_lying`, Asar's `giant_sleep.png`; `_giant_wakes` crossfades sleep → sit → standing, no black cut); Snore Sneak + Lore Session minigames |
 | `scripts/dev_mode.gd` | **DevMode**: the Alt+F1 developer menu, dialogue modes, line viewer (see "Dev mode") |
-| `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter. Rat cave: fights `rats` (roaming) + `rat_colony` (boss, `lvl` 3), ai `rat`/`rat_king` (battle.gd), rat gear (thimble_helm, toothpick_spear, bottlecap_mail, lucky_crumb, bottlecap_crown, corncob_scepter), boost `cave_cheese`, talk `cheese_bribe` |
+| `scripts/combat/combat_data.gd` | all combat numbers: party moves, fights, gear, statuses, talk options, banter. Rat cave: fights `rats` (roaming) + `rat_colony` (boss, `lvl` 3) + `rat_cracker` (Bouncer Rat + guards), ai `rat`/`rat_king` (battle.gd), rat gear (thimble_helm, toothpick_spear, bottlecap_mail, lucky_crumb, bottlecap_crown, corncob_scepter), boost `cave_cheese`, talk `cheese_bribe` |
 | `scripts/combat/battle.gd` | pure combat rules (turn timeline, meters, ultimates, team-ups, statuses, boss AI, talk/flee) |
 | `scripts/combat/battle_view.gd` | in-world fight presentation (line-up, menus, timed ring, dice, events, results, hoverable status words, Lykor's Mog close-up `_mog_cam`) |
 | `scripts/models.gd` | **Models**: `place(parent, id, pos, rot_y, scale, collide, recolor)`, `mat(texture, tile, tint)` (triplanar PBR for any box/cylinder), `block`, `cylinder`, `patch` (soft-edged ground decal), `tint` |
@@ -401,6 +414,7 @@ anything repeated, and turn off shadows on far scenery (see `_no_shadow` in pass
 | `assets/models/<id>/`, `assets/textures/<id>/` | Poly Haven models (glTF) and textures (albedo/normal/rough.jpg) |
 | `../tools/fetch_polyhaven.py` | `python3 tools/fetch_polyhaven.py model|texture <id>` downloads into the project |
 | `../tools/key_chars.py`, `key_props.py` | green-screen cutters for Ebain's character / prop images |
+| `../tools/key_grey.py`, `make_portraits.py` | (11/27) cutter for art on a plain light-grey studio backdrop (the casino art: backdrop fit from the border, floor shadow + enclosed backdrop removed, GrabCut for the two hard ones in `GRABCUT`), and square dialogue portraits from a cutout (head crop on a dark warm backdrop → `assets/portraits/`) |
 
 ### Saves, settings, controls
 - **Saves:** the game autosaves when you enter an area and when free roam starts (camp after the fire, village after
@@ -630,7 +644,7 @@ Grab-able work is on the board in `COLLAB.md` ("Up next"). Longer-running items:
 - **Music:** title = "Prophecy of Metocy" (title.gd), village free roam = "The Mogging Elf" (AreaMusic node in
   village.tscn). Ebain makes tracks in Google Flow Music. Loop points go in the track's `.import` (`loop=true`,
   `loop_offset` = where the loop restarts, so an intro plays once). Still wanted: camp, Mart (+ warped trip version),
-  ~~battle~~ (in), boss (Diddy Chud + Mattias in; Dulbers + revenge version, King Nibbsworth III still to make), mountain/pass, victory jingle, "YOU GOT COOKED" sting. A new area track = add an AreaMusic node to
+  ~~battle~~ (in), boss (Diddy Chud + Mattias in; Dulbers + revenge version, King Nibsworth III still to make), mountain/pass, victory jingle, "YOU GOT COOKED" sting. A new area track = add an AreaMusic node to
   that area's .tscn, and add it to `LibraryUI.SONGS` + `Lyrics.TEXT` so it shows in the Library.
 - **Lyrics:** Ebain's lyrics for all four songs (Prophecy of Metocy, The Mogging Elf, The Hymn of Metocin Mattias, Deloye Lore) are in `scripts/lyrics.gd`, as he sent them (`# Ebain`).
 - **Songs with an ending:** `<id>.ogg` is the loop-trimmed in-game track; if `<id>_full.ogg` exists (The Mogging Elf has one, with "On some type shit, you feel me? Hehe."), the Library and Settings → Music: Play once use it instead.

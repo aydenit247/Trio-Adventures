@@ -18,7 +18,7 @@ const CHARS := {
 	# the rat cave + Charis (RUINS_PLAN.md). Names are # DRAFT (Ebain renames)
 	"rat":      { "name": "Rat", "color": Color("#b8a48c"), "pitch": 2.0, "rate": 1.6 },
 	"rats":     { "name": "Rats", "color": Color("#b8a48c"), "pitch": 2.0, "rate": 1.7, "portrait": "rat" },
-	"rat_king": { "name": "King Nibbsworth III", "color": Color("#d9a85a"), "pitch": 1.2, "rate": 0.8 },
+	"rat_king": { "name": "King Nibsworth III", "color": Color("#d9a85a"), "pitch": 1.2, "rate": 0.8 },
 	"rat_trader": { "name": "Scrounge", "color": Color("#a8c07a"), "pitch": 1.7, "rate": 1.45 },
 	"charis":   { "name": "Charis", "color": Color("#e08ac8"), "pitch": 1.2, "rate": 1.0 },
 	# the secret Deloye Lore library (DELOYE_PLAN.md): chill, earbuds in. Voice is a placeholder robot until Ebain picks one

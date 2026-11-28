@@ -1,21 +1,35 @@
 # Area: the Rat Cave under the Old Ruins (RUINS_PLAN.md). Dark, torch-lit.
 #   Landing chamber (where the trap drops you, under the hole) → a tunnel with loot + roaming rat patrols →
-#   THE THREE SEALS puzzle chamber → the Rat Colony (Rat King on a junk pile, Scrounge's stall, the 5-way choice) →
+#   THE THREE SEALS puzzle chamber → the Grand Cheese Casino (Asar 11/27: the old rat colony; King Nibsworth III
+#   on his VIP balcony, the Cage + Scrounge's stall right under it, staff, table games, the 5-way choice) →
 #   a tunnel up and out to the ruins (+ a secret shortcut to the Mart road on the "lore" outcome).
-# The puzzle: 3 boulders slide on a grid until they hit something. Each has a symbol (spoon/book/bowl) and must
-#   stop on the plate with the same symbol. Only Skorn can push the BIG one; only Lykor fits through the crack to
-#   the side room whose lever drops the rubble in front of the third boulder; only Xylo can read the wall carving,
-#   which brings back the plates' worn-off symbols (the door won't open until it's read). A rope resets the boulders.
-# Flags: caveEntered, caveLoot0..1, sealsRead, sealsLever, sealsSolved, ratsDone ("fight"/"king"/"trade"/"lore"/"mog"),
-#   ratPet (the mog outcome: a tiny rat follows the party everywhere, level.gd spawn_pet).
+#   Casino build order (COLLAB "Rat Casino"): step 1 = this room + staff + script; games, chips, fight club, vault
+#   and TV come later, so the tables/wheel/ring/TV here are set dressing for now.
+# The puzzle: 3 boulders slide on a grid until they hit something and must each stop on their own plate. Each one
+#   can only be pushed by one of the trio (Asar 11/27): the BIG one by Skorn, the BOOK one by Xylo, the LOTION one
+#   by Lykor (internal keys: "spoon" = big, "bowl" = lotion, kept so old saves work). Only Lykor fits through the
+#   crack to the side room whose lever drops the rubble in front of the lotion boulder; only Xylo can read the
+#   painting, which brings back the plates' worn-off symbols (the door won't open until it's read). A rope resets.
+# Flags: caveEntered, caveLoot0..1, sealsRead, sealsLever, sealsSolved,
+#   ratsDone ("fight"/"cracker"/"trade"/"lore"/"mog"; "king" from old saves), ratPet (the mog outcome: a tiny rat
+#   follows the party everywhere, level.gd spawn_pet).
 extends Level
 
 const RS = preload("res://scripts/ruins_script.gd")
 const LANDING := Vector3(0, 0, 33)
-const TUNNEL_OUT := Vector3(9.0, 0, -37.5)    # up to the ruins
-const SHORTCUT := Vector3(-10.0, 0, -37.5)    # "rats_lore": straight to the Mart road
-const KING_POS := Vector3(0, 0, -30.0)
-const STALL := Vector3(-8.0, 0, -26.0)
+# the Grand Cheese Casino: x -24..24, z -60..-10.4 (Asar 11/27)
+const CX := 24.0
+const CZ_BACK := -60.0
+const TUNNEL_OUT := Vector3(-21.0, 0, -15.0)  # up to the ruins (back near the entrance, west side)
+const SHORTCUT := Vector3(-21.5, 0, -46.0)    # "rats_lore": straight to the Mart road (behind the bar side)
+const BALCONY_Z := -50.0                      # front edge of the King's VIP balcony (top at BALCONY_H)
+const BALCONY_H := 1.6
+const KING_POS := Vector3(0, BALCONY_H, -52.0)
+const KING_FLOOR := Vector3(0, 0, -40.0)      # where the King comes down to fight
+const CAGE := Vector3(0, 0, -48.6)            # the cash-out Cage, right under the balcony (Asar: Scrounge's lines)
+const STALL := Vector3(-5.0, 0, -45.6)        # Scrounge, next to the Cage
+const CRACKER_POS := Vector3(4.6, 0, -46.0)   # the Cracker Rat, by the King
+const WHEEL_RAT := Vector3(21.2, 0, -56.5)    # runs the power. Sometimes stops.
 var seal_cap: Node3D                           # the tall top of the chamber/colony wall (hidden from the colony side)
 const COLONY_Z := -13.5                       # walking past this (north of the door) starts the colony scene
 const LOOT := [   # [kind, position, gold, item, gear]
@@ -32,6 +46,10 @@ const PILLARS := [Vector2i(2, 0), Vector2i(5, 1), Vector2i(1, 5), Vector2i(0, 4)
 const PLATES := { "spoon": Vector2i(2, 1), "book": Vector2i(0, 3), "bowl": Vector2i(6, 0) }
 const B_START := { "spoon": Vector2i(6, 5), "book": Vector2i(4, 2), "bowl": Vector2i(7, 3) }   # bowl starts in the alcove
 const BOWL_ROLLED := Vector2i(5, 3)        # where the bowl boulder ends up after the lever (rolls west until the pillar)
+# who can push which boulder, and what it's called (Asar 11/27: spoon → plain BIG one, bowl → lotion bottle)
+const OWNER := { "spoon": "skorn", "book": "xylo", "bowl": "lykor" }
+const B_NAME := { "spoon": "BIG", "book": "book", "bowl": "lotion" }
+const OWNER_NAME := { "skorn": "Skorn", "xylo": "Xylo", "lykor": "Lykor" }
 const CRACK := Vector3(7.0, 0, -0.6)       # in the east wall
 const SIDE_IN := Vector3(11.0, 0, -0.6)    # the little room behind it
 const LEVER_POS := Vector3(14.2, 0, -2.4)
@@ -61,7 +79,15 @@ var not_read_said := false
 var in_side_room := false
 var king: Unit
 var trader: Unit
-var crowd: Array[Unit] = []
+var crowd: Array[Unit] = []      # casino staff + guards (Units with meta "staff" = key in RS.STAFF)
+var guards: Array[Unit] = []
+var cracker_rat: Unit
+var bouncer: Unit
+var wheel_rat: Unit
+var casino_lights: Array = []    # [Light3D, base energy]
+var lights_on := true
+var lights_out_t := 0.0          # seconds until the Wheel Rat's next accidental blackout
+var cracker_prop: Node3D
 var shortcut_node: Node3D
 var loot_nodes := []
 
@@ -70,7 +96,7 @@ func _configure() -> void:
 	light_dir = Vector3(0.2, 0.9, -0.3)
 	clear_center = Vector2(999, 999)
 	clear_radius = 0.1
-	bounds = Rect2(-14, -41, 31, 83)
+	bounds = Rect2(-25, -61, 50, 103)
 	subtitle = "Side Path — The Rat Cave"
 	party_ids = ["skorn", "lykor", "xylo"]
 	party_start = [LANDING, LANDING + Vector3(-1, 0, 1.4), LANDING + Vector3(1, 0, 1.4)]
@@ -89,6 +115,8 @@ func _configure() -> void:
 # Cave light: very dark, everything is lit by the torches and the light around the leader.
 func light_at(p: Vector3) -> Color:
 	var col := Color(0.3, 0.28, 0.33)
+	if p.z < -10.6:   # the casino is lit (until the Wheel Rat stops running)
+		col = Color(0.62, 0.55, 0.5) if lights_on else Color(0.08, 0.07, 0.09)
 	for g in glows:
 		var f: float = clamp(1.0 - p.distance_to(g["pos"]) / g["radius"], 0.0, 1.0)
 		f = f * f * float(g["strength"].call())
@@ -104,8 +132,8 @@ func _build_level() -> void:
 	_rock_dark = Models.mat("dark_rock", 2.5, Color(0.72, 0.66, 0.6))
 	# rock floor over the whole cave (hides the grass ground)
 	var pm := PlaneMesh.new()
-	pm.size = Vector2(36, 90)
-	Util.add_mesh(self, pm, _rock_dark, Vector3(1.5, 0.012, 0))
+	pm.size = Vector2(36, 53)
+	Util.add_mesh(self, pm, _rock_dark, Vector3(1.5, 0.012, 15.5))
 	# --- walls. Walls between the camera and the party (south sides) are low lips with full-height collision.
 	# landing chamber x -7..7, z 28..40
 	_wall_x(-7.0, 28.0, 40.0)
@@ -123,12 +151,9 @@ func _build_level() -> void:
 	_wall_z(3.0, 4.5, 7.5, true)
 	_wall_z(-10.4, -7.5, -1.6, false, 2.0)   # kept lowish: from the colony it's between the camera and you
 	_wall_z(-10.4, 1.6, 7.5, false, 2.0)
-	# colony x -13..13, z -40..-10.4
-	_wall_x(-13.0, -40.0, -10.4)
-	_wall_x(13.0, -40.0, -10.4)
-	_wall_z(-40.0, -13.0, 13.0)
-	_wall_z(-10.4, -13.0, -7.5, true)
-	_wall_z(-10.4, 7.5, 13.0, true)
+	# the casino x -24..24, z -60..-10.4 (built in _build_casino; its south side is a low lip like the others)
+	_wall_z(-10.4, -CX, -7.5, true)
+	_wall_z(-10.4, 7.5, CX, true)
 	# (Asar 11/25) from the chamber you could see the whole colony over that 2 m wall: a tall cap goes on top
 	# (up to 6 m, over the door too) while you're on the chamber side; it hides once you're through, so the
 	# low wall can't block the camera's view of you in the colony.
@@ -149,8 +174,7 @@ func _build_level() -> void:
 		match k % 5:
 			0: p = Vector3(-6.4 * (1 if k % 2 else -1), 0, r.randf_range(29, 39))
 			1: p = Vector3(3.9 * (1 if k % 2 else -1), 0, r.randf_range(5, 27))
-			2: p = Vector3(12.2 * (1 if k % 2 else -1), 0, r.randf_range(-39, -12))
-			3: p = Vector3(r.randf_range(-12, 12), 0, -39.3)
+			2, 3: p = Vector3(-6.4 * (1 if k % 2 else -1), 0, r.randf_range(29, 39))
 			_: p = Vector3(-6.9, 0, r.randf_range(-9.5, 2.0))
 		if p.distance_to(TUNNEL_OUT) < 2.5 or p.distance_to(SHORTCUT) < 2.5 or p.distance_to(CARVING) < 1.8 or p.distance_to(STALL) < 2.5:
 			continue
@@ -184,8 +208,8 @@ func _build_level() -> void:
 	Models.place(self, "wooden_bucket_02", Vector3(-3.4, 0, 9.0), 0.0, 0.9)
 	# --- the puzzle chamber
 	_build_puzzle()
-	# --- the colony
-	_build_colony()
+	# --- the casino
+	_build_casino()
 	_lead_light()
 
 func _wall_x(x: float, z0: float, z1: float, low := false) -> void:
@@ -282,7 +306,7 @@ func _build_puzzle() -> void:
 		tm.outer_radius = 0.6
 		Util.add_mesh(mark, tm, ring, Vector3.ZERO)
 		var lbl := Label3D.new()
-		lbl.text = sym.to_upper()
+		lbl.text = B_NAME[sym].to_upper()
 		lbl.font_size = 64
 		lbl.pixel_size = 0.006
 		lbl.outline_size = 10
@@ -311,15 +335,14 @@ func _build_puzzle() -> void:
 		rock.position.y = -box.position.y * sc * 0.9
 		var top := box.size.y * sc * 0.9
 		match sym:
-			"spoon":
-				var sp := Models.place(root, "wooden_spoon", Vector3(0, top + 0.05, 0), 0.6, 1.0)
-				var sb := Models.aabb(sp)
-				sp.scale = Vector3.ONE * (0.7 / maxf(0.01, maxf(sb.size.x, maxf(sb.size.y, sb.size.z))))
-				sp.rotation = Vector3(PI / 2, 0.6, 0)
-			"bowl":
-				var bw := Models.place(root, "wooden_bowl_01", Vector3(0, top - 0.02, 0), 0.0, 1.0)
-				var bb := Models.aabb(bw)
-				bw.scale = Vector3.ONE * (0.55 / maxf(0.01, maxf(bb.size.x, bb.size.z)))
+			"bowl":   # a lotion bottle with a pump (Lykor's)
+				var bottle := Util.mat(Color(0.95, 0.93, 0.9))
+				bottle.roughness = 0.35
+				Models.cylinder(root, Vector3(0, top - 0.04, 0), 0.13, 0.12, 0.42, bottle, 20)
+				var lab := Util.mat(Color(1.0, 0.55, 0.75))
+				Models.cylinder(root, Vector3(0, top + 0.06, 0), 0.135, 0.125, 0.18, lab, 20)
+				Models.cylinder(root, Vector3(0, top + 0.38, 0), 0.04, 0.04, 0.1, Util.mat(Color(0.9, 0.9, 0.92)), 10)
+				Models.block(root, Vector3(0.06, top + 0.47, 0), Vector3(0.16, 0.04, 0.05), Util.mat(Color(0.9, 0.9, 0.92)))
 			"book":
 				Models.block(root, Vector3(0, top + 0.06, 0), Vector3(0.5, 0.12, 0.38), Models.mat("fabric_leather_01", 0.5, Color(0.55, 0.15, 0.12)))
 				Models.block(root, Vector3(0.02, top + 0.06, 0), Vector3(0.47, 0.1, 0.36), Util.mat(Color(0.92, 0.88, 0.78)))
@@ -332,7 +355,7 @@ func _build_puzzle() -> void:
 		body.add_child(cs)
 		root.add_child(body)
 		var tag := Label3D.new()   # joke label
-		tag.text = { "spoon": "Boulder (BIG) (Skorn Only)", "book": "Boulder (Reads)", "bowl": "Boulder (Stuck)" }[sym]   # DRAFT
+		tag.text = { "spoon": "Boulder (BIG) (Skorn Only)", "book": "Boulder (Reads) (Xylo Only)", "bowl": "Boulder (Moisturized) (Lykor Only)" }[sym]   # DRAFT
 		tag.font_size = 30
 		tag.pixel_size = 0.0065
 		tag.outline_size = 8
@@ -488,78 +511,394 @@ func _apply_puzzle_state() -> void:
 		if is_instance_valid(door_body):
 			door_body.queue_free()
 
-# ---------------------------------------------------------------- the colony
-func _build_colony() -> void:
-	# the junk pile throne behind the king
-	var jp := KING_POS + Vector3(0, 0, -3.0)
-	var junk := [["wooden_crate_01", Vector3(-1.4, 0, 0), 1.2], ["wooden_crate_02", Vector3(1.3, 0, 0.2), 1.1], ["wine_barrel_01", Vector3(0, 0, -0.6), 1.2],
-		["wooden_crate_01", Vector3(-0.5, 1.1, -0.2), 0.9], ["compost_bag_02", Vector3(2.4, 0, 0.6), 1.2], ["rusted_wheel_rim_01", Vector3(-2.5, 0, 0.4), 1.2],
-		["wine_bottles_01", Vector3(0.9, 1.0, 0.1), 1.0], ["wooden_bucket_01", Vector3(-2.0, 0, 1.2), 0.9], ["wicker_basket_01", Vector3(2.0, 0, 1.5), 0.9]]
-	for j in junk:
-		Models.place(self, j[0], jp + j[1], randf() * TAU, j[2], false, Color(0.7, 0.62, 0.52))
-	Util.static_box(self, jp + Vector3(0, 1, -0.2), Vector3(5.6, 2, 2.0))
-	_torch(Vector3(-12.5, 1.8, -20.0))
-	_torch(Vector3(12.5, 1.8, -20.0))
-	_torch(Vector3(-12.5, 1.8, -33.0))
-	_torch(Vector3(12.5, 1.8, -33.0))
-	_torch(KING_POS + Vector3(-3.4, 2.2, -2.2))
-	_torch(KING_POS + Vector3(3.4, 2.2, -2.2))
-	# Scrounge's stall: crates, a shelf of junk, a lantern
-	Models.place(self, "wooden_crate_02", STALL + Vector3(-0.8, 0, -0.9), 0.1, 1.0, true, Color(0.7, 0.62, 0.52))
-	Models.place(self, "wooden_crate_02", STALL + Vector3(0.6, 0, -0.9), -0.1, 1.0, true, Color(0.7, 0.62, 0.52))
-	Models.place(self, "wooden_display_shelves_01", STALL + Vector3(0, 0, -2.0), 0.0, 0.8, false, Color(0.7, 0.62, 0.52))
-	Models.place(self, "wooden_lantern_01", STALL + Vector3(0.6, 0.75, -0.9), 0.0, 0.8)
-	wood_sign("sign_scrounge", "SCROUNGE'S\nJUNK EMPORIUM", STALL + Vector3(0, 2.3, -1.4), 0.0, 1.8, 0.56)   # DRAFT
-	var sl := OmniLight3D.new()
-	sl.light_color = Color(1.0, 0.75, 0.45)
-	sl.light_energy = 1.1
-	sl.omni_range = 4.5
-	sl.position = STALL + Vector3(0.6, 1.5, -0.6)
-	add_child(sl)
-	add_glow(STALL + Vector3(0, 1, 0), Color(1.0, 0.75, 0.45), 4.0, func(): return 0.7, true)
-	# the tunnel up and out (daylight at the top of some steps)
+# ---------------------------------------------------------------- the Grand Cheese Casino (Asar 11/27)
+var _gold: StandardMaterial3D
+
+# A Poly Haven model scaled to a height (m). Optional collision box around it.
+func _prop(id: String, pos: Vector3, yaw: float, height: float, collide := false, tint := Color.WHITE) -> Node3D:
+	var n := Models.place(self, id, pos, yaw, 1.0, false, tint)
+	var box := Models.aabb(n)
+	var sc := height / maxf(0.01, box.size.y)
+	n.scale = Vector3.ONE * sc
+	n.position.y = pos.y - box.position.y * sc   # bottom of the model at pos.y (some models hang from their origin)
+	if collide:
+		Util.static_box(self, n.global_transform * box.get_center(), box.size * sc, yaw)
+	return n
+
+func _gold_mat() -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color("#d4a640")
+	m.metallic = 1.0
+	m.roughness = 0.3
+	return m
+
+func _glow_mat(c: Color, e := 2.0) -> StandardMaterial3D:
+	var m := Util.mat(c)
+	m.emission_enabled = true
+	m.emission = c
+	m.emission_energy_multiplier = e
+	return m
+
+func _clight(pos: Vector3, col: Color, energy: float, rng: float, glow_r := 0.0) -> OmniLight3D:
+	var l := OmniLight3D.new()
+	l.light_color = col
+	l.light_energy = energy * 1.2
+	l.omni_range = rng * 1.3
+	l.position = pos
+	add_child(l)
+	casino_lights.append([l, energy * 1.2])
+	if glow_r > 0.0:
+		add_glow(Vector3(pos.x, 1.0, pos.z), col, glow_r, func(): return 0.75 if lights_on else 0.02, true)
+	return l
+
+func _cwall_x(x: float, z0: float, z1: float, wall: Material) -> void:
+	var h := 6.0
+	Models.block(self, Vector3(x, h / 2.0, (z0 + z1) / 2.0), Vector3(1.0, h, z1 - z0), wall)
+	Util.static_box(self, Vector3(x, 1.5, (z0 + z1) / 2.0), Vector3(1.0, 3.0, z1 - z0))
+	var inner := x - signf(x) * 0.52
+	Models.block(self, Vector3(inner, 0.15, (z0 + z1) / 2.0), Vector3(0.06, 0.3, z1 - z0), _gold)
+	Models.block(self, Vector3(inner, 4.2, (z0 + z1) / 2.0), Vector3(0.06, 0.12, z1 - z0), _gold)
+
+func _cwall_z(z: float, x0: float, x1: float, wall: Material) -> void:
+	var h := 6.0
+	Models.block(self, Vector3((x0 + x1) / 2.0, h / 2.0, z), Vector3(x1 - x0, h, 1.0), wall)
+	Util.static_box(self, Vector3((x0 + x1) / 2.0, 1.5, z), Vector3(x1 - x0, 3.0, 1.0))
+	Models.block(self, Vector3((x0 + x1) / 2.0, 0.15, z + 0.52), Vector3(x1 - x0, 0.3, 0.06), _gold)
+	Models.block(self, Vector3((x0 + x1) / 2.0, 4.2, z + 0.52), Vector3(x1 - x0, 0.12, 0.06), _gold)
+
+func _build_casino() -> void:
+	_gold = _gold_mat()
+	var marble := Models.mat("marble_01", 3.0, Color(0.8, 0.79, 0.78))
+	var wall := Models.mat("grey_cartago_03", 3.0, Color(0.62, 0.55, 0.5))
+	var carpet := Models.mat("floral_jacquard", 1.4, Color(0.75, 0.12, 0.14))
+	var felt := Models.mat("scuba_suede", 1.0, Color(0.12, 0.45, 0.2))
+	var dark_wood := Models.mat("weathered_planks", 1.0, Color(0.35, 0.2, 0.14))
+	var mid_z := (CZ_BACK + -10.4) / 2.0
+	# marble floor + the walls (the south side is the low lip from _build_level)
+	var fm := PlaneMesh.new()
+	fm.size = Vector2(CX * 2.0, -10.4 - CZ_BACK)
+	Util.add_mesh(self, fm, marble, Vector3(0, 0.014, mid_z))
+	_cwall_x(-CX, CZ_BACK, -10.4, wall)
+	_cwall_x(CX, CZ_BACK, -10.4, wall)
+	_cwall_z(CZ_BACK, -CX, CX, wall)
+	# the red carpet from the door to the Cage
+	Models.block(self, Vector3(0, 0.02, -28.3), Vector3(3.2, 0.02, 35.0), carpet)
+	for sx in [-1.0, 1.0]:
+		Models.block(self, Vector3(1.66 * sx, 0.03, -28.3), Vector3(0.1, 0.03, 35.0), _gold)
+	# --- the King's VIP balcony at the back, the Cage right under it, the vault door inside the Cage
+	var bal := Models.block(self, Vector3(0, BALCONY_H / 2.0, (BALCONY_Z + CZ_BACK) / 2.0), Vector3(17.0, BALCONY_H, BALCONY_Z - CZ_BACK + 0.4 - 0.4), marble)
+	bal.name = "VIPBalcony"
+	Util.static_box(self, Vector3(0, BALCONY_H / 2.0, (BALCONY_Z + CZ_BACK) / 2.0), Vector3(17.0, BALCONY_H, BALCONY_Z - CZ_BACK))
+	Models.block(self, Vector3(0, BALCONY_H - 0.06, BALCONY_Z + 0.02), Vector3(17.1, 0.14, 0.14), _gold)
+	Models.block(self, Vector3(0, BALCONY_H + 0.012, -54.0), Vector3(8.0, 0.02, 6.0), carpet)
+	for k in 13:   # gold railing
+		var x := -8.0 + k * (16.0 / 12.0)
+		if absf(x) < 3.2:   # open over the Cage so the King can lean over it
+			continue
+		Models.cylinder(self, Vector3(x, BALCONY_H + 0.45, BALCONY_Z + 0.25), 0.05, 0.05, 0.9, _gold, 8)
+	for sx in [-1.0, 1.0]:
+		Models.block(self, Vector3(5.6 * sx, BALCONY_H + 0.92, BALCONY_Z + 0.25), Vector3(4.9, 0.08, 0.08), _gold)
+	var throne := _prop("ArmChair_01", KING_POS + Vector3(0, 0, -1.6), 0.0, 1.5, false, Color(1.0, 0.75, 0.45))
+	throne.name = "Throne"
+	for sx in [-1.0, 1.0]:
+		_prop("horse_statue_01", Vector3(10.4 * sx, 0, -48.6), -sx * 0.5, 2.6, true, Color(1.0, 0.78, 0.35))
+		_prop("brass_vase_04", Vector3(7.6 * sx, BALCONY_H, -51.0), 0.0, 0.7)
+		_prop("potted_plant_04", Vector3(10.4 * sx, 0, -45.4), 0.0, 1.6)
+	var vip := Label3D.new()
+	vip.text = "VIP"   # DRAFT
+	vip.font_size = 120
+	vip.pixel_size = 0.01
+	vip.outline_size = 14
+	vip.modulate = Color("#ffd27a")
+	vip.position = Vector3(0, 4.9, CZ_BACK + 0.6)
+	add_child(vip)
+	# the Cage (cash-out window; chips come in step 2)
+	var bars := _gold
+	Models.block(self, CAGE + Vector3(0, 1.05, 1.15), Vector3(6.0, 0.08, 0.08), bars)
+	Models.block(self, CAGE + Vector3(0, 2.3, 1.15), Vector3(6.0, 0.08, 0.08), bars)
+	Models.block(self, CAGE + Vector3(0, 2.5, 0), Vector3(6.2, 0.1, 2.5), dark_wood)
+	for k in 25:
+		var x := -3.0 + k * 0.25
+		Models.cylinder(self, CAGE + Vector3(x, 1.25, 1.15), 0.025, 0.025, 2.5, bars, 6)
+	for sx in [-1.0, 1.0]:
+		for k in 9:
+			Models.cylinder(self, CAGE + Vector3(3.0 * sx, 1.25, 1.15 - k * 0.27), 0.025, 0.025, 2.5, bars, 6)
+	Models.block(self, CAGE + Vector3(0, 0.5, 1.35), Vector3(2.0, 1.0, 0.5), dark_wood)   # the counter
+	Util.static_box(self, CAGE + Vector3(0, 1.0, 0), Vector3(6.2, 2.0, 2.6))
+	_prop("CashRegister_01", CAGE + Vector3(0.5, 1.0, 1.3), PI, 0.35)
+	var cage_sign := Label3D.new()
+	cage_sign.text = "THE CAGE\n(CASH OUT)"   # DRAFT
+	cage_sign.font_size = 46
+	cage_sign.pixel_size = 0.006
+	cage_sign.outline_size = 10
+	cage_sign.modulate = Color("#ffd27a")
+	cage_sign.position = CAGE + Vector3(0, 2.85, 1.3)
+	add_child(cage_sign)
+	# the Royal Cheese Vault door on the back of the Cage (opens in step 6)
+	var vd := Models.cylinder(self, Vector3(0, 0, 0), 0.95, 0.95, 0.25, _gold, 32)
+	vd.rotation.x = PI / 2
+	vd.position = Vector3(1.6, 1.15, BALCONY_Z - 0.05)
+	vd.name = "VaultDoor"
+	var wheel := Models.cylinder(self, Vector3(0, 0, 0), 0.32, 0.32, 0.12, Util.mat(Color(0.25, 0.22, 0.2)), 16)
+	wheel.rotation.x = PI / 2
+	wheel.position = Vector3(1.6, 1.15, BALCONY_Z + 0.12)
+	_prop("CheeseBox_01", CAGE + Vector3(-2.0, 0, -0.2), 0.3, 0.45)
+	_prop("CheeseBox_01", CAGE + Vector3(-2.3, 0.45, -0.3), 1.1, 0.45)
+	_clight(CAGE + Vector3(0, 2.1, 1.8), Color(1.0, 0.82, 0.5), 1.6, 6.0, 5.0)
+	# Scrounge's stall, next to the Cage (Asar 11/27: so his opening lines make sense)
+	Models.place(self, "wooden_crate_02", STALL + Vector3(-0.6, 0, -0.6), 0.1, 0.8, true, Color(0.7, 0.62, 0.52))
+	Models.place(self, "wooden_crate_02", STALL + Vector3(0.5, 0, -0.7), -0.1, 0.8, true, Color(0.7, 0.62, 0.52))
+	Models.place(self, "wooden_lantern_01", STALL + Vector3(0.5, 0.62, -0.7), 0.0, 0.7)
+	wood_sign("sign_scrounge", "SCROUNGE'S\nJUNK EMPORIUM", STALL + Vector3(0, 2.0, -1.0), 0.0, 1.6, 0.5)   # DRAFT
+	_clight(STALL + Vector3(0.5, 1.4, -0.4), Color(1.0, 0.75, 0.45), 1.0, 4.0, 3.5)
+	# --- table games (step 3 makes them playable): Squeakjack, Brie-carat, Rat-oulette on the west side
+	var tables := [["SQUEAKJACK", Vector3(-14.0, 0, -19.0)], ["BRIE-CARAT", Vector3(-14.0, 0, -29.0)], ["RAT-OULETTE", Vector3(-14.0, 0, -39.0)]]   # names: plan doc
+	for tb in tables:
+		var c: Vector3 = tb[1]
+		Models.cylinder(self, c + Vector3(0, 0.02, 0), 0.25, 0.35, 0.8, dark_wood, 12)
+		Models.cylinder(self, c + Vector3(0, 0.8, 0), 1.55, 1.55, 0.1, _gold, 32)
+		Models.cylinder(self, c + Vector3(0, 0.82, 0), 1.45, 1.45, 0.1, felt, 32)
+		Util.static_cyl(self, c, 1.55, 1.2)
+		if tb[0] == "RAT-OULETTE":
+			Models.cylinder(self, c + Vector3(0, 0.92, 0), 0.55, 0.45, 0.12, dark_wood, 24)
+			Models.cylinder(self, c + Vector3(0, 1.04, 0), 0.4, 0.4, 0.03, _glow_mat(Color(0.8, 0.1, 0.1), 0.6), 24)
+		else:
+			for k in 5:   # cards + chip stacks
+				Models.block(self, c + Vector3(-0.8 + k * 0.4, 0.93, 0.6), Vector3(0.18, 0.01, 0.26), Util.mat(Color(0.96, 0.95, 0.92)), 0.0)
+			for k in 3:
+				Models.cylinder(self, c + Vector3(-0.4 + k * 0.4, 0.93, -0.3), 0.07, 0.07, 0.04 + k * 0.05, Util.mat([Color(0.85, 0.15, 0.15), Color(0.15, 0.3, 0.85), Color(0.1, 0.1, 0.1)][k]), 12)
+		for k in 4:
+			var ang := PI / 2 + (k - 1.5) * 0.7
+			_prop("GreenChair_01", c + Vector3(cos(ang) * 2.1, 0, sin(ang) * 2.1), -ang - PI / 2, 0.95)
+		var lbl := Label3D.new()
+		lbl.text = tb[0]
+		lbl.font_size = 40
+		lbl.pixel_size = 0.0065
+		lbl.outline_size = 10
+		lbl.modulate = Color("#ffd27a")
+		lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		lbl.position = c + Vector3(0, 2.6, 0)
+		add_child(lbl)
+		_clight(c + Vector3(0, 3.2, 0), Color(1.0, 0.85, 0.6), 1.8, 6.0, 5.5)
+	# --- Cheddar Slots along the east wall
+	for k in 6:
+		var p := Vector3(CX - 1.3, 0, -14.5 - k * 2.0)
+		Models.block(self, p + Vector3(0, 0.75, 0), Vector3(1.0, 1.5, 1.4), Util.mat(Color(0.7, 0.08, 0.1), 0.4))
+		Models.block(self, p + Vector3(0, 1.75, 0), Vector3(1.0, 0.5, 1.4), _gold)
+		Models.block(self, p + Vector3(-0.51, 1.1, 0), Vector3(0.02, 0.45, 1.0), _glow_mat(Color(1.0, 0.85, 0.3), 1.2 + 0.2 * (k % 2)))
+		var arm := Models.block(self, p + Vector3(-0.2, 1.3, 0.78), Vector3(0.05, 0.6, 0.05), _gold)
+		arm.rotation.x = -0.2
+		Util.static_box(self, p + Vector3(0, 1.0, 0), Vector3(1.0, 2.0, 1.4))
+	var slots_lbl := Label3D.new()
+	slots_lbl.text = "CHEDDAR SLOTS"
+	slots_lbl.font_size = 56
+	slots_lbl.pixel_size = 0.008
+	slots_lbl.outline_size = 12
+	slots_lbl.modulate = Color("#ffcf4a")
+	slots_lbl.rotation.y = -PI / 2
+	slots_lbl.position = Vector3(CX - 0.55, 3.4, -19.5)
+	add_child(slots_lbl)
+	_clight(Vector3(CX - 3.0, 2.8, -19.5), Color(1.0, 0.7, 0.35), 2.0, 8.0, 6.0)
+	# --- the Cheese Wheel of Fortune on the east wall
+	var wc := Vector3(CX - 0.7, 2.7, -33.0)
+	var wheel_root := Node3D.new()
+	wheel_root.position = wc
+	wheel_root.rotation.z = PI / 2
+	add_child(wheel_root)
+	var cols := [Color(1.0, 0.82, 0.25), Color(0.95, 0.55, 0.15), Color(1.0, 0.95, 0.6), Color(0.9, 0.35, 0.2)]
+	for k in 8:
+		var seg := Models.block(wheel_root, Vector3(0, 0, 0), Vector3(0.12, 1.9, 0.75), Util.mat(cols[k % 4], 0.6))
+		seg.rotation.x = k * PI / 8.0
+	Models.cylinder(wheel_root, Vector3(0, -0.1, 0), 2.0, 2.0, 0.1, _gold, 32)
+	Models.cylinder(wheel_root, Vector3(0, 0.08, 0), 0.25, 0.25, 0.1, _gold, 16)
+	wheel_root.set_meta("spin", true)
+	set_meta("cheese_wheel", wheel_root)
+	var wl := Label3D.new()
+	wl.text = "CHEESE WHEEL\nOF FORTUNE"
+	wl.font_size = 44
+	wl.pixel_size = 0.0065
+	wl.outline_size = 10
+	wl.modulate = Color("#ffd27a")
+	wl.rotation.y = -PI / 2
+	wl.position = wc + Vector3(-0.1, 2.5, 0)
+	add_child(wl)
+	_clight(wc + Vector3(-2.5, 0.5, 0), Color(1.0, 0.8, 0.45), 1.8, 7.0, 5.0)
+	# --- the Rat Race track (step 4) and the Fight Club ring (step 5), center-east
+	var track_c := Vector3(11.5, 0, -24.0)
+	for k in 28:
+		var ang := k * TAU / 28.0
+		var p := track_c + Vector3(cos(ang) * 4.0, 0.03, sin(ang) * 2.2)
+		Models.block(self, p, Vector3(0.9, 0.02, 0.9), Models.mat("rough_linen", 0.5, Color(0.55, 0.42, 0.3)))
+		if k % 2 == 0:
+			Models.block(self, track_c + Vector3(cos(ang) * 4.7, 0.25, sin(ang) * 2.9), Vector3(0.06, 0.5, 0.06), _gold)
+	var rl := Label3D.new()
+	rl.text = "RAT RACE"
+	rl.font_size = 44
+	rl.pixel_size = 0.0065
+	rl.outline_size = 10
+	rl.modulate = Color("#ffd27a")
+	rl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	rl.position = track_c + Vector3(0, 1.6, 0)
+	add_child(rl)
+	var ring_c := Vector3(11.5, 0, -40.0)
+	Models.block(self, ring_c + Vector3(0, 0.15, 0), Vector3(6.0, 0.3, 6.0), Models.mat("rough_linen", 0.8, Color(0.75, 0.68, 0.55)))
+	for cx in [-1.0, 1.0]:
+		for cz in [-1.0, 1.0]:
+			Models.cylinder(self, ring_c + Vector3(2.9 * cx, 0.3, 2.9 * cz), 0.08, 0.08, 1.3, _gold, 8)
+	for side in 4:
+		for hgt in [0.75, 1.15]:
+			var horiz := side % 2 == 0
+			var off := 2.9 * (1.0 if side < 2 else -1.0)
+			Models.block(self, ring_c + (Vector3(0, hgt, off) if horiz else Vector3(off, hgt, 0)), Vector3(5.8, 0.04, 0.04) if horiz else Vector3(0.04, 0.04, 5.8), Util.mat(Color(0.8, 0.1, 0.1)))
+	Util.static_box(self, ring_c + Vector3(0, 0.6, 0), Vector3(6.0, 1.2, 6.0))
+	var fl := Label3D.new()
+	fl.text = "FIGHT CLUB"
+	fl.font_size = 44
+	fl.pixel_size = 0.0065
+	fl.outline_size = 10
+	fl.modulate = Color("#ff8a6a")
+	fl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	fl.position = ring_c + Vector3(0, 2.4, 0)
+	add_child(fl)
+	_clight(ring_c + Vector3(0, 3.5, 0), Color(1.0, 0.9, 0.75), 2.2, 7.0, 6.0)
+	# --- the bar (west back) and the lounge + TV + podcast corner (east back)
+	var bar_c := Vector3(-16.0, 0, -53.5)
+	Models.block(self, bar_c + Vector3(0, 0.55, 0), Vector3(6.0, 1.1, 0.9), dark_wood)
+	Models.block(self, bar_c + Vector3(0, 1.12, 0), Vector3(6.2, 0.06, 1.1), _gold)
+	Util.static_box(self, bar_c + Vector3(0, 0.6, 0), Vector3(6.0, 1.2, 0.9))
+	Models.block(self, bar_c + Vector3(0, 1.6, -4.9), Vector3(6.0, 0.08, 0.5), dark_wood)
+	Models.place(self, "wine_bottles_01", bar_c + Vector3(-1.5, 1.64, -4.9), 0.0, 1.0)
+	Models.place(self, "wine_bottles_01", bar_c + Vector3(1.0, 1.64, -4.9), 0.5, 1.0)
+	_prop("CashRegister_01", bar_c + Vector3(2.1, 1.15, 0), PI, 0.35)
 	for k in 4:
-		Models.block(self, TUNNEL_OUT + Vector3(0, 0.15 + k * 0.3, -0.6 - k * 0.6), Vector3(2.4, 0.3 + k * 0.6, 0.6), _rock_dark)
+		_prop("bar_chair_round_01", bar_c + Vector3(-2.2 + k * 1.45, 0, 1.2), 0.0, 1.0)
+	_prop("dartboard", Vector3(-CX + 0.55, 1.7, -40.5), PI / 2, 0.5)
+	var bl := Label3D.new()
+	bl.text = "THE CRUMB BAR"   # DRAFT
+	bl.font_size = 48
+	bl.pixel_size = 0.007
+	bl.outline_size = 10
+	bl.modulate = Color("#ffcf9a")
+	bl.position = bar_c + Vector3(0, 3.0, -5.6)
+	add_child(bl)
+	_clight(bar_c + Vector3(0, 2.6, 0.5), Color(1.0, 0.65, 0.4), 1.8, 7.0, 6.0)
+	var tv := _prop("Television_01", Vector3(13.0, 1.0, CZ_BACK + 0.9), 0.0, 1.0)
+	tv.name = "CaveCableTV"
+	_prop("metal_office_desk", Vector3(13.0, 0, CZ_BACK + 1.0), 0.0, 1.0)
+	_prop("Sofa_01", Vector3(13.0, 0, -55.0), PI, 0.85)
+	_prop("CoffeeTable_01", Vector3(13.0, 0, -56.6), 0.0, 0.45)
+	_prop("Ottoman_01", Vector3(10.8, 0, -56.0), 0.0, 0.45)
+	_clight(Vector3(13.0, 2.2, -56.0), Color(0.6, 0.75, 1.0), 1.0, 5.0, 4.0)
+	var pod := Vector3(18.0, 0, -49.5)   # the podcast booth (step 7)
+	_prop("painted_wooden_bench", pod + Vector3(0, 0, -0.8), PI, 0.9)
+	_prop("boombox", pod + Vector3(1.6, 0, -0.6), 0.4, 0.45)
+	_prop("vintage_video_camera", pod + Vector3(0, 0, 2.2), PI, 1.3)
+	Models.cylinder(self, pod + Vector3(0.8, 0, 0.2), 0.02, 0.02, 1.2, Util.mat(Color(0.15, 0.15, 0.15)), 6)
+	Models.cylinder(self, pod + Vector3(0.8, 1.22, 0.2), 0.06, 0.05, 0.14, Util.mat(Color(0.2, 0.2, 0.22)), 10)
+	var onair := Label3D.new()
+	onair.text = "ON AIR"
+	onair.font_size = 40
+	onair.pixel_size = 0.006
+	onair.outline_size = 8
+	onair.modulate = Color("#ff4a4a")
+	onair.position = pod + Vector3(0, 2.6, -1.6)
+	add_child(onair)
+	_clight(pod + Vector3(0, 2.4, 0.5), Color(1.0, 0.5, 0.6), 1.2, 5.0, 4.0)
+	# the Wheel Rat's power hookup (cables from his wheel to a breaker box)
+	Models.block(self, WHEEL_RAT + Vector3(1.8, 1.4, -1.6), Vector3(0.6, 0.8, 0.3), Util.mat(Color(0.3, 0.32, 0.3), 0.5))
+	Models.block(self, WHEEL_RAT + Vector3(1.0, 0.03, -0.8), Vector3(1.8, 0.04, 0.08), Util.mat(Color(0.1, 0.1, 0.1)))
+	var pw := Label3D.new()
+	pw.text = "POWER"   # DRAFT
+	pw.font_size = 30
+	pw.pixel_size = 0.005
+	pw.outline_size = 6
+	pw.modulate = Color("#ffe14a")
+	pw.position = WHEEL_RAT + Vector3(1.8, 2.0, -1.6)
+	add_child(pw)
+	# --- decor: chandeliers over the carpet, street lamps along it, plants, wall sconces
+	var chs := ["Chandelier_01", "Chandelier_02", "Chandelier_03"]
+	for k in 3:
+		var z := -18.0 - k * 10.0
+		_prop(chs[k], Vector3(0, 3.6, z), 0.0, 1.4)
+		_clight(Vector3(0, 3.8, z), Color(1.0, 0.86, 0.62), 3.0, 11.0, 8.0)
+	for z in [-14.0, -24.0, -34.0, -43.0]:
+		for sx in [-1.0, 1.0]:
+			_prop("street_lamp_02", Vector3(2.6 * sx, 0, z), 0.0, 3.0)
+			_clight(Vector3(2.6 * sx, 2.9, z), Color(1.0, 0.8, 0.5), 0.7, 4.0)
+	for p in [Vector3(-22.5, 0, -12.0), Vector3(22.5, 0, -12.0), Vector3(-22.5, 0, -58.5), Vector3(-8.0, 0, -12.5), Vector3(8.0, 0, -12.5)]:
+		_prop("potted_plant_04", p, randf() * TAU, 1.6)
+	for p in [Vector3(-22.6, 0, -33.5), Vector3(6.0, 0, -12.4)]:
+		_prop("calathea_orbifolia_01", p, randf() * TAU, 0.9)
+	for z in [-22.0, -44.0]:
+		for sx in [-1.0, 1.0]:
+			var sc := _prop("industrial_wall_sconce", Vector3((CX - 0.6) * sx, 3.0, z), -PI / 2 * sx, 0.5)
+			sc.name = "Sconce"
+	# --- the way out: the tunnel up (west, by the entrance) + the secret lore tunnel (west back)
+	for k in 4:
+		Models.block(self, TUNNEL_OUT + Vector3(-0.6 - k * 0.6, 0.15 + k * 0.3, 0), Vector3(0.6, 0.3 + k * 0.6, 2.4), _rock_dark)
 	var day := OmniLight3D.new()
 	day.light_color = Color(1.0, 0.95, 0.85)
 	day.light_energy = 2.2
 	day.omni_range = 6.0
-	day.position = TUNNEL_OUT + Vector3(0, 3.0, -2.0)
+	day.position = TUNNEL_OUT + Vector3(-2.0, 3.0, 0)
 	add_child(day)
-	add_glow(TUNNEL_OUT + Vector3(0, 1, -0.5), Color(1.0, 0.95, 0.85), 4.5, func(): return 0.8, true)
-	# the secret shortcut (hidden behind junk until the "lore" outcome)
+	add_glow(TUNNEL_OUT + Vector3(-0.5, 1, 0), Color(1.0, 0.95, 0.85), 4.5, func(): return 0.8, true)
+	wood_sign("sign_casino_exit", "EXIT\n(UP TO THE RUINS)", TUNNEL_OUT + Vector3(1.4, 1.2, 1.6), PI / 2, 1.6, 0.5, true)   # DRAFT
 	shortcut_node = Node3D.new()
 	add_child(shortcut_node)
 	var dark := Util.mat(Color(0, 0, 0))
 	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var q := QuadMesh.new()
 	q.size = Vector2(2.0, 2.4)
-	Util.add_mesh(shortcut_node, q, dark, SHORTCUT + Vector3(0, 1.2, -1.4))
+	Util.add_mesh(shortcut_node, q, dark, SHORTCUT + Vector3(-1.9, 1.2, 0), Vector3(0, PI / 2, 0))
 	var sq := Label3D.new()
 	sq.text = "SECRET LORE TUNNEL\n(METOCY MART ROAD)"   # DRAFT
 	sq.font_size = 34
 	sq.pixel_size = 0.0055
 	sq.outline_size = 8
 	sq.modulate = Color("#c9b8ff")
-	sq.position = SHORTCUT + Vector3(0, 2.8, -1.3)
+	sq.rotation.y = PI / 2
+	sq.position = SHORTCUT + Vector3(-1.85, 2.8, 0)
 	shortcut_node.add_child(sq)
 	shortcut_node.visible = false
-	# the Rat King, Scrounge and the colony
-	king = spawn_npc("rat_king", "King Nibbsworth III", "rat_king", 1.45, KING_POS)
-	king.set_meta("tag", _tag(king, "King Nibbsworth III (Rat King) (Musty)", 1.75))   # DRAFT
-	trader = spawn_npc("rat_trader", "Scrounge", "rat_trader", 1.1, STALL + Vector3(0, 0, 0.2))
+	# --- the King, Scrounge, the staff (Asar 11/27: the new staff replace the old filler rats)
+	king = spawn_npc("rat_king", RS.KING, "rat_king", 1.65, KING_POS + Vector3(0, 0.05, 0))
+	king.set_meta("tag", _tag(king, "King Nibsworth III (Rat King) (Owns the Place)", 1.95))   # DRAFT
+	trader = spawn_npc("rat_trader", "Scrounge", "rat_trader", 1.1, STALL + Vector3(0, 0, 0.3))
 	trader.set_meta("tag", _tag(trader, "Scrounge (Licensed Trader) (License Is Fake)", 1.4))   # DRAFT
-	var spots := [Vector3(-4.5, 0, -24), Vector3(4.2, 0, -23.5), Vector3(-2.6, 0, -27.5), Vector3(2.8, 0, -28.0), Vector3(-6.0, 0, -31),
-		Vector3(6.4, 0, -30.5), Vector3(-9.5, 0, -20.5), Vector3(9.2, 0, -21.5), Vector3(5.5, 0, -35.0), Vector3(-5.0, 0, -35.5),
-		Vector3(9.6, 0, -27.0), Vector3(-1.0, 0, -21.0)]
-	var kinds := ["rat", "rat_fat", "rat", "rat_tiny", "rat", "rat_fat", "rat", "rat_tiny", "rat", "rat", "rat_fat", "rat_tiny"]
-	var tags := ["Rat (Royal Guard)", "Rat (Royal Snack Taster)", "Rat (Unpaid Guard)", "Rat (Nephew)", "Rat (Cheese Sommelier)", "Rat (Big Back)",
-		"Rat (Has a Podcast)", "Rat (Scared)", "Rat (Owes Scrounge Money)", "Rat (Just Vibing)", "Rat (Professional Squeaker)", "Rat (Smol)"]   # DRAFT
-	for i in spots.size():
-		var h: float = { "rat": 0.95, "rat_fat": 1.05, "rat_tiny": 0.62 }[kinds[i]]
-		var u := spawn_npc(kinds[i], tags[i], kinds[i], h, spots[i])
-		u.set_meta("tag", _tag(u, tags[i], h + 0.25))
+	for sx in [-1.0, 1.0]:
+		var g := spawn_npc("rat", "Rat (Royal Guard)", "rat", 0.95, Vector3(3.4 * sx, BALCONY_H + 0.05, -51.6))
+		g.set_meta("tag", _tag(g, "Rat (Royal Guard)", 1.2))   # DRAFT
+		g.set_meta("staff", "guard")
+		g.set_meta("home", g.global_position)
+		guards.append(g)
+		crowd.append(g)
+	# [key in RS.STAFF, tag, texture, height, position]   tags: DRAFT
+	var staff := [
+		["cracker", "Rat (Has a Cracker)", "casino_staff_cracker", 0.95, CRACKER_POS],
+		["bouncer", "Rat (Bouncer) (Security)", "casino_staff_bouncer", 1.3, Vector3(2.8, 0, -13.2)],
+		["cashier", "Rat (Cashier) (The Cage)", "casino_staff_cashier", 1.0, CAGE + Vector3(-0.6, 0, 0.4)],
+		["dealer", "Rat (Dealer)", "casino_staff_dealer", 1.05, Vector3(-14.0, 0, -20.9)],
+		["croupier", "Rat (Croupier)", "casino_staff_croupier", 1.05, Vector3(-14.0, 0, -30.9)],
+		["high_roller", "Rat (High Roller) (Richer Than the King)", "casino_staff_high_roller", 1.15, Vector3(-11.2, 0, -37.6)],
+		["cocktail", "Rat (Cocktail Waiter)", "casino_staff_cocktail", 1.0, Vector3(-8.0, 0, -26.0)],
+		["lost_it_all", "Rat (Lost It All)", "casino_staff_lost_it_all", 1.0, Vector3(CX - 3.2, 0, -18.4)],
+		["wheel_host", "Rat (Wheel Host)", "casino_staff_wheel_host", 1.05, Vector3(CX - 3.0, 0, -35.8)],
+		["announcer", "Rat (Announcer)", "casino_fighter_announcer", 1.05, Vector3(7.6, 0, -40.0)],
+		["podcast", "Rat (Has a Podcast)", "casino_staff_podcast", 1.0, pod + Vector3(-0.8, 0, 0.6)],
+		["wheel_rat", "Rat (Runs the Power)", "casino_staff_wheel_rat", 1.7, WHEEL_RAT],
+	]
+	for st in staff:
+		var u := spawn_npc("casino_" + st[0], st[1], st[2], st[3], st[4])
+		u.set_meta("tag", _tag(u, st[1], st[3] + 0.25))
+		u.set_meta("staff", st[0])
+		u.set_meta("home", st[4])
 		crowd.append(u)
+		match st[0]:
+			"cracker": cracker_rat = u
+			"bouncer": bouncer = u
+			"wheel_rat": wheel_rat = u
+	lights_out_t = randf_range(70.0, 120.0)
 
 func _tag(u: Unit, text: String, h: float) -> Label3D:
 	var tag := Label3D.new()
@@ -576,14 +915,10 @@ func _tag(u: Unit, text: String, h: float) -> Label3D:
 func _apply_colony_state() -> void:
 	var done: String = str(Game.flags.get("ratsDone", ""))
 	shortcut_node.visible = done == "lore"
-	if done == "fight":
-		king.global_position = KING_POS + Vector3(1.2, 0, 0.4)
-		knock(king, 85.0, 0.01)
-		trader.visible = false
-		for u in crowd:
-			u.visible = false
-	elif done == "king":
-		king.global_position = KING_POS + Vector3(-2.2, 0, 0.6)
+	if done == "cracker":
+		(cracker_rat.get_meta("tag") as Label3D).text = "Rat (Had a Cracker)"   # DRAFT
+	elif done == "king":   # old saves (that choice is gone): the King steps aside for King Skorn
+		king.global_position = KING_POS + Vector3(-2.2, 0.05, 0.6)
 
 # ---------------------------------------------------------------- after build
 func _after_build() -> void:
@@ -661,7 +996,7 @@ func _level_interactables() -> Array:
 		if not Game.flag("caveLoot%d" % i):
 			list.append({ "id": "loot_%d" % i, "label": "the crate" if LOOT[i][0] == "crate" else "the junk", "verb": "Search", "pos": LOOT[i][1], "h": 1.4, "r": 2.0, "steps": [{ "do": "loot_%d" % i }] })
 	if lp.z > 27.0:
-		list.append({ "id": "rope_up", "label": "the rope", "verb": "Look at", "pos": LANDING + Vector3(0.3, 0, -1.5), "h": 1.4, "r": 2.0, "steps": RS.ROPE_UP })
+		list.append({ "id": "rope_up", "label": "the rope", "verb": "Look at", "pos": LANDING + Vector3(0.3, 0, -1.5), "h": 1.4, "r": 2.0, "steps": RS.ROPE_UP[leader.id] })
 	# the puzzle
 	if not Game.flag("sealsSolved") and lp.z < 4.0 and lp.z > -11.0:
 		for sym in boulders:
@@ -669,27 +1004,30 @@ func _level_interactables() -> Array:
 			if b["cell"].x >= COLS:   # still stuck in the alcove behind the rubble
 				continue
 			var steps: Array = [{ "do": "push_" + sym }]
-			if b["big"] and leader.id != "skorn":
-				steps = RS.BIG_NO[leader.id] + [{ "do": "hint_switch" }]
-			list.append({ "id": "boulder_" + sym, "label": "the %s boulder" % ("BIG" if b["big"] else sym), "verb": "Push", "node": b["node"], "h": 1.9, "r": 1.75, "steps": steps })
+			if OWNER[sym] != leader.id:
+				var no: Dictionary = { "spoon": RS.BIG_NO, "book": RS.BOOK_NO, "bowl": RS.LOTION_NO }[sym]
+				steps = no[leader.id] + [{ "do": "hint_switch_" + sym }]
+			list.append({ "id": "boulder_" + sym, "label": "the %s boulder" % B_NAME[sym], "verb": "Push", "node": b["node"], "h": 1.9, "r": 1.75, "steps": steps })
 		list.append({ "id": "carving", "label": "the carving", "verb": "Read" if leader.id == "xylo" else "Look at", "pos": CARVING + Vector3(0.6, 0, 0), "h": 2.4, "r": 1.8,
-			"steps": RS.CARVING_AGAIN if Game.flag("sealsRead") else RS.CARVING[leader.id] })
+			"steps": RS.CARVING_AGAIN if Game.flag("sealsRead") else RS.CARVING[leader.id] })   # (the "painting": Asar)
 		list.append({ "id": "rope", "label": "the reset rope", "verb": "Pull", "pos": ROPE, "h": 1.8, "r": 1.6, "steps": _rope_steps() })
-		list.append({ "id": "door_look", "label": "the sealed door", "verb": "Look at", "pos": DOOR + Vector3(0, 0, 0.8), "h": 3.0, "r": 1.9, "steps": RS.DOOR_LOOK })
+		list.append({ "id": "door_look", "label": "the sealed door", "verb": "Look at", "pos": DOOR + Vector3(0, 0, 0.8), "h": 3.0, "r": 1.9, "steps": RS.DOOR_LOOK[leader.id] })
 		if not Game.flag("sealsLever"):
 			list.append({ "id": "crack", "label": "the crack in the wall", "verb": "Squeeze through" if leader.id == "lykor" else "Look at", "pos": CRACK, "h": 2.0, "r": 1.5,
-				"steps": RS.CRACK_LYKOR if leader.id == "lykor" else RS.CRACK_NO[leader.id] })
-	# the colony
+				"steps": RS.CRACK_LYKOR if leader.id == "lykor" else RS.CRACK_NO[_crack_key()] })
+	# the casino
 	var done: String = str(Game.flags.get("ratsDone", ""))
 	if done != "":
-		if done != "fight":
-			list.append({ "id": "king", "label": "King Nibbsworth III", "verb": "Talk to", "node": king, "h": 1.9, "r": 2.2, "steps": RS.KING_TALK.get(done, RS.KING_TALK["trade"]) })
-			list.append({ "id": "trader", "label": "Scrounge's Junk Emporium", "verb": "Shop at", "node": trader, "h": 1.6, "r": 2.2, "steps": [{ "do": "shop" }] })
-			for i in crowd.size():
-				if crowd[i].visible:
-					list.append({ "id": "rat_%d" % i, "label": crowd[i].display_name, "verb": "Talk to", "node": crowd[i], "h": crowd[i].height_m + 0.4, "r": 1.4, "steps": RS.RAT_CHATTER[i % RS.RAT_CHATTER.size()] })
-		else:
-			list.append({ "id": "stall", "label": "Scrounge's stall", "verb": "Look at", "pos": STALL, "h": 1.6, "r": 2.2, "steps": RS.TRADER_GONE })
+		list.append({ "id": "king", "label": RS.KING, "verb": "Talk to", "node": king, "h": 2.0, "r": 6.2, "steps": RS.KING_TALK.get(done, RS.KING_TALK["trade"]) })
+		list.append({ "id": "trader", "label": "Scrounge's Junk Emporium", "verb": "Shop at", "node": trader, "h": 1.6, "r": 2.2, "steps": [{ "do": "shop" }] })
+		for u in crowd:
+			if not u.visible:
+				continue
+			var key: String = u.get_meta("staff")
+			if key == "cracker" and done == "cracker":
+				key = "cracker_gone"
+			list.append({ "id": "staff_" + str(u.get_meta("staff")) + str(crowd.find(u)), "label": u.display_name, "verb": "Talk to", "node": u,
+				"h": u.height_m + 0.4, "r": 3.0 if key == "guard" else 1.8, "steps": RS.STAFF[key] })
 		list.append({ "id": "tunnel_out", "label": "the tunnel up", "verb": "Climb", "pos": TUNNEL_OUT, "h": 2.4, "r": 2.0, "steps": RS.TUNNEL_OUT })
 		if done == "lore":
 			list.append({ "id": "shortcut", "label": "the secret lore tunnel", "verb": "Take", "pos": SHORTCUT, "h": 2.6, "r": 2.0, "steps": RS.SHORTCUT })
@@ -702,9 +1040,18 @@ func _level_process(delta: float) -> void:
 		seal_cap.visible = leader.global_position.z > -10.9
 	for i in torches.size():
 		torches[i][0].light_energy = torches[i][1] * (0.85 + 0.1 * sin(t * 11.0 + i * 2.3) + 0.05 * sin(t * 23.0 + i))
-	var near_colony := leader != null and leader.global_position.z < -8.0   # colony name tags only once you're close
+	var near_colony := leader != null and leader.global_position.z < -8.0   # casino name tags only once you're close
 	for u in crowd + [king, trader]:
-		u.get_meta("tag").visible = near_colony
+		u.get_meta("tag").visible = near_colony and lights_on
+	_casino_air(delta)
+	if has_meta("cheese_wheel"):
+		(get_meta("cheese_wheel") as Node3D).rotate_object_local(Vector3.UP, delta * 0.25)
+	# the Wheel Rat stops running now and then: lights out, "My bad.", lights back on (Asar 11/27)
+	if leader and leader.global_position.z < -11.0 and not busy and stage == "walk" and not shots_mode:
+		lights_out_t -= delta
+		if lights_out_t <= 0.0:
+			lights_out_t = randf_range(90.0, 150.0)
+			_blackout()
 	if leader:
 		lead_light.global_position = leader.global_position + Vector3(0, 2.2, 0.4)
 		lead_glow["pos"] = leader.global_position + Vector3(0, 1.0, 0)
@@ -754,8 +1101,8 @@ func _on_action(n: String) -> void:
 		await _check_solved()
 		return
 	match n:
-		"hint_switch":
-			show_toast("Only Skorn can push this one. (Q switches who you control)", 2.4)
+		"hint_switch_spoon", "hint_switch_book", "hint_switch_bowl":
+			show_toast("Only %s can push this one. (Q switches who you control)" % OWNER_NAME[OWNER[n.substr(12)]], 2.4)
 		"read_carving":
 			Game.set_flag("sealsRead")
 			progress_t = 0.0
@@ -780,19 +1127,20 @@ func _on_action(n: String) -> void:
 			await _door_open()
 		"colony_fight":
 			await _colony_fight()
-		"crown_skorn":
-			Game.set_flag("ratsDone", "king")
+		"cracker_fight":
+			await _cracker_fight()
+		"steal_cracker":
 			var sk := _member("skorn")
-			walk_to(king, KING_POS + Vector3(-2.2, 0, 0.6), 1.0, 3.0)
-			await walk_to(sk, KING_POS, 1.0, 4.0)
-			sk.global_position = KING_POS
-			char_label(sk, "(Rat King)", 0.0, sk.height_m + 0.35, Color("#ffd27a"))
-			Game.give_gear("bottlecap_crown", "skorn")
-			show_toast("Skorn got: Bottle-Cap Crown", 2.2)
-			for u in crowd:
-				hop(u, 0.35)
-			play_sound("sfx_reward", -4.0)
-			await wait(0.6)
+			await walk_to(sk, cracker_rat.global_position + Vector3(-0.9, 0, 0.4), 1.2, 3.0)
+			play_sound("sfx_pop", -6.0)
+			hop(cracker_rat, 0.4)
+			char_label(sk, "(Has a Cracker)", 3.0, sk.height_m + 0.35, Color("#ffd27a"))   # DRAFT
+			(cracker_rat.get_meta("tag") as Label3D).text = "Rat (Had a Cracker)"   # DRAFT
+			await wait(0.4)
+		"lights_out":
+			await _set_lights(false)
+		"lights_on":
+			await _set_lights(true)
 		"trade_deal":
 			Game.set_flag("ratsDone", "trade")
 			hop(trader, 0.4)
@@ -907,7 +1255,7 @@ func _update_ghost(on: bool) -> void:
 	if not id.begins_with("boulder_"):
 		return
 	var sym := id.substr(8)
-	if boulders[sym]["big"] and leader.id != "skorn":
+	if OWNER[sym] != leader.id:
 		return
 	var to := slide_target(sym, _push_dir(sym))
 	if to == boulders[sym]["cell"]:
@@ -976,16 +1324,16 @@ func _next_move_hint() -> Array:
 	if not Game.flag("sealsRead"):
 		return [{ "who": who, "line": "Somebody gotta read that carving on the west wall first. That's a Xylo job." }]   # DRAFT
 	if not Game.flag("sealsLever"):
-		return [{ "who": who, "line": "The bowl boulder's stuck behind that rubble. There's a crack in the east wall only Lykor fits through." }]   # DRAFT
+		return [{ "who": who, "line": "The lotion boulder's stuck behind that rubble. There's a crack in the east wall only Lykor fits through." }]   # DRAFT
 	var mv := solve_next()
 	if mv.is_empty():
 		return [{ "who": who, "line": "Yeah, we cooked it. A boulder's stuck where it can't come back. Pull the reset rope." }]   # DRAFT
 	var sym: String = mv[0]
 	var d: Vector2i = mv[1]
-	var name := "BIG spoon boulder" if boulders[sym]["big"] else "%s boulder" % sym
+	var name := "%s boulder" % B_NAME[sym]
 	var line := "Next move: push the %s %s. Stand on %s and press E." % [name, DIR_WORD[d], SIDE_WORD[d]]   # DRAFT
-	if boulders[sym]["big"] and who != "skorn":
-		line += " That one's Skorn's. Q to switch."
+	if OWNER[sym] != who:
+		line += " That one's %s's. Q to switch." % OWNER_NAME[OWNER[sym]]
 	return [{ "who": who, "line": line }]
 
 func _skip_offer() -> Array:
@@ -997,11 +1345,16 @@ func _skip_offer() -> Array:
 		] },
 	]
 
+func _crack_key() -> String:
+	if leader.id == "xylo" and str(Game.flags.get("trollDone", "")) == "good":
+		return "xylo_troll"
+	return leader.id
+
 func _rope_steps() -> Array:
 	if puzzle_t < SKIP_AFTER:
-		return RS.RESET
+		return RS.RESET[leader.id]
 	return [{ "choice": [
-		{ "text": "Reset the boulders", "steps": RS.RESET },
+		{ "text": "Reset the boulders", "steps": RS.RESET[leader.id] },
 		{ "text": "Skip the puzzle", "steps": [{ "do": "skip_puzzle" }] },
 		{ "text": "Never mind", "steps": [] },
 	] }]
@@ -1116,34 +1469,86 @@ func _colony_scene() -> void:
 	follow_enabled = false
 	focus_override = (KING_POS + leader.global_position) * 0.5
 	for u in crowd:
-		char_label(u, "!", 1.0, u.height_m + 0.5, Color("#ff5a3a"))
+		if u.global_position.distance_to(leader.global_position) < 22.0:
+			char_label(u, "!", 1.0, u.height_m + 0.5, Color("#ff5a3a"))
 	await run_dialogue(RS.COLONY)
 	if stage != "walk":   # the choice's own steps end with colony_after; this is just a safety net
 		_on_action("colony_after")
 
+# The King and his guards come down off the balcony to fight; afterwards they go back up and the casino stays open
+# (Asar 11/27: "After any choice the casino opens").
 func _colony_fight() -> void:
-	var guards: Array = [crowd[0], crowd[1]]
-	for u in crowd.slice(2):   # the rest of the colony runs off to watch from a safe distance
-		u.set_meta("goal", u.global_position + Vector3(0, 0, -4))
+	king.global_position = KING_FLOOR + Vector3(0, 0, -1.0)
 	for i in 2:
-		guards[i].global_position = KING_POS + Vector3(-1.6 + i * 3.2, 0, 1.2)
-	var res := await fight("rat_colony", { "enemies": [king, guards[0], guards[1]] })
+		guards[i].global_position = KING_FLOOR + Vector3(-1.6 + i * 3.2, 0, 0.2)
+	var res := await fight("rat_colony", { "enemies": [king, guards[0], guards[1]], "center": KING_FLOOR + Vector3(0, 0, 2.0) })
 	Game.set_flag("ratsDone", "fight")
-	for u in crowd:
-		u.remove_meta("goal")
 	if res == "talked":
 		show_toast("The rats are too busy eating to care anymore.", 2.4)
 	knock(king, 85.0, 0.3)
 	await wait(1.0)
-	for u in crowd:
-		if u.visible:
-			var f := Fx.poof()
-			add_child(f)
-			f.global_position = u.global_position + Vector3(0, 0.4, 0)
-			f.emitting = true
-			u.visible = false
-	trader.visible = false
-	play_sound("sfx_pop", -6.0)
+	await _back_to_posts([king] + guards)
+
+func _cracker_fight() -> void:
+	bouncer.global_position = KING_FLOOR + Vector3(0, 0, -1.0)
+	for i in 2:
+		guards[i].global_position = KING_FLOOR + Vector3(-1.6 + i * 3.2, 0, 0.2)
+	var res := await fight("rat_cracker", { "enemies": [bouncer, guards[0], guards[1]], "center": KING_FLOOR + Vector3(0, 0, 2.0) })
+	Game.set_flag("ratsDone", "cracker")
+	if res == "talked":
+		show_toast("Security took the cheese and called it a day.", 2.4)   # DRAFT
+	await wait(0.6)
+	await _back_to_posts([bouncer] + guards)
+
+func _back_to_posts(units: Array) -> void:
+	await fade_out(0.4)
+	for u in units:
+		unknock(u)
+		u.global_position = KING_POS + Vector3(0, 0.05, 0) if u == king else u.get_meta("home") + Vector3(0, 0.05, 0)
+	fade_in(0.4)
+	await wait(0.4)
+
+# The casino is a lit room inside a dark cave: the ambient light warms up as you walk in (and dies in a blackout).
+var _amb := 0.0
+func _casino_air(delta: float) -> void:
+	if not world_env or not leader:
+		return
+	var want := 0.0
+	if leader.global_position.z < -10.6:
+		want = 1.0 if lights_on else -1.0
+	_amb = move_toward(_amb, want, delta * (6.0 if not lights_on else 1.5))
+	var env: Environment = world_env.environment
+	var cave_col := Color(0.42, 0.36, 0.38)
+	if _amb >= 0.0:
+		env.ambient_light_color = cave_col.lerp(Color(0.7, 0.64, 0.6), _amb)
+		env.ambient_light_energy = lerpf(0.75, 0.95, _amb)
+		env.fog_density = lerpf(0.018, 0.004, _amb)
+	else:
+		env.ambient_light_color = cave_col
+		env.ambient_light_energy = lerpf(0.75, 0.08, -_amb)
+	if lead_light:
+		lead_light.light_energy = 1.5 * (1.0 if lights_on else 0.15)
+	var hide_tags := Game.flag("sealsSolved") or leader.global_position.z < -10.9   # boulder tags show through walls
+	for sym in boulders:
+		for c in boulders[sym]["node"].get_children():
+			if c is Label3D:
+				c.visible = not hide_tags
+
+# The Wheel Rat stops running: every casino light goes out for a second.
+func _set_lights(on: bool) -> void:
+	lights_on = on
+	for L in casino_lights:
+		(L[0] as Light3D).light_energy = L[1] if on else 0.0
+	play_sound("sfx_door" if not on else "sfx_pop", -8.0, 0.5 if not on else 1.2)
+	await wait(1.1 if not on else 0.3)
+
+func _blackout() -> void:
+	busy = true
+	await _set_lights(false)
+	char_label(wheel_rat, "My bad.", 2.4, wheel_rat.height_m + 0.3)   # DRAFT (staff line from the plan doc)
+	await wait(0.5)
+	await _set_lights(true)
+	busy = false
 
 func _open_shop() -> void:
 	var done: String = str(Game.flags.get("ratsDone", ""))
@@ -1180,19 +1585,22 @@ func _resume(r: Dictionary) -> void:
 
 func arrival(from: String) -> Array:
 	if from == "tunnel":
-		return [TUNNEL_OUT + Vector3(-1.0, 0, 3.5), Vector3(0, 0, 1)]
+		return [TUNNEL_OUT + Vector3(2.5, 0, 0), Vector3(1, 0, 0)]
 	return [LANDING, Vector3(0, 0, -1)]
 
 func map_buildings() -> Array:
-	return [{ "pos": DOOR, "name": "The Three Seals" }, { "pos": STALL, "name": "Scrounge's" }, { "pos": KING_POS, "name": "Rat King" }]
+	return [{ "pos": DOOR, "name": "The Three Seals" }, { "pos": STALL, "name": "Scrounge's" }, { "pos": KING_POS, "name": "Grand Cheese Casino" }]
 
 func map_skip(u: Unit) -> bool:
 	return crowd.has(u)
 
 # ---------------------------------------------------------------- automated screenshots
-# RUINS_CHOICE=0..4 picks the rat choice (fight / king / trade / lore / mog).
+# RUINS_CHOICE=0..4 picks the casino choice (fight / cracker / trade / lore / mog).
 # Solves the puzzle with scripted pushes, the way a player would (switching to Skorn / Lykor / Xylo).
 func _shot_tour() -> void:
+	if OS.get_environment("CASINO_VIEW") != "":
+		await _casino_views()
+		return
 	var choice := int(OS.get_environment("RUINS_CHOICE")) if OS.get_environment("RUINS_CHOICE") != "" else 1
 	fade.color.a = 0.0
 	Game.set_flag("caveEntered")
@@ -1250,7 +1658,9 @@ func _shot_tour() -> void:
 		return
 	place_party(Vector3(0, 0, -15.0), Vector3(0, 0, -1))
 	await wait(1.5)
-	for k in 7:
+	for k in 14:
+		if not dialogue._choices.is_empty():
+			break
 		await advance(1, 0.6)
 	await wait(0.6)
 	await shot("c_06_colony")
@@ -1263,13 +1673,42 @@ func _shot_tour() -> void:
 			break
 	await wait(1.5)
 	await shot("c_08_after_%d" % choice)
-	if choice != 0:
+	if true:   # Scrounge stays open after every choice now
 		place_party(STALL + Vector3(0, 0, 2.0), Vector3(0, 0, -1))
 		await wait(0.8)
 		await _tour_use("trader", 0)
 		await wait(0.5)
 	print("CAVE TOUR choice=", choice, " ratsDone=", Game.flags.get("ratsDone", ""), " pet=", Game.flag("ratPet"), " gold=", Game.gold, " xp=", Game.xp,
 		" crown=", Game.gear_owned.has("bottlecap_crown"))
+	get_tree().quit()
+
+# CASINO_VIEW=1: skip the puzzle and the choice, walk the casino for a few pictures (and a blackout)
+func _casino_views() -> void:
+	fade.color.a = 0.0
+	Game.set_flag("caveEntered")
+	Game.set_flag("sealsRead")
+	Game.set_flag("sealsLever")
+	Game.set_flag("sealsSolved")
+	Game.set_flag("ratsDone", "trade")
+	_apply_puzzle_state()
+	_apply_colony_state()
+	for g in roamers:
+		g["done"] = true
+		for u in g["units"]: u.visible = false
+	stage = "walk"
+	busy = false
+	for v in [["cv_1_entrance", Vector3(0, 0, -14.0)], ["cv_2_cage", Vector3(0, 0, -42.0)], ["cv_3_west", Vector3(-12.0, 0, -24.0)],
+			["cv_4_east", Vector3(12.0, 0, -31.0)], ["cv_5_back_east", Vector3(17.0, 0, -45.0)], ["cv_6_bar", Vector3(-15.0, 0, -47.0)]]:
+		place_party(v[1], Vector3(0, 0, -1))
+		await wait(1.6)
+		await shot(v[0])
+	lights_on = false
+	for L in casino_lights:
+		(L[0] as Light3D).light_energy = 0.0
+	await wait(0.6)
+	await shot("cv_7_blackout")
+	await _set_lights(true)
+	print("CASINO VIEWS done, interactables near the Cage: ", current_interactables().size())
 	get_tree().quit()
 
 func _tour_lead(id: String, p: Vector3) -> void:

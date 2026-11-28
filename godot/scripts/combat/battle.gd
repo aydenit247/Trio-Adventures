@@ -1200,7 +1200,7 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 		if e["ai"] == "mattias":
 			return { "kind": "phase", "text": "Metocin Mattias stops holding back. (Every hit lands harder now.)", "bark": "phase" }
 		if e["ai"] == "rat_king":   # DRAFT
-			return { "kind": "phase", "text": "King Nibbsworth III takes a bite of his own scepter. He's eating to win now.", "bark": "phase" }
+			return { "kind": "phase", "text": "King Nibsworth III takes a bite of his own scepter. He's eating to win now.", "bark": "phase" }
 
 	# Boss buffs (Ebain 11/24: "think of more buffs bosses can do"). Texts are # DRAFT.
 	if e.get("boss", false):
@@ -1270,17 +1270,17 @@ func enemy_plan(e: Dictionary) -> Dictionary:
 
 	if e["ai"] == "rat_king":
 		var st := _telegraph(e, "stampede", D.STAMPEDE, all,
-			"King Nibbsworth III whistles for the whole colony… (Next turn: a rat stampede. Defend, block it, or stun/charm him to cancel.)", # DRAFT
+			"King Nibsworth III whistles for the whole colony… (Next turn: a rat stampede. Defend, block it, or stun/charm him to cancel.)", # DRAFT
 			"RAT STAMPEDE! Every rat in the cave runs over the party!") # DRAFT
 		if not st.is_empty():
 			return st
 		if e["phase"] == 2 and e.get("corn", 0) < 2 and e["hp"] < e["max_hp"] * 0.4 and rnd() < 0.35:
 			e["corn"] = e.get("corn", 0) + 1
-			return { "kind": "eat", "amt": 45, "text": "King Nibbsworth III gnaws on the Corncob Scepter. Royal snack. (+45)" }
+			return { "kind": "eat", "amt": 45, "text": "King Nibsworth III gnaws on the Corncob Scepter. Royal snack. (+45)" }
 		if rnd() < 0.3:
-			return all.merged({ "kind": "hit", "name": "Royal Decree", "power": 19, "text": "King Nibbsworth III: \"By royal decree… y'all are MID.\" It hurts everyone's feelings.", "sound": "roar" })
+			return all.merged({ "kind": "hit", "name": "Royal Decree", "power": 19, "text": "King Nibsworth III: \"By royal decree… y'all are MID.\" It hurts everyone's feelings.", "sound": "roar" })
 		var t := target(e)
-		return { "kind": "hit", "name": "Corncob Bonk", "power": 32, "targets": [t], "text": "King Nibbsworth III bonks %s with the Corncob Scepter!" % t["name"], "sound": "slap" }
+		return { "kind": "hit", "name": "Corncob Bonk", "power": 32, "targets": [t], "text": "King Nibsworth III bonks %s with the Corncob Scepter!" % t["name"], "sound": "slap" }
 
 	if e["ai"] == "dulbers":
 		var sale := _telegraph(e, "sale", D.SALE, all,
