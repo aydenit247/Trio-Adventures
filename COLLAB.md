@@ -10,7 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Rat Casino step 1 (casino room, Wheel Rat, staff, Asar's revised ruins/casino script, puzzle boulder changes) — files: godot/scripts/cave.gd, godot/scripts/ruins_script.gd, godot/scripts/ruins.gd, godot/assets/characters/casino_*.png, tools/key_grey.py — branch: asar/casino-step1 — started 2026-11-27
+- [asar] Rat Casino step 1 (casino room, Wheel Rat, staff, Asar's revised ruins/casino script, puzzle boulder changes) — files: godot/scripts/cave.gd, godot/scripts/ruins_script.gd, godot/scripts/ruins.gd, godot/assets/characters/casino_*.png + rat_king*.png (new King art), tools/key_grey.py, + short hot-spot edits: godot/scripts/combat/combat_data.gd (new "rat_cracker" fight), godot/scripts/combat/battle.gd + dialogue.gd + bestiary.gd (Nibbsworth spelling only) — branch: asar/casino-step1 — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - **Rat Casino** (Asar's, Ebain approved): the rat colony becomes the Grand Cheese Casino. Plan + Asar's revised script + decisions: Asar's doc "Rat Casino: Script & Plan" (ask Asar for the link). Build order, one chat each: 1 room + Wheel Rat + new staff + script · 2 chips/Cage/Scrounge + chip HUD · 3 Squeakjack, Brie-carat, Rat-oulette, Cheddar Slots · 4 Rat Race, Cheese Wheel of Fortune · 5 Fight Club + bracket + belt · 6 Royal Cheese Vault + key in the ruins · 7 Cave Cable TV + podcast booth. Art: art_refs/casino/ (cut the grey backgrounds out). Poly Haven assets are in (Ebain, Log 11/27). The Cage sits right below the King's balcony (Asar: so Scrounge's opening lines make sense). Claude makes the TV videos from game assets; only waiting on the podcast cutscene. Step 5: each fighter needs a `Bestiary.ENTRIES` entry.
@@ -90,7 +90,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
-- [asar] godot/scripts/cave.gd, godot/scripts/ruins_script.gd, godot/scripts/ruins.gd, godot/assets/characters/casino_*.png, tools/key_grey.py (Rat Casino step 1)
+- [asar] godot/scripts/cave.gd, godot/scripts/ruins_script.gd, godot/scripts/ruins.gd, godot/assets/characters/casino_*.png, rat_king*.png, tools/key_grey.py, combat/combat_data.gd, combat/battle.gd, dialogue.gd, bestiary.gd (Rat Casino step 1)
 
 ## Log (newest first)
 - 2026-11-27 [ebain] **@asar: podcast cutscene decided.** It's **The Squeak Easy** (the Podcast Rat's show) with Lykor as the guest, a **linear Gemini video** Ebain is making (no choices, ~50 s, several 8 s clips joined). Hook it up like the other video cutscenes (`VideoCutscene.play`, file will be `assets/video/podcast_squeak_easy.ogv`) when it lands; until then a placeholder is fine. Watching it unlocks a new achievement **"On Some Podcast Shi"** (Ebain). Script summary in HANDOFF (slang list → The Squeak Easy).
