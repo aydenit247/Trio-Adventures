@@ -10,7 +10,6 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [ebain] Poly Haven assets for the Rat Casino — files: godot/assets/models/<new ids>, godot/assets/textures/<new ids> — branch: ebain/casino-assets — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -19,6 +18,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 - Music tracks (see HANDOFF.md section 7)
 
 ### Done (recent)
+- 2026-11-27 [ebain] **Rat Casino assets** (Poly Haven, 1k): 22 models + 4 textures for Asar's Grand Cheese Casino (list in the Log)
 - 2026-11-27 [ebain] **Xylo re-voiced** (cloned from Ebain's new reference, all 46 non-draft lines)
 - 2026-11-27 [ebain] **AAA batch**: Deloye Lore Bestiary (Library), fast travel from the World map, dynamic "Previously on Trio Adventures" recap, finishing-blow slow-mo cam, ambient particles + soft color grade, Ultra graphics + FSR upscaling + FPS limit, shader warm-up, in-game updater
 - 2026-11-27 [ebain] **Sound batch 4**: birds/woodpecker by day, owl at night, cave drips, summit gusts, bush rustles; stings for new area, quest done, achievement, boss intro, S grade; cha-ching at the shop, metal/cloth equip, bag zip; master limiter
@@ -90,6 +90,18 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-27 [ebain] **Rat Casino assets are in (for @asar's Grand Cheese Casino).** All Poly Haven CC0, 1k, imported. Models are in `godot/assets/models/<id>/<id>.gltf`, textures in `godot/assets/textures/<id>/{albedo,normal,rough}.jpg`. Sizes are the model's real size in metres (scale up where noted), tris = triangles.
+  - **Textures:** `marble_01` (cream marble tile floor) · `grey_cartago_03` (dark grey veined marble, for trim/pillars) · `floral_jacquard` (dark patterned fabric: tint it red with albedo_color for casino carpet) · `scuba_suede` (fine teal suede: tint it green for table felt).
+  - **CRT TV:** `Television_01` (0.60×0.46×0.47, 1.9k tris, old CRT set).
+  - **Bar / cage counter:** `bar_chair_round_01` (bar stool, 0.75 tall, 14k) · `ClassicConsole_01` (classic wood console table for a back bar, 1.54 wide, 7.6k) · `CashRegister_01` (0.6, 9.9k) · `dartboard` (6.8k). No bar counter on Poly Haven: build it from `dark_wood` + `marble_01`/`grey_cartago_03`.
+  - **VIP lounge:** `Sofa_01` (1.57 wide, 4.1k) · `Ottoman_01` (4.2k) · `CoffeeTable_01` (1.54 wide, 10k). Same classic set as the `ArmChair_01` already in the repo.
+  - **Gaming tables:** `round_wooden_table_02` (0.8 round, 0.75 tall, 4.3k; re-skin the top with felt) · `GreenChair_01` (classic upholstered chair, 4.2k).
+  - **Lights:** `street_lamp_02` (standing lamp post, 1.68 tall, 20k; scale ~1.3 for a grand lobby lamp) · `industrial_wall_sconce` (0.34 tall, 9.8k). Plus the chandeliers already in the repo.
+  - **Plants:** `potted_plant_04` (small, 0.27 tall: scale ~4x for a lobby plant, 8.9k) · `calathea_orbifolia_01` (leafy calathea set, laid out side by side 2.5 wide, 17k; check which mesh you want). Poly Haven's big potted plants are 70–96k tris, skipped.
+  - **Decor:** `horse_statue_01` (figurine 0.22 tall: scale ~8x for a statue, 22k) · `brass_vase_04` (0.17 tall: scale up for an urn, 2.8k) · `CheeseBox_01` (a box of cheese, 0.24 wide, 0.9k: perfect for the Grand Cheese theme, vault prizes, chips table).
+  - **Podcast booth:** `metal_office_desk` (2.0 wide, 6.9k) · `boombox` (10k) · `vintage_video_camera` (tiny 0.14: scale ~5x for a booth camera, 19k).
+  - **Fight Club pit:** `painted_wooden_bench` (1.16 wide, 630 tris) · `Megaphone_01` (announcer, 16k).
+  - **Not on Poly Haven (build these):** gold/brass metal texture (use StandardMaterial3D metallic 1.0, albedo ~#d4a640, roughness 0.3, with `metal_plate`'s normal), open metal bars/grate for the cage (use cylinders), rope/stanchion posts, bleachers, safe/vault door, microphone, headphones, dice, playing cards, poker chips, coins. Skipped `rock`: `dark_rock`/`rock_wall_10` are as good as anything there.
 - 2026-11-27 [ebain] **Xylo has a new voice.** Ebain's call: all 46 non-draft Xylo lines re-voiced with a ChatterboxTTS clone of his new reference (`voice_index.gd`, `assets/voices/xylo/xylo_clone_*.ogg`). **@asar:** this replaces your Xylo recordings; your 41 entries in `voice_lines.gd` are commented out (files kept), so any one comes back by uncommenting it. tts_batch: `find --all`. Tested: main/trail/pass/mart/summit/library tours, 0 errors.
 - 2026-11-27 [ebain] **AAA batch merged.** New files: `bestiary.gd`/`bestiary_ui.gd` (Library → Bestiary, all entries # DRAFT), `recap.gd` ("Previously on", after Continue/Load from the title), `area_fx.gd` (particles + color grade), `shader_warmup.gd`, `updater.gd` + `build_stamp.gd`, `tools/test_aaa.tscn`. Hot spots: **level.gd** (`_recap()` before resume/begin, AreaFx + ShaderWarmup spawned next to AreaSfx, `apply_graphics` gained Ultra/SSIL, FSR 1/2 + render scale, calls `area_fx.apply()`), **game.gd** (settings `upscale`, `render_scale`, `fps_cap`, `color_grade`, `ambient_fx`, `recap_on`; QUALITY + "Ultra"; `recap_pending` set in `load_game` when coming from the title; `Engine.max_fps`), **combat/battle_view.gd** (`Bestiary.saw/beat`, `_finisher()` + `FINISH_LABELS` DRAFT, `_play` marks the finishing hit, `_outro` resets time_scale). Also map_ui.gd (fast travel, `FAST`), library_ui.gd (Bestiary row), menu_ui.gd (new Display rows + Gameplay "Previously on"), title.gd (update check + "Update available!" row), windows-build.yml (stamps the build, uploads `TrioAdventures.pck` + `version.json` next to the zip). **@asar:** a new enemy needs a `Bestiary.ENTRIES` entry (test_aaa fails otherwise); new effect materials can go in `ShaderWarmup._materials()`. Voice count for Ebain (11/27): Pass 62/62 voiced; ~160 lines still unvoiced, mostly ruins/cave (64, your dialogue), library 43, summit 30. Tested: test_aaa ALL OK, test_ui ALL OK, FIGHT goblin_patrol + giant headless (finisher fired), explorer bot 5 min at 10x (camp → summit, 0 problems), recap + bestiary screenshots, trail grade on/off comparison.
 - 2026-11-27 [ebain] Docs only: Ebain's answers on who did what for the credits are in HANDOFF (section 5, under "End credits"). Not applied to `credits.gd` yet, on purpose (game isn't done). **@asar:** you're credited for Ruins + Rat Cave dialogue, goblin voices, 3D models, some item art, combat help, co-creating Charis's house (plus the explorer bot / dialogue map). Say so in the Log if anything's missing.

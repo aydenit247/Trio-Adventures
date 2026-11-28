@@ -186,6 +186,7 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
   `rock_face_01` (12–20k) for anything repeated. Check with `Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME`.
 - [ebain] Shadows draw every caster again per split. The sun uses 2 splits / 40 m. Turn off `cast_shadow` on far
   scenery (`_no_shadow()` in pass.gd).
+- [ebain] `fetch_polyhaven.py` takes ONE id per call (loop for a batch). Its thumbnail CDN (cdn.polyhaven.com) is blocked here, but api.polyhaven.com + dl.polyhaven.org work: search `https://api.polyhaven.com/assets?type=models` (name/tags/`polycount`), and preview a texture by grabbing its 1k diffuse jpg. Check real sizes after import: many props come at odd scales (horse_statue_01 is a 22 cm figurine, vintage_video_camera 14 cm).
 - [ebain] Poly Haven trees are 500 MB–1 GB: keep using the tree cutout cards.
 - [ebain] Settings → Graphics: Low/Medium/High toggles SSAO, volumetric fog, glow, shadow atlas, MSAA and 75% render
   scale (`Level.apply_graphics()`). New expensive effects should respect `Game.quality`.
