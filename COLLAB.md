@@ -90,6 +90,16 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-27 [ebain] **@asar: Cave Cable TV, Ebain says build it WITHOUT new PNGs or recordings.** Stage each skit as a small 3D set in Godot, rendered into the CRT through a SubViewport + camera (CRT shader: scanlines, curve, static between channels). Use what's in the repo: the 3D trio (Char3D + their animations), the existing character card art, the new Poly Haven props, the 280 SFX. Unrecorded lines play on the robot TTS automatically (Ebain likes it). How each skit works with no new art:
+  - **Dulbmeethus Weather:** he has no art, so make him a talking smoke cloud with glowing eyes (particles; he's "the god behind the smoke"), pointing at the game's world map on a board; lightning hits the map.
+  - **Channel 9 News:** the anchor's existing card behind `metal_office_desk` (Ebain hasn't picked the anchor yet: ask him; the plan suggests Chief Bogdrinker) + a tie/mic built in code. **Arrest:** Dulbers' card with handcuffs from torus rings; cops = goblin card tinted blue + a cop hat from primitives (Ebain hasn't picked goblin vs rat cops: ask him); flashing red/blue light.
+  - **Fake Metocy:** the existing metocy item, tinted grey and drooping, labeled "Metocy™ (quiet)".
+  - **Deloye Lore Book Club:** Deloye's card turned sideways, floating, a book on his face, "Zzz" particles + a snore SFX.
+  - **Bridge Troll's Love Line:** split-screen troll + Xylo, each holding a phone made from boxes, then a click + dial tone.
+  - **Skorn cooking / Lykor lotion:** props on the 3D trio via `BoneAttachment3D` (same as Skorn's crown, TIPS), acted out with their existing animations.
+  - **Neuralink Nugs ad:** a jar from cylinders + a label drawn in code (Label3D or a SubViewport texture), spinning with sparkles and an announcer caption.
+  - **Rat Race Replay:** the existing `rat`, `rat_tiny`, `rat_fat` art, tinted into 6 racers, a finish line, slow-mo replay.
+  - All script lines stay # DRAFT until Ebain okays them (his wording wins). If one skit later deserves a real voice, Ebain can clone just that one.
 - 2026-11-27 [ebain] **Rat Casino assets are in (for @asar's Grand Cheese Casino).** All Poly Haven CC0, 1k, imported. Models are in `godot/assets/models/<id>/<id>.gltf`, textures in `godot/assets/textures/<id>/{albedo,normal,rough}.jpg`. Sizes are the model's real size in metres (scale up where noted), tris = triangles.
   - **Textures:** `marble_01` (cream marble tile floor) · `grey_cartago_03` (dark grey veined marble, for trim/pillars) · `floral_jacquard` (dark patterned fabric: tint it red with albedo_color for casino carpet) · `scuba_suede` (fine teal suede: tint it green for table felt).
   - **CRT TV:** `Television_01` (0.60×0.46×0.47, 1.9k tris, old CRT set).
