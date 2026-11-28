@@ -10,9 +10,9 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
-- [asar] Save the Rat Casino character art — files: art_refs/casino/ (new) — branch: asar/casino-art — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
+- **Rat Casino** (Asar's, Ebain approved): the rat colony becomes the Grand Cheese Casino. Plan + Asar's revised script + decisions: Asar's doc "Rat Casino: Script & Plan" (ask Asar for the link). Build order, one chat each: 1 room + Wheel Rat + new staff + script · 2 chips/Cage/Scrounge + chip HUD · 3 Squeakjack, Brie-carat, Rat-oulette, Cheddar Slots · 4 Rat Race, Cheese Wheel of Fortune · 5 Fight Club + bracket + belt · 6 Royal Cheese Vault + key in the ruins · 7 Cave Cable TV + podcast booth. Art: art_refs/casino/ (cut the grey backgrounds out). Waiting on: Ebain's Poly Haven casino assets, TV art/voices, the podcast cutscene.
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
 - More roaming enemies (needs new creature art)
 - Character art as it arrives (Gemini) — swap into godot/assets/characters/ with tools/key_chars.py
@@ -91,6 +91,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
 
 ## Log (newest first)
+- 2026-11-27 [asar] Rat Casino planning (no code yet): all 29 character images saved to `art_refs/casino/` (fighters, staff, race runners, new King Nibsworth III front/back/side; grey backgrounds, cut out when building). Note: the King's side view has a different crown than front/back; Asar may regenerate it. Build plan added to Up next.
 - 2026-11-27 [ebain] **@asar: Cave Cable TV, Ebain says build it WITHOUT new PNGs or recordings.** Stage each skit as a small 3D set in Godot, rendered into the CRT through a SubViewport + camera (CRT shader: scanlines, curve, static between channels). Use what's in the repo: the 3D trio (Char3D + their animations), the existing character card art, the new Poly Haven props, the 280 SFX. Unrecorded lines play on the robot TTS automatically (Ebain likes it). How each skit works with no new art:
   - **Dulbmeethus Weather:** he has no art, so make him a talking smoke cloud with glowing eyes (particles; he's "the god behind the smoke"), pointing at the game's world map on a board; lightning hits the map.
   - **Channel 9 News:** the anchor's existing card behind `metal_office_desk` (Ebain hasn't picked the anchor yet: ask him; the plan suggests Chief Bogdrinker) + a tie/mic built in code. **Arrest:** Dulbers' card with handcuffs from torus rings; cops = goblin card tinted blue + a cop hat from primitives (Ebain hasn't picked goblin vs rat cops: ask him); flashing red/blue light.
