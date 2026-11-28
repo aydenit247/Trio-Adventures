@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] Xylo's new cloned voice (all 46 non-draft lines) — files: godot/scripts/voice_lines.gd (Xylo entries only), voice_index.gd, godot/assets/voices/xylo/ (new clone files), tools/tts_batch.py, VOICE_LINES.md — branch: ebain/xylo-voice — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
