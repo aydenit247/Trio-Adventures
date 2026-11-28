@@ -229,7 +229,8 @@ too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "
   answer when Mattias helps (Ebain 11/25, meaning not spelled out). **"in de bih"**: Skorn ("you ain't gonna make it sad
   in de bih"). **Mud:** what Deloye calls you ("Here you go, mud."; also "Dat bih fire mud"). **Pull up:** come over.
   **Got da plug:** has a dealer coming. **Faded:** high (the buff). (All from Ebain's Deloye library script, 11/25.)
-- **The Squeak Easy:** the Podcast Rat's podcast in the Rat Casino booth (Ebain 11/27). Lykor guests on it in a linear video cutscene Ebain makes with Gemini (Episode 412: "What's the secret?" "Conditioner.", "Nobody mogs me.", "Skorn or Xylo?" "Mirror.", "Stay moisturized. Lock in. On some type shi."; the listener count goes 3 → 4). Watching it unlocks the achievement **"On Some Podcast Shi"**.
+- **The Squeak Easy:** the Podcast Rat's podcast in the Rat Casino booth (Ebain 11/27). Lykor guests on it in a linear 2–3 min video cutscene Ebain makes with Gemini; Lykor's glad to be there and having a good time, and it ends with Skorn and Xylo crashing the booth. Watching it unlocks the achievement **"On Some Podcast Shi"**. Ebain's lines: "How did you get your jawline so sharp like that?" → **"Bone smashing"** (Lykor's jawline secret) · "Did you hear about the goblins going conservative recently?" · "I heard Diddy Chud Giant has been beefing with Dulbmeethus ever since he spawned him into Caelid."
+- **Caelid:** where Dulbmeethus spawned the Diddy Chud Giant; the giant has been beefing with Dulbmeethus ever since (Ebain 11/27, the podcast). Ask Ebain before adding more about it.
 - **John's orb:** a lore term from the title music. **John and John's orb** make Deloye write forever (Ebain 11/25). What John is: not given yet, ask Ebain before saying more.
 
 ---
