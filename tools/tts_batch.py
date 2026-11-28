@@ -140,7 +140,7 @@ def cmd_find(a):
                 continue
             who, line = f["who"], unq(f["line"])
             k = key(line)
-            if not k or k in voiced or (want and who not in want) or (who, k) in seen:
+            if not k or (k in voiced and not a.all) or (want and who not in want) or (who, k) in seen:
                 continue
             if re.search(r'"voice"\s*:\s*"none"', m.group(0)):
                 continue
@@ -488,7 +488,7 @@ def main():
         except Exception: pass
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
-    f = sp.add_parser("find"); f.add_argument("--who"); f.add_argument("--include-drafts", action="store_true"); f.add_argument("-o", default="lines.json")
+    f = sp.add_parser("find"); f.add_argument("--who"); f.add_argument("--include-drafts", action="store_true"); f.add_argument("--all", action="store_true", help="also list lines that already have a voice file (to re-voice them)"); f.add_argument("-o", default="lines.json")
     g = sp.add_parser("gen"); g.add_argument("lines"); g.add_argument("--refs", default="refs"); g.add_argument("--out", default="out")
     g.add_argument("--url", default="http://127.0.0.1:7860"); g.add_argument("--engine", default="ChatterboxTTS")
     g.add_argument("--only", action="append"); g.add_argument("--who"); g.add_argument("--test", action="store_true")
