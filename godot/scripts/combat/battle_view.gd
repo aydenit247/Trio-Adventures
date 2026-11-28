@@ -99,6 +99,7 @@ func run(fight_key: String, o: Dictionary = {}) -> String:
 		"difficulty": Game.difficulty, "used67": Game.used67, "gear": gear, "hurt": Game.hurt,
 		"faded": int(Game.flags.get("fadedFights", 0)) > 0, "lore_nerf": Game.flag("deloyeBad"), "dulbmeethus": Game.dev_dulbmeethus,   # the Deloye library
 	})
+	Bestiary.saw(b.enemies)   # 11/27: Deloye Lore Bestiary (bestiary.gd) unlocks an entry the first time you fight something
 	if auto_play and OS.get_environment("AUTO_LOSE") != "":
 		for p in b.party:
 			p["hp"] = 1
@@ -1227,6 +1228,32 @@ func _toggle_log() -> void:
 	await get_tree().process_frame
 	if is_instance_valid(sc): sc.scroll_vertical = int(sc.get_v_scroll_bar().max_value)
 
+# ---- finishing blow (Ebain 11/27): the hit that wins the fight goes slow-mo with a camera push-in on the target,
+# a white flash and a heavy thud, then eases back to normal speed. Bosses get it longer and closer. Labels: DRAFT.
+const FINISH_LABELS := ["FOLDED!", "SENT HOME!", "IT'S OVER FOLK!"]
+var _fin_running := false
+func _finisher(n: Unit, boss: bool) -> void:
+	if n == null or _fin_running: return
+	_fin_running = true
+	var keep := lv.zoom
+	var kf = lv.focus_override
+	lv.focus_override = n.global_position.lerp(center, 0.15) + Vector3(0, 0.4 if not boss else 1.2, 0)
+	lv.zoom = keep * (0.52 if boss else 0.62)
+	flash(0.25, Color(1, 1, 1))
+	sfx("cmb_hit_big", 0.75)
+	_float(n, FINISH_LABELS[randi() % FINISH_LABELS.size()], Color("#ffd24a"), 1.5 if boss else 1.2, 0.9)
+	Engine.time_scale = 0.18
+	await get_tree().create_timer(1.15 if boss else 0.7, true, false, true).timeout
+	var t := 0.0
+	while t < 0.35:   # ease back to full speed
+		await get_tree().create_timer(0.02, true, false, true).timeout
+		t += 0.02
+		Engine.time_scale = lerpf(0.18, 1.0, t / 0.35)
+	Engine.time_scale = 1.0
+	lv.zoom = keep
+	lv.focus_override = kf
+	_fin_running = false
+
 # ---- impact (11/26): a tiny freeze on big hits, a camera punch-in on big moments
 func _hitstop(secs := 0.06) -> void:
 	if auto_play: return
@@ -1554,6 +1581,12 @@ func _enemy_act(e: Dictionary, it: Dictionary) -> void:
 
 # ================================================================== events
 func _play(evs: Array) -> void:
+	if b.result() == "win":   # 11/27 finishing-blow cam: the last hit that drops an enemy in the winning batch
+		for i in range(evs.size() - 1, -1, -1):
+			var e0: Dictionary = evs[i]
+			if e0.get("t", "") == "dmg" and e0.get("u") is Dictionary and e0["u"].get("side", "") == "enemy" and int(e0["u"].get("hp", 1)) <= 0:
+				e0["finisher"] = true
+				break
 	for ev in evs:
 		await _event(ev)
 		_refresh()
@@ -1573,6 +1606,8 @@ func _event(ev: Dictionary) -> void:
 			await lv.wait(ev.get("ms", 1100) / 1000.0 * speed)
 		"dmg":
 			if ev["text"] != "": _say(ev["text"])
+			var fin: bool = ev.get("finisher", false) and not auto_play and not lv.shots_mode
+			if fin: _finisher(n, ev["u"].get("boss", false))
 			_impact(ev)
 			_burst(n, D.DTYPE.get(ev.get("by", ""), ""), ev["amt"] >= 30 or ev.get("label", "") == "PERFECT!")
 			lv.shake = maxf(lv.shake, clampf(ev["amt"] / 90.0, 0.06, 0.55))
@@ -1583,7 +1618,7 @@ func _event(ev: Dictionary) -> void:
 			var perfect: bool = ev.get("label", "") == "PERFECT!"
 			_float(n, "-%d" % ev["amt"], Color("#ffe14a") if perfect else (Color("#ffd27a") if not q else Color("#ffe8b0")), 1.35 if perfect else (1.0 if not q else 0.8))
 			if ev["u"].get("boss", false): _squash(n)
-			if perfect or ev["amt"] >= 30 or ev.get("shake", false): _hitstop(0.07 if ev["amt"] >= 30 else 0.05)
+			if (perfect or ev["amt"] >= 30 or ev.get("shake", false)) and not fin: _hitstop(0.07 if ev["amt"] >= 30 else 0.05)
 			if ev.get("label", "") != "":
 				_float(n, ev["label"], GREEN if ev["label"] == "PERFECT!" else Color.WHITE, 0.8, 0.6)
 			if ev.get("weak", "") == "weak":
@@ -1593,6 +1628,8 @@ func _event(ev: Dictionary) -> void:
 			elif ev.get("weak", "") == "resist": _float(n, "RESISTED", Color(0.75, 0.75, 0.8), 0.7, 0.45)
 			if ev.get("shake", false): lv.shake = 0.5
 			await lv.wait((0.22 if q else 0.65) * speed)
+			while _fin_running:
+				await get_tree().process_frame
 		"hurt":
 			var blk0: String = ev.get("block", "")
 			if blk0 == "perfect":
@@ -2364,6 +2401,9 @@ func _ask_67() -> bool:
 var knocked_out: Array = []   # names knocked out when the fight ended (Level.fight tells you they got up at 1 HP)
 
 func _outro(res: String) -> void:
+	Engine.time_scale = 1.0   # never leave a finishing-blow slow-mo running
+	if res == "win":
+		Bestiary.beat(b.enemies)
 	if res == "lose":
 		Game.achieve("cooked")   # "You got cooked": lose your first fight
 	for p in pile:   # tidy up the throw pile

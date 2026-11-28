@@ -461,8 +461,23 @@ static func _settings_display(parent: Node) -> MenuUI:
 		  "change": func(_d): Game.vsync = not Game.vsync; _changed(),
 		  "note": "ON = smooth, no tearing. OFF = a bit less input lag." },
 		{ "text": "Graphics", "value": func(): return Game.QUALITY[Game.quality],
-		  "change": func(d): Game.quality = (Game.quality + d + 3) % 3; _changed(),
-		  "note": "Low turns off fog, soft shadows and ambient shading and renders at 75% — use it on laptops." },
+		  "change": func(d): Game.quality = (Game.quality + d + Game.QUALITY.size()) % Game.QUALITY.size(); _changed(),
+		  "note": "Low turns off fog, soft shadows and ambient shading and renders at 75% — use it on laptops. Ultra adds bounce light, sharper shadows and 4x anti-aliasing." },
+		{ "text": "Upscaling", "value": func(): return Game.UPSCALE[Game.upscale],
+		  "change": func(d): Game.upscale = (Game.upscale + d + Game.UPSCALE.size()) % Game.UPSCALE.size(); _changed(),
+		  "note": "AMD FSR: renders smaller, then sharpens it back up. More FPS on weaker PCs. FSR 2 looks best (and smooths edges)." },
+		{ "text": "Render scale", "value": func(): return _pct(Game.render_scale) if Game.upscale > 0 else "—",
+		  "change": func(d): Game.render_scale = clampf(snappedf(Game.render_scale + d * 0.05, 0.05), 0.5, 1.0); _changed(),
+		  "note": "Only with upscaling on. 77% ≈ FSR Quality, 67% ≈ Balanced, 59% ≈ Performance." },
+		{ "text": "FPS limit", "value": func(): return "Off" if Game.fps_cap == 0 else str(Game.FPS_CAP[Game.fps_cap]),
+		  "change": func(d): Game.fps_cap = (Game.fps_cap + d + Game.FPS_CAP.size()) % Game.FPS_CAP.size(); _changed(),
+		  "note": "Caps the frame rate. Keeps laptops cooler and quieter." },
+		{ "text": "Color grading", "value": func(): return "ON" if Game.color_grade else "OFF",
+		  "change": func(_d): Game.color_grade = not Game.color_grade; _changed(),
+		  "note": "A soft color mood for each area (warm sun, blue moonlight, old-gold library). OFF = the plain look." },
+		{ "text": "Ambient particles", "value": func(): return "ON" if Game.ambient_fx else "OFF",
+		  "change": func(_d): Game.ambient_fx = not Game.ambient_fx; _changed(),
+		  "note": "Falling leaves, pollen, fireflies, embers, snow and dust in the air." },
 	])
 
 static func _settings_dialogue(parent: Node) -> MenuUI:
@@ -493,6 +508,9 @@ static func _settings_gameplay(parent: Node) -> MenuUI:
 		{ "text": "Battle speed", "value": func(): return Game.BATTLE_SPEED[Game.battle_speed][0],
 		  "change": func(d): Game.battle_speed = clampi(Game.battle_speed + d, 0, Game.BATTLE_SPEED.size() - 1); _changed(),
 		  "note": "How fast attacks, pauses and fight text play out. Timed-hit rings stay the same speed." },
+		{ "text": "\"Previously on\" recap", "value": func(): return "ON" if Game.recap_on else "OFF",
+		  "change": func(_d): Game.recap_on = not Game.recap_on; _changed(),
+		  "note": "When you Continue or Load from the title: a quick recap of what happened on this run." },
 	])
 
 static func _settings_controls(parent: Node) -> MenuUI:

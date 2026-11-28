@@ -106,6 +106,12 @@ func _ready() -> void:
 	var asfx := AreaSfx.new()   # 11/27: random birds/owl/drips/gusts, bush rustles, "new area" sting (area_sfx.gd)
 	add_child(asfx)
 	asfx.setup(self, first_visit)
+	area_fx = AreaFx.new()   # 11/27: ambient particles + soft color grade (area_fx.gd, Settings → Display)
+	add_child(area_fx)
+	area_fx.setup(self)
+	var warm := ShaderWarmup.new()   # 11/27: compile the fight/menu effect shaders under the loading card (shader_warmup.gd)
+	add_child(warm)
+	warm.setup(self)
 	cam_target = leader.global_position
 	_update_camera(1.0)
 	var args := OS.get_cmdline_user_args()
@@ -127,10 +133,27 @@ func _ready() -> void:
 	elif not Game.pending_resume.is_empty() and Game.pending_resume.has("pos") and can_resume_saved():
 		await _resume(Game.pending_resume)
 		Game.area_entered(self)
+		await _recap()
 	else:
 		Game.pending_resume = {}
 		Game.area_entered(self)
+		await _recap()
 		_begin()
+
+# "Previously on Trio Adventures" (recap.gd, Ebain 11/27): once, after Continue/Load from the title.
+func _recap() -> void:
+	if not Game.recap_pending:
+		return
+	Game.recap_pending = false
+	if not Game.recap_on or shots_mode or DisplayServer.get_name() == "headless" or Recap.beats().is_empty():
+		return
+	var was_busy := busy
+	busy = true
+	freeze_all(true)
+	await Recap.play(self)
+	busy = was_busy
+	if not was_busy:
+		freeze_all(false)
 
 # ---------------------------------------------------------------- hooks (override in area scripts)
 func _configure() -> void: pass
@@ -263,6 +286,8 @@ func _unhandled_input(ev: InputEvent) -> void:
 		_clamp_locked_yaw()
 
 # ---------------------------------------------------------------- graphics quality (Settings → Graphics)
+var area_fx: AreaFx
+
 func apply_graphics() -> void:
 	if world_env == null:
 		return
@@ -273,11 +298,30 @@ func apply_graphics() -> void:
 	e.glow_enabled = q >= 1
 	if sun_light:
 		sun_light.directional_shadow_max_distance = 40.0 if q >= 1 else 24.0
-	RenderingServer.directional_shadow_atlas_set_size([1024, 2048, 4096][q], true)
-	get_viewport().scaling_3d_scale = 1.0 if q >= 1 else 0.75
-	get_viewport().msaa_3d = Viewport.MSAA_2X if q >= 1 else Viewport.MSAA_DISABLED
+	e.ssil_enabled = q >= 3   # Ultra (11/27): soft bounce light between surfaces
+	if sun_light:
+		if q >= 3:
+			sun_light.directional_shadow_max_distance = 60.0
+	RenderingServer.directional_shadow_atlas_set_size([1024, 2048, 4096, 4096][q], true)
+	var vp := get_viewport()
+	vp.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_2X, Viewport.MSAA_4X][q]
+	# Upscaling (11/27 shipping polish): FSR renders smaller and sharpens it back up. Off = Low's old 75% / full res.
+	match Game.upscale:
+		1:
+			vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
+			vp.scaling_3d_scale = Game.render_scale
+		2:
+			vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2
+			vp.scaling_3d_scale = Game.render_scale
+		_:
+			vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+			vp.scaling_3d_scale = 1.0 if q >= 1 else 0.75
+	if Game.upscale == 2:
+		vp.msaa_3d = Viewport.MSAA_DISABLED   # FSR 2 does its own anti-aliasing (temporal)
 	if cam and cam.attributes:
 		cam.attributes.dof_blur_far_enabled = q >= 2
+	if area_fx:
+		area_fx.apply()
 
 # ---------------------------------------------------------------- environment
 func _build_environment() -> void:

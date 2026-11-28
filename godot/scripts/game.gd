@@ -437,14 +437,24 @@ func completion_pct() -> int:
 
 # ================================================================ settings (saved to user://settings.cfg)
 const SETTINGS_PATH := "user://settings.cfg"
-const QUALITY := ["Low", "Medium", "High"]
+const QUALITY := ["Low", "Medium", "High", "Ultra"]
 const TEXT_SPEED := ["Slow", "Normal", "Fast", "Instant"]
 const TEXT_SPEED_MULT := [1.6, 1.0, 0.5, 0.0]
 var master_vol := 0.8             # 0..1
 var voice_vol := 1.0              # 0..1 (TTS + recorded lines)
 var fullscreen := false
 var vsync := true
-var quality := 2                  # 0 Low · 1 Medium · 2 High
+var quality := 2                  # 0 Low · 1 Medium · 2 High · 3 Ultra (11/27: SDFGI bounce light, 4 shadow splits, MSAA 4x)
+# Shipping polish (Ebain 11/27): upscaling + frame cap (Level.apply_graphics / apply_settings)
+const UPSCALE := ["Off", "FSR 1", "FSR 2"]
+var upscale := 0                  # index into UPSCALE
+var render_scale := 1.0           # 0.5 .. 1.0, used when upscaling is on (Low quality alone still renders at 75%)
+const FPS_CAP := [0, 30, 60, 120, 144]
+var fps_cap := 0                  # index into FPS_CAP (0 = no limit)
+var color_grade := true           # soft per-area color grade (area_fx.gd). Ebain 11/27: keep it pleasant, never too red
+var ambient_fx := true            # ambient particles (fireflies, embers, dust, leaves; area_fx.gd)
+var recap_on := true              # "Previously on Trio Adventures" when you Continue/Load from the title (recap.gd)
+var recap_pending := false        # set by load_game() from the title, used once by Level
 var text_speed := 1               # index into TEXT_SPEED
 var music_once := false           # Settings → Music: play each area song once instead of looping (Ebain's note)
 var cam_speed := 1.0              # camera turn speed multiplier (0.4 .. 2.0)
@@ -500,7 +510,13 @@ func load_settings() -> void:
 	tts_on = cf.get_value("audio", "voices_on", tts_on)
 	fullscreen = cf.get_value("display", "fullscreen", fullscreen)
 	vsync = cf.get_value("display", "vsync", vsync)
-	quality = cf.get_value("display", "quality", quality)
+	quality = clampi(int(cf.get_value("display", "quality", quality)), 0, QUALITY.size() - 1)
+	upscale = clampi(int(cf.get_value("display", "upscale", upscale)), 0, UPSCALE.size() - 1)
+	render_scale = clampf(float(cf.get_value("display", "render_scale", render_scale)), 0.5, 1.0)
+	fps_cap = clampi(int(cf.get_value("display", "fps_cap", fps_cap)), 0, FPS_CAP.size() - 1)
+	color_grade = cf.get_value("display", "color_grade", color_grade)
+	ambient_fx = cf.get_value("display", "ambient_fx", ambient_fx)
+	recap_on = cf.get_value("game", "recap", recap_on)
 	text_speed = cf.get_value("game", "text_speed", text_speed)
 	music_once = cf.get_value("audio", "music_once", music_once)
 	cam_speed = cf.get_value("game", "cam_speed", cam_speed)
@@ -527,6 +543,12 @@ func save_settings() -> void:
 	cf.set_value("display", "fullscreen", fullscreen)
 	cf.set_value("display", "vsync", vsync)
 	cf.set_value("display", "quality", quality)
+	cf.set_value("display", "upscale", upscale)
+	cf.set_value("display", "render_scale", render_scale)
+	cf.set_value("display", "fps_cap", fps_cap)
+	cf.set_value("display", "color_grade", color_grade)
+	cf.set_value("display", "ambient_fx", ambient_fx)
+	cf.set_value("game", "recap", recap_on)
 	cf.set_value("game", "text_speed", text_speed)
 	cf.set_value("audio", "music_once", music_once)
 	cf.set_value("game", "cam_speed", cam_speed)
@@ -562,6 +584,7 @@ func apply_settings() -> void:
 		if DisplayServer.window_get_mode() != want and not (want == DisplayServer.WINDOW_MODE_WINDOWED and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MAXIMIZED):
 			DisplayServer.window_set_mode(want)
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
+		Engine.max_fps = FPS_CAP[fps_cap]
 	var lv = get_tree().current_scene if get_tree() else null
 	if lv and lv.has_method("apply_graphics"):
 		lv.apply_graphics()
@@ -700,6 +723,7 @@ func load_game(slot: String) -> bool:
 	var d := read_save(slot)
 	if d.is_empty():
 		return false
+	recap_pending = title_mode   # coming back from the title: "Previously on Trio Adventures" (recap.gd)
 	title_mode = false
 	apply_state(d["state"])
 	area_snapshot = d.get("snapshot", d["state"]).duplicate(true)

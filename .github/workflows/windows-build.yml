@@ -50,6 +50,13 @@ jobs:
           rm templates.tpz
           ls -la "$dest"
 
+      - name: Stamp the build (in-game updater, godot/scripts/updater.gd)
+        run: |
+          set -euo pipefail
+          stamp=$(date -u +'%Y-%m-%d %H:%M UTC')
+          printf '# Written by windows-build.yml at export time. In the repo this says "dev".\nclass_name BuildStamp\nconst COMMIT := "%s"\nconst BUILT := "%s"\n' "${GITHUB_SHA::7}" "$stamp" > godot/scripts/build_stamp.gd
+          cat godot/scripts/build_stamp.gd
+
       - name: Import assets
         run: ~/godot-bin/godot --headless --path godot --import || true
 
@@ -62,8 +69,24 @@ jobs:
           test -s build/windows/TrioAdventures.exe
           test -s build/windows/TrioAdventures.pck
 
-      - name: Zip
-        run: cd build/windows && zip -q -9 ../TrioAdventures-Windows.zip TrioAdventures.exe TrioAdventures.pck
+      - name: Zip + version.json
+        run: |
+          set -euo pipefail
+          cd build/windows && zip -q -9 ../TrioAdventures-Windows.zip TrioAdventures.exe TrioAdventures.pck
+          cd ..
+          cp windows/TrioAdventures.pck TrioAdventures.pck
+          python3 - <<'PY'
+          import json, os, subprocess
+          msg = subprocess.run(["git", "log", "-1", "--pretty=%s"], capture_output=True, text=True).stdout.strip()
+          json.dump({
+              "commit": os.environ["GITHUB_SHA"][:7],
+              "built": subprocess.run(["date", "-u", "+%Y-%m-%d %H:%M UTC"], capture_output=True, text=True).stdout.strip(),
+              "msg": msg[:120],
+              "engine": os.environ["GODOT_VERSION"] + ".0" if os.environ["GODOT_VERSION"].count(".") == 1 else os.environ["GODOT_VERSION"],
+              "pck_size": os.path.getsize("TrioAdventures.pck"),
+          }, open("version.json", "w"))
+          print(open("version.json").read())
+          PY
 
       - name: Publish to Releases
         env:
@@ -87,4 +110,4 @@ jobs:
           else
             gh release create "$TAG" --title "Trio Adventures — latest Windows build" --notes-file notes.md --latest
           fi
-          gh release upload "$TAG" build/TrioAdventures-Windows.zip --clobber
+          gh release upload "$TAG" build/TrioAdventures-Windows.zip build/TrioAdventures.pck build/version.json --clobber

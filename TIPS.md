@@ -137,6 +137,13 @@ fix or delete it and say so in the COLLAB Log. Anyone can edit any line here; no
 - [ebain] **New battle effects skip themselves in tours** (`auto_play` / `shots_mode`): particles, camera lean,
   hitstop, screen crack. To test them headless, drop those guards temporarily and run a `FIGHT=` tour.
 
+## AAA batch (ebain, 11/27)
+- [ebain] **A Node subclass can't have a var named `free`** ("Cannot assign a new value to a constant"): it clashes with `Node.free()`. Same for other Node method names in test stubs.
+- [ebain] **Finishing-blow detection:** battle events are computed up front, so `b.result()` is already "win" while the last batch is still animating. `_play` uses that to mark the last enemy-dropping `dmg` event. A slow-mo that's awaited inside an event must not overlap `_hitstop` (both set `Engine.time_scale`); `_outro` resets time_scale to 1.0 as a safety net.
+- [ebain] **Color grading = `Environment.adjustment_color_correction` with a GradientTexture1D**: Godot reads it per channel (R, G, B looked up separately), so a 2-stop gradient from `lo` to `hi` lifts the blacks toward `lo` and scales the whites toward `hi`. Keep tints within ~0.04 of black/white: more than that reads as a filter (Ebain disliked the too-red Pass).
+- [ebain] **Updater:** `OS.has_feature("template")` is true only in exported builds, so the update check never runs in the editor/sandbox. The `.pck` can't be replaced while the game runs on Windows (file is locked), hence `update.bat` waiting on the PID. CI writes `scripts/build_stamp.gd` before export: don't hand-edit the "dev" in the repo.
+- [ebain] Comparing a look change without eyeballing two screenshots: render the same `--views` shot with the change on and off (temp env var), then diff mean RGB + abs diff with PIL. The 11/27 grades come out ~5–7/255 mean abs diff (subtle on purpose).
+
 ## Testing tricks
 - [ebain] `SIM_MOVES=1` adds a move report to the balance sim (average skill only). The sim bot always picks specials
   first, so main attacks look rarer than they are for players: compare damage *per use*, not just use counts.

@@ -1,6 +1,7 @@
 # LibraryUI: Title → Library (Ebain 11/24). A hub with three pages:
 #   Soundtrack (here), Voice Lines (voice_lines_ui.gd: every recorded line, per character, searchable),
 #   Scrapbook (scrapbook_ui.gd: a page per story outcome).
+#   Bestiary (bestiary_ui.gd + bestiary.gd: Xylo's notes on every enemy you've fought, 11/27).
 # The Soundtrack: every song with play/pause, a now-playing bar you can
 # click to seek, and a Lyrics page (lyrics.gd). A song shows as "? ? ?" until you've heard it in the game
 # (AreaMusic calls LibraryUI.mark_heard() once its song is audible; the title song is unlocked from the start).
@@ -109,6 +110,8 @@ func _build(parent: Node, tm: AudioStreamPlayer) -> void:
 		  "note": "Every recorded line in the game. Pick a character or search for any line." },
 		{ "text": "Scrapbook", "value": "%d / %d" % [ScrapbookUI.found_count(), ScrapbookUI.story_items().size()], "pick": func(): await _page(ScrapbookUI.open(parent)),
 		  "note": "A page for every story choice you've found, and hints for the ones you haven't." },
+		{ "text": "Bestiary", "value": "%d / %d" % [Bestiary.seen_count(), Bestiary.ENTRIES.size()], "pick": func(): await _page(BestiaryUI.open(parent)),
+		  "note": "Xylo's Deloye Lore notes on everything you've fought. Weak spots included." },
 		{ "text": "Back", "pick": func(): hub.close() },
 	], { "w": 560, "font": 24 })
 	hub.closed.connect(_on_closed)

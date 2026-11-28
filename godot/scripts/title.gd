@@ -21,8 +21,41 @@ func _ready() -> void:
 	_start_music()
 	_logo()
 	_open_menu()
+	_check_update()
 	if "--shots" in OS.get_cmdline_user_args():
 		_shot_tour()
+
+# 11/27 shipping polish: the Windows build checks GitHub for a newer build (updater.gd) and adds a menu row if there is one
+var updater: Updater
+func _check_update() -> void:
+	updater = Updater.new()
+	add_child(updater)
+	if await _do_check() and is_instance_valid(menu) and menu.visible and MenuUI.stack.back() == menu:
+		var keep: int = menu.sel
+		menu.close()
+		_open_menu()
+		menu.sel = keep + 1
+		menu.refresh()
+
+func _do_check() -> bool:
+	updater.check()
+	return await updater.checked
+
+func _update() -> void:
+	var when := str(updater.info.get("built", ""))
+	var what := str(updater.info.get("msg", ""))
+	if not await MenuUI.confirm(ui, "A new build is out%s.%s\nDownload it now? The game restarts by itself when it's done." % [
+			(" (" + when + ")") if when != "" else "", ("\n\"" + what + "\"") if what != "" else ""], "Update", "Later"):
+		return
+	var box := { "m": null }
+	box["m"] = MenuUI.open(ui, "UPDATING", [{ "text": "Downloading…", "enabled": false }], { "w": 560 })
+	box["m"].big_note()
+	box["m"].on_back = func(): pass
+	updater.progress.connect(func(f): if is_instance_valid(box["m"]): box["m"].set_note("%d%%" % int(f * 100.0)))
+	var err := await updater.install()
+	if err != "" and is_instance_valid(box["m"]):
+		box["m"].close()
+		await MenuUI.confirm(ui, err, "OK", "Close")
 
 func _start_music() -> void:
 	var stream: AudioStreamOggVorbis = load("res://assets/music/prophecy_of_metocy.ogg")
@@ -119,7 +152,11 @@ func _logo() -> void:
 
 func _open_menu() -> void:
 	var latest := Game.latest_slot()
-	var rows := [
+	var rows := []
+	if updater and updater.available:
+		rows.append({ "text": "Update available!", "pick": func(): await _update(),
+		  "note": "A newer build of Trio Adventures is out. Pick this to download it (the game restarts itself)." })
+	rows += [
 		{ "text": "Continue", "enabled": latest != "", "pick": func():
 			await _fade_music()
 			Game.load_game(Game.latest_slot()),

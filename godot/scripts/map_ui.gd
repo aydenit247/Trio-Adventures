@@ -5,6 +5,8 @@ class_name MapUI
 #   Area  - this whole area, north up, with the same dots as the minimap and fog over places you haven't walked yet.
 #   World - the journey (Camp → Goblin Woods Trail → Goblin Village → Metocy Mart → The Pass → Summit Path & Wizard's Lair), fog over areas you haven't been to.
 # Q/E or ←/→ (or click a tab) switches tabs. M, Tab or Esc closes. Hover a dot to see what it is.
+# Fast travel (Ebain 11/27): on the World tab, click a finished area (or ↑/↓ to pick one, Enter / F / controller X)
+# to go there. Only from free roam (lv.can_resume()), only to areas whose free roam you've reached (FAST flags).
 
 signal closed
 
@@ -25,7 +27,19 @@ const SIDE := [
 	["Old Ruins & Rat Cave", Vector2(0.46, 0.84), "mart", ["ruins", "cave"]],
 ]
 
+# Fast travel: area key -> [scene, flag that means its free roam is open, which edge you arrive at (Level.arrival)]
+const FAST := {
+	"camp": ["res://main.tscn", "campDone", "trail"],
+	"trail": ["res://trail.tscn", "trailDone", "camp"],
+	"village": ["res://village.tscn", "villageOpen", "trail"],
+	"mart": ["res://mart.tscn", "martDone", "village"],
+	"pass": ["res://pass.tscn", "giantDone", "mart"],
+	"ruins": ["res://ruins.tscn", "ruinsStarted", "mart"],
+}
+
 var lv: Node
+var _ft_sel := ""          # fast-travel pick on the World tab (area key)
+var _ft_busy := false
 var tab := "area"
 var root: Control
 var box: Control          # where the map is drawn
@@ -226,7 +240,9 @@ func _draw_world() -> void:
 				box.draw_string(f, p + Vector2(-110, -44), "You are here", HORIZONTAL_ALIGNMENT_CENTER, 220, 16, GOLD)
 			else:
 				box.draw_circle(p, 6, INK)
-			_hits.append([p, WORLD[i][1]])
+			_hits.append([p, WORLD[i][1], key])
+			if key != here and can_travel(key):
+				_draw_travel_badge(p, 30.0, key)
 		else:   # fog: a clump of soft grey clouds and ???
 			var rng := RandomNumberGenerator.new()
 			rng.seed = hash(key)
@@ -257,13 +273,59 @@ func _draw_world() -> void:
 			box.draw_circle(p, 10 * pulse, Color.BLACK)
 			box.draw_circle(p, 7 * pulse, col)
 			box.draw_string(f, p + Vector2(-110, -34), "You are here", HORIZONTAL_ALIGNMENT_CENTER, 220, 16, GOLD)
-		_hits.append([p, sd[0]])
+		_hits.append([p, sd[0], "ruins"])
+		if not is_here and can_travel("ruins"):
+			_draw_travel_badge(p, 21.0, "ruins")
 	box.draw_string(f, Vector2(14, 28), "The Journey", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, GOLD)
+	if travel_ok():
+		box.draw_string(f, Vector2(14, bs.y - 16), "Fast travel: click an area with a gold ring  ·  ↑/↓ pick · Enter go", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(INK, 0.8))
+	elif not travel_targets().is_empty():
+		box.draw_string(f, Vector2(14, bs.y - 16), "Fast travel works when you're free to walk around.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(INK, 0.6))
+
+# ---------------------------------------------------------------- fast travel
+func travel_ok() -> bool:
+	return lv != null and not Game.title_mode and lv.can_resume() and not lv.get_children().any(func(c): return c is BattleView)
+
+func can_travel(key: String) -> bool:
+	if not FAST.has(key) or key == lv.area_key():
+		return false
+	if not (Game.visited.has(key)):
+		return false
+	return Game.flag(FAST[key][1])
+
+func travel_targets() -> Array:
+	var out := []
+	for w in WORLD:
+		if can_travel(w[0]): out.append(w[0])
+	if can_travel("ruins"): out.append("ruins")
+	return out
+
+func _draw_travel_badge(p: Vector2, r: float, key: String) -> void:
+	if not travel_ok():
+		return
+	var on := key == _ft_sel
+	var pulse := 0.5 + 0.5 * sin(lv.t * 3.0)
+	box.draw_arc(p, r + 6.0, 0, TAU, 48, Color(GOLD, 0.45 + 0.4 * pulse if on else 0.35), 4.0 if on else 2.0, true)
+	if on:
+		box.draw_string(ThemeDB.fallback_font, p + Vector2(-110, -r - 14), "Travel here", HORIZONTAL_ALIGNMENT_CENTER, 220, 16, GOLD)
+
+func _travel(key: String) -> void:
+	if _ft_busy or not can_travel(key) or not travel_ok():
+		return
+	_ft_busy = true
+	var ok: bool = await MenuUI.confirm(self, "Travel to %s?" % _area_name(key), "Go", "Stay")
+	_ft_busy = false
+	if not ok or not is_instance_valid(lv):
+		return
+	var who: String = lv.leader.id if lv.leader else "skorn"
+	var from: String = FAST[key][2]
+	close()
+	Game.travel(FAST[key][0], from, who)
 
 func _area_name(k: String) -> String:
 	for w in WORLD:
 		if w[0] == k: return w[1]
-	if k == "ruins": return "Old Ruins"
+	if k == "ruins": return "the Old Ruins"
 	if k == "cave": return "Rat Cave"
 	return k.capitalize()
 
@@ -274,6 +336,8 @@ func _build_legend() -> void:
 	legend.add_child(_lbl("Legend", 20, GOLD, 5))
 	if tab == "world":
 		legend.add_child(_lbl("Areas you've been to\nshow up. The rest is\nstill in the fog.", 15, Color(1, 1, 1, 0.8), 4))
+		if not travel_targets().is_empty():
+			legend.add_child(_lbl("\nGold ring = you can\nfast travel there.", 15, GOLD, 4))
 		return
 	var have := {}
 	for pt in lv.map_points():
@@ -296,6 +360,12 @@ func _build_legend() -> void:
 
 # ---------------------------------------------------------------- input
 func _box_input(ev: InputEvent) -> void:
+	if tab == "world" and ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+		for h in _hits:
+			if h.size() > 2 and h[0].distance_to(ev.position) < 40.0 and can_travel(h[2]):
+				_ft_sel = h[2]
+				_travel(h[2])
+				return
 	if ev is InputEventMouseMotion:
 		var best := ""
 		var bd := 14.0
@@ -319,6 +389,16 @@ func _input(ev: InputEvent) -> void:
 	if ev.is_action_pressed("map") or ev.is_action_pressed("party_menu") or ev.is_action_pressed("pause") or ev.is_action_pressed("ui_cancel") \
 			or (ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_B):
 		close()
+	elif tab == "world" and travel_ok() and not travel_targets().is_empty() and (ev.is_action_pressed("ui_up") or ev.is_action_pressed("ui_down") \
+			or (ev is InputEventKey and ev.physical_keycode in [KEY_W, KEY_S])):
+		var t := travel_targets()
+		var i := t.find(_ft_sel)
+		var down: bool = ev.is_action_pressed("ui_down") or (ev is InputEventKey and ev.physical_keycode == KEY_S)
+		_ft_sel = t[posmod(i + (1 if down else -1), t.size()) if i >= 0 else 0]
+		UITheme.play("move")
+	elif tab == "world" and _ft_sel != "" and ((ev is InputEventKey and ev.physical_keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_F]) \
+			or (ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_X)):
+		_travel(_ft_sel)
 	elif ev.is_action_pressed("switch") or ev.is_action_pressed("interact") or ev.is_action_pressed("ui_left") or ev.is_action_pressed("ui_right") \
 			or (ev is InputEventKey and ev.physical_keycode in [KEY_E, KEY_Q]) \
 			or (ev is InputEventJoypadButton and ev.button_index in [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER]):
