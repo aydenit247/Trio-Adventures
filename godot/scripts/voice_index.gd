@@ -183,4 +183,50 @@ const LINES := {
 	"youlaceduswithmidtocy": "skorn/skorn_you_laced_us_with_midtocy.ogg",  # YOU LACED US WITH MIDTOCY?!
 	"youthinktheygotsnacks": "skorn/skorn_you_think_they_got_snacks.ogg",  # You think they got snacks?
 	"yallhadsaidicouldgetsomebussy": "troll/troll_clone_y_all_had_said_i_could_get_some_bussy.ogg",  # Y'all had said i could get some bussy?
+	"atragicchapter": "xylo/xylo_clone_a_tragic_chapter.ogg",  # A tragic chapter.
+	"andwestilldonotknowwherethemetocyis": "xylo/xylo_clone_and_we_still_do_not_know_where_the_metocy_is.ogg",  # And we still do not know where the metocy is.
+	"asforetoldinvolumenine": "xylo/xylo_clone_as_foretold_in_volume_nine.ogg",  # As foretold in volume nine.
+	"ayyougoodbruhhesnoringloudashell": "xylo/xylo_clone_ay_you_good_bruh_he_snoring_loud_as_hell.ogg",  # Ay you good bruh, he snoring loud as hell.
+	"beholdmychudform": "xylo/xylo_clone_behold_my_chud_form.ogg",  # Behold. My chud form.
+	"butthisoneismoist": "xylo/xylo_clone_but_this_one_is_moist.ogg",  # But this one… is moist.
+	"causetheythinkhesexyashelllikeyep": "xylo/xylo_clone_cause_they_think_he_sexy_as_hell_like_yep.ogg",  # Cause they think he sexy as hell… like, yep.
+	"chillthemgoblinsupnorthknoweveryroadincaelidwejustaskthem": "xylo/xylo_clone_chill_them_goblins_up_north_know_every_road_in_c.ogg",  # Chill. Them goblins up north know every road in Caelid. We just ask them.
+	"chudout": "xylo/xylo_clone_chud_out.ogg",  # CHUD. OUT.
+	"damnhewasdigginginmefolk": "xylo/xylo_clone_damn_he_was_digging_in_me_folk.ogg",  # Damn he was digging in me, folk
+	"damnthatwasodtogetheremywingshurtandidontevenusethem": "xylo/xylo_clone_damn_that_was_od_to_get_here_my_wings_hurt_and_i.ogg",  # Damn that was OD to get here, my wings hurt and I don't even use them.
+	"deloyelorevolume4saysthenightbeforeaquestissacred": "xylo/xylo_clone_deloye_lore_volume_4_says_the_night_before_a_que.ogg",  # Deloye Lore, Volume 4, says the night before a quest is sacred.
+	"deloyewasright": "xylo/xylo_clone_deloye_was_right.ogg",  # Deloye was right.
+	"guarditfromwhat": "xylo/xylo_clone_guard_it_from_what.ogg",  # Guard it from what.
+	"ididnotseetscomingtswasnotinthedeloyelorescripture": "xylo/xylo_clone_i_did_not_see_ts_coming_ts_was_not_in_the_deloye.ogg",  # I did not see ts coming. Ts was not in the Deloye Lore scripture.
+	"imleadingfromhere": "xylo/xylo_clone_i_m_leading_from_here.ogg",  # I'm leading from here.
+	"imrunninglowonlorepoints": "xylo/xylo_clone_i_m_running_low_on_lore_points.ogg",  # I'm running low on Lore Points.
+	"itisperfectlycanon": "xylo/xylo_clone_it_is_perfectly_canon.ogg",  # It is PERFECTLY canon.
+	"itiswritteninchapter8784sectionb12thattruemetocyglowsfromwithinitsshelldryasdesertbonesmoothasasagesforeheadtruemetocyisnevermoist": "xylo/xylo_clone_it_is_written_in_chapter_8_784_section_b12_that.ogg",  # It is written, in chapter 8,784, section B12, that true metocy glows from within — its shell dry as desert bone, smooth as a sage's forehead. True metocy is NEVER moist.
+	"justwatchfolk": "xylo/xylo_clone_just_watch_folk.ogg",  # Just watch, folk.
+	"lykorfocusaskhim": "xylo/xylo_clone_lykor_focus_ask_him.ogg",  # Lykor. Focus. Ask him.
+	"maaaanitscauseyoassgeekinoffthatmidtocy": "xylo/xylo_clone_maaaan_it_s_cause_yo_ass_geekin_off_that_midtocy.ogg",  # Maaaan, it's cause yo ass geekin off that midtocy.
+	"maaanthisoneiscrackedpurpleandgrowingasmallcivilization": "xylo/xylo_clone_maaan_this_one_is_cracked_purple_and_growing_a_s.ogg",  # Maaan, this one is cracked, purple, and growing a small civilization.
+	"nothingthereisnolore": "xylo/xylo_clone_nothing_there_is_no_lore.ogg",  # Nothing. There is no lore.
+	"ondulbmeethus": "xylo/xylo_clone_on_dulbmeethus.ogg",  # On dulbmeethus
+	"onmydragongrandpaourentouragehasleftus": "xylo/xylo_clone_on_my_dragon_grandpa_our_entourage_has_left_us.ogg",  # On my Dragon Grandpa… our entourage has left us.
+	"onmydragonmama": "xylo/xylo_clone_on_my_dragon_mama.ogg",  # On my Dragon Mama.
+	"onmydragonmamaimleadingfromhere": "xylo/xylo_clone_on_my_dragon_mama_i_m_leading_from_here.ogg",  # On my Dragon Mama, I'm leading from here.
+	"onmydragonmamaiseenthisinavisionijustaintthinkitdbethisdumb": "xylo/xylo_clone_on_my_dragon_mama_i_seen_this_in_a_vision_i_just.ogg",  # On my Dragon Mama... I seen this in a vision. I just ain't think it'd be this dumb.
+	"onmydragonmamaitsaysmetocymarteastloser": "xylo/xylo_clone_on_my_dragon_mama_it_says_metocy_mart_east_loser.ogg",  # On my Dragon Mama… it says "METOCY MART, EAST. LOSER."
+	"onmydragonmamawegotanentouragenow": "xylo/xylo_clone_on_my_dragon_mama_we_got_an_entourage_now.ogg",  # On my Dragon Mama… we got an entourage now.
+	"onmyunborndragoneggicanseesoundsthesoundsispurple": "xylo/xylo_clone_on_my_unborn_dragon_egg_i_can_see_sounds_the_sou.ogg",  # On my Unborn dragon egg… I can see sounds. The sounds is purple.
+	"propheciesbeweirdlikethat": "xylo/xylo_clone_prophecies_be_weird_like_that.ogg",  # Prophecies be weird like that.
+	"rude": "xylo/xylo_clone_rude.ogg",  # Rude.
+	"shutuplykor": "xylo/xylo_clone_shut_up_lykor.ogg",  # Shut up Lykor
+	"standbackherequireslore": "xylo/xylo_clone_stand_back_he_requires_lore.ogg",  # Stand back! He requires… lore.
+	"sumdontfeelrightfolk": "xylo/xylo_clone_sum_don_t_feel_right_folk.ogg",  # Sum don't feel right, folk.
+	"thatwasunlorelike": "xylo/xylo_clone_that_was_un_lore_like.ogg",  # That was un-lore-like.
+	"theloredidnotpreparemeforthis": "xylo/xylo_clone_the_lore_did_not_prepare_me_for_this.ogg",  # The lore did not prepare me for this.
+	"thelorehasfinallyserveditspurpose": "xylo/xylo_clone_the_lore_has_finally_served_its_purpose.ogg",  # The lore… has finally served its purpose.
+	"thereicanfeelitthemetocyisnear": "xylo/xylo_clone_there_i_can_feel_it_the_metocy_is_near.ogg",  # There. I can feel it. The metocy is near.
+	"theysellit": "xylo/xylo_clone_they_sell_it.ogg",  # They… sell it?
+	"thiswasnotinthescripture": "xylo/xylo_clone_this_was_not_in_the_scripture.ogg",  # This was… not in the scripture…
+	"waitasecondsumdontfeelrightfolk": "xylo/xylo_clone_wait_a_second_sum_don_t_feel_right_folk.ogg",  # Wait a second… sum don't feel right, folk.
+	"wearentleavinghimherearewe": "xylo/xylo_clone_we_aren_t_leaving_him_here_are_we.ogg",  # We aren't leaving him here, are we?
+	"yesthedepthofthisloreistoodeepforonehumantobeabletolearnoringestitall": "xylo/xylo_clone_yes_the_depth_of_this_lore_is_too_deep_for_one_h.ogg",  # Yes. The depth of this lore is too deep for one human to be able to learn or ingest it all
 }
