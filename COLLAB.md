@@ -10,6 +10,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ### Claimed / in progress
 <!-- One line per task:  - [who] task — files: a.gd, b.gd — branch: who/task — started YYYY-MM-DD -->
+- [ebain] AAA batch: Deloye Lore Bestiary, fast travel, "Previously on" recap, finishing-blow cam, ambient particles + soft color grade, shipping polish (shader warm-up, graphics presets/FSR, in-game updater) — files: new bestiary.gd/bestiary_ui.gd/recap.gd/area_fx.gd/updater.gd, map_ui.gd, library_ui.gd, title.gd, menu_ui.gd, level.gd, game.gd, combat/battle_view.gd, .github/workflows/windows-build.yml — branch: ebain/aaa-batch — started 2026-11-27
 
 ### Up next (unclaimed — grab one by moving it up and adding your name)
 - Personal side quests in the village: Lykor's hair contest, Xylo's lore class for goblin kids, Skorn's job interviews
@@ -85,6 +86,7 @@ assistant (docs hygiene + light tasks; see "Grok's lane" in CLAUDE.md).
 
 ## Claimed files
 <!-- Files someone is editing right now. Remove your lines when you merge. -->
+- [ebain] level.gd, game.gd, combat/battle_view.gd (hot spots, short), map_ui.gd, library_ui.gd, title.gd, menu_ui.gd, windows-build.yml
 
 ## Log (newest first)
 - 2026-11-27 [ebain] Docs only: Ebain's answers on who did what for the credits are in HANDOFF (section 5, under "End credits"). Not applied to `credits.gd` yet, on purpose (game isn't done). **@asar:** you're credited for Ruins + Rat Cave dialogue, goblin voices, 3D models, some item art, combat help, co-creating Charis's house (plus the explorer bot / dialogue map). Say so in the Log if anything's missing.
