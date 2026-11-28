@@ -155,7 +155,7 @@ the **metocy**, a mystical herb in a tiny blue oval capsule.
   comes back (the summit ambush) on runs where he got away.
 - **Fentocy** is a different pill from midtocy. Offering it to Dulbers kills him (he thinks it's midtocy).
 - Losing the sucker-punch fight against Mattias is its own Chapter 1 ending, not a retry.
-- **The land is called Chudmoor** (Ebain 11/25).
+- **The land is called Chudmoor** (Ebain 11/25). Before civilization took over, it was **Caelid** (Ebain 11/27).
 - **Death** (Ebain 11/25) is a real character: a really nice, personable guy who is also the Grim Reaper. He isn't after
   the metocy; he only shows up to be there for people who died. He has taken metocy with Dulbmeethus.
 - **Dulbmeethus** was a god from the start and **made metocy**; he gave Mattias the metocy spells and made him its
@@ -230,7 +230,7 @@ too stupid if it's played straight. **Lykor is pronounced LIE-core** (spell it "
   in de bih"). **Mud:** what Deloye calls you ("Here you go, mud."; also "Dat bih fire mud"). **Pull up:** come over.
   **Got da plug:** has a dealer coming. **Faded:** high (the buff). (All from Ebain's Deloye library script, 11/25.)
 - **The Squeak Easy:** the Podcast Rat's podcast in the Rat Casino booth (Ebain 11/27). Lykor guests on it in a linear 2–3 min video cutscene Ebain makes with Gemini; Lykor's glad to be there and having a good time, and it ends with Skorn and Xylo crashing the booth. Watching it unlocks the achievement **"On Some Podcast Shi"**. Ebain's lines: "How did you get your jawline so sharp like that?" → **"Bone smashing"** (Lykor's jawline secret) · "Did you hear about the goblins going conservative recently?" · "I heard Diddy Chud Giant has been beefing with Dulbmeethus ever since he spawned him into Caelid."
-- **Caelid:** where Dulbmeethus spawned the Diddy Chud Giant; the giant has been beefing with Dulbmeethus ever since (Ebain 11/27, the podcast). Ask Ebain before adding more about it.
+- **Caelid:** what Chudmoor was before civilization took over and turned it into the land the game is in now. Dulbmeethus spawned the Diddy Chud Giant into Caelid, and the giant has been beefing with him ever since (Ebain 11/27, the podcast).
 - **John's orb:** a lore term from the title music. **John and John's orb** make Deloye write forever (Ebain 11/25). What John is: not given yet, ask Ebain before saying more.
 
 ---
